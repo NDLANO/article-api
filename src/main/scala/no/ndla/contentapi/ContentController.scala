@@ -1,7 +1,9 @@
 package no.ndla.contentapi
 
 import com.typesafe.scalalogging.LazyLogging
-import no.ndla.contentapi.model.ContentMetaSummary
+import no.ndla.contentapi.JettyLauncher._
+import no.ndla.contentapi.model._
+import no.ndla.contentapi.network.ApplicationUrl
 import no.ndla.logging.LoggerContext
 import org.json4s.{DefaultFormats, Formats}
 import org.scalatra.ScalatraServlet
@@ -27,19 +29,25 @@ class ContentController (implicit val swagger:Swagger) extends ScalatraServlet w
       queryParam[Option[String]]("license").description("Return only content with provided license.")
       ))
 
-  // Before every action runs, set the content type to be in JSON format.
   before() {
     contentType = formats("json")
     LoggerContext.setCorrelationID(Option(request.getHeader("X-Correlation-ID")))
+    ApplicationUrl.set(request)
   }
 
   after() {
     LoggerContext.clearCorrelationID
+    ApplicationUrl.clear()
   }
 
   get("/", operation(getAllContent)) {
-    ContentMetaSummary("1", "TestTittel", "http://api.test.ndla.no", "by-sa")
+    List(
+      ContentMetaSummary("1", "Myklesaken splittet Norge", s"${ApplicationUrl.get()}1", "by-sa"),
+      ContentMetaSummary("2", "HMS Spillet", s"${ApplicationUrl.get()}2", "by-sa")
+    )
   }
 
-
+  get("/:content_id") {
+    io.Source.fromInputStream(getClass.getResourceAsStream(s"/testdata/${params("content_id")}.json")).mkString
+  }
 }

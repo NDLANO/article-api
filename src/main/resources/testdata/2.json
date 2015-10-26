@@ -1,0 +1,217 @@
+{
+  "id": 2,
+  "h5p": {
+    "title": "HMS Spillet",
+    "language": "und",
+    "mainLibrary": "H5P.Column",
+    "embedTypes": [
+      "div"
+    ],
+    "preloadedDependencies": [
+      {
+        "machineName": "H5P.Image",
+        "majorVersion": "1",
+        "minorVersion": "0"
+      },
+      {
+        "machineName": "H5P.AdvancedText",
+        "majorVersion": "1",
+        "minorVersion": "1"
+      },
+      {
+        "machineName": "H5P.Blanks",
+        "majorVersion": "1",
+        "minorVersion": "4"
+      },
+      {
+        "machineName": "FontAwesome",
+        "majorVersion": "4",
+        "minorVersion": "3"
+      },
+      {
+        "machineName": "H5P.JoubelUI",
+        "majorVersion": "1",
+        "minorVersion": "2"
+      },
+      {
+        "machineName": "H5P.Transition",
+        "majorVersion": "1",
+        "minorVersion": "0"
+      },
+      {
+        "machineName": "H5P.Question",
+        "majorVersion": "1",
+        "minorVersion": "1"
+      },
+      {
+        "machineName": "H5P.QuestionSet",
+        "majorVersion": "1",
+        "minorVersion": "5"
+      },
+      {
+        "machineName": "EmbeddedJS",
+        "majorVersion": "1",
+        "minorVersion": "0"
+      },
+      {
+        "machineName": "H5P.Video",
+        "majorVersion": "1",
+        "minorVersion": "1"
+      },
+      {
+        "machineName": "flowplayer",
+        "majorVersion": "1",
+        "minorVersion": "0"
+      },
+      {
+        "machineName": "H5P.Column",
+        "majorVersion": "1",
+        "minorVersion": "0"
+      },
+      {
+        "machineName": "H5P.QuestionContainer",
+        "majorVersion": "1",
+        "minorVersion": "0"
+      }
+    ]
+  },
+  "content": {
+    "content": [
+      {
+        "params": {
+          "contentName": "Image",
+          "file": {
+            "path": "images/file-562675c22341d.jpg",
+            "mime": "image/jpeg",
+            "copyright": {
+              "license": "CC BY-NC-SA",
+              "title": "Kokk på restaurant kjøkken",
+              "author": "Dag Jensen",
+              "source": "http://ndla.no/nb/node/98057"
+            },
+            "width": 960,
+            "height": 640
+          },
+          "alt": "Kokk på restaurant kjøkken. Foto."
+        },
+        "library": "H5P.Image 1.0",
+        "subContentId": "423e9f1c-0a7f-4069-9e5f-7fe1ff61593e"
+      },
+      {
+        "params": {
+          "text": "<p>I dette spillet skal du sette deg inn i HMS arbeid. Helse, miljø og sikkerhetsarbeidet skal sikre at ansatte ikke blir syke eller skadet på arbeidsplassen. Sikkerhet og en trygg og trivelig arbeidsplass er lønnsom både for bedriften og de ansatte.</p>\n\n<p>Sett disse ordene på rett plass:</p>\n\n<ul>\n\t<li>arbeidsgiver</li>\n\t<li>tiltak</li>\n\t<li>dokumentasjon</li>\n\t<li>ansatte</li>\n\t<li>risikovurdering</li>\n\t<li>evaluering</li>\n\t<li>målsetting</li>\n\t<li>sikkerhetsblad</li>\n\t<li>internkontroll</li>\n</ul>\n"
+        },
+        "library": "H5P.AdvancedText 1.1",
+        "subContentId": "df3f59cb-aca3-4180-b454-4eff4ab70a09"
+      },
+      {
+        "params": {
+          "introPage": {
+            "showIntroPage": true,
+            "startButtonText": "Start",
+            "title": "HMS-arbeid",
+            "introduction": "<p>I dette spillet skal du sette deg inn i HMS-arbeid.<br>\nHelse-, miljø- og sikkerhetsarbeidet skal sikre at ansatte ikke blir syke eller skadet på arbeidsplassen. Sikkerhet og en trygg og trivelig tilværelse på arbeidsplassen er lønnsomt både for bedriften og for de ansatte. Alle bedrifter er lovpålagt å drive HMS-arbeid.</p>\n\n<p>Trykk på «start» når du har memorert de ulike aspektene:</p>\n\n<p><strong>Målsetting</strong>: Motiverer til å skape en trygg, sikker og trivelig arbeidsplass.</p>\n\n<p><strong>Risikovurdering</strong>: Å liste opp det som kan gå galt, det som er helseskadelig, og diskutere hvor galt det kan gå.</p>\n\n<p><strong>Tiltak</strong>: Reduserer risikoen for at sykdom eller skade kan oppstå.</p>\n\n<p><strong>Internkontroll</strong>: Å få oversikt over risikoforhold og beskrive hvordan uhell, ulykker og «uhelse» kan forebygges i bedriften.</p>\n\n<p><strong>Evaluering</strong>: Gjøres for å finne ut om resultatet ble som ventet – hvis det ikke ble det, må man gjøre noe med det.</p>\n\n<p><strong>Sikkerhetsdatablad</strong>: Viktige dokumenter for å få kunnskaper om faremomenter ved forskjellige stoffer. Det settes opp rutiner som sikrer tilgjengelighet, kvalitet, regelverk og krav til disse databladene.</p>\n\n<p><strong>Dokumentasjon</strong>: Skal beskrive det man skal gjøre, det man faktisk gjør, og resultatene. Helt vesentlig når arbeidstilsynet kommer på inspeksjon.</p>\n\n<p><strong>Arbeidsgiver</strong>: Har hovedansvaret for å legge til rette et godt og sikkert arbeidsmiljø, stille verneutstyr til disposisjon og sørge for tilstrekkelig opplæring.</p>\n\n<p><strong>Ansatte</strong>: Har plikt til å medvirke, plikt til å melde fra om farlige forhold og handlinger, medvirke til et godt arbeidsmiljø og bruke pålagt og tilgjengelig verneutstyr.</p>\n",
+            "backgroundImage": {
+              "path": "http://ndla.no:80/sites/default/files/images/bakgrunn-blue-grey.jpg",
+              "mime": "image/jpeg",
+              "width": 620,
+              "height": 1500,
+              "copyright": {
+                "title": "Bakgrunn blå grå tone",
+                "author": "Johannes Leiknes Nag",
+                "license": "CC BY-SA"
+              }
+            }
+          },
+          "progressType": "dots",
+          "passPercentage": 50,
+          "questions": [
+            {
+              "params": {
+                "questions": [
+                  "<p>*Målsetting*: Motiverer til å skape en trygg, sikker og trivelig arbeidsplass.</p>\n",
+                  "<p>*Risikovurdering*: Å liste opp det som kan gå galt, det som er helseskadelig, og diskutere hvor galt det kan gå.</p>\n",
+                  "<p>*Tiltak*: Reduserer risikoen for at sykdom eller skade kan oppstå.</p>\n",
+                  "<p>*Internkontroll*: Å få oversikt over risikoforhold og beskrive hvordan uhell, ulykker og «uhelse» kan forebygges i bedriften.</p>\n",
+                  "<p>*Evaluering*: Gjøres for å finne ut om resultatet ble som ventet – hvis det ikke ble det, må man gjøre noe med det.</p>\n",
+                  "<p>*Sikkerhetsdatablad*: Viktige dokumenter for å få kunnskaper om faremomenter ved forskjellige stoffer. Det settes opp rutiner som sikrer tilgjengelighet, kvalitet, regelverk og krav til disse databladene.</p>\n",
+                  "<p>*Dokumentasjon*: Skal beskrive det man skal gjøre, det man faktisk gjør, og resultatene. Helt vesentlig når arbeidstilsynet kommer på inspeksjon.</p>\n",
+                  "<p>*Arbeidsgiver*: Har hovedansvaret for å legge til rette et godt og sikkert arbeidsmiljø, stille verneutstyr til disposisjon og sørge for tilstrekkelig opplæring.</p>\n",
+                  "<p>*Ansatte*: Har plikt til å medvirke, plikt til å melde fra om farlige forhold og handlinger, medvirke til et godt arbeidsmiljø og bruke pålagt og tilgjengelig verneutstyr.</p>\n"
+                ],
+                "score": "Du fikk @score av @total felt rett.",
+                "showSolutions": "Vis svar",
+                "tryAgain": "Prøv igjen",
+                "checkAnswer": "Sjekk",
+                "notFilledOut": "Du må fylle inn alle felter",
+                "behaviour": {
+                  "enableRetry": true,
+                  "enableSolutionsButton": true,
+                  "autoCheck": true,
+                  "caseSensitive": false,
+                  "showSolutionsRequiresInput": true,
+                  "separateLines": false
+                },
+                "text": "<p>Fyll inn overskriftene for de ulike aspektene av helse, miljø og sikkerhet:</p>\n",
+                "image": {
+                  "path": "http://ndla.no:80/sites/default/files/images/hms-grafikkbm.png",
+                  "mime": "image/png",
+                  "width": 534,
+                  "height": 388,
+                  "copyright": {
+                    "title": "Prosessen i HMS-arbeid",
+                    "author": "Amendor AS",
+                    "license": "CC BY-NC-SA"
+                  }
+                }
+              },
+              "library": "H5P.Blanks 1.4",
+              "subContentId": "39d07a63-8b3c-4c37-a2e3-8c06e2abee7d"
+            }
+          ],
+          "texts": {
+            "prevButton": "Forrige",
+            "nextButton": "Neste",
+            "finishButton": "Avslutt",
+            "textualProgress": "Deloppgave @current av @total"
+          },
+          "endGame": {
+            "showResultPage": true,
+            "message": "Ditt resultat:",
+            "scoreString": "Du fikk @score poeng av @total mulige.",
+            "successGreeting": "Gratulerer!",
+            "successComment": "Du presterte godt!",
+            "failGreeting": "Ikke bestått",
+            "failComment": "Ikke bestått. Prøv igjen!",
+            "solutionButtonText": "Vis fasit",
+            "retryButtonText": "Prøv igjen",
+            "finishButtonText": "Avslutt",
+            "showAnimations": false,
+            "skippable": false,
+            "skipButtonText": "Hopp over"
+          },
+          "override": {
+            "overrideButtons": false,
+            "overrideShowSolutionButton": false,
+            "overrideRetry": false
+          },
+          "questionLabel": "Spørsmål",
+          "backgroundImage": {
+            "path": "http://ndla.no:80/sites/default/files/images/bakgrunn-blue-grey2.jpg",
+            "mime": "image/jpeg",
+            "width": 620,
+            "height": 1500,
+            "copyright": {
+              "title": "Bakgrunn grå blå tone",
+              "author": "Johannes Leiknes Nag",
+              "license": "CC BY-SA"
+            }
+          }
+        },
+        "library": "H5P.QuestionSet 1.5",
+        "subContentId": "c222b743-02c4-494e-a0b2-f1ee34d31a35"
+      }
+    ],
+    "type": "article"
+  }
+}

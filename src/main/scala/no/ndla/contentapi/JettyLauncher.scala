@@ -8,7 +8,7 @@ package no.ndla.contentapi
 
 import com.typesafe.scalalogging.LazyLogging
 import org.eclipse.jetty.server.Server
-import org.eclipse.jetty.servlet.DefaultServlet
+import org.eclipse.jetty.servlet.{ServletContextHandler, DefaultServlet}
 import org.eclipse.jetty.util.resource.ResourceCollection
 import org.eclipse.jetty.webapp.WebAppContext
 import org.scalatra.servlet.ScalatraListener
@@ -22,21 +22,14 @@ object JettyLauncher extends LazyLogging {
 
     val startMillis = System.currentTimeMillis();
 
-    val server = new Server(ContentApiProperties.ApplicationPort)
-    val context = new WebAppContext()
-
-    val staticResources = new ResourceCollection(Array(
-      getClass.getResource("/content-api").toExternalForm,
-      getClass.getResource("/META-INF/resources/webjars").toExternalForm))
-
+    val context = new ServletContextHandler()
     context setContextPath "/"
     context.setVirtualHosts(ContentApiProperties.Domains)
-    context.setBaseResource(staticResources)
-    context.setWelcomeFiles(Array("index.html"))
     context.addEventListener(new ScalatraListener)
     context.addServlet(classOf[DefaultServlet], "/")
     context.setInitParameter("org.eclipse.jetty.servlet.Default.dirAllowed", "false")
 
+    val server = new Server(ContentApiProperties.ApplicationPort)
     server.setHandler(context)
     server.start
 
