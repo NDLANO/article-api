@@ -46,14 +46,14 @@ class ContentController (implicit val swagger:Swagger) extends ScalatraServlet w
   }
 
   after() {
-    LoggerContext.clearCorrelationID
+    LoggerContext.clearCorrelationID()
     ApplicationUrl.clear()
   }
 
   get("/", operation(getAllContent)) {
     List(
       ContentMetaSummary("1", "Myklesaken splittet Norge", s"${ApplicationUrl.get()}1", "by-sa"),
-      ContentMetaSummary("2", "HMS Spillet", s"${ApplicationUrl.get()}2", "by-sa")
+      ContentMetaSummary("2", "Hva er utholdenhet", s"${ApplicationUrl.get()}2", "by-sa")
     )
   }
 
@@ -62,14 +62,14 @@ class ContentController (implicit val swagger:Swagger) extends ScalatraServlet w
       ContentMetaInformation("1",
         List(ContentTitle("Myklesaken splittet Norge", Some("nb"))),
         io.Source.fromInputStream(getClass.getResourceAsStream(s"/testdata/1.html")).mkString,
-        Copyright(License("by-nc-sa", "Creative Commons Attribution-NonCommercial-ShareAlike 2.0 Generic", Some("https://creativecommons.org/licenses/by-nc-sa/2.0/")), "NTB Tema", List(Author("forfatter", "INGRID BRUBAKER"))),
+        Copyright(License("by-nc-sa", "Creative Commons Attribution-NonCommercial-ShareAlike 2.0 Generic", Some("https://creativecommons.org/licenses/by-nc-sa/2.0/")), "NTB Tema", List(Author("forfatter", "Ingrid Brubaker"))),
         List(ContentTag("myklesaken", Some("nb")), ContentTag("norge", Some("nb")))),
 
     "2" -> ContentMetaInformation("2",
-      List(ContentTitle("HMS Spillet", Some("nb"))),
+      List(ContentTitle("Hva er utholdenhet", Some("nb"))),
       io.Source.fromInputStream(getClass.getResourceAsStream(s"/testdata/2.html")).mkString,
-      Copyright(License("by-nc-sa", "Creative Commons Attribution-NonCommercial-ShareAlike 2.0 Generic", Some("https://creativecommons.org/licenses/by-nc-sa/2.0/")), "Amendor", List(Author("forfatter", "GURI BENTE HÅRBERG"))),
-      List(ContentTag("hms", Some("nb")), ContentTag("spill", Some("nb"))))
+      Copyright(License("by-nc-sa", "Creative Commons Attribution-NonCommercial-ShareAlike 2.0 Generic", Some("https://creativecommons.org/licenses/by-nc-sa/2.0/")), "Ukjent", List(Author("forfatter", "Oddbjørg Vatn Slapgaard"))),
+      List(ContentTag("utholdenhet", Some("nb")), ContentTag("aerob", Some("nb"))))
   )
 
 
