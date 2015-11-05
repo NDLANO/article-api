@@ -15,7 +15,8 @@ object ContentApiProperties extends LazyLogging {
 
   val ContactEmail = get("CONTACT_EMAIL")
   val ApplicationPort = getInt("APPLICATION_PORT")
-  val Domains = get("DOMAINS").split(",")
+  val HostAddr = get("HOST_ADDR")
+  val Domains = get("DOMAINS").split(",") ++ Array(HostAddr)
 
   def verify() = {
     val missingProperties = ContentApiProps.filter(entry => entry._2.isEmpty).toList
