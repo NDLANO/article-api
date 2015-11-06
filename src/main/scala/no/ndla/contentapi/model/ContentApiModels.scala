@@ -19,7 +19,8 @@ case class ContentMetaInformation(
   @(ApiModelProperty @field)(description = "Available titles for the image") titles:List[ContentTitle],
   @(ApiModelProperty @field)(description = "The content") content: String,
   @(ApiModelProperty @field)(description = "Describes the copyright information for the image") copyright:Copyright,
-  @(ApiModelProperty @field)(description = "Searchable tags for the image") tags:List[ContentTag]
+  @(ApiModelProperty @field)(description = "Searchable tags for the image") tags:List[ContentTag],
+  @(ApiModelProperty @field)(description = "Searchable tags for the image") requiredLibraries:List[RequiredLibrary]
 )
 
 @ApiModel(description = "Description of a title")
@@ -52,4 +53,11 @@ case class License(
 case class Author(
   @(ApiModelProperty @field)(description = "The description of the author. Eg. Photographer or Supplier") `type`:String,
   @(ApiModelProperty @field)(description = "The name of the of the author") name:String
+)
+
+@ApiModel(description = "Information about a library required to render the content")
+case class RequiredLibrary(
+  @(ApiModelProperty @field)(description = "The type of the library. E.g. CSS or JavaScript") mediaType:String,
+  @(ApiModelProperty @field)(description = "The name of the library") name:String,
+  @(ApiModelProperty @field)(description = "The full url to where the library can be downloaded") url:String
 )
