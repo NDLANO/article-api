@@ -4,6 +4,8 @@ import com.typesafe.scalalogging.LazyLogging
 import no.ndla.contentapi.JettyLauncher._
 import no.ndla.contentapi.model._
 import no.ndla.contentapi.network.ApplicationUrl
+import no.ndla.contentapi.model.Error
+import no.ndla.contentapi.model.Error._
 import no.ndla.logging.LoggerContext
 import org.json4s.{DefaultFormats, Formats}
 import org.scalatra.ScalatraServlet
@@ -81,9 +83,10 @@ class ContentController (implicit val swagger:Swagger) extends ScalatraServlet w
 
 
   get("/:content_id", operation(getContentById)) {
-    testdata get params("content_id") match {
+    val contentId = params("content_id")
+    testdata get contentId match {
       case Some(x) => x
-      case None => None
+      case None => halt(status = 404, body = Error(NOT_FOUND, s"No content with id $contentId found"))
     }
   }
 }
