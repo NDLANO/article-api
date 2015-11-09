@@ -56,7 +56,8 @@ class ContentController (implicit val swagger:Swagger) extends ScalatraServlet w
     List(
       ContentMetaSummary("1", "Myklesaken splittet Norge", s"${ApplicationUrl.get()}1", "by-sa"),
       ContentMetaSummary("2", "Hva er utholdenhet", s"${ApplicationUrl.get()}2", "by-sa"),
-      ContentMetaSummary("3", "Potenser", s"${ApplicationUrl.get()}3", "by-sa")
+      ContentMetaSummary("3", "Potenser", s"${ApplicationUrl.get()}3", "by-sa"),
+      ContentMetaSummary("4", "Bygg fordøyelsessystemet", s"${ApplicationUrl.get()}4", "by-sa")
     )
   }
 
@@ -78,7 +79,13 @@ class ContentController (implicit val swagger:Swagger) extends ScalatraServlet w
       List(ContentTitle("Potenser", Some("nb"))),
       io.Source.fromInputStream(getClass.getResourceAsStream(s"/testdata/3.html")).mkString,
       Copyright(License("by-nc-sa", "Creative Commons Attribution-NonCommercial-ShareAlike 2.0 Generic", Some("https://creativecommons.org/licenses/by-nc-sa/2.0/")), "Ukjent", List(Author("forfatter", "Noen"))),
-      List(ContentTag("potenser", Some("nb")), ContentTag("matematikk", Some("nb"))), List(RequiredLibrary("text/javascript", "MathJax", "https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML")))
+      List(ContentTag("potenser", Some("nb")), ContentTag("matematikk", Some("nb"))), List(RequiredLibrary("text/javascript", "MathJax", "https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"))),
+
+    "4" -> ContentMetaInformation("4",
+      List(ContentTitle("Bygg fordøyelsessystemet", Some("nb"))),
+      io.Source.fromInputStream(getClass.getResourceAsStream(s"/testdata/4.html")).mkString,
+      Copyright(License("by-nc-sa", "Creative Commons Attribution-NonCommercial-ShareAlike 2.0 Generic", Some("https://creativecommons.org/licenses/by-nc-sa/2.0/")), "Ukjent", List(Author("forfatter", "Amendor"))),
+      List(ContentTag("fordøyelsessystemet", Some("nb"))), List())
   )
 
 
