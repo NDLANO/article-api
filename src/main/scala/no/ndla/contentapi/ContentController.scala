@@ -1,7 +1,8 @@
 package no.ndla.contentapi
 
 import com.typesafe.scalalogging.LazyLogging
-import no.ndla.contentapi.JettyLauncher._
+import no.ndla.contentapi.business.ContentData
+import no.ndla.contentapi.integration.AmazonIntegration
 import no.ndla.contentapi.model._
 import no.ndla.contentapi.network.ApplicationUrl
 import no.ndla.contentapi.model.Error
@@ -20,7 +21,7 @@ class ContentController (implicit val swagger:Swagger) extends ScalatraServlet w
   protected val applicationDescription = "API for accessing images from ndla.no."
 
   val getAllContent =
-    (apiOperation[List[ContentMetaSummary]]("getAllContent")
+    (apiOperation[List[ContentSummary]]("getAllContent")
       summary "Show all content"
       notes "Shows all the content. You can search it too."
       parameters (
@@ -32,7 +33,7 @@ class ContentController (implicit val swagger:Swagger) extends ScalatraServlet w
       ))
 
   val getContentById =
-    (apiOperation[List[ContentMetaInformation]]("getContentById")
+    (apiOperation[List[ContentInformation]]("getContentById")
     summary "Show content for a specified Id"
     notes "Shows the content for the specified id."
     parameters (
@@ -54,46 +55,26 @@ class ContentController (implicit val swagger:Swagger) extends ScalatraServlet w
 
   get("/", operation(getAllContent)) {
     List(
-      ContentMetaSummary("1", "Myklesaken splittet Norge", s"${ApplicationUrl.get()}1", "by-sa"),
-      ContentMetaSummary("2", "Hva er utholdenhet", s"${ApplicationUrl.get()}2", "by-sa"),
-      ContentMetaSummary("3", "Potenser", s"${ApplicationUrl.get()}3", "by-sa"),
-      ContentMetaSummary("4", "Bygg fordøyelsessystemet", s"${ApplicationUrl.get()}4", "by-sa")
+      ContentSummary("1", "Myklesaken splittet Norge", s"${ApplicationUrl.get()}1", "by-sa"),
+      ContentSummary("2", "Hva er utholdenhet", s"${ApplicationUrl.get()}2", "by-sa"),
+      ContentSummary("3", "Potenser", s"${ApplicationUrl.get()}3", "by-sa"),
+      ContentSummary("4", "Bygg fordøyelsessystemet", s"${ApplicationUrl.get()}4", "by-sa")
     )
   }
 
-  val testdata = Map(
-    "1" ->
-      ContentMetaInformation("1",
-        List(ContentTitle("Myklesaken splittet Norge", Some("nb"))),
-        io.Source.fromInputStream(getClass.getResourceAsStream(s"/testdata/1.html")).mkString,
-        Copyright(License("by-nc-sa", "Creative Commons Attribution-NonCommercial-ShareAlike 2.0 Generic", Some("https://creativecommons.org/licenses/by-nc-sa/2.0/")), "NTB Tema", List(Author("forfatter", "Ingrid Brubaker"))),
-        List(ContentTag("myklesaken", Some("nb")), ContentTag("norge", Some("nb"))), List()),
-
-    "2" -> ContentMetaInformation("2",
-      List(ContentTitle("Hva er utholdenhet", Some("nb"))),
-      io.Source.fromInputStream(getClass.getResourceAsStream(s"/testdata/2.html")).mkString,
-      Copyright(License("by-nc-sa", "Creative Commons Attribution-NonCommercial-ShareAlike 2.0 Generic", Some("https://creativecommons.org/licenses/by-nc-sa/2.0/")), "Ukjent", List(Author("forfatter", "Oddbjørg Vatn Slapgaard"))),
-      List(ContentTag("utholdenhet", Some("nb")), ContentTag("aerob", Some("nb"))), List(RequiredLibrary("text/javascript", "H5P-Resizer", "http://ndla.no/sites/all/modules/h5p/library/js/h5p-resizer.js"))),
-
-    "3" -> ContentMetaInformation("3",
-      List(ContentTitle("Potenser", Some("nb"))),
-      io.Source.fromInputStream(getClass.getResourceAsStream(s"/testdata/3.html")).mkString,
-      Copyright(License("by-nc-sa", "Creative Commons Attribution-NonCommercial-ShareAlike 2.0 Generic", Some("https://creativecommons.org/licenses/by-nc-sa/2.0/")), "Ukjent", List(Author("forfatter", "Noen"))),
-      List(ContentTag("potenser", Some("nb")), ContentTag("matematikk", Some("nb"))), List(RequiredLibrary("text/javascript", "MathJax", "https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"))),
-
-    "4" -> ContentMetaInformation("4",
-      List(ContentTitle("Bygg fordøyelsessystemet", Some("nb"))),
-      io.Source.fromInputStream(getClass.getResourceAsStream(s"/testdata/4.html")).mkString,
-      Copyright(License("by-nc-sa", "Creative Commons Attribution-NonCommercial-ShareAlike 2.0 Generic", Some("https://creativecommons.org/licenses/by-nc-sa/2.0/")), "Ukjent", List(Author("forfatter", "Amendor"))),
-      List(ContentTag("fordøyelsessystemet", Some("nb"))), List())
-  )
-
+  val contentData: ContentData = AmazonIntegration.getContentData()
 
   get("/:content_id", operation(getContentById)) {
     val contentId = params("content_id")
-    testdata get contentId match {
-      case Some(x) => x
-      case None => halt(status = 404, body = Error(NOT_FOUND, s"No content with id $contentId found"))
+    logger.info("GET /{}", contentId)
+
+    if(contentId.forall(_.isDigit)) {
+      contentData.withId(contentId) match {
+        case Some(image) => image
+        case None => halt(status = 404, body = Error(NOT_FOUND, s"No content with id $contentId found"))
+      }
+    } else {
+      halt(status = 404, body = Error(NOT_FOUND, s"No content with id $contentId found"))
     }
   }
 }
