@@ -3,7 +3,7 @@ package no.ndla.contentapi.batch
 import no.ndla.contentapi.integration.AmazonIntegration
 import no.ndla.contentapi.model._
 
-object ContentApiUploader {
+object TestdataUploader {
 
 
   val testdata = List(

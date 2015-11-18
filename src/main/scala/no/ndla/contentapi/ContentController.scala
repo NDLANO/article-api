@@ -54,6 +54,7 @@ class ContentController (implicit val swagger:Swagger) extends ScalatraServlet w
   }
 
   get("/", operation(getAllContent)) {
+    logger.info("GET /")
     List(
       ContentSummary("1", "Myklesaken splittet Norge", s"${ApplicationUrl.get()}1", "by-sa"),
       ContentSummary("2", "Hva er utholdenhet", s"${ApplicationUrl.get()}2", "by-sa"),
