@@ -55,12 +55,7 @@ class ContentController (implicit val swagger:Swagger) extends ScalatraServlet w
 
   get("/", operation(getAllContent)) {
     logger.info("GET /")
-    List(
-      ContentSummary("1", "Myklesaken splittet Norge", s"${ApplicationUrl.get()}1", "by-sa"),
-      ContentSummary("2", "Hva er utholdenhet", s"${ApplicationUrl.get()}2", "by-sa"),
-      ContentSummary("3", "Potenser", s"${ApplicationUrl.get()}3", "by-sa"),
-      ContentSummary("4", "Bygg fordøyelsessystemet", s"${ApplicationUrl.get()}4", "by-sa")
-    )
+    contentData.all()
   }
 
   val contentData: ContentData = AmazonIntegration.getContentData()
