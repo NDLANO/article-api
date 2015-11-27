@@ -5,7 +5,6 @@ import no.ndla.contentapi.model._
 
 object TestdataUploader {
 
-
   val testdata = List(
     ("1",
       ContentInformation("0",
@@ -30,14 +29,29 @@ object TestdataUploader {
       List(ContentTitle("Bygg fordøyelsessystemet", Some("nb"))),
       io.Source.fromInputStream(getClass.getResourceAsStream(s"/testdata/4.html")).mkString,
       Copyright(License("by-nc-sa", "Creative Commons Attribution-NonCommercial-ShareAlike 2.0 Generic", Some("https://creativecommons.org/licenses/by-nc-sa/2.0/")), "Ukjent", List(Author("forfatter", "Amendor"))),
-      List(ContentTag("fordøyelsessystemet", Some("nb"))), List()))
+      List(ContentTag("fordøyelsessystemet", Some("nb"))), List())),
+
+    ("5", ContentInformation("0",
+      List(ContentTitle("And the millionth word is...", Some("en"))),
+      io.Source.fromInputStream(getClass.getResourceAsStream(s"/testdata/5.html")).mkString,
+      Copyright(License("by-nc-sa", "Creative Commons Attribution-NonCommercial-ShareAlike 2.0 Generic", Some("https://creativecommons.org/licenses/by-nc-sa/2.0/")), "Ukjent", List(Author("forfatter", "Marion Federi"))),
+      List(ContentTag("oxford", Some("en"))), List())),
+
+    ("6", ContentInformation("0",
+      List(ContentTitle("Canada - What is Really Canadian?", Some("en"))),
+      io.Source.fromInputStream(getClass.getResourceAsStream(s"/testdata/6.html")).mkString,
+      Copyright(License("by-nc-sa", "Creative Commons Attribution-NonCommercial-ShareAlike 2.0 Generic", Some("https://creativecommons.org/licenses/by-nc-sa/2.0/")), "Ukjent", List(Author("forfatter", "Marion Federi"))),
+      List(ContentTag("Canada", Some("en"))), List(RequiredLibrary("text/javascript", "H5P-Resizer", "http://ndla.no/sites/all/modules/h5p/library/js/h5p-resizer.js"))))
   )
 
   def main(args: Array[String]) {
     val contentData = AmazonIntegration.getContentData()
 
     testdata.foreach(tuppel => {
-      contentData.insert(tuppel._2, tuppel._1)
+      contentData.withExternalId(tuppel._1) match {
+        case Some(existing) => contentData.update(tuppel._2, tuppel._1)
+        case None => contentData.insert(tuppel._2, tuppel._1)
+      }
     })
   }
 }
