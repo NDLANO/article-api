@@ -82,7 +82,7 @@ dockerfile in docker := {
     })
 
     add(artifact, artifactTargetPath)
-    entryPoint("java", "-jar", artifactTargetPath)
+    entryPoint("java", "-Dorg.scalatra.environment=production", "-jar", artifactTargetPath)
   }
 }
 
