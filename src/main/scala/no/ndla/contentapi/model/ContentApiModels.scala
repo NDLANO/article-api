@@ -17,10 +17,16 @@ case class ContentSummary(
 case class ContentInformation(
   @(ApiModelProperty @field)(description = "The unique id of the content") id:String,
   @(ApiModelProperty @field)(description = "Available titles for the content") titles:List[ContentTitle],
-  @(ApiModelProperty @field)(description = "The content") content: String,
+  @(ApiModelProperty @field)(description = "The content in available languages") content: List[Content],
   @(ApiModelProperty @field)(description = "Describes the copyright information for the content") copyright:Copyright,
   @(ApiModelProperty @field)(description = "Searchable tags for the content") tags:List[ContentTag],
   @(ApiModelProperty @field)(description = "Required libraries in order to render the content") requiredLibraries:List[RequiredLibrary]
+)
+
+@ApiModel(description = "The content in the specified language")
+case class Content(
+  @(ApiModelProperty @field)(description = "The html content") content:String,
+  @(ApiModelProperty @field)(description = "ISO 639-1 code that represents the language used in title") language:Option[String]
 )
 
 @ApiModel(description = "Description of a title")
