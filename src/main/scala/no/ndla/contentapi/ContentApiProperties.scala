@@ -10,6 +10,7 @@ import com.typesafe.scalalogging.LazyLogging
 
 object ContentApiProperties extends LazyLogging {
 
+
   val EnvironmentFile = "/content-api.env"
   val ContentApiProps = io.Source.fromInputStream(getClass.getResourceAsStream(EnvironmentFile)).getLines().map(key => key -> scala.util.Properties.envOrNone(key)).toMap
 
@@ -17,6 +18,11 @@ object ContentApiProperties extends LazyLogging {
   val ApplicationPort = getInt("APPLICATION_PORT")
   val HostAddr = get("HOST_ADDR")
   val Domains = get("DOMAINS").split(",") ++ Array(HostAddr)
+  val SearchCluster = get("SEARCH_CLUSTER_NAME")
+  val SearchPort = get("SEARCH_PORT")
+  val SearchIndex = get("SEARCH_INDEX")
+  val SearchDocument = get("SEARCH_DOCUMENT")
+  val IndexBulkSize = getInt("INDEX_BULK_SIZE")
 
   def verify() = {
     val missingProperties = ContentApiProps.filter(entry => entry._2.isEmpty).toList

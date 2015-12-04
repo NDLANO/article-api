@@ -1,6 +1,7 @@
 package no.ndla.contentapi.integration
 
 import no.ndla.contentapi.ContentApiProperties
+import no.ndla.contentapi.business.{ContentIndex, ContentSearch, ContentData}
 import org.postgresql.ds.PGPoolingDataSource
 
 object AmazonIntegration {
@@ -15,8 +16,21 @@ object AmazonIntegration {
   datasource.setMaxConnections(ContentApiProperties.getInt("META_MAX_CONNECTIONS"))
   datasource.setCurrentSchema(ContentApiProperties.get("META_SCHEMA"))
 
-  def getContentData(): PostgresData = {
+  def getContentData(): ContentData = {
     new PostgresData(datasource)
   }
+
+  def getContentSearch(): ContentSearch = {
+    new ElasticContentSearch
+  }
+  def getContentIndex(): ContentIndex = {
+    new ElasticContentIndex(
+      ContentApiProperties.SearchCluster,
+      ContentApiProperties.HostAddr,
+      ContentApiProperties.SearchPort)
+
+
+  }
+
 
 }

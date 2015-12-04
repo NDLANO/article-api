@@ -8,4 +8,6 @@ trait ContentData {
   def all(): List[ContentSummary]
   def insert(contentInformation: ContentInformation, externalId: String): Unit
   def update(contentInformation: ContentInformation, externalId: String): Unit
+  def applyToAll(func: List[ContentInformation] => Unit)
+
 }

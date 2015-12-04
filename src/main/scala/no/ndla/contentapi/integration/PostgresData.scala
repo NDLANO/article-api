@@ -3,6 +3,7 @@ package no.ndla.contentapi.integration
 import javax.sql.DataSource
 
 import com.typesafe.scalalogging.LazyLogging
+import no.ndla.contentapi.ContentApiProperties
 import no.ndla.contentapi.business.ContentData
 import no.ndla.contentapi.model.{ContentSummary, ContentInformation}
 import no.ndla.contentapi.network.ApplicationUrl
@@ -43,6 +44,32 @@ class PostgresData(dataSource: DataSource) extends ContentData with LazyLogging 
     }
 
     logger.info(s"Updated ${externalId}")
+  }
+
+  def minMaxId: (Long,Long) = {
+    DB readOnly { implicit session =>
+      sql"select min(id) as mi, max(id) as ma from contentdata;".map(rs => {
+        (rs.long("mi"),rs.long("ma"))
+      }).single().apply() match {
+        case Some(minmax) => minmax
+        case None => (0L,0L)
+      }
+    }
+  }
+
+  override def applyToAll(func: (List[ContentInformation]) => Unit): Unit = {
+    val (minId, maxId) = minMaxId
+    val groupRanges = Seq.range(minId, maxId).grouped(ContentApiProperties.IndexBulkSize).map(group => (group.head, group.last))
+
+    DB readOnly { implicit session =>
+      groupRanges.foreach(range => {
+        func(
+          sql"select id,document from contentdata where id between ${range._1} and ${range._2}".map(rs => {
+            asContentInformation(rs.long("id").toString, rs.string("document"))
+          }).toList.apply
+        )
+      })
+    }
   }
 
   override def all: List[ContentSummary] = {
