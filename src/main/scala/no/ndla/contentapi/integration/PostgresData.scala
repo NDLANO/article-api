@@ -59,7 +59,7 @@ class PostgresData(dataSource: DataSource) extends ContentData with LazyLogging 
 
   override def applyToAll(func: (List[ContentInformation]) => Unit): Unit = {
     val (minId, maxId) = minMaxId
-    val groupRanges = Seq.range(minId, maxId).grouped(ContentApiProperties.IndexBulkSize).map(group => (group.head, group.last))
+    val groupRanges = Seq.range(minId, maxId+1).grouped(ContentApiProperties.IndexBulkSize).map(group => (group.head, group.last))
 
     DB readOnly { implicit session =>
       groupRanges.foreach(range => {

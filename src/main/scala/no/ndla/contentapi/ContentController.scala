@@ -1,7 +1,7 @@
 package no.ndla.contentapi
 
 import com.typesafe.scalalogging.LazyLogging
-import no.ndla.contentapi.business.ContentData
+import no.ndla.contentapi.business.{ContentSearch, ContentData}
 import no.ndla.contentapi.integration.AmazonIntegration
 import no.ndla.contentapi.model._
 import no.ndla.contentapi.network.ApplicationUrl
@@ -17,7 +17,6 @@ class ContentController (implicit val swagger:Swagger) extends ScalatraServlet w
 
   protected implicit override val jsonFormats: Formats = DefaultFormats
 
-  //Swagger
   protected val applicationDescription = "API for accessing images from ndla.no."
 
   val getAllContent =
@@ -53,12 +52,31 @@ class ContentController (implicit val swagger:Swagger) extends ScalatraServlet w
     ApplicationUrl.clear()
   }
 
-  get("/", operation(getAllContent)) {
-    logger.info("GET /")
-    contentData.all()
+  error{
+    case t:Throwable => {
+      logger.error(Error.GenericError.toString, t)
+      halt(status = 500, body = Error.GenericError)
+    }
   }
 
   val contentData: ContentData = AmazonIntegration.getContentData()
+  val contentSearch: ContentSearch = AmazonIntegration.getContentSearch()
+
+  get("/", operation(getAllContent)) {
+    val query = params.get("query")
+    val language = params.get("language")
+    val license = params.get("license")
+    logger.info("GET / with params query='{}', language={}, license={}", query, language, license)
+
+    query match {
+      case Some(query) => contentSearch.matchingQuery(
+        query = query.toLowerCase().split(" ").map(_.trim),
+        language = language,
+        license = license)
+
+      case None => contentSearch.all(license = license)
+    }
+  }
 
   get("/:content_id", operation(getContentById)) {
     val contentId = params("content_id")
