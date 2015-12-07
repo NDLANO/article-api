@@ -21,7 +21,10 @@ object AmazonIntegration {
   }
 
   def getContentSearch(): ContentSearch = {
-    new ElasticContentSearch
+    new ElasticContentSearch(
+      ContentApiProperties.SearchCluster,
+      ContentApiProperties.HostAddr,
+      ContentApiProperties.SearchPort)
   }
   def getContentIndex(): ContentIndex = {
     new ElasticContentIndex(
