@@ -48,10 +48,10 @@ object TestdataUploader {
     val contentData = AmazonIntegration.getContentData()
 
     testdata.foreach(tuppel => {
-      contentData.withExternalId(tuppel._1) match {
-        case Some(existing) => contentData.update(tuppel._2, tuppel._1)
-        case None => contentData.insert(tuppel._2, tuppel._1)
-      }
+      if(!contentData.exists(tuppel._1))
+        contentData.insert(tuppel._2, tuppel._1)
+      else
+        contentData.update(tuppel._2, tuppel._1)
     })
   }
 }

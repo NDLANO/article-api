@@ -87,11 +87,11 @@ class PostgresData(dataSource: DataSource) extends ContentData with LazyLogging 
     }
   }
 
-  override def withExternalId(externalId: String): Option[ContentInformation] = {
+  override def exists(externalId: String): Boolean = {
     DB readOnly {implicit session =>
-      sql"select id, document from contentdata where external_id = ${externalId}".map(rs => (rs.long("id"), rs.string("document"))).single.apply match {
-        case Some((id, json)) => Option(asContentInformation(id.toString, json))
-        case None => None
+      sql"select exists(select 1 from contentdata where external_id=${externalId})".map(rs => (rs.boolean(1))).single.apply match {
+        case Some(t) => t
+        case None => false
       }
     }
   }
