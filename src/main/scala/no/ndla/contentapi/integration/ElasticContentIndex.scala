@@ -40,45 +40,49 @@ class ElasticContentIndex(clusterName:String, clusterHost:String, clusterPort:St
     }.await
 
     if(!existsDefinition.isExists){
-      client.execute {
-        createIndex (indexName) mappings(
-          ContentApiProperties.SearchDocument as (
-            "id" typed IntegerType,
-            "titles" typed NestedType as (
-              "title" typed StringType,
-              "language" typed StringType index "not_analyzed"
-            ),
-            "content" typed NestedType as (
-              "content" typed StringType analyzer "HtmlAnalyzer",
-              "language" typed StringType index "not_analyzed"
-            ),
-            "copyright" typed NestedType as (
-              "license" typed NestedType as (
-                "license" typed StringType index "not_analyzed",
-                "description" typed StringType,
-                "url" typed StringType
-              ),
-              "origin" typed StringType,
-              "authors" typed NestedType as (
-                "type" typed StringType,
-                "name" typed StringType
-              )
-            ),
-            "tags" typed NestedType as (
-              "tag" typed StringType,
-              "language" typed StringType index "not_analyzed"
-            ),
-            "requiredLibraries" typed NestedType as (
-              "mediaType" typed StringType index "not_analyzed",
-              "name" typed StringType index "not_analyzed",
-              "url" typed StringType index "not_analyzed"
-            )
-          )
-        ) analysis CustomAnalyzerDefinition("HtmlAnalyzer", StandardTokenizer, StandardTokenFilter, HtmlStripCharFilter)
-      }.await
+      createElasticIndex(indexName)
     }
 
     indexName
+  }
+
+  private def createElasticIndex(indexName:String) = {
+    client.execute {
+      createIndex (indexName) mappings(
+        ContentApiProperties.SearchDocument as (
+          "id" typed IntegerType,
+          "titles" typed NestedType as (
+            "title" typed StringType,
+            "language" typed StringType index "not_analyzed"
+            ),
+          "content" typed NestedType as (
+            "content" typed StringType analyzer "HtmlAnalyzer",
+            "language" typed StringType index "not_analyzed"
+            ),
+          "copyright" typed NestedType as (
+            "license" typed NestedType as (
+              "license" typed StringType index "not_analyzed",
+              "description" typed StringType,
+              "url" typed StringType
+              ),
+            "origin" typed StringType,
+            "authors" typed NestedType as (
+              "type" typed StringType,
+              "name" typed StringType
+              )
+            ),
+          "tags" typed NestedType as (
+            "tag" typed StringType,
+            "language" typed StringType index "not_analyzed"
+            ),
+          "requiredLibraries" typed NestedType as (
+            "mediaType" typed StringType index "not_analyzed",
+            "name" typed StringType index "not_analyzed",
+            "url" typed StringType index "not_analyzed"
+            )
+          )
+        ) analysis CustomAnalyzerDefinition("HtmlAnalyzer", StandardTokenizer, StandardTokenFilter, HtmlStripCharFilter)
+    }.await
   }
 
   override def aliasTarget: Option[String] = {
