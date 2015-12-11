@@ -77,7 +77,7 @@ dockerfile in docker := {
     from("java")
 
     env("NDLACOMPONENT", "content-api")
-    scala.io.Source.fromFile("./src/main/resources/content-api.env").getLines().foreach(key => {
+    scala.io.Source.fromFile("./src/main/resources/content-api.env").getLines().withFilter(line => line.matches("^\\w+$")).foreach(key => {
       env(key, key)
     })
 
