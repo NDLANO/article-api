@@ -12,7 +12,7 @@ object ContentApiProperties extends LazyLogging {
 
 
   val EnvironmentFile = "/content-api.env"
-  val ContentApiProps = io.Source.fromInputStream(getClass.getResourceAsStream(EnvironmentFile)).getLines().map(key => key -> scala.util.Properties.envOrNone(key)).toMap
+  val ContentApiProps = readPropertyFile()
 
   val ContactEmail = get("CONTACT_EMAIL")
   val ApplicationPort = getInt("APPLICATION_PORT")
@@ -35,14 +35,19 @@ object ContentApiProperties extends LazyLogging {
   }
 
   def get(envKey: String): String = {
-    ContentApiProps.get(envKey) match {
-      case Some(value) => value.get
+    ContentApiProps.get(envKey).flatten match {
+      case Some(value) => value
       case None => throw new NoSuchFieldError(s"Missing environment variable $envKey")
     }
   }
 
   def getInt(envKey: String):Integer = {
     get(envKey).toInt
+  }
+
+  def readPropertyFile(): Map[String,Option[String]] = {
+    val keys = io.Source.fromInputStream(getClass.getResourceAsStream(EnvironmentFile)).getLines().withFilter(line => line.matches("^\\w+$"))
+    keys.map(key => key -> scala.util.Properties.envOrNone(key)).toMap
   }
 
 }

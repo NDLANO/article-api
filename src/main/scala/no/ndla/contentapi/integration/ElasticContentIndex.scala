@@ -3,16 +3,15 @@ package no.ndla.contentapi.integration
 import java.text.SimpleDateFormat
 import java.util.Calendar
 
-import com.sksamuel.elastic4s.mappings.FieldType.{StringType, NestedType, IntegerType}
-import com.sksamuel.elastic4s._
 import com.sksamuel.elastic4s.ElasticDsl._
+import com.sksamuel.elastic4s._
+import com.sksamuel.elastic4s.mappings.FieldType.{IntegerType, NestedType, StringType}
 import com.typesafe.scalalogging.LazyLogging
-import org.elasticsearch.common.settings.ImmutableSettings
 import no.ndla.contentapi.ContentApiProperties
 import no.ndla.contentapi.business.ContentIndex
 import no.ndla.contentapi.model.ContentInformation
-import org.elasticsearch.index.analysis.StandardHtmlStripAnalyzer
-import org.json4s.native.Serialization._
+import org.elasticsearch.common.settings.ImmutableSettings
+import org.json4s.native.Serialization.write
 
 
 class ElasticContentIndex(clusterName:String, clusterHost:String, clusterPort:String) extends ContentIndex with LazyLogging {
@@ -21,9 +20,8 @@ class ElasticContentIndex(clusterName:String, clusterHost:String, clusterPort:St
   val client = ElasticClient.remote(settings, ElasticsearchClientUri(s"elasticsearch://$clusterHost:$clusterPort"))
 
   override def indexDocuments(contentData: List[ContentInformation], indexName: String): Int = {
-    import org.json4s.native.Serialization.write
     implicit val formats = org.json4s.DefaultFormats
-    
+
     client.execute{
       bulk(contentData.map(content => {
         index into indexName -> ContentApiProperties.SearchDocument source write(content) id content.id
