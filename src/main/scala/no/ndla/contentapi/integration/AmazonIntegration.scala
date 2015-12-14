@@ -22,14 +22,14 @@ object AmazonIntegration {
 
   def getContentSearch(): ContentSearch = {
     new ElasticContentSearch(
-      ContentApiProperties.SearchCluster,
-      ContentApiProperties.HostAddr,
+      ContentApiProperties.SearchClusterName,
+      ContentApiProperties.SearchHost,
       ContentApiProperties.SearchPort)
   }
   def getContentIndex(): ContentIndex = {
     new ElasticContentIndex(
-      ContentApiProperties.SearchCluster,
-      ContentApiProperties.HostAddr,
+      ContentApiProperties.SearchClusterName,
+      ContentApiProperties.SearchHost,
       ContentApiProperties.SearchPort)
 
 

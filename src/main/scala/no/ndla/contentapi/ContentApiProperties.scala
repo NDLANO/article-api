@@ -11,15 +11,17 @@ import com.typesafe.scalalogging.LazyLogging
 object ContentApiProperties extends LazyLogging {
 
 
+  val ApplicationPort = 80
   val EnvironmentFile = "/content-api.env"
   val ContentApiProps = readPropertyFile()
 
   val ContactEmail = get("CONTACT_EMAIL")
-  val ApplicationPort = getInt("APPLICATION_PORT")
   val HostAddr = get("HOST_ADDR")
   val Domains = get("DOMAINS").split(",") ++ Array(HostAddr)
-  val SearchCluster = get("SEARCH_CLUSTER_NAME")
-  val SearchPort = get("SEARCH_PORT")
+
+  val SearchHost = "search-engine"
+  val SearchPort = get("SEARCH_ENGINE_ENV_TCP_PORT")
+  var SearchClusterName = get("SEARCH_ENGINE_ENV_CLUSTER_NAME")
   val SearchIndex = get("SEARCH_INDEX")
   val SearchDocument = get("SEARCH_DOCUMENT")
   val IndexBulkSize = getInt("INDEX_BULK_SIZE")
