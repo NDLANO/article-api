@@ -48,16 +48,16 @@ class ElasticContentSearch(clusterName:String, clusterHost:String, clusterPort:S
 
   override def matchingQuery(query: Iterable[String], language: Option[String], license: Option[String]): Iterable[ContentSummary] = {
     val titleSearch = new ListBuffer[QueryDefinition]
-    titleSearch += matchQuery("title", query.mkString(" ")).operator(MatchQueryBuilder.Operator.AND)
-    language.foreach(lang => titleSearch += termQuery("language", lang))
+    titleSearch += matchQuery("titles.title", query.mkString(" ")).operator(MatchQueryBuilder.Operator.AND)
+    language.foreach(lang => titleSearch += termQuery("titles.language", lang))
 
     val contentSearch = new ListBuffer[QueryDefinition]
-    contentSearch += matchQuery("content", query.mkString(" ")).operator(MatchQueryBuilder.Operator.AND)
-    language.foreach(lang => contentSearch += termQuery("language", lang))
+    contentSearch += matchQuery("content.content", query.mkString(" ")).operator(MatchQueryBuilder.Operator.AND)
+    language.foreach(lang => contentSearch += termQuery("content.language", lang))
 
     val tagSearch = new ListBuffer[QueryDefinition]
-    tagSearch += matchQuery("tag", query.mkString(" ")).operator(MatchQueryBuilder.Operator.AND)
-    language.foreach(lang => tagSearch += termQuery("language", lang))
+    tagSearch += matchQuery("tags.tag", query.mkString(" ")).operator(MatchQueryBuilder.Operator.AND)
+    language.foreach(lang => tagSearch += termQuery("tags.language", lang))
 
 
     val theSearch = search in ContentApiProperties.SearchIndex -> ContentApiProperties.SearchDocument query {
