@@ -81,7 +81,7 @@ class ElasticContentIndex(clusterName:String, clusterHost:String, clusterPort:St
             "url" typed StringType index "not_analyzed"
             )
           )
-        ) analysis CustomAnalyzerDefinition("HtmlAnalyzer", StandardTokenizer, StandardTokenFilter, HtmlStripCharFilter)
+        ) analysis CustomAnalyzerDefinition("HtmlAnalyzer", StandardTokenizer, StandardTokenFilter, LowercaseTokenFilter, HtmlStripCharFilter)
     }.await
   }
 
