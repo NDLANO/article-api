@@ -14,6 +14,8 @@ class AdminController extends ScalatraServlet with NativeJsonSupport with LazyLo
   val contentData = AmazonIntegration.getContentData()
   val contentIndex = AmazonIntegration.getContentIndex()
 
+  indexDocuments()
+
   def indexDocuments() = {
     val start = System.currentTimeMillis
 
