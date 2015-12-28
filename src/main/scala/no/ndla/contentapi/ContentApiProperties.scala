@@ -22,6 +22,8 @@ object ContentApiProperties extends LazyLogging {
   val SearchPort = get("SEARCH_PORT")
   val SearchIndex = get("SEARCH_INDEX")
   val SearchDocument = get("SEARCH_DOCUMENT")
+  val DefaultPageSize: Int = getInt("SEARCH_DEFAULT_PAGE_SIZE")
+  val MaxPageSize: Int = getInt("SEARCH_MAX_PAGE_SIZE")
   val IndexBulkSize = getInt("INDEX_BULK_SIZE")
 
   def verify() = {

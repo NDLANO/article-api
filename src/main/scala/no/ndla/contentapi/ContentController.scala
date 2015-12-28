@@ -13,6 +13,8 @@ import org.scalatra.ScalatraServlet
 import org.scalatra.json.NativeJsonSupport
 import org.scalatra.swagger.{SwaggerSupport, Swagger}
 
+import scala.util.Try
+
 class ContentController (implicit val swagger:Swagger) extends ScalatraServlet with NativeJsonSupport with SwaggerSupport with LazyLogging {
 
   protected implicit override val jsonFormats: Formats = DefaultFormats
@@ -66,15 +68,19 @@ class ContentController (implicit val swagger:Swagger) extends ScalatraServlet w
     val query = params.get("query")
     val language = params.get("language")
     val license = params.get("license")
-    logger.info("GET / with params query='{}', language={}, license={}", query, language, license)
+    val pageSize = params.get("page-size").flatMap(ps => Try(ps.toInt).toOption)
+    val index = params.get("index").flatMap(idx => Try(idx.toInt).toOption)
+    logger.info("GET / with params query='{}', language={}, license={}, index={}, page-size={}", query, language, license, index, pageSize)
 
     query match {
       case Some(query) => contentSearch.matchingQuery(
         query = query.toLowerCase().split(" ").map(_.trim),
         language = language,
-        license = license)
+        license = license,
+        index = index,
+        pageSize = pageSize)
 
-      case None => contentSearch.all(license = license)
+      case None => contentSearch.all(license = license, index = index, pageSize = pageSize)
     }
   }
 
