@@ -30,7 +30,9 @@ class ContentController (implicit val swagger:Swagger) extends ScalatraServlet w
       headerParam[Option[String]]("app-key").description("Your app-key. May be omitted to access api anonymously, but rate limiting applies on anonymous access."),
       queryParam[Option[String]]("tags").description("Return only content with submitted tag. Multiple tags may be entered comma separated, and will give results matching either one of them."),
       queryParam[Option[String]]("language").description("The ISO 639-1 language code describing language used in query-params."),
-      queryParam[Option[String]]("license").description("Return only content with provided license.")
+      queryParam[Option[String]]("license").description("Return only content with provided license."),
+      queryParam[Option[Int]]("index").description("The starting index of the search hits to display."),
+      queryParam[Option[Int]]("page-size").description("The number of search hits to display.")
       ))
 
   val getContentById =
