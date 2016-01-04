@@ -31,8 +31,8 @@ class ContentController (implicit val swagger:Swagger) extends ScalatraServlet w
       queryParam[Option[String]]("tags").description("Return only content with submitted tag. Multiple tags may be entered comma separated, and will give results matching either one of them."),
       queryParam[Option[String]]("language").description("The ISO 639-1 language code describing language used in query-params."),
       queryParam[Option[String]]("license").description("Return only content with provided license."),
-      queryParam[Option[Int]]("index").description("The starting index of the search hits to display."),
-      queryParam[Option[Int]]("page-size").description("The number of search hits to display.")
+      queryParam[Option[Int]]("page").description("The page number of the search hits to display."),
+      queryParam[Option[Int]]("page-size").description("The number of search hits to display for each page.")
       ))
 
   val getContentById =
@@ -71,18 +71,18 @@ class ContentController (implicit val swagger:Swagger) extends ScalatraServlet w
     val language = params.get("language")
     val license = params.get("license")
     val pageSize = params.get("page-size").flatMap(ps => Try(ps.toInt).toOption)
-    val index = params.get("index").flatMap(idx => Try(idx.toInt).toOption)
-    logger.info("GET / with params query='{}', language={}, license={}, index={}, page-size={}", query, language, license, index, pageSize)
+    val page = params.get("page").flatMap(idx => Try(idx.toInt).toOption)
+    logger.info("GET / with params query='{}', language={}, license={}, page={}, page-size={}", query, language, license, page, pageSize)
 
     query match {
       case Some(query) => contentSearch.matchingQuery(
         query = query.toLowerCase().split(" ").map(_.trim),
         language = language,
         license = license,
-        index = index,
+        page = page,
         pageSize = pageSize)
 
-      case None => contentSearch.all(license = license, index = index, pageSize = pageSize)
+      case None => contentSearch.all(license = license, page = page, pageSize = pageSize)
     }
   }
 
