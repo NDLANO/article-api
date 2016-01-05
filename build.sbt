@@ -85,9 +85,10 @@ val gitHeadCommitSha = settingKey[String]("current git commit SHA")
 gitHeadCommitSha in ThisBuild := Process("git log --pretty=format:%h -n 1").lines.head
 
 imageNames in docker := Seq(
-  ImageName(namespace = Some(organization.value),
+  ImageName(
+    namespace = Some(organization.value),
     repository = name.value,
-    tag = Some("SNAPSHOT"))
+    tag = Some(System.getProperty("docker.tag", "SNAPSHOT")))
 )
 
 publishTo := {
