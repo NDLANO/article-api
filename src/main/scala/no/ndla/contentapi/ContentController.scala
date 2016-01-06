@@ -59,7 +59,6 @@ class ContentController (implicit val swagger:Swagger) extends ScalatraServlet w
 
   error{
     case e:IndexMissingException =>
-      logger.error("Index not found, reindexing...")
       halt(status = 500, body = Error.IndexMissingError)
     case t:Throwable =>
       logger.error(Error.GenericError.toString, t)

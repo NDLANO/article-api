@@ -1,8 +1,9 @@
 package no.ndla.contentapi.integration
 
+import com.typesafe.scalalogging.LazyLogging
 import no.ndla.contentapi.ContentApiProperties
 import no.ndla.contentapi.business.ContentSearch
-import no.ndla.contentapi.model.ContentSummary
+import no.ndla.contentapi.model.{Error, ContentSummary}
 
 import com.sksamuel.elastic4s.ElasticDsl._
 import com.sksamuel.elastic4s._
@@ -17,7 +18,7 @@ import org.elasticsearch.transport.RemoteTransportException
 
 import scala.collection.mutable.ListBuffer
 
-class ElasticContentSearch(clusterName:String, clusterHost:String, clusterPort:String) extends ContentSearch {
+class ElasticContentSearch(clusterName:String, clusterHost:String, clusterPort:String) extends ContentSearch with LazyLogging {
 
   val settings = ImmutableSettings.settingsBuilder().put("cluster.name", clusterName).build()
   val client = ElasticClient.remote(settings, ElasticsearchClientUri(s"elasticsearch://$clusterHost:$clusterPort"))
@@ -32,7 +33,6 @@ class ElasticContentSearch(clusterName:String, clusterHost:String, clusterPort:S
         sourceMap("titles").asInstanceOf[java.util.ArrayList[AnyRef]].get(0).asInstanceOf[java.util.HashMap[String,String]].get("title"),
         ApplicationUrl.get + sourceMap("id").toString,
         sourceMap("copyright").asInstanceOf[java.util.HashMap[String, AnyRef]].get("license").asInstanceOf[java.util.HashMap[String, String]].get("license"))
-
     }
   }
 
@@ -92,6 +92,7 @@ class ElasticContentSearch(clusterName:String, clusterHost:String, clusterPort:S
       client.execute{search start startAt limit numResults}.await.as[ContentSummary]
     } catch {
       case e:RemoteTransportException =>
+        logger.error(Error.IndexMissingError.toString)
         new Thread(new Runnable {
           def run(): Unit = {
             val request = new HttpPost(s"http://${ContentApiProperties.Domains(0)}:${ContentApiProperties.ApplicationPort}/admin/index")
