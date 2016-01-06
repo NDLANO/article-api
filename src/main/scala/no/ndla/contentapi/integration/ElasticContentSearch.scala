@@ -14,7 +14,6 @@ import scala.collection.mutable.ListBuffer
 
 class ElasticContentSearch(clusterName:String, clusterHost:String, clusterPort:String) extends ContentSearch {
 
-  val PageSize = 100
   val settings = ImmutableSettings.settingsBuilder().put("cluster.name", clusterName).build()
   val client = ElasticClient.remote(settings, ElasticsearchClientUri(s"elasticsearch://$clusterHost:$clusterPort"))
 
@@ -32,7 +31,7 @@ class ElasticContentSearch(clusterName:String, clusterHost:String, clusterPort:S
     }
   }
 
-  override def all(license: Option[String]): Iterable[ContentSummary] = {
+  override def all(license: Option[String], page: Option[Int], pageSize: Option[Int]): Iterable[ContentSummary] = {
     val theSearch = search in ContentApiProperties.SearchIndex -> ContentApiProperties.SearchDocument
 
     val filterList = new ListBuffer[FilterDefinition]()
@@ -43,10 +42,13 @@ class ElasticContentSearch(clusterName:String, clusterHost:String, clusterPort:S
       theSearch.postFilter(must(filterList.toList))
     }
     theSearch.sort(field sort "id")
-    client.execute{theSearch limit PageSize}.await.as[ContentSummary]
+
+    val (startAt, numResults) = getStartAtAndNumResults(page, pageSize)
+
+    client.execute{theSearch start startAt limit numResults}.await.as[ContentSummary]
   }
 
-  override def matchingQuery(query: Iterable[String], language: Option[String], license: Option[String]): Iterable[ContentSummary] = {
+  override def matchingQuery(query: Iterable[String], language: Option[String], license: Option[String], page: Option[Int], pageSize: Option[Int]): Iterable[ContentSummary] = {
     val titleSearch = new ListBuffer[QueryDefinition]
     titleSearch += matchQuery("titles.title", query.mkString(" ")).operator(MatchQueryBuilder.Operator.AND)
     language.foreach(lang => titleSearch += termQuery("titles.language", lang))
@@ -78,6 +80,23 @@ class ElasticContentSearch(clusterName:String, clusterHost:String, clusterPort:S
       theSearch.postFilter(must(filterList.toList))
     }
 
-    client.execute{theSearch limit PageSize}.await.as[ContentSummary]
+    val (startAt, numResults) = getStartAtAndNumResults(page, pageSize)
+
+    client.execute{theSearch start startAt limit numResults}.await.as[ContentSummary]
+  }
+
+  def getStartAtAndNumResults(page: Option[Int], pageSize: Option[Int]): (Int, Int) = {
+    val numResults = pageSize match {
+      case Some(num) =>
+        if(num > 0) num.min(ContentApiProperties.MaxPageSize) else ContentApiProperties.DefaultPageSize
+      case None => ContentApiProperties.DefaultPageSize
+    }
+
+    val startAt = page match {
+      case Some(sa) => (sa - 1).max(0) * numResults
+      case None => 0
+    }
+
+    (startAt, numResults)
   }
 }
