@@ -7,8 +7,13 @@ import no.ndla.contentapi.model.ContentSummary
 import com.sksamuel.elastic4s.ElasticDsl._
 import com.sksamuel.elastic4s._
 import no.ndla.contentapi.network.ApplicationUrl
+import org.apache.http.client.methods.HttpPost
+import org.apache.http.impl.client.HttpClientBuilder
 import org.elasticsearch.common.settings.ImmutableSettings
+import org.elasticsearch.index.Index
 import org.elasticsearch.index.query.MatchQueryBuilder
+import org.elasticsearch.indices.IndexMissingException
+import org.elasticsearch.transport.RemoteTransportException
 
 import scala.collection.mutable.ListBuffer
 
@@ -43,9 +48,7 @@ class ElasticContentSearch(clusterName:String, clusterHost:String, clusterPort:S
     }
     theSearch.sort(field sort "id")
 
-    val (startAt, numResults) = getStartAtAndNumResults(page, pageSize)
-
-    client.execute{theSearch start startAt limit numResults}.await.as[ContentSummary]
+    executeSearch(theSearch, page, pageSize)
   }
 
   override def matchingQuery(query: Iterable[String], language: Option[String], license: Option[String], page: Option[Int], pageSize: Option[Int]): Iterable[ContentSummary] = {
@@ -80,9 +83,24 @@ class ElasticContentSearch(clusterName:String, clusterHost:String, clusterPort:S
       theSearch.postFilter(must(filterList.toList))
     }
 
-    val (startAt, numResults) = getStartAtAndNumResults(page, pageSize)
+    executeSearch(theSearch, page, pageSize)
+  }
 
-    client.execute{theSearch start startAt limit numResults}.await.as[ContentSummary]
+  def executeSearch(search: SearchDefinition, page: Option[Int], pageSize: Option[Int]) = {
+    val (startAt, numResults) = getStartAtAndNumResults(page, pageSize)
+    try{
+      client.execute{search start startAt limit numResults}.await.as[ContentSummary]
+    } catch {
+      case e:RemoteTransportException =>
+        new Thread(new Runnable {
+          def run(): Unit = {
+            val request = new HttpPost(s"http://${ContentApiProperties.Domains(0)}:${ContentApiProperties.ApplicationPort}/admin/index")
+            val client = HttpClientBuilder.create().build()
+            client.execute(request)
+          }
+        }).start()
+        throw new IndexMissingException(new Index(ContentApiProperties.SearchIndex))
+    }
   }
 
   def getStartAtAndNumResults(page: Option[Int], pageSize: Option[Int]): (Int, Int) = {

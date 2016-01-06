@@ -15,8 +15,10 @@ import no.ndla.contentapi.ContentApiProperties
 object Error {
   val GENERIC = "1"
   val NOT_FOUND = "2"
+  val INDEX_MISSING = "3"
 
   val GenericError = Error(GENERIC, s"Ooops. Something we didn't anticipate occured. We have logged the error, and will look into it. But feel free to contact ${ContentApiProperties.ContactEmail} if the error persists.")
+  val IndexMissingError = Error(INDEX_MISSING, s"Ooops. No index found for component. A new index will be created. Please try again in a few minutes.")
 }
 
 case class Error(code:String, description:String, occuredAt:String = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS").format(new Date()))

@@ -8,8 +8,9 @@ import no.ndla.contentapi.network.ApplicationUrl
 import no.ndla.contentapi.model.Error
 import no.ndla.contentapi.model.Error._
 import no.ndla.logging.LoggerContext
+import org.elasticsearch.indices.IndexMissingException
 import org.json4s.{DefaultFormats, Formats}
-import org.scalatra.ScalatraServlet
+import org.scalatra.{ScalatraServlet}
 import org.scalatra.json.NativeJsonSupport
 import org.scalatra.swagger.{SwaggerSupport, Swagger}
 
@@ -57,10 +58,12 @@ class ContentController (implicit val swagger:Swagger) extends ScalatraServlet w
   }
 
   error{
-    case t:Throwable => {
+    case e:IndexMissingException =>
+      logger.error("Index not found, reindexing...")
+      halt(status = 500, body = Error.IndexMissingError)
+    case t:Throwable =>
       logger.error(Error.GenericError.toString, t)
       halt(status = 500, body = Error.GenericError)
-    }
   }
 
   val contentData: ContentData = AmazonIntegration.getContentData()
