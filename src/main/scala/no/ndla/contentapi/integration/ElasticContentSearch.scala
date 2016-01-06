@@ -15,8 +15,10 @@ import org.elasticsearch.index.Index
 import org.elasticsearch.index.query.MatchQueryBuilder
 import org.elasticsearch.indices.IndexMissingException
 import org.elasticsearch.transport.RemoteTransportException
+import scala.concurrent.ExecutionContext.Implicits.global
 
 import scala.collection.mutable.ListBuffer
+import scala.concurrent.Future
 
 class ElasticContentSearch(clusterName:String, clusterHost:String, clusterPort:String) extends ContentSearch with LazyLogging {
 
@@ -93,13 +95,13 @@ class ElasticContentSearch(clusterName:String, clusterHost:String, clusterPort:S
     } catch {
       case e:RemoteTransportException =>
         logger.error(Error.IndexMissingError.toString)
-        new Thread(new Runnable {
-          def run(): Unit = {
-            val request = new HttpPost(s"http://${ContentApiProperties.Domains(0)}:${ContentApiProperties.ApplicationPort}/admin/index")
-            val client = HttpClientBuilder.create().build()
-            client.execute(request)
-          }
-        }).start()
+        val f = Future {
+          val request = new HttpPost(s"http://${ContentApiProperties.Domains(0)}:${ContentApiProperties.ApplicationPort}/admin/index")
+          val client = HttpClientBuilder.create().build()
+          client.execute(request)
+        }
+        f onFailure {case _ => logger.error("Could not create new index.")}
+
         throw new IndexMissingException(new Index(ContentApiProperties.SearchIndex))
     }
   }
