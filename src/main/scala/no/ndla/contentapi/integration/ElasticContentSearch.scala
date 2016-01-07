@@ -102,7 +102,7 @@ class ElasticContentSearch(clusterName:String, clusterHost:String, clusterPort:S
               val client = HttpClientBuilder.create().build()
               client.execute(request)
             }
-            f onFailure {case t => logger.error(t.getMessage)}
+            f onFailure {case t => logger.error("Unable to create index: " + t.getMessage)}
             throw ex
           case _ =>
         }
