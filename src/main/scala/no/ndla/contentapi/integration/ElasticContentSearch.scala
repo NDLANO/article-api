@@ -93,20 +93,7 @@ class ElasticContentSearch(clusterName:String, clusterHost:String, clusterPort:S
     try{
       client.execute{search start startAt limit numResults}.await.as[ContentSummary]
     } catch {
-      case e:RemoteTransportException =>
-        e.getCause match {
-          case ex: IndexMissingException =>
-            logger.error(ex.getDetailedMessage)
-            val f = Future {
-              val request = new HttpPost(s"http://${ContentApiProperties.Domains(0)}:${ContentApiProperties.ApplicationPort}/admin/index")
-              val client = HttpClientBuilder.create().build()
-              client.execute(request)
-            }
-            f onFailure {case t => logger.error("Unable to create index: " + t.getMessage)}
-            throw ex
-          case _ =>
-        }
-        throw e
+      case e:RemoteTransportException => errorHandler(e.getCause)
     }
   }
 
@@ -123,5 +110,24 @@ class ElasticContentSearch(clusterName:String, clusterHost:String, clusterPort:S
     }
 
     (startAt, numResults)
+  }
+
+  def errorHandler(exception: Throwable) = {
+    exception match {
+      case ex: IndexMissingException =>
+        logger.error(ex.getDetailedMessage)
+        scheduleIndexDocuments()
+        throw ex
+      case _ => throw exception
+    }
+  }
+
+  def scheduleIndexDocuments() = {
+    val f = Future {
+      val request = new HttpPost(s"http://${ContentApiProperties.Domains(0)}:${ContentApiProperties.ApplicationPort}/admin/index")
+      val client = HttpClientBuilder.create().build()
+      client.execute(request)
+    }
+    f onFailure { case t => logger.error("Unable to create index: " + t.getMessage) }
   }
 }
