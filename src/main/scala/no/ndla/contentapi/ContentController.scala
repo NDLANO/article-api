@@ -8,10 +8,13 @@ import no.ndla.contentapi.network.ApplicationUrl
 import no.ndla.contentapi.model.Error
 import no.ndla.contentapi.model.Error._
 import no.ndla.logging.LoggerContext
+import org.elasticsearch.indices.IndexMissingException
 import org.json4s.{DefaultFormats, Formats}
-import org.scalatra.ScalatraServlet
+import org.scalatra.{ScalatraServlet}
 import org.scalatra.json.NativeJsonSupport
 import org.scalatra.swagger.{SwaggerSupport, Swagger}
+
+import scala.util.Try
 
 class ContentController (implicit val swagger:Swagger) extends ScalatraServlet with NativeJsonSupport with SwaggerSupport with LazyLogging {
 
@@ -28,7 +31,9 @@ class ContentController (implicit val swagger:Swagger) extends ScalatraServlet w
       headerParam[Option[String]]("app-key").description("Your app-key. May be omitted to access api anonymously, but rate limiting applies on anonymous access."),
       queryParam[Option[String]]("tags").description("Return only content with submitted tag. Multiple tags may be entered comma separated, and will give results matching either one of them."),
       queryParam[Option[String]]("language").description("The ISO 639-1 language code describing language used in query-params."),
-      queryParam[Option[String]]("license").description("Return only content with provided license.")
+      queryParam[Option[String]]("license").description("Return only content with provided license."),
+      queryParam[Option[Int]]("page").description("The page number of the search hits to display."),
+      queryParam[Option[Int]]("page-size").description("The number of search hits to display for each page.")
       ))
 
   val getContentById =
@@ -53,10 +58,11 @@ class ContentController (implicit val swagger:Swagger) extends ScalatraServlet w
   }
 
   error{
-    case t:Throwable => {
+    case e:IndexMissingException =>
+      halt(status = 500, body = Error.IndexMissingError)
+    case t:Throwable =>
       logger.error(Error.GenericError.toString, t)
       halt(status = 500, body = Error.GenericError)
-    }
   }
 
   val contentData: ContentData = AmazonIntegration.getContentData()
@@ -66,15 +72,19 @@ class ContentController (implicit val swagger:Swagger) extends ScalatraServlet w
     val query = params.get("query")
     val language = params.get("language")
     val license = params.get("license")
-    logger.info("GET / with params query='{}', language={}, license={}", query, language, license)
+    val pageSize = params.get("page-size").flatMap(ps => Try(ps.toInt).toOption)
+    val page = params.get("page").flatMap(idx => Try(idx.toInt).toOption)
+    logger.info("GET / with params query='{}', language={}, license={}, page={}, page-size={}", query, language, license, page, pageSize)
 
     query match {
       case Some(query) => contentSearch.matchingQuery(
         query = query.toLowerCase().split(" ").map(_.trim),
         language = language,
-        license = license)
+        license = license,
+        page = page,
+        pageSize = pageSize)
 
-      case None => contentSearch.all(license = license)
+      case None => contentSearch.all(license = license, page = page, pageSize = pageSize)
     }
   }
 

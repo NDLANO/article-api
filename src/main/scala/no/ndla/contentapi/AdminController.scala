@@ -15,23 +15,31 @@ class AdminController extends ScalatraServlet with NativeJsonSupport with LazyLo
   val contentIndex = AmazonIntegration.getContentIndex()
 
   def indexDocuments() = {
-    val start = System.currentTimeMillis
+    synchronized {
+      val start = System.currentTimeMillis
 
-    val newIndexName = contentIndex.create()
+      val newIndexName = contentIndex.create()
+      val oldIndexName = contentIndex.aliasTarget
 
-    var numIndexed = 0
-    contentData.applyToAll(docs => {
-      numIndexed += contentIndex.indexDocuments(docs, newIndexName)
-    })
+      oldIndexName match {
+        case None => contentIndex.updateAliasTarget(oldIndexName, newIndexName)
+        case Some(_) =>
+      }
 
-    val oldIndexName = contentIndex.aliasTarget
+      var numIndexed = 0
+      contentData.applyToAll(docs => {
+        numIndexed += contentIndex.indexDocuments(docs, newIndexName)
+      })
 
-    contentIndex.updateAliasTarget(oldIndexName, newIndexName)
-    oldIndexName.foreach(contentIndex.delete)
+      oldIndexName.foreach(indexName => {
+        contentIndex.updateAliasTarget(oldIndexName, newIndexName)
+        contentIndex.delete(indexName)
+      })
 
-    val result = s"Completed indexing of ${numIndexed} documents in ${System.currentTimeMillis() - start} ms."
-    logger.info(result)
-    result
+      val result = s"Completed indexing of $numIndexed documents in ${System.currentTimeMillis() - start} ms."
+      logger.info(result)
+      result
+    }
   }
 
   post("/index") {
@@ -44,5 +52,4 @@ class AdminController extends ScalatraServlet with NativeJsonSupport with LazyLo
       halt(status = 500, body = Error(Error.GENERIC, t.getMessage))
     }
   }
-
 }
