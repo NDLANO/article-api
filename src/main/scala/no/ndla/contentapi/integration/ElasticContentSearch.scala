@@ -94,15 +94,19 @@ class ElasticContentSearch(clusterName:String, clusterHost:String, clusterPort:S
       client.execute{search start startAt limit numResults}.await.as[ContentSummary]
     } catch {
       case e:RemoteTransportException =>
-        logger.error(Error.IndexMissingError.toString)
-        val f = Future {
-          val request = new HttpPost(s"http://${ContentApiProperties.Domains(0)}:${ContentApiProperties.ApplicationPort}/admin/index")
-          val client = HttpClientBuilder.create().build()
-          client.execute(request)
+        e.getCause match {
+          case ex: IndexMissingException =>
+            logger.error(ex.getDetailedMessage)
+            val f = Future {
+              val request = new HttpPost(s"http://${ContentApiProperties.Domains(0)}:${ContentApiProperties.ApplicationPort}/admin/index")
+              val client = HttpClientBuilder.create().build()
+              client.execute(request)
+            }
+            f onFailure {case t => logger.error(t.getMessage)}
+            throw ex
+          case _ =>
         }
-        f onFailure {case _ => logger.error("Could not create new index.")}
-
-        throw new IndexMissingException(new Index(ContentApiProperties.SearchIndex))
+        throw e
     }
   }
 
