@@ -3,15 +3,12 @@ package no.ndla.contentapi.integration
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.contentapi.ContentApiProperties
 import no.ndla.contentapi.business.ContentSearch
-import no.ndla.contentapi.model.{Error, ContentSummary}
+import no.ndla.contentapi.model.{ContentSummary}
 
 import com.sksamuel.elastic4s.ElasticDsl._
 import com.sksamuel.elastic4s._
 import no.ndla.contentapi.network.ApplicationUrl
-import org.apache.http.client.methods.HttpPost
-import org.apache.http.impl.client.HttpClientBuilder
 import org.elasticsearch.common.settings.ImmutableSettings
-import org.elasticsearch.index.Index
 import org.elasticsearch.index.query.MatchQueryBuilder
 import org.elasticsearch.indices.IndexMissingException
 import org.elasticsearch.transport.RemoteTransportException
@@ -19,6 +16,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
 
 import scala.collection.mutable.ListBuffer
 import scala.concurrent.Future
+import scalaj.http.Http
 
 class ElasticContentSearch(clusterName:String, clusterHost:String, clusterPort:String) extends ContentSearch with LazyLogging {
 
@@ -124,9 +122,7 @@ class ElasticContentSearch(clusterName:String, clusterHost:String, clusterPort:S
 
   def scheduleIndexDocuments() = {
     val f = Future {
-      val request = new HttpPost(s"http://${ContentApiProperties.Domains(0)}:${ContentApiProperties.ApplicationPort}/admin/index")
-      val client = HttpClientBuilder.create().build()
-      client.execute(request)
+      Http(s"http://${ContentApiProperties.Domains(0)}:${ContentApiProperties.ApplicationPort}/admin/index").postForm.asString
     }
     f onFailure { case t => logger.error("Unable to create index: " + t.getMessage) }
   }
