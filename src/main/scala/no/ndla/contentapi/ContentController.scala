@@ -1,26 +1,29 @@
 package no.ndla.contentapi
 
 import com.typesafe.scalalogging.LazyLogging
-import no.ndla.contentapi.JettyLauncher._
+import no.ndla.contentapi.business.{ContentSearch, ContentData}
+import no.ndla.contentapi.integration.AmazonIntegration
 import no.ndla.contentapi.model._
 import no.ndla.contentapi.network.ApplicationUrl
 import no.ndla.contentapi.model.Error
 import no.ndla.contentapi.model.Error._
 import no.ndla.logging.LoggerContext
+import org.elasticsearch.indices.IndexMissingException
 import org.json4s.{DefaultFormats, Formats}
-import org.scalatra.ScalatraServlet
+import org.scalatra.{ScalatraServlet}
 import org.scalatra.json.NativeJsonSupport
 import org.scalatra.swagger.{SwaggerSupport, Swagger}
+
+import scala.util.Try
 
 class ContentController (implicit val swagger:Swagger) extends ScalatraServlet with NativeJsonSupport with SwaggerSupport with LazyLogging {
 
   protected implicit override val jsonFormats: Formats = DefaultFormats
 
-  //Swagger
   protected val applicationDescription = "API for accessing images from ndla.no."
 
   val getAllContent =
-    (apiOperation[List[ContentMetaSummary]]("getAllContent")
+    (apiOperation[List[ContentSummary]]("getAllContent")
       summary "Show all content"
       notes "Shows all the content. You can search it too."
       parameters (
@@ -28,11 +31,13 @@ class ContentController (implicit val swagger:Swagger) extends ScalatraServlet w
       headerParam[Option[String]]("app-key").description("Your app-key. May be omitted to access api anonymously, but rate limiting applies on anonymous access."),
       queryParam[Option[String]]("tags").description("Return only content with submitted tag. Multiple tags may be entered comma separated, and will give results matching either one of them."),
       queryParam[Option[String]]("language").description("The ISO 639-1 language code describing language used in query-params."),
-      queryParam[Option[String]]("license").description("Return only content with provided license.")
+      queryParam[Option[String]]("license").description("Return only content with provided license."),
+      queryParam[Option[Int]]("page").description("The page number of the search hits to display."),
+      queryParam[Option[Int]]("page-size").description("The number of search hits to display for each page.")
       ))
 
   val getContentById =
-    (apiOperation[List[ContentMetaInformation]]("getContentById")
+    (apiOperation[List[ContentInformation]]("getContentById")
     summary "Show content for a specified Id"
     notes "Shows the content for the specified id."
     parameters (
@@ -52,48 +57,48 @@ class ContentController (implicit val swagger:Swagger) extends ScalatraServlet w
     ApplicationUrl.clear()
   }
 
-  get("/", operation(getAllContent)) {
-    List(
-      ContentMetaSummary("1", "Myklesaken splittet Norge", s"${ApplicationUrl.get()}1", "by-sa"),
-      ContentMetaSummary("2", "Hva er utholdenhet", s"${ApplicationUrl.get()}2", "by-sa"),
-      ContentMetaSummary("3", "Potenser", s"${ApplicationUrl.get()}3", "by-sa"),
-      ContentMetaSummary("4", "Bygg fordøyelsessystemet", s"${ApplicationUrl.get()}4", "by-sa")
-    )
+  error{
+    case e:IndexMissingException =>
+      halt(status = 500, body = Error.IndexMissingError)
+    case t:Throwable =>
+      logger.error(Error.GenericError.toString, t)
+      halt(status = 500, body = Error.GenericError)
   }
 
-  val testdata = Map(
-    "1" ->
-      ContentMetaInformation("1",
-        List(ContentTitle("Myklesaken splittet Norge", Some("nb"))),
-        io.Source.fromInputStream(getClass.getResourceAsStream(s"/testdata/1.html")).mkString,
-        Copyright(License("by-nc-sa", "Creative Commons Attribution-NonCommercial-ShareAlike 2.0 Generic", Some("https://creativecommons.org/licenses/by-nc-sa/2.0/")), "NTB Tema", List(Author("forfatter", "Ingrid Brubaker"))),
-        List(ContentTag("myklesaken", Some("nb")), ContentTag("norge", Some("nb"))), List()),
+  val contentData: ContentData = AmazonIntegration.getContentData()
+  val contentSearch: ContentSearch = AmazonIntegration.getContentSearch()
 
-    "2" -> ContentMetaInformation("2",
-      List(ContentTitle("Hva er utholdenhet", Some("nb"))),
-      io.Source.fromInputStream(getClass.getResourceAsStream(s"/testdata/2.html")).mkString,
-      Copyright(License("by-nc-sa", "Creative Commons Attribution-NonCommercial-ShareAlike 2.0 Generic", Some("https://creativecommons.org/licenses/by-nc-sa/2.0/")), "Ukjent", List(Author("forfatter", "Oddbjørg Vatn Slapgaard"))),
-      List(ContentTag("utholdenhet", Some("nb")), ContentTag("aerob", Some("nb"))), List(RequiredLibrary("text/javascript", "H5P-Resizer", "http://ndla.no/sites/all/modules/h5p/library/js/h5p-resizer.js"))),
+  get("/", operation(getAllContent)) {
+    val query = params.get("query")
+    val language = params.get("language")
+    val license = params.get("license")
+    val pageSize = params.get("page-size").flatMap(ps => Try(ps.toInt).toOption)
+    val page = params.get("page").flatMap(idx => Try(idx.toInt).toOption)
+    logger.info("GET / with params query='{}', language={}, license={}, page={}, page-size={}", query, language, license, page, pageSize)
 
-    "3" -> ContentMetaInformation("3",
-      List(ContentTitle("Potenser", Some("nb"))),
-      io.Source.fromInputStream(getClass.getResourceAsStream(s"/testdata/3.html")).mkString,
-      Copyright(License("by-nc-sa", "Creative Commons Attribution-NonCommercial-ShareAlike 2.0 Generic", Some("https://creativecommons.org/licenses/by-nc-sa/2.0/")), "Ukjent", List(Author("forfatter", "Noen"))),
-      List(ContentTag("potenser", Some("nb")), ContentTag("matematikk", Some("nb"))), List(RequiredLibrary("text/javascript", "MathJax", "https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"))),
+    query match {
+      case Some(query) => contentSearch.matchingQuery(
+        query = query.toLowerCase().split(" ").map(_.trim),
+        language = language,
+        license = license,
+        page = page,
+        pageSize = pageSize)
 
-    "4" -> ContentMetaInformation("4",
-      List(ContentTitle("Bygg fordøyelsessystemet", Some("nb"))),
-      io.Source.fromInputStream(getClass.getResourceAsStream(s"/testdata/4.html")).mkString,
-      Copyright(License("by-nc-sa", "Creative Commons Attribution-NonCommercial-ShareAlike 2.0 Generic", Some("https://creativecommons.org/licenses/by-nc-sa/2.0/")), "Ukjent", List(Author("forfatter", "Amendor"))),
-      List(ContentTag("fordøyelsessystemet", Some("nb"))), List())
-  )
-
+      case None => contentSearch.all(license = license, page = page, pageSize = pageSize)
+    }
+  }
 
   get("/:content_id", operation(getContentById)) {
     val contentId = params("content_id")
-    testdata get contentId match {
-      case Some(x) => x
-      case None => halt(status = 404, body = Error(NOT_FOUND, s"No content with id $contentId found"))
+    logger.info("GET /{}", contentId)
+
+    if(contentId.forall(_.isDigit)) {
+      contentData.withId(contentId) match {
+        case Some(image) => image
+        case None => halt(status = 404, body = Error(NOT_FOUND, s"No content with id $contentId found"))
+      }
+    } else {
+      halt(status = 404, body = Error(NOT_FOUND, s"No content with id $contentId found"))
     }
   }
 }

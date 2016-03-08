@@ -76,13 +76,8 @@ dockerfile in docker := {
   new Dockerfile {
     from("java")
 
-    env("NDLACOMPONENT", "content-api")
-    scala.io.Source.fromFile("./src/main/resources/content-api.env").getLines().foreach(key => {
-      env(key, key)
-    })
-
     add(artifact, artifactTargetPath)
-    entryPoint("java", "-jar", artifactTargetPath)
+    entryPoint("java", "-Dorg.scalatra.environment=production", "-jar", artifactTargetPath)
   }
 }
 
@@ -90,10 +85,10 @@ val gitHeadCommitSha = settingKey[String]("current git commit SHA")
 gitHeadCommitSha in ThisBuild := Process("git log --pretty=format:%h -n 1").lines.head
 
 imageNames in docker := Seq(
-  ImageName("ndla/content-api"),
-  ImageName(namespace = Some(organization.value),
+  ImageName(
+    namespace = Some(organization.value),
     repository = name.value,
-    tag = Some("v" + version.value + "_" + gitHeadCommitSha.value))
+    tag = Some(System.getProperty("docker.tag", "SNAPSHOT")))
 )
 
 publishTo := {

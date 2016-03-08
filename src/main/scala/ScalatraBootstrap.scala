@@ -6,7 +6,7 @@
  */
 import javax.servlet.ServletContext
 
-import no.ndla.contentapi.{ResourcesApp, ContentSwagger, ContentController}
+import no.ndla.contentapi.{AdminController, ResourcesApp, ContentSwagger, ContentController}
 import org.scalatra.LifeCycle
 
 class ScalatraBootstrap extends LifeCycle {
@@ -16,6 +16,7 @@ class ScalatraBootstrap extends LifeCycle {
   override def init(context: ServletContext) {
     context.mount(new ContentController, "/content", "content")
     context.mount(new ResourcesApp, "/api-docs")
+    context.mount(new AdminController, "/admin")
   }
 
 }
