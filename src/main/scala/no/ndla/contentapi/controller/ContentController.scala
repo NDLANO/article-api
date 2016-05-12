@@ -1,18 +1,18 @@
-package no.ndla.contentapi
+package no.ndla.contentapi.controller
 
 import com.typesafe.scalalogging.LazyLogging
-import no.ndla.contentapi.business.{ContentSearch, ContentData}
-import no.ndla.contentapi.integration.AmazonIntegration
-import no.ndla.contentapi.model._
-import no.ndla.contentapi.network.ApplicationUrl
-import no.ndla.contentapi.model.Error
-import no.ndla.contentapi.model.Error._
-import no.ndla.logging.LoggerContext
 import org.elasticsearch.indices.IndexMissingException
 import org.json4s.{DefaultFormats, Formats}
-import org.scalatra.{ScalatraServlet}
+import org.scalatra.ScalatraServlet
 import org.scalatra.json.NativeJsonSupport
-import org.scalatra.swagger.{SwaggerSupport, Swagger}
+import org.scalatra.swagger.{Swagger, SwaggerSupport}
+import no.ndla.contentapi.business.{ContentData, ContentSearch}
+import no.ndla.contentapi.integration.AmazonIntegration
+import no.ndla.contentapi.model.Error._
+import no.ndla.contentapi.model.{Error, ContentSummary, ContentInformation}
+import no.ndla.contentapi.network.ApplicationUrl
+import no.ndla.logging.LoggerContext
+
 
 import scala.util.Try
 

@@ -6,7 +6,8 @@
  */
 import javax.servlet.ServletContext
 
-import no.ndla.contentapi.{AdminController, ResourcesApp, ContentSwagger, ContentController}
+import no.ndla.contentapi.controller.{AdminController, ContentController}
+import no.ndla.contentapi.{ContentSwagger, ResourcesApp}
 import org.scalatra.LifeCycle
 
 class ScalatraBootstrap extends LifeCycle {
