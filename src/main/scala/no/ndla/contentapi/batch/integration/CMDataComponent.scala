@@ -1,4 +1,4 @@
-package no.ndla.contentapi.batch.service.integration
+package no.ndla.contentapi.batch.integration
 
 import com.mysql.jdbc.jdbc2.optional.MysqlConnectionPoolDataSource
 import no.ndla.contentapi.batch.Node

@@ -1,7 +1,7 @@
 package no.ndla.contentapi.batch.service
 
 import no.ndla.contentapi.batch.Node
-import no.ndla.contentapi.batch.service.integration.CMDataComponent
+import no.ndla.contentapi.batch.integration.CMDataComponent
 
 trait ImportServiceComponent {
   this: CMDataComponent =>

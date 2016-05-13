@@ -1,9 +1,9 @@
-package no.ndla.contentapi.batch.service.integration
+package no.ndla.contentapi.batch.service.converters
 
-import no.ndla.contentapi.batch.service.ConverterModules
+import no.ndla.contentapi.batch.integration.ConverterModule
+import org.jsoup.nodes.Element
 
 import scala.collection.JavaConversions._
-import org.jsoup.nodes.Element
 
 object ContentBrowserConverter extends ConverterModule {
   case class ContentBrowser(contentBrowserString: String) {

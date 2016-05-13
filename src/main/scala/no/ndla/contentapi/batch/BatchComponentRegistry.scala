@@ -1,7 +1,8 @@
 package no.ndla.contentapi.batch
 
 import no.ndla.contentapi.batch.service.{ConverterModules, ConverterServiceComponent, ImportServiceComponent}
-import no.ndla.contentapi.batch.service.integration.{CMDataComponent, ContentBrowserConverter, SimpleTagConverter}
+import no.ndla.contentapi.batch.integration.CMDataComponent
+import no.ndla.contentapi.batch.service.converters.{ContentBrowserConverter, SimpleTagConverter}
 
 object BatchComponentRegistry
   extends ImportServiceComponent

@@ -1,4 +1,4 @@
-package no.ndla.contentapi.batch.service.integration
+package no.ndla.contentapi.batch.integration
 
 import org.jsoup.nodes.Element
 
