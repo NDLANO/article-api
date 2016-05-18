@@ -7,12 +7,13 @@ import scala.collection.JavaConversions._
 
 object SimpleTagConverter extends ConverterModule {
 
-  def convert(doc: Element) {
-    var elements = doc.select("div")
+  def convert(el: Element): Element = {
+    var elements = el.select("div")
     for (el <- elements) {
       el.className() match {
         case "full" | "paragraph" => el.unwrap()
       }
     }
+    el
   }
 }

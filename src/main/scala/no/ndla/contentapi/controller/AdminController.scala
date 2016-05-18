@@ -17,7 +17,7 @@ class AdminController extends ScalatraServlet with NativeJsonSupport with LazyLo
   }
 
   post("/import/:node_id") {
-    logger.info(s"Converting node ${params("node_id")}")
+    logger.info("Converting node {}", params("node_id"))
     Ok(converterService.convertNode(params("node_id")))
   }
 

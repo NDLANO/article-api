@@ -1,8 +1,7 @@
 package no.ndla.contentapi.batch.service
 
 import org.jsoup.Jsoup
-import org.jsoup.nodes.{Document, Element}
-
+import org.jsoup.nodes.Element
 
 trait ConverterServiceComponent {
     this: ImportServiceComponent with ConverterModules =>
@@ -12,13 +11,14 @@ trait ConverterServiceComponent {
     def convertNode(nodeId: String): String = {
       val node = importService.importNode(nodeId)
       convert(node.content)
+      ""
     }
 
-    def convert(htmlContent: String): String = {
-      val document = Jsoup.parseBodyFragment(htmlContent).body().tagName("article")
-
-      converterModules foreach {_.convert(document)}
-      document.outerHtml()
+    def convert(htmlContent: String) = {
+      var element = Jsoup.parseBodyFragment(htmlContent).body().tagName("article")
+      for (module <- converterModules)
+        element = module.convert(element)
+      element.outerHtml()
     }
   }
 }

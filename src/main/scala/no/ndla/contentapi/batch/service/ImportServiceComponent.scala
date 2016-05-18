@@ -9,9 +9,6 @@ trait ImportServiceComponent {
   val importService: ImportService
 
   class ImportService {
-
-    def importNode(nodeId: String): Node = {
-      return cmData.getNode(nodeId);
-    }
+    def importNode(nodeId: String): Node = cmData.getNode(nodeId)
   }
 }

@@ -35,8 +35,8 @@ object ContentBrowserConverter extends ConverterModule {
     }
   }
 
-  def convert(doc: Element) {
-    val elements = doc.select("p")
+  def convert(el: Element): Element = {
+    val elements = el.select("p")
 
     for (el <- elements) {
       val text = el.text
@@ -48,5 +48,6 @@ object ContentBrowserConverter extends ConverterModule {
         el.html(newContent)
       }
     }
+    el
   }
 }
