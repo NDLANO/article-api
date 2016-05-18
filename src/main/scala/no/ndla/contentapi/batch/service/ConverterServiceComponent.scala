@@ -1,5 +1,6 @@
 package no.ndla.contentapi.batch.service
 
+import no.ndla.contentapi.model.ContentInformation
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Element
 
@@ -8,9 +9,10 @@ trait ConverterServiceComponent {
   val converterService: ConverterService
 
   class ConverterService {
-    def convertNode(nodeId: String): String = {
+    def convertNode(nodeId: String): ContentInformation = {
       val node = importService.importNode(nodeId)
-      convert(node.content)
+      val convertedContent = node.content.map(x => x.copy(content=convert(x.content)))
+      node.copy(content=convertedContent)
     }
 
     def convert(htmlContent: String) = {
