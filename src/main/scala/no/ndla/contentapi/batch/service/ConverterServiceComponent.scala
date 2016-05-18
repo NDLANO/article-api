@@ -11,7 +11,6 @@ trait ConverterServiceComponent {
     def convertNode(nodeId: String): String = {
       val node = importService.importNode(nodeId)
       convert(node.content)
-      ""
     }
 
     def convert(htmlContent: String) = {
