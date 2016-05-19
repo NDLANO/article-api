@@ -13,7 +13,7 @@ trait ConverterServiceComponent {
       convert(node.content)
     }
 
-    def convert(htmlContent: String) = {
+    def convert(htmlContent: String): String = {
       var element = Jsoup.parseBodyFragment(htmlContent).body().tagName("article")
       for (module <- converterModules)
         element = module.convert(element)

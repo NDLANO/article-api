@@ -2,7 +2,7 @@ package no.ndla.contentapi.batch
 
 import no.ndla.contentapi.batch.service.{ConverterModules, ConverterServiceComponent, ImportServiceComponent}
 import no.ndla.contentapi.batch.integration.CMDataComponent
-import no.ndla.contentapi.batch.service.converters.{ContentBrowserConverter, SimpleTagConverter}
+import no.ndla.contentapi.batch.service.converters.{ContentBrowserConverter, DivTableConverter, SimpleTagConverter}
 
 object BatchComponentRegistry
   extends ImportServiceComponent
@@ -20,5 +20,5 @@ object BatchComponentRegistry
   lazy val importService = new ImportService
   lazy val converterService = new ConverterService
 
-  lazy val converterModules = List(ContentBrowserConverter, SimpleTagConverter)
+  lazy val converterModules = List(DivTableConverter, ContentBrowserConverter, SimpleTagConverter)
 }
