@@ -47,5 +47,14 @@ trait CMDataComponent {
              """.stripMargin.map(rs => rs.string("content")).single.apply()
       }
     }
+
+    def getNodeType(nodeId: String): Option[String] = {
+      NamedDB('cm) readOnly { implicit session =>
+        sql"""
+           |select type from node n
+             |where n.nid=${nodeId}
+             """.stripMargin.map(rs => rs.string("type")).single.apply()
+      }
+    }
   }
 }
