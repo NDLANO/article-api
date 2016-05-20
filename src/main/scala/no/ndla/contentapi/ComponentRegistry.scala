@@ -27,7 +27,7 @@ object ComponentRegistry
 
   val elasticClient = ElasticClient.remote(
     ImmutableSettings.settingsBuilder().put("cluster.name", ContentApiProperties.SearchClusterName).build(),
-    ElasticsearchClientUri(s"elasticsearch://ContentApiProperties.SearchHost:ContentApiProperties.SearchPort")
+    ElasticsearchClientUri(s"elasticsearch://${ContentApiProperties.SearchHost}:${ContentApiProperties.SearchPort}")
   )
 
   val contentRepository = new ContentRepository
