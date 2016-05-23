@@ -2,6 +2,7 @@ package no.ndla.contentapi.batch.service
 
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Element
+import org.jsoup.nodes.Entities.EscapeMode
 
 trait ConverterServiceComponent {
     this: ImportServiceComponent with ConverterModules =>
@@ -14,7 +15,11 @@ trait ConverterServiceComponent {
     }
 
     def convert(htmlContent: String) = {
-      var element = Jsoup.parseBodyFragment(htmlContent).body().tagName("article")
+      val document = Jsoup.parseBodyFragment(htmlContent)
+      var element = document.body().tagName("article")
+
+      document.outputSettings().escapeMode(EscapeMode.xhtml)
+
       for (module <- converterModules)
         element = module.convert(element)
       element.outerHtml()
