@@ -56,5 +56,15 @@ trait CMDataComponent {
              """.stripMargin.map(rs => rs.string("type")).single.apply()
       }
     }
+
+    def getNodeUrl(nodeId: String): Option[String] = {
+      NamedDB('cm) readOnly { implicit session =>
+        sql"""
+          |select url.field_url_url as url, url.field_url_attributes as attrs from node n
+            |left join content_field_url url on url.nid=n.nid
+            |where n.nid=${nodeId}
+             """.stripMargin.map(rs => rs.string("url")).single.apply()
+      }
+    }
   }
 }

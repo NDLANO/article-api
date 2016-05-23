@@ -46,8 +46,16 @@ object ContentBrowserConverter extends ConverterModule {
       if (isContentBrowserField) {
         val (start, end) = cont.getStartEndIndex()
         val nodeId = cont.get("nid")
+
         val newContent = cmData.getNodeType(cont.get("nid")) match {
           case Some("h5p_content") => s"""<embed src="http://default/content" type="external/oembed" data-oembed="http://ndla.no/node/${nodeId}" />"""
+          case Some("lenke") => {
+
+            cont.get("insertion") match {
+              case "inline" => None // video
+              case "link" => s"""<a href="${cmData.getNodeUrl(nodeId).get}" title="${cont.get("link_title_text")}>${cont.get("link_text")}</a>"""
+            }
+          }
           case None => s"{CONTENT-${cont.get("nid")}}"
         }
 
