@@ -53,7 +53,7 @@ object ContentBrowserConverter extends ConverterModule {
 
             cont.get("insertion") match {
               case "inline" => None // video
-              case "link" => s"""<a href="${cmData.getNodeUrl(nodeId).get}" title="${cont.get("link_title_text")}>${cont.get("link_text")}</a>"""
+              case "link" => s"""<a href="${"http://this.is.a.link"}" title="${cont.get("link_title_text")}">${cont.get("link_text")}</a>"""
             }
           }
           case None => s"{CONTENT-${cont.get("nid")}}"

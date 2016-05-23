@@ -12,6 +12,7 @@ object SimpleTagConverter extends ConverterModule {
     for (el <- elements) {
       el.className() match {
         case "full" | "paragraph" => el.unwrap()
+        case _ =>
       }
     }
     el
