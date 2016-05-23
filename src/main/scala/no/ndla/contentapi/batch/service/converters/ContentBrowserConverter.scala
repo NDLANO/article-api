@@ -47,7 +47,7 @@ object ContentBrowserConverter extends ConverterModule {
         val (start, end) = cont.getStartEndIndex()
         val nodeId = cont.get("nid")
         val newContent = cmData.getNodeType(cont.get("nid")) match {
-          case Some("h5p_content") | Some("lenke") => s"""<embed src="http://default/content" type="external/oembed" data-oembed="http://ndla.no/node/${nodeId}" />"""
+          case Some("h5p_content") => s"""<embed src="http://default/content" type="external/oembed" data-oembed="http://ndla.no/node/${nodeId}" />"""
           case None => s"{CONTENT-${cont.get("nid")}}"
         }
 
