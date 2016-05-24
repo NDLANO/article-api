@@ -8,12 +8,17 @@ import scala.collection.JavaConversions._
 object SimpleTagConverter extends ConverterModule {
 
   def convert(el: Element): Element = {
-    var elements = el.select("div")
-    for (el <- elements) {
+    for (el <- el.select("div")) {
       el.className() match {
         case "full" | "paragraph" => el.unwrap()
+        case "quote" => el.tagName("blockquote")
         case _ =>
       }
+    }
+
+    for (el <- el.select("pre")) {
+      println("wrapping pre children")
+      el.html("<code>" + el.html() + "</code")
     }
     el
   }
