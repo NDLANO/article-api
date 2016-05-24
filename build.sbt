@@ -44,10 +44,12 @@ lazy val content_api = (project in file(".")).
       "org.webjars" % "swagger-ui" % SwaggerUIVersion,
       "org.scalikejdbc" %% "scalikejdbc" % "2.2.8",
       "org.postgresql" % "postgresql" % "9.4-1201-jdbc4",
+      "mysql" % "mysql-connector-java" % "5.1.36",
       "com.amazonaws" % "aws-java-sdk-s3" % AwsSdkversion,
       "org.scalaj" %% "scalaj-http" % "1.1.5",
       "com.sksamuel.elastic4s" %% "elastic4s-core" % "1.7.4",
       "org.scalatest" % "scalatest_2.11" % ScalaTestVersion % "test",
+      "org.jsoup" % "jsoup" % "1.7.3",
       "org.mockito" % "mockito-all" % MockitoVersion % "test")
   ).enablePlugins(DockerPlugin).enablePlugins(GitVersioning).enablePlugins(JettyPlugin)
 

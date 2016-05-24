@@ -1,11 +1,12 @@
-package no.ndla.contentapi
+package no.ndla.contentapi.controller
 
 import com.typesafe.scalalogging.LazyLogging
-import no.ndla.contentapi.business.SearchIndexer
-import no.ndla.contentapi.model.Error
 import org.json4s.{DefaultFormats, Formats}
 import org.scalatra.json.NativeJsonSupport
 import org.scalatra.{Ok, ScalatraServlet}
+import no.ndla.contentapi.business.SearchIndexer
+import no.ndla.contentapi.model.Error
+import no.ndla.contentapi.batch.BatchComponentRegistry.converterService
 
 class AdminController extends ScalatraServlet with NativeJsonSupport with LazyLogging {
 
@@ -13,6 +14,11 @@ class AdminController extends ScalatraServlet with NativeJsonSupport with LazyLo
 
   post("/index") {
     Ok(SearchIndexer.indexDocuments())
+  }
+
+  post("/import/:node_id") {
+    logger.info("Converting node {}", params("node_id"))
+    Ok(converterService.convertNode(params("node_id")))
   }
 
   error{
