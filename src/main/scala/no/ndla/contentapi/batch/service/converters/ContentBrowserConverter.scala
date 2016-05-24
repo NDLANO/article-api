@@ -7,6 +7,8 @@ import no.ndla.contentapi.batch.BatchComponentRegistry
 import scala.collection.JavaConversions._
 
 object ContentBrowserConverter extends ConverterModule {
+  val cmData = BatchComponentRegistry.cmData
+
   case class ContentBrowser(contentBrowserString: String) {
     // Extract the contentbrowser variables
     private val Pattern = """(?s).*\[contentbrowser (.*) contentbrowser\].*""".r
@@ -34,8 +36,21 @@ object ContentBrowserConverter extends ConverterModule {
     }
   }
 
+  def convertLink(nodeId: String, cont: ContentBrowser): String = {
+    val url = cmData.getNodeUrl(nodeId).get
+    val youtubePattern = """https?://(?:www.)?youtube.com(/.*)?""".r
+    cont.get("insertion") match {
+      case "inline" => {
+        url match {
+          case youtubePattern(_) => s"""<embed src="http://default/content" type="external/oembed" data-oembed="${url}" />"""
+          case _ => s"""<iframe src="${url}" />"""
+        }
+      }
+      case "link" => s"""<a href="${url}" title="${cont.get("link_title_text")}">${cont.get("link_text")}</a>"""
+    }
+  }
+
   def convert(el: Element): Element = {
-    val cmData = BatchComponentRegistry.cmData
     var isContentBrowserField = false
 
     do {
@@ -49,13 +64,7 @@ object ContentBrowserConverter extends ConverterModule {
 
         val newContent = cmData.getNodeType(cont.get("nid")) match {
           case Some("h5p_content") => s"""<embed src="http://default/content" type="external/oembed" data-oembed="http://ndla.no/node/${nodeId}" />"""
-          case Some("lenke") => {
-
-            cont.get("insertion") match {
-              case "inline" => s"""<embed data-oembed="http://ndla.no/node/${nodeId}" />"""
-              case "link" => s"""<a href="${cmData.getNodeUrl(nodeId).get}" title="${cont.get("link_title_text")}">${cont.get("link_text")}</a>"""
-            }
-          }
+          case Some("lenke") => convertLink(nodeId, cont)
           case x => s"{CONTENT-${cont.get("nid")} " + x + "}"
         }
 
