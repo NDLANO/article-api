@@ -16,13 +16,12 @@ trait ConverterServiceComponent {
 
     def convert(htmlContent: String) = {
       val document = Jsoup.parseBodyFragment(htmlContent)
-      var element = document.body().tagName("article")
-
+      val firstElement = document.body().tagName("article")
       document.outputSettings().escapeMode(EscapeMode.xhtml)
 
-      for (module <- converterModules)
-        element = module.convert(element)
-      element.outerHtml()
+      converterModules.foldLeft(firstElement)(
+        (element, converter) => converter.convert(element)
+      ).outerHtml()
     }
   }
 }
