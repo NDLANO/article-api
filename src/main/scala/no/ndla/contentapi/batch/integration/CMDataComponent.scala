@@ -66,5 +66,16 @@ trait CMDataComponent {
              """.stripMargin.map(rs => rs.string("url")).single.apply()
       }
     }
+
+    def getNodeEmbedData(nodeId: String): Option[(String, String)] = {
+      NamedDB('cm) readOnly { implicit session =>
+        sql"""
+           |select url.field_url_url url, ec.field_embed_code_value as code from node n
+             |left join content_field_embed_code ec on ec.nid=n.nid
+             |left join content_field_url url on url.nid=n.nid
+             |where n.nid=${nodeId}
+             """.stripMargin.map(rs => (rs.string("url"), rs.string("code"))).single.apply()
+      }
+    }
   }
 }

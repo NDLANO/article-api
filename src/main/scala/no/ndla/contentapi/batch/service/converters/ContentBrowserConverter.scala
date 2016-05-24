@@ -37,13 +37,13 @@ object ContentBrowserConverter extends ConverterModule {
   }
 
   def convertLink(nodeId: String, cont: ContentBrowser): String = {
-    val url = cmData.getNodeUrl(nodeId).get
-    val youtubePattern = """https?://(?:www.)?youtube.com(/.*)?""".r
+    val (url, embedCode) = cmData.getNodeEmbedData(nodeId).get
+    val youtubePattern = """https?://(?:www\.)?youtu(?:be\.com|\.be)(/.*)?""".r
     cont.get("insertion") match {
       case "inline" => {
         url match {
           case youtubePattern(_) => s"""<embed src="http://default/content" type="external/oembed" data-oembed="${url}" />"""
-          case _ => s"""<iframe src="${url}" />"""
+          case _ => embedCode
         }
       }
       case "link" => s"""<a href="${url}" title="${cont.get("link_title_text")}">${cont.get("link_text")}</a>"""
@@ -68,7 +68,7 @@ object ContentBrowserConverter extends ConverterModule {
           case x => s"{CONTENT-${cont.get("nid")} " + x + "}"
         }
 
-        el.html(text.substring(0, start) + newContent+ text.substring(end))
+        el.html(text.substring(0, start) + newContent + text.substring(end))
       }
     } while (isContentBrowserField)
     el
