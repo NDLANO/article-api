@@ -8,25 +8,25 @@ package no.ndla.contentapi
 
 import com.typesafe.scalalogging.LazyLogging
 
-object ContentApiProperties extends LazyLogging {
+import scala.collection.mutable
 
+object ContentApiProperties extends LazyLogging {
+  var ContentApiProps: mutable.Map[String, Option[String]] = mutable.HashMap()
 
   val ApplicationPort = 80
-  val EnvironmentFile = "/content-api.env"
-  val ContentApiProps = readPropertyFile()
 
-  val ContactEmail = get("CONTACT_EMAIL")
-  val HostAddr = get("HOST_ADDR")
-  val Domains = get("DOMAINS").split(",") ++ Array(HostAddr)
+  lazy val ContactEmail = get("CONTACT_EMAIL")
+  lazy val HostAddr = get("HOST_ADDR")
+  lazy val Domains = get("DOMAINS").split(",") ++ Array(HostAddr)
 
   val SearchHost = "search-engine"
-  val SearchPort = get("SEARCH_ENGINE_ENV_TCP_PORT")
-  var SearchClusterName = get("SEARCH_ENGINE_ENV_CLUSTER_NAME")
-  val SearchIndex = get("SEARCH_INDEX")
-  val SearchDocument = get("SEARCH_DOCUMENT")
-  val DefaultPageSize: Int = getInt("SEARCH_DEFAULT_PAGE_SIZE")
-  val MaxPageSize: Int = getInt("SEARCH_MAX_PAGE_SIZE")
-  val IndexBulkSize = getInt("INDEX_BULK_SIZE")
+  lazy val SearchPort = get("SEARCH_ENGINE_ENV_TCP_PORT")
+  lazy val SearchClusterName = get("SEARCH_ENGINE_ENV_CLUSTER_NAME")
+  lazy val SearchIndex = get("SEARCH_INDEX")
+  lazy val SearchDocument = get("SEARCH_DOCUMENT")
+  lazy val DefaultPageSize: Int = getInt("SEARCH_DEFAULT_PAGE_SIZE")
+  lazy val MaxPageSize: Int = getInt("SEARCH_MAX_PAGE_SIZE")
+  lazy val IndexBulkSize = getInt("INDEX_BULK_SIZE")
 
   def verify() = {
     val missingProperties = ContentApiProps.filter(entry => entry._2.isEmpty).toList
@@ -36,6 +36,10 @@ object ContentApiProperties extends LazyLogging {
       logger.error("Shutting down.")
       System.exit(1)
     }
+  }
+
+  def setProperties(properties: Map[String, Option[String]]) = {
+    properties.foreach(prop => ContentApiProps.put(prop._1, prop._2))
   }
 
   def get(envKey: String): String = {
@@ -48,10 +52,18 @@ object ContentApiProperties extends LazyLogging {
   def getInt(envKey: String):Integer = {
     get(envKey).toInt
   }
+}
+
+object PropertiesLoader {
+  val EnvironmentFile = "/content-api.env"
 
   def readPropertyFile(): Map[String,Option[String]] = {
     val keys = io.Source.fromInputStream(getClass.getResourceAsStream(EnvironmentFile)).getLines().withFilter(line => line.matches("^\\w+$"))
     keys.map(key => key -> scala.util.Properties.envOrNone(key)).toMap
   }
 
+  def load() = {
+    ContentApiProperties.setProperties(readPropertyFile())
+    ContentApiProperties.verify()
+  }
 }

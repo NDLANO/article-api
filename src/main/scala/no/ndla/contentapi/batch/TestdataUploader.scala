@@ -1,6 +1,6 @@
 package no.ndla.contentapi.batch
 
-import no.ndla.contentapi.integration.AmazonIntegration
+import no.ndla.contentapi.ComponentRegistry
 import no.ndla.contentapi.model._
 
 object TestdataUploader {
@@ -45,7 +45,7 @@ object TestdataUploader {
   )
 
   def main(args: Array[String]) {
-    val contentData = AmazonIntegration.getContentData()
+    val contentData = ComponentRegistry.contentRepository
 
     testdata.foreach(tuppel => {
       if(!contentData.exists(tuppel._1))
