@@ -3,12 +3,12 @@ package no.ndla.contentapi.batch.service
 import no.ndla.contentapi.batch.integration.CMDataComponent
 import no.ndla.contentapi.model.ContentInformation
 
-trait ImportServiceComponent {
+trait ExtractServiceComponent {
   this: CMDataComponent =>
 
-  val importService: ImportService
+  val extractorService: ExtractService
 
-  class ImportService {
+  class ExtractService {
     def importNode(nodeId: String): ContentInformation = cmData.getNode(nodeId)
   }
 }
