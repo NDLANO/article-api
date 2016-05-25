@@ -1,17 +1,17 @@
 package no.ndla.contentapi.batch.service
 
+import no.ndla.contentapi.model.ContentInformation
 import org.jsoup.Jsoup
-import org.jsoup.nodes.Element
 import org.jsoup.nodes.Entities.EscapeMode
 
 trait ConverterServiceComponent {
-    this: ImportServiceComponent with ConverterModules =>
+    this: ConverterModules =>
   val converterService: ConverterService
 
   class ConverterService {
-    def convertNode(nodeId: String): String = {
-      val node = importService.importNode(nodeId)
-      convert(node.content)
+    def convertNode(node: ContentInformation): ContentInformation = {
+      val convertedContent = node.content.map(x => x.copy(content=convert(x.content)))
+      node.copy(content=convertedContent)
     }
 
     def convert(htmlContent: String) = {
