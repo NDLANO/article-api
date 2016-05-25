@@ -7,6 +7,7 @@ import org.scalatra.{Ok, ScalatraServlet}
 import no.ndla.contentapi.business.SearchIndexer
 import no.ndla.contentapi.model.Error
 import no.ndla.contentapi.batch.BatchComponentRegistry.converterService
+import no.ndla.contentapi.integration.AmazonIntegration
 
 class AdminController extends ScalatraServlet with NativeJsonSupport with LazyLogging {
 
@@ -18,7 +19,16 @@ class AdminController extends ScalatraServlet with NativeJsonSupport with LazyLo
 
   post("/import/:node_id") {
     logger.info("Converting node {}", params("node_id"))
-    Ok(converterService.convertNode(params("node_id")))
+    val contentData = AmazonIntegration.getContentData()
+    val nodeId = params("node_id")
+    val node = converterService.convertNode(nodeId)
+
+    contentData.exists(nodeId) match {
+      case true => contentData.update(node, nodeId)
+      case false => contentData.insert(node, nodeId)
+    }
+
+    Ok()
   }
 
   error{

@@ -56,7 +56,7 @@ trait CMDataComponent {
       val license = License(license=getNodeCopyrightLicence(nodeId), "", Some(""))
       val copyright = Copyright(license, "", authors)
       val requiredLibraries = List(RequiredLibrary("", "", ""))
-      ContentInformation(nodeId, titles, contents, copyright, Tags.forContent(nodeId), requiredLibraries)
+      ContentInformation("0", titles, contents, copyright, Tags.forContent(nodeId), requiredLibraries)
     }
 
     def getNodeMeta(nodeId: String): (List[ContentTitle], List[Content]) = {
