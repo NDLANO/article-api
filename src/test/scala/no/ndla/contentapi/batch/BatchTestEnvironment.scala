@@ -13,7 +13,7 @@ trait BatchTestEnvironment
   with MockitoSugar {
 
   val cmData = mock[CMData]
-  val extractorService = mock[ExtractService]
+  val extractService = mock[ExtractService]
   val converterService = mock[ConverterService]
   val converterModules = List(SimpleTagConverter, ContentBrowserConverter)
 }

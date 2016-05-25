@@ -6,7 +6,7 @@ import no.ndla.contentapi.model.ContentInformation
 trait ExtractServiceComponent {
   this: CMDataComponent =>
 
-  val extractorService: ExtractService
+  val extractService: ExtractService
 
   class ExtractService {
     def importNode(nodeId: String): ContentInformation = cmData.getNode(nodeId)
