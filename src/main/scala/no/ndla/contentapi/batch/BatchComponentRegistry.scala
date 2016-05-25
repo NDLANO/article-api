@@ -1,11 +1,11 @@
 package no.ndla.contentapi.batch
 
-import no.ndla.contentapi.batch.service.{ConverterModules, ConverterServiceComponent, ImportServiceComponent}
+import no.ndla.contentapi.batch.service.{ConverterModules, ConverterServiceComponent, ExtractServiceComponent}
 import no.ndla.contentapi.batch.integration.CMDataComponent
 import no.ndla.contentapi.batch.service.converters.{ContentBrowserConverter, SimpleTagConverter}
 
 object BatchComponentRegistry
-  extends ImportServiceComponent
+  extends ExtractServiceComponent
     with ConverterModules
     with ConverterServiceComponent
     with CMDataComponent {
@@ -17,7 +17,7 @@ object BatchComponentRegistry
   lazy val CMPassword = scala.util.Properties.envOrNone("CM_PASSWORD")
 
   lazy val cmData = new CMData(CMHost, CMPort, CMDatabase, CMUser, CMPassword)
-  lazy val importService = new ImportService
+  lazy val extractService = new ExtractService
   lazy val converterService = new ConverterService
 
   lazy val converterModules = List(ContentBrowserConverter, SimpleTagConverter)

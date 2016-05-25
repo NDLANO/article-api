@@ -1,18 +1,17 @@
 package no.ndla.contentapi.controller
 
 import com.typesafe.scalalogging.LazyLogging
+import no.ndla.contentapi.ComponentRegistry
 import org.elasticsearch.indices.IndexMissingException
 import org.json4s.{DefaultFormats, Formats}
 import org.scalatra.ScalatraServlet
 import org.scalatra.json.NativeJsonSupport
 import org.scalatra.swagger.{Swagger, SwaggerSupport}
 import no.ndla.contentapi.business.{ContentData, ContentSearch}
-import no.ndla.contentapi.integration.AmazonIntegration
 import no.ndla.contentapi.model.Error._
-import no.ndla.contentapi.model.{Error, ContentSummary, ContentInformation}
+import no.ndla.contentapi.model.{ContentInformation, ContentSummary, Error}
 import no.ndla.contentapi.network.ApplicationUrl
 import no.ndla.logging.LoggerContext
-
 
 import scala.util.Try
 
@@ -65,8 +64,8 @@ class ContentController (implicit val swagger:Swagger) extends ScalatraServlet w
       halt(status = 500, body = Error.GenericError)
   }
 
-  val contentData: ContentData = AmazonIntegration.getContentData()
-  val contentSearch: ContentSearch = AmazonIntegration.getContentSearch()
+  val contentRepository: ContentData = ComponentRegistry.contentRepository
+  val contentSearch: ContentSearch = ComponentRegistry.elasticContentSearch
 
   get("/", operation(getAllContent)) {
     val query = params.get("query")
@@ -93,7 +92,7 @@ class ContentController (implicit val swagger:Swagger) extends ScalatraServlet w
     logger.info("GET /{}", contentId)
 
     if(contentId.forall(_.isDigit)) {
-      contentData.withId(contentId) match {
+      contentRepository.withId(contentId) match {
         case Some(image) => image
         case None => halt(status = 404, body = Error(NOT_FOUND, s"No content with id $contentId found"))
       }
