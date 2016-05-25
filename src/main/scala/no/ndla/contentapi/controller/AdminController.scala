@@ -6,7 +6,8 @@ import org.scalatra.json.NativeJsonSupport
 import org.scalatra.{Ok, ScalatraServlet}
 import no.ndla.contentapi.business.SearchIndexer
 import no.ndla.contentapi.model.Error
-import no.ndla.contentapi.batch.BatchComponentRegistry.converterService
+import no.ndla.contentapi.batch.BatchComponentRegistry.{converterService, extractService}
+import no.ndla.contentapi.ComponentRegistry.contentRepository
 
 class AdminController extends ScalatraServlet with NativeJsonSupport with LazyLogging {
 
@@ -17,8 +18,18 @@ class AdminController extends ScalatraServlet with NativeJsonSupport with LazyLo
   }
 
   post("/import/:node_id") {
-    logger.info("Converting node {}", params("node_id"))
-    Ok(converterService.convertNode(params("node_id")))
+    val nodeId = params("node_id")
+    val node = extractService.importNode(nodeId)
+    val convertedNode = converterService.convertNode(node)
+
+    logger.info("Converting node {}", nodeId)
+
+    contentRepository.exists(nodeId) match {
+      case true => contentRepository.update(convertedNode, nodeId)
+      case false => contentRepository.insert(convertedNode, nodeId)
+    }
+
+    Ok("Imported Node " + nodeId)
   }
 
   error{
