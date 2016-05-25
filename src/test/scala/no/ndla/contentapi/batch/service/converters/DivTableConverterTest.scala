@@ -13,7 +13,7 @@ class DivTableConverterTest extends UnitSuite {
 
   test("That divs with class 'ndla_table_row' is converted to tr") {
     val initialContent = "<div class=\"ndla_table_row another_class\">My IQ is one of the highest - and you all know it!</div>"
-    val expectedResult = "<tr class=\"ndla_table_row\"> My IQ is one of the highest - and you all know it! </tr>"
+    val expectedResult = "<tr class=\"ndla_table_row\"> My IQ is one of the highest - and you all know it!</tr>"
     val content = DivTableConverter.convert(Jsoup.parseBodyFragment(initialContent).body().child(0))
     content.outerHtml().replace("\n", "") should equal (expectedResult)
   }
