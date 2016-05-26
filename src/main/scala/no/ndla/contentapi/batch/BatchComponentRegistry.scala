@@ -8,7 +8,8 @@ object BatchComponentRegistry
   extends ExtractServiceComponent
     with ConverterModules
     with ConverterServiceComponent
-    with CMDataComponent {
+    with CMDataComponent
+    with ContentBrowserConverter {
 
   lazy val CMHost = scala.util.Properties.envOrNone("CM_HOST")
   lazy val CMPort = scala.util.Properties.envOrNone("CM_PORT")
@@ -20,5 +21,6 @@ object BatchComponentRegistry
   lazy val extractService = new ExtractService
   lazy val converterService = new ConverterService
 
-  lazy val converterModules = List(ContentBrowserConverter, SimpleTagConverter)
+  lazy val contentBrowserConverter = new ContentBrowserConverter
+  lazy val converterModules = List(contentBrowserConverter, SimpleTagConverter)
 }

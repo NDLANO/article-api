@@ -10,10 +10,12 @@ trait BatchTestEnvironment
   with ExtractServiceComponent
   with ConverterModules
   with ConverterServiceComponent
-  with MockitoSugar {
+  with MockitoSugar
+  with ContentBrowserConverter {
 
   val cmData = mock[CMData]
   val extractService = mock[ExtractService]
   val converterService = mock[ConverterService]
-  val converterModules = List(SimpleTagConverter, ContentBrowserConverter)
+  val contentBrowserConverter = new ContentBrowserConverter
+  val converterModules = List(SimpleTagConverter, contentBrowserConverter)
 }

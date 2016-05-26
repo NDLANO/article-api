@@ -10,5 +10,6 @@ trait ExtractServiceComponent {
 
   class ExtractService {
     def importNode(nodeId: String): ContentInformation = cmData.getNode(nodeId)
+    def getNodeType(nodeId: String): Option[String] = cmData.getNodeType(nodeId)
   }
 }
