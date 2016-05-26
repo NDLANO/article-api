@@ -6,10 +6,6 @@ import org.jsoup.Jsoup
 import org.mockito.Mockito._
 
 class ContentBrowserConverterTest extends UnitSuite with BatchTestEnvironment {
-  override def beforeEach() {
-
-  }
-
   test("That content-browser strings are replaced") {
     val nodeId = "1234"
     val initialContent = s"<article><p>[contentbrowser ==nid=${nodeId}==imagecache=Fullbredde==width===alt=Jente som spiser melom. Grønn bakgrunn, rød melon. Fotografi.==link===node_link=1==link_type=link_to_content==lightbox_size===remove_fields[76661]=1==remove_fields[76663]=1==remove_fields[76664]=1==remove_fields[76666]=1==insertion===link_title_text= ==link_text= ==text_align===css_class=contentbrowser contentbrowser]</p></article>"
