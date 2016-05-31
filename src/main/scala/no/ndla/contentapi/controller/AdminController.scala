@@ -6,8 +6,7 @@ import org.scalatra.json.NativeJsonSupport
 import org.scalatra.{Ok, ScalatraServlet}
 import no.ndla.contentapi.business.SearchIndexer
 import no.ndla.contentapi.model.Error
-import no.ndla.contentapi.batch.BatchComponentRegistry.{converterService, extractService}
-import no.ndla.contentapi.ComponentRegistry.contentRepository
+import no.ndla.contentapi.ComponentRegistry.{contentRepository, converterService, extractService}
 
 class AdminController extends ScalatraServlet with NativeJsonSupport with LazyLogging {
 

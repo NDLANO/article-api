@@ -1,9 +1,8 @@
-package no.ndla.contentapi.batch.integration
+package no.ndla.contentapi.integration
 
 import com.mysql.jdbc.jdbc2.optional.MysqlConnectionPoolDataSource
-import no.ndla.contentapi.batch._
 import no.ndla.contentapi.model._
-import no.ndla.imageapi.batch.Tags
+import no.ndla.contentapi.service.Tags
 import scalikejdbc.{ConnectionPool, DataSourceConnectionPool, NamedDB, _}
 
 /**
@@ -62,10 +61,10 @@ trait CMDataComponent {
     def getNodeMeta(nodeId: String): (List[ContentTitle], List[Content]) = {
       val result = NamedDB('cm) readOnly { implicit session =>
         sql"""
-          |select nodes.nid as id, nodes.language, v.title, v.body from node n
-            |left join node nodes on nodes.tnid=n.tnid
-            |left join node_revisions v on v.vid=nodes.vid
-            |where n.nid=${nodeId}
+          select nodes.nid as id, nodes.language, v.title, v.body from node n
+            left join node nodes on nodes.tnid=n.tnid
+            left join node_revisions v on v.vid=nodes.vid
+            where n.nid=${nodeId}
           """.stripMargin.map(rs => (rs.string("title"), rs.string("language"), rs.string("body"))).list.apply()
       }
       result.map(x => (ContentTitle(x._1, Some(x._2)), Content(x._3, Some(x._2)))).unzip
@@ -74,11 +73,11 @@ trait CMDataComponent {
     def getNodeAuthors(nodeId: String): List[Author] = {
       val result = NamedDB('cm) readOnly { implicit session =>
         sql"""
-          |select td.name as author_type, person.title as author from node n
-            |left join ndla_authors na on n.vid = na.vid
-            |left join term_data td on na.tid = td.tid
-            |left join node person on person.nid = na.person_nid
-            |where  n.nid=${nodeId}
+          select td.name as author_type, person.title as author from node n
+            left join ndla_authors na on n.vid = na.vid
+            left join term_data td on na.tid = td.tid
+            left join node person on person.nid = na.person_nid
+            where  n.nid=${nodeId}
           """.stripMargin.map(rs => (rs.string("author"), rs.string("author_type"))).list.apply()
       }
       result.map(x => Author(x._1, x._2))
@@ -87,9 +86,9 @@ trait CMDataComponent {
     def getNodeCopyrightLicence(nodeId: String): String = {
       val result = NamedDB('cm) readOnly { implicit session =>
         sql"""
-          |select cc.license from node n
-            |left join creativecommons_lite cc on (n.nid = cc.nid)
-            |where n.nid=${nodeId}
+          select cc.license from node n
+            left join creativecommons_lite cc on (n.nid = cc.nid)
+            where n.nid=${nodeId}
           """.stripMargin.map(rs => rs.string("license")).single.apply()
       }
       result.get
@@ -98,8 +97,8 @@ trait CMDataComponent {
     def getNodeType(nodeId: String): Option[String] = {
       NamedDB('cm) readOnly { implicit session =>
         sql"""
-           |select type from node n
-             |where n.nid=${nodeId}
+           select type from node n
+             where n.nid=${nodeId}
              """.stripMargin.map(rs => rs.string("type")).single.apply()
       }
     }

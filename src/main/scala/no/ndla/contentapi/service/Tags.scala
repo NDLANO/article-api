@@ -4,10 +4,10 @@
  *
  * See LICENSE
  */
-package no.ndla.imageapi.batch
+package no.ndla.contentapi.service
 
 import no.ndla.contentapi.model.ContentTag
-import no.ndla.mapping.ISO639Mapping._
+import no.ndla.mapping.ISO639Mapping.get6391CodeFor6392Code
 
 import scala.io.Source
 import scala.util.matching.Regex

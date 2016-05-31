@@ -1,17 +1,20 @@
-package no.ndla.contentapi.batch.service.converters
+package no.ndla.contentapi.service.converters
 
+import com.typesafe.scalalogging.LazyLogging
+import no.ndla.contentapi.integration.ConverterModule
+import no.ndla.contentapi.model.RequiredLibrary
+import no.ndla.contentapi.service.ExtractServiceComponent
 import org.jsoup.nodes.Element
-import no.ndla.contentapi.batch.integration.ConverterModule
-import no.ndla.contentapi.batch.service.ExtractServiceComponent
 
-import scala.collection.JavaConversions._
+import scala.collection.mutable.ListBuffer
+
 
 trait ContentBrowserConverter {
   this: ExtractServiceComponent =>
 
   val contentBrowserConverter: ContentBrowserConverter
 
-  class ContentBrowserConverter extends ConverterModule {
+  class ContentBrowserConverter extends ConverterModule with LazyLogging {
     case class ContentBrowser(contentBrowserString: String) {
       // Extract the contentbrowser variables
       private val Pattern = """(?s).*\[contentbrowser (.*) contentbrowser\].*""".r
@@ -39,7 +42,7 @@ trait ContentBrowserConverter {
       }
     }
 
-    def convert(el: Element): Element = {
+    def convert(el: Element)(implicit requiredLibraries: ListBuffer[RequiredLibrary]): Element = {
       var isContentBrowserField = false
 
       do {
@@ -51,8 +54,17 @@ trait ContentBrowserConverter {
           val (start, end) = cont.getStartEndIndex()
           val nodeId = cont.get("nid")
           val newContent = extractService.getNodeType(cont.get("nid")) match {
-            case Some("h5p_content") => s"""<embed data-oembed="http://ndla.no/node/${nodeId}" />"""
-            case _ => s"{CONTENT-${cont.get("nid")}}"
+            case Some("h5p_content") => {
+              requiredLibraries find {el => el.name == "H5P-Resizer"} match {
+                case None => requiredLibraries += RequiredLibrary("text/javascript", "H5P-Resizer", "http://ndla.no/sites/all/modules/h5p/library/js/h5p-resizer.js")
+                case _ =>
+              }
+              s"""<embed data-oembed="http://ndla.no/h5p/embed/${nodeId}" />"""
+            }
+            case _ => {
+              logger.warn("ContentBrowserConverter: Unsupported content ({})", nodeId)
+              s"{Unsupported content: ${nodeId}}"
+            }
           }
 
           el.html(text.substring(0, start) + newContent+ text.substring(end))
