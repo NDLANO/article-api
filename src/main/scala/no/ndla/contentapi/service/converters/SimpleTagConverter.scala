@@ -20,7 +20,6 @@ object SimpleTagConverter extends ConverterModule {
     }
 
     for (el <- el.select("pre")) {
-      println("wrapping pre children")
       el.html("<code>" + el.html() + "</code")
     }
     el
