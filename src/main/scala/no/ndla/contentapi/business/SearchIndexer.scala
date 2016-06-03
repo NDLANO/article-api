@@ -1,13 +1,13 @@
 package no.ndla.contentapi.business
 
 import com.typesafe.scalalogging.LazyLogging
-import no.ndla.contentapi.integration.AmazonIntegration
+import no.ndla.contentapi.ComponentRegistry
 
 
 object SearchIndexer extends LazyLogging {
 
-  val contentData = AmazonIntegration.getContentData()
-  val contentIndex = AmazonIntegration.getContentIndex()
+  val contentData = ComponentRegistry.contentRepository
+  val contentIndex = ComponentRegistry.elasticContentIndex
 
   def indexDocuments() = {
     synchronized {

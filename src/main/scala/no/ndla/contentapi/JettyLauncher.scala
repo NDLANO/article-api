@@ -8,9 +8,7 @@ package no.ndla.contentapi
 
 import com.typesafe.scalalogging.LazyLogging
 import org.eclipse.jetty.server.Server
-import org.eclipse.jetty.servlet.{ServletContextHandler, DefaultServlet}
-import org.eclipse.jetty.util.resource.ResourceCollection
-import org.eclipse.jetty.webapp.WebAppContext
+import org.eclipse.jetty.servlet.{DefaultServlet, ServletContextHandler}
 import org.scalatra.servlet.ScalatraListener
 
 
@@ -18,9 +16,10 @@ object JettyLauncher extends LazyLogging {
   def main(args: Array[String]) {
     logger.info(io.Source.fromInputStream(getClass.getResourceAsStream("/log-license.txt")).mkString)
 
-    ContentApiProperties.verify()
+    PropertiesLoader.load()
+    DBMigrator.migrate(ComponentRegistry.dataSource)
 
-    val startMillis = System.currentTimeMillis();
+    val startMillis = System.currentTimeMillis()
 
     val context = new ServletContextHandler()
     context setContextPath "/"

@@ -34,6 +34,7 @@ lazy val content_api = (project in file(".")).
     scalacOptions := Seq("-target:jvm-1.7"),
     libraryDependencies ++= Seq(
       "ndla" %% "logging" % "0.1-SNAPSHOT",
+      "ndla" %% "mapping" % "0.1-SNAPSHOT",
       "org.scalatra" %% "scalatra" % Scalatraversion,
       "org.eclipse.jetty" % "jetty-webapp" % Jettyversion % "container;compile",
       "org.eclipse.jetty" % "jetty-plus" % Jettyversion % "container",
@@ -50,7 +51,9 @@ lazy val content_api = (project in file(".")).
       "com.sksamuel.elastic4s" %% "elastic4s-core" % "1.7.4",
       "org.scalatest" % "scalatest_2.11" % ScalaTestVersion % "test",
       "org.jsoup" % "jsoup" % "1.7.3",
-      "org.mockito" % "mockito-all" % MockitoVersion % "test")
+      "org.mockito" % "mockito-all" % MockitoVersion % "test",
+      "org.flywaydb" % "flyway-core" % "4.0"
+    )
   ).enablePlugins(DockerPlugin).enablePlugins(GitVersioning).enablePlugins(JettyPlugin)
 
 unmanagedResourceDirectories in Compile <+= (baseDirectory) {_ / "src/main/webapp"}
