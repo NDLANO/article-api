@@ -3,14 +3,14 @@ package no.ndla.contentapi.service.converters
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.contentapi.integration.ConverterModule
 import no.ndla.contentapi.model.RequiredLibrary
-import no.ndla.contentapi.service.ExtractServiceComponent
+import no.ndla.contentapi.service.{ExtractServiceComponent, ImageApiServiceComponent}
 import org.jsoup.nodes.Element
 
 import scala.collection.mutable.ListBuffer
 
 
 trait ContentBrowserConverter {
-  this: ExtractServiceComponent =>
+  this: ExtractServiceComponent with ImageApiServiceComponent =>
 
   val contentBrowserConverter: ContentBrowserConverter
 
@@ -42,6 +42,13 @@ trait ContentBrowserConverter {
       }
     }
 
+    def getImage(cont: ContentBrowser): String = {
+      imageApiService.getMetaByExternId(cont.get("nid")) match {
+        case Some(image) => s"""<img src="/images/${image.images.full.get.url}" alt="${cont.get("alt")}" />"""
+        case None => s"<img src='stock.jpeg' alt='The image with id ${cont.get("nid")} was not not found' />"
+      }
+    }
+
     def convert(el: Element)(implicit requiredLibraries: ListBuffer[RequiredLibrary]): Element = {
       var isContentBrowserField = false
 
@@ -61,6 +68,7 @@ trait ContentBrowserConverter {
               }
               s"""<embed data-oembed="http://ndla.no/h5p/embed/${nodeId}" />"""
             }
+            case Some("image") => getImage(cont)
             case _ => {
               logger.warn("ContentBrowserConverter: Unsupported content ({})", nodeId)
               s"{Unsupported content: ${nodeId}}"
