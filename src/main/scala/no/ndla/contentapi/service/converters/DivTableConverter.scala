@@ -1,11 +1,14 @@
-package no.ndla.contentapi.batch.service.converters
+package no.ndla.contentapi.service.converters
 
+import no.ndla.contentapi.integration.ConverterModule
+import no.ndla.contentapi.model.RequiredLibrary
 import org.jsoup.nodes.Element
+
 import scala.collection.JavaConversions._
-import no.ndla.contentapi.batch.integration.ConverterModule
+import scala.collection.mutable.ListBuffer
 
 object DivTableConverter extends ConverterModule {
-  def convert(el: Element): Element = {
+  def convert(el: Element)(implicit requiredLibraries: ListBuffer[RequiredLibrary]): Element = {
     for (div <- el.select("div.ndla_table, div.ndla_table_row, div.ndla_table_cell, div.ndla_table_cell_content")) {
 
       div.classNames() match {

@@ -1,10 +1,10 @@
-package no.ndla.contentapi.batch.service
+package no.ndla.contentapi.service
 
-import no.ndla.contentapi.batch.BatchTestEnvironment
+import no.ndla.contentapi.TestEnvironment
 import no.ndla.contentapi.model._
 import no.ndla.learningpathapi.UnitSuite
 
-class ConverterServiceTest extends UnitSuite with BatchTestEnvironment {
+class ConverterServiceTest extends UnitSuite with TestEnvironment {
 
   val service = new ConverterService
 
