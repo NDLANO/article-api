@@ -7,12 +7,11 @@ import no.ndla.contentapi.ContentApiProperties
 import no.ndla.contentapi.business.{ContentSearch, SearchIndexer}
 import no.ndla.contentapi.integration.ElasticClientComponent
 import no.ndla.contentapi.model.ContentSummary
-import no.ndla.contentapi.network.ApplicationUrl
 import org.elasticsearch.common.settings.ImmutableSettings
 import org.elasticsearch.index.query.MatchQueryBuilder
 import org.elasticsearch.indices.IndexMissingException
 import org.elasticsearch.transport.RemoteTransportException
-
+import no.ndla.network.ApplicationUrl
 import scala.collection.mutable.ListBuffer
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future

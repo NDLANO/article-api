@@ -7,10 +7,23 @@ import org.scalatra.{Ok, ScalatraServlet}
 import no.ndla.contentapi.business.SearchIndexer
 import no.ndla.contentapi.model.Error
 import no.ndla.contentapi.ComponentRegistry.{contentRepository, converterService, extractService}
+import no.ndla.logging.LoggerContext
+import no.ndla.network.ApplicationUrl
 
 class AdminController extends ScalatraServlet with NativeJsonSupport with LazyLogging {
 
   protected implicit override val jsonFormats: Formats = DefaultFormats
+
+  before() {
+    contentType = formats("json")
+    LoggerContext.setCorrelationID(Option(request.getHeader("X-Correlation-ID")))
+    ApplicationUrl.set(request)
+  }
+
+  after() {
+    LoggerContext.clearCorrelationID()
+    ApplicationUrl.clear()
+  }
 
   post("/index") {
     Ok(SearchIndexer.indexDocuments())
@@ -19,7 +32,7 @@ class AdminController extends ScalatraServlet with NativeJsonSupport with LazyLo
   post("/import/:node_id") {
     val nodeId = params("node_id")
     val node = extractService.importNode(nodeId)
-    val convertedNode = converterService.convertNode(node)
+    val (convertedNode, errorList) = converterService.convertNode(node)
 
     logger.info("Converting node {}", nodeId)
 
@@ -28,7 +41,7 @@ class AdminController extends ScalatraServlet with NativeJsonSupport with LazyLo
       case false => contentRepository.insert(convertedNode, nodeId)
     }
 
-    Ok("Imported Node " + nodeId)
+    errorList
   }
 
   error{

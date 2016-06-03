@@ -42,14 +42,17 @@ trait ContentBrowserConverter {
       }
     }
 
-    def getImage(cont: ContentBrowser): String = {
+    def getImage(cont: ContentBrowser, errorList: ListBuffer[String]): String = {
       imageApiService.getMetaByExternId(cont.get("nid")) match {
         case Some(image) => s"""<img src="/images/${image.images.full.get.url}" alt="${cont.get("alt")}" />"""
-        case None => s"<img src='stock.jpeg' alt='The image with id ${cont.get("nid")} was not not found' />"
+        case None => {
+          errorList += s"Image with id ${cont.get("nid")} was not found"
+          s"<img src='stock.jpeg' alt='The image with id ${cont.get("nid")} was not not found' />"
+        }
       }
     }
 
-    def convert(el: Element)(implicit requiredLibraries: ListBuffer[RequiredLibrary]): Element = {
+    def convert(el: Element, requiredLibraries: ListBuffer[RequiredLibrary], errorList: ListBuffer[String]): Element = {
       var isContentBrowserField = false
 
       do {
@@ -68,8 +71,9 @@ trait ContentBrowserConverter {
               }
               s"""<embed data-oembed="http://ndla.no/h5p/embed/${nodeId}" />"""
             }
-            case Some("image") => getImage(cont)
+            case Some("image") => getImage(cont, errorList)
             case _ => {
+              errorList += s"Unsupported content: ${nodeId}"
               logger.warn("ContentBrowserConverter: Unsupported content ({})", nodeId)
               s"{Unsupported content: ${nodeId}}"
             }

@@ -10,8 +10,8 @@ import org.scalatra.swagger.{Swagger, SwaggerSupport}
 import no.ndla.contentapi.business.{ContentData, ContentSearch}
 import no.ndla.contentapi.model.Error._
 import no.ndla.contentapi.model.{ContentInformation, ContentSummary, Error}
-import no.ndla.contentapi.network.ApplicationUrl
 import no.ndla.logging.LoggerContext
+import no.ndla.network.ApplicationUrl
 
 import scala.util.Try
 

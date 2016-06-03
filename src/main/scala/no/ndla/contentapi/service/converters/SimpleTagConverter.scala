@@ -9,7 +9,7 @@ import scala.collection.mutable.ListBuffer
 
 object SimpleTagConverter extends ConverterModule {
 
-  def convert(el: Element)(implicit requiredLibraries: ListBuffer[RequiredLibrary]): Element = {
+  def convert(el: Element, requiredLibraries: ListBuffer[RequiredLibrary], errList: ListBuffer[String]): Element = {
     var elements = el.select("div")
     for (el <- elements) {
       el.className() match {
