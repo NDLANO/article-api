@@ -13,8 +13,15 @@ object SimpleTagConverter extends ConverterModule {
     var elements = el.select("div")
     for (el <- elements) {
       el.className() match {
-        case "full" | "paragraph" => el.unwrap()
-        case "quote" => el.tagName("blockquote")
+        case "full" => el.unwrap()
+        case "paragraph" => {
+          el.tagName("section")
+          el.removeAttr("class")
+        }
+        case "quote" => {
+          el.tagName("blockquote")
+          el.removeAttr("class")
+        }
         case _ =>
       }
     }

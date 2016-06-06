@@ -5,9 +5,8 @@ import no.ndla.contentapi.integration.ConverterModule
 import no.ndla.contentapi.model.RequiredLibrary
 import no.ndla.contentapi.service.ExtractServiceComponent
 import org.jsoup.nodes.Element
-
+import com.netaporter.uri.dsl._
 import scala.collection.mutable.ListBuffer
-
 
 trait ContentBrowserConverter {
   this: ExtractServiceComponent =>
@@ -45,6 +44,13 @@ trait ContentBrowserConverter {
     def convertLink(nodeId: String, cont: ContentBrowser): String = {
       val (url, embedCode) = extractService.getNodeEmbedData(nodeId).get
       val youtubePattern = """https?://(?:www\.)?youtu(?:be\.com|\.be)(/.*)?""".r
+      val NDLAPattern = """.*(ndla.no).*""".r
+
+      url.host match {
+        case NDLAPattern(_) => logger.warn("Link to NDLA resource: '{}'", url)
+        case _ =>
+      }
+
       cont.get("insertion") match {
         case "inline" => {
           url match {
