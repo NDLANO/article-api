@@ -9,13 +9,13 @@ import scala.collection.mutable.ListBuffer
 
 object SimpleTagConverter extends ConverterModule {
 
-  def convert(el: Element, requiredLibraries: ListBuffer[RequiredLibrary], errList: ListBuffer[String]): Element = {
+  def convert(el: Element): (Element, List[RequiredLibrary], List[String]) = {
     var elements = el.select("div")
     for (el <- elements) {
       el.className() match {
         case "full" | "paragraph" => el.unwrap()
       }
     }
-    el
+    (el, List[RequiredLibrary](), List[String]())
   }
 }
