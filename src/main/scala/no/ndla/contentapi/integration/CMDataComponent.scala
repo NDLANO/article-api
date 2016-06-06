@@ -78,7 +78,7 @@ trait CMDataComponent {
             left join term_data td on na.tid = td.tid
             left join node person on person.nid = na.person_nid
             where  n.nid=${nodeId}
-          """.stripMargin.map(rs => (rs.string("author"), rs.string("author_type"))).list.apply()
+          """.stripMargin.map(rs => (rs.string("author_type"), rs.string("author"))).list.apply()
       }
       result.map(x => Author(x._1, x._2))
     }
