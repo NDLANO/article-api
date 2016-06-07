@@ -5,9 +5,7 @@ import no.ndla.contentapi.integration.ConverterModule
 import no.ndla.contentapi.model.RequiredLibrary
 import no.ndla.contentapi.service.{ExtractServiceComponent, ImageApiServiceComponent}
 import org.jsoup.nodes.Element
-
-import scala.collection.mutable.ListBuffer
-
+import com.netaporter.uri.dsl._
 
 trait ContentBrowserConverter {
   this: ExtractServiceComponent with ImageApiServiceComponent =>
@@ -40,6 +38,32 @@ trait ContentBrowserConverter {
       def get(key: String): String = {
         FieldMap.get(key).get
       }
+    }
+
+    def convertLink(nodeId: String, cont: ContentBrowser): (String, List[String]) = {
+      var errors = List[String]()
+      val (url, embedCode) = extractService.getNodeEmbedData(nodeId).get
+      val youtubePattern = """https?://(?:www\.)?youtu(?:be\.com|\.be)(/.*)?""".r
+      val NDLAPattern = """.*(ndla.no).*""".r
+
+      url.host match {
+        case NDLAPattern(_) => {
+          errors = errors :+ s"(Warning) Link to NDLA resource '${url}'"
+          logger.warn("Link to NDLA resource: '{}'", url)
+        }
+        case _ =>
+      }
+
+      val converted = cont.get("insertion") match {
+        case "inline" => {
+          url match {
+            case youtubePattern(_) => s"""<embed src="http://default/content" type="external/oembed" data-oembed="${url}" />"""
+            case _ => embedCode
+          }
+        }
+        case "link" => s"""<a href="${url}" title="${cont.get("link_title_text")}">${cont.get("link_text")}</a>"""
+      }
+      (converted, errors)
     }
 
     def getImage(cont: ContentBrowser): (String, List[String]) = {
@@ -81,13 +105,17 @@ trait ContentBrowserConverter {
               errors = errors ::: errorMsgs
               replacement
             }
+            case Some("lenke") => {
+              val (content, errorMsgs) = convertLink(nodeId, cont)
+              errors = errors ::: errorMsgs
+              content
+            }
             case _ => {
-              errors :+ s"Unsupported content: ${nodeId}"
+              errors = errors :+ s"Unsupported content: ${nodeId}"
               logger.warn("ContentBrowserConverter: Unsupported content ({})", nodeId)
               s"{Unsupported content: ${nodeId}}"
             }
           }
-
           el.html(text.substring(0, start) + newContent+ text.substring(end))
         }
       } while (isContentBrowserField)

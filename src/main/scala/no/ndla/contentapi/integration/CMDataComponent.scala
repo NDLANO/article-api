@@ -102,6 +102,17 @@ trait CMDataComponent {
              """.stripMargin.map(rs => rs.string("type")).single.apply()
       }
     }
+
+    def getNodeEmbedData(nodeId: String): Option[(String, String)] = {
+      NamedDB('cm) readOnly { implicit session =>
+        sql"""
+           select n.nid, n.title, url.field_url_url as url, ec.field_embed_code_value as embed_code from node n
+           left join content_field_embed_code ec on (ec.nid = n.nid)
+           left join content_field_url url on (url.nid = n.nid)
+           where n.nid=${nodeId}
+          """.stripMargin.map(rs => (rs.string("url"), rs.string("embed_code"))).single.apply()
+      }
+    }
   }
 }
 
