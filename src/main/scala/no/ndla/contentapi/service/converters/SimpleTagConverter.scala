@@ -2,7 +2,6 @@ package no.ndla.contentapi.service.converters
 
 import no.ndla.contentapi.integration.ConverterModule
 import no.ndla.contentapi.model.RequiredLibrary
-import org.jsoup.Jsoup
 import org.jsoup.nodes.Element
 
 import scala.collection.JavaConversions._
@@ -34,13 +33,12 @@ object SimpleTagConverter extends ConverterModule {
   }
 
   private def handle_hide(el: Element) {
-    el.select("a.re-collapse").remove() // remove "hide" button
+    replaceTag(el, "details")
+    el.select("a.re-collapse").remove()
     val details = el.select("div.details").html() // save content
-    el.select("div.details").remove() // remove content from element
-    el.select("a.read-more").unwrap() // remove "show more" link
-    val summary = el.text() // save show/hide text
-    // replace old div-style element, with new details-summary element
-    val newEl: Element = Jsoup.parseBodyFragment(s"<details><summary>$summary</summary>$details</details>").select("details")(0)
-    el.replaceWith(newEl)
+    el.select("div.details").remove()
+    val summary = el.text()
+    el.html(s"<summary>$summary</summary>")
+    el.append(details)
   }
 }
