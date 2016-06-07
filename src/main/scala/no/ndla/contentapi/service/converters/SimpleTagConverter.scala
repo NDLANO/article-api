@@ -5,11 +5,10 @@ import no.ndla.contentapi.model.RequiredLibrary
 import org.jsoup.nodes.Element
 
 import scala.collection.JavaConversions._
-import scala.collection.mutable.ListBuffer
 
 object SimpleTagConverter extends ConverterModule {
 
-  def convert(el: Element)(implicit requiredLibraries: ListBuffer[RequiredLibrary]): Element = {
+  def convert(el: Element): (Element, List[RequiredLibrary], List[String]) = {
     var elements = el.select("div")
     for (el <- elements) {
       el.className() match {
@@ -29,6 +28,6 @@ object SimpleTagConverter extends ConverterModule {
     for (el <- el.select("pre")) {
       el.html("<code>" + el.html() + "</code")
     }
-    el
+    (el, List[RequiredLibrary](), List[String]())
   }
 }

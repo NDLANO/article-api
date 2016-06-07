@@ -20,6 +20,7 @@ object ComponentRegistry
   with ConverterServiceComponent
   with CMDataComponent
   with ContentBrowserConverter
+  with ImageApiServiceComponent
 {
   lazy val dataSource = new PGPoolingDataSource()
   dataSource.setUser(ContentApiProperties.get("META_USER_NAME"))
@@ -45,10 +46,12 @@ object ComponentRegistry
   lazy val CMDatabase = scala.util.Properties.envOrNone("CM_DATABASE")
   lazy val CMUser = scala.util.Properties.envOrNone("CM_USER")
   lazy val CMPassword = scala.util.Properties.envOrNone("CM_PASSWORD")
+  lazy val imageApiBaseUrl = scala.util.Properties.envOrNone("IMAGE_API_BASE_URL").get
 
   lazy val cmData = new CMData(CMHost, CMPort, CMDatabase, CMUser, CMPassword)
   lazy val extractService = new ExtractService
   lazy val converterService = new ConverterService
+  lazy val imageApiService = new ImageApiService
 
   lazy val contentBrowserConverter = new ContentBrowserConverter
   lazy val converterModules = List(contentBrowserConverter, SimpleTagConverter)

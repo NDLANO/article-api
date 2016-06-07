@@ -5,9 +5,9 @@ import no.ndla.contentapi.ContentApiProperties
 import no.ndla.contentapi.business.ContentData
 import no.ndla.contentapi.integration.DataSourceComponent
 import no.ndla.contentapi.model.{ContentInformation, ContentSummary}
-import no.ndla.contentapi.network.ApplicationUrl
 import org.postgresql.util.PGobject
 import scalikejdbc.{ConnectionPool, DB, DataSourceConnectionPool, _}
+import no.ndla.network.ApplicationUrl
 
 trait ContentRepositoryComponent {
   this: DataSourceComponent =>
