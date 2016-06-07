@@ -3,14 +3,14 @@ package no.ndla.contentapi.service.converters
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.contentapi.integration.ConverterModule
 import no.ndla.contentapi.model.RequiredLibrary
-import no.ndla.contentapi.service.ExtractServiceComponent
+import no.ndla.contentapi.service.{ExtractServiceComponent, ImageApiServiceComponent}
 import org.jsoup.nodes.Element
 
 import scala.collection.mutable.ListBuffer
 
 
 trait ContentBrowserConverter {
-  this: ExtractServiceComponent =>
+  this: ExtractServiceComponent with ImageApiServiceComponent =>
 
   val contentBrowserConverter: ContentBrowserConverter
 
@@ -42,8 +42,23 @@ trait ContentBrowserConverter {
       }
     }
 
-    def convert(el: Element)(implicit requiredLibraries: ListBuffer[RequiredLibrary]): Element = {
+    def getImage(cont: ContentBrowser): (String, List[String]) = {
+      var errors = List[String]()
+
+      val imageTag = imageApiService.getMetaByExternId(cont.get("nid")) match {
+        case Some(image) => s"""<img src="/images/${image.images.full.get.url}" alt="${cont.get("alt")}" />"""
+        case None => {
+          errors = errors :+ s"Image with id ${cont.get("nid")} was not found"
+          s"<img src='stock.jpeg' alt='The image with id ${cont.get("nid")} was not not found' />"
+        }
+      }
+      (imageTag, errors)
+    }
+
+    def convert(el: Element): (Element, List[RequiredLibrary], List[String]) = {
       var isContentBrowserField = false
+      var requiredLibraries = List[RequiredLibrary]()
+      var errors = List[String]()
 
       do {
         val text = el.html()
@@ -56,12 +71,18 @@ trait ContentBrowserConverter {
           val newContent = extractService.getNodeType(cont.get("nid")) match {
             case Some("h5p_content") => {
               requiredLibraries find {el => el.name == "H5P-Resizer"} match {
-                case None => requiredLibraries += RequiredLibrary("text/javascript", "H5P-Resizer", "http://ndla.no/sites/all/modules/h5p/library/js/h5p-resizer.js")
+                case None => requiredLibraries = requiredLibraries :+ RequiredLibrary("text/javascript", "H5P-Resizer", "http://ndla.no/sites/all/modules/h5p/library/js/h5p-resizer.js")
                 case _ =>
               }
               s"""<embed data-oembed="http://ndla.no/h5p/embed/${nodeId}" />"""
             }
+            case Some("image") => {
+              val (replacement, errorMsgs) = getImage(cont)
+              errors = errors ::: errorMsgs
+              replacement
+            }
             case _ => {
+              errors :+ s"Unsupported content: ${nodeId}"
               logger.warn("ContentBrowserConverter: Unsupported content ({})", nodeId)
               s"{Unsupported content: ${nodeId}}"
             }
@@ -70,7 +91,7 @@ trait ContentBrowserConverter {
           el.html(text.substring(0, start) + newContent+ text.substring(end))
         }
       } while (isContentBrowserField)
-      el
+      (el, requiredLibraries, errors)
     }
   }
 }

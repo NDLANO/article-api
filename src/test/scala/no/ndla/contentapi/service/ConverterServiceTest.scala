@@ -20,6 +20,6 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     val node = ContentInformation("1", List(contentTitle), List(Content(initialContent, Some("nb"))), copyright, List(tag), List(requiredLibrary))
     val expedtedResult = "<article>" + initialContent + "</article>"
 
-    service.convertNode(node).content(0).content.replace("\n", "").replace(" ", "") should equal (expedtedResult)
+    service.convertNode(node)._1.content(0).content.replace("\n", "").replace(" ", "") should equal (expedtedResult)
   }
 }

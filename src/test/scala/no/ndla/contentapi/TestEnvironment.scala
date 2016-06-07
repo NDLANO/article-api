@@ -22,6 +22,7 @@ trait TestEnvironment
   with ConverterModules
   with ConverterServiceComponent
   with ContentBrowserConverter
+  with ImageApiServiceComponent
 {
   val elasticClient = mock[ElasticClient]
   val elasticContentSearch = mock[ElasticContentSearch]
@@ -35,5 +36,5 @@ trait TestEnvironment
   val converterService = mock[ConverterService]
   val contentBrowserConverter = new ContentBrowserConverter
   val converterModules = List(SimpleTagConverter, contentBrowserConverter)
-
+  val imageApiService = mock[ImageApiService]
 }
