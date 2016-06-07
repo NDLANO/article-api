@@ -1,16 +1,12 @@
 package no.ndla.contentapi.service
 
-import no.ndla.contentapi.model.{ContentInformation, RequiredLibrary}
+import no.ndla.contentapi.model.{ContentInformation, ImportErrors, RequiredLibrary}
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Element
 import org.jsoup.nodes.Entities.EscapeMode
 
-import scala.collection.mutable.ListBuffer
-
-case class ImportErrors(errors: List[String])
-
 trait ConverterServiceComponent {
-    this: ConverterModules =>
+  this: ConverterModules =>
   val converterService: ConverterService
 
   class ConverterService {
