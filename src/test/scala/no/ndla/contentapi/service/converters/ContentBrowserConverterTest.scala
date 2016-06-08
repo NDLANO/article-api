@@ -25,7 +25,7 @@ class ContentBrowserConverterTest extends UnitSuite with TestEnvironment {
   test("That content-browser strings of type h5p_content are converted correctly") {
     val nodeId = "1234"
     val initialContent = s"<article>[contentbrowser ==nid=${nodeId}==imagecache=Fullbredde==width===insertion=inline==link_title_text=Struktur og organisering av innhold==lightbox_size===link_text=Struktur og organisering av innhold==text_align===alt===css_class=contentbrowser contentbrowser]</article>"
-    val expectedResult = s"""<article> <embed data-oembed="http://ndla.no/h5p/embed/${nodeId}" /></article>"""
+    val expectedResult = s"""<article> <iframe src="http://ndla.no/h5p/embed/${nodeId}"></iframe></article>"""
 
     when(extractService.getNodeType(nodeId)).thenReturn(Some("h5p_content"))
     val (element, requiredLibraries, errors) = contentBrowserConverter.convert(Jsoup.parseBodyFragment(initialContent).body().child(0))
