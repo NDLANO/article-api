@@ -3,12 +3,12 @@ package no.ndla.contentapi.service.converters
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.contentapi.integration.ConverterModule
 import no.ndla.contentapi.model.RequiredLibrary
-import no.ndla.contentapi.service.{ExtractServiceComponent, ImageApiServiceComponent}
+import no.ndla.contentapi.service.{ExtractServiceComponent, ImageApiServiceComponent, StorageService}
 import org.jsoup.nodes.Element
 import com.netaporter.uri.dsl._
 
 trait ContentBrowserConverter {
-  this: ExtractServiceComponent with ImageApiServiceComponent =>
+  this: ExtractServiceComponent with ImageApiServiceComponent with StorageService =>
 
   val contentBrowserConverter: ContentBrowserConverter
 
@@ -79,6 +79,32 @@ trait ContentBrowserConverter {
       (imageTag, errors)
     }
 
+    def getAudio(nodeId: String, cont: ContentBrowser): (String, List[String]) = {
+      var errors = List[String]()
+      val audioMeta = extractService.getAudioMeta(nodeId)
+
+      audioMeta match {
+        case Some(audio) => {
+          val filepath = storageService.uploadAudiofromUrl(nodeId, audio)
+          val player =
+            s"""<figure>
+                  <figcaption>${audio.title}</figcaption>
+                  <audio src="$filepath" preload="auto" controls>
+                    Your browser does not support the <code>video</code> element.
+                  </audio>
+                </figure>
+            """.stripMargin
+          (player, errors)
+        }
+        case None => {
+          val msg = s"""Failed to retrieve audio metadata for node $nodeId"""
+          errors = errors :+ msg
+          logger.warn(msg)
+          ("", errors)
+        }
+      }
+    }
+
     def convert(el: Element): (Element, List[RequiredLibrary], List[String]) = {
       var isContentBrowserField = false
       var requiredLibraries = List[RequiredLibrary]()
@@ -110,13 +136,19 @@ trait ContentBrowserConverter {
               errors = errors ::: errorMsgs
               content
             }
+            case Some("audio") => {
+              val (content, errorMsgs ) = getAudio(nodeId, cont)
+              errors = errors ::: errorMsgs
+              content
+            }
             case _ => {
-              errors = errors :+ s"Unsupported content: ${nodeId}"
-              logger.warn("ContentBrowserConverter: Unsupported content ({})", nodeId)
+              val msg = s"ContentBrowserConverter: Unsupported content ($nodeId)"
+              errors = errors :+ msg
+              logger.warn(msg)
               s"{Unsupported content: ${nodeId}}"
             }
           }
-          el.html(text.substring(0, start) + newContent+ text.substring(end))
+          el.html(text.substring(0, start) + newContent + text.substring(end))
         }
       } while (isContentBrowserField)
       (el, requiredLibraries, errors)

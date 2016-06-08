@@ -28,6 +28,10 @@ object ContentApiProperties extends LazyLogging {
   lazy val MaxPageSize: Int = getInt("SEARCH_MAX_PAGE_SIZE")
   lazy val IndexBulkSize = getInt("INDEX_BULK_SIZE")
 
+  lazy val StorageName = get("STORAGE_NAME")
+  lazy val StorageAccessKey = get("STORAGE_ACCESS_KEY")
+  lazy val StorageSecretKey = get("STORAGE_SECRET_KEY")
+
   def verify() = {
     val missingProperties = ContentApiProps.filter(entry => entry._2.isEmpty).toList
     if(missingProperties.length > 0){

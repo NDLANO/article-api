@@ -69,7 +69,7 @@ trait CMDataComponent {
       }
       result.map(x => (ContentTitle(x._1, Some(x._2)), Content(x._3, Some(x._2)))).unzip
     }
-    
+
     def getNodeAuthors(nodeId: String): List[Author] = {
       val result = NamedDB('cm) readOnly { implicit session =>
         sql"""
@@ -113,6 +113,27 @@ trait CMDataComponent {
           """.stripMargin.map(rs => (rs.string("url"), rs.string("embed_code"))).single.apply()
       }
     }
+
+    def getAudioMeta(nodeId: String): Option[AudioMeta] = {
+      val audioBaseHost = "http://red.ndla.no/"
+      NamedDB('cm) readOnly { implicit session =>
+        sql"""
+           select n.nid, a.title_format as title, a.playtime, a.format, f.filemime, f.filesize, f.filename, f.filepath from node n
+           left join audio a on (a.vid=n.vid)
+           left join files f on (f.fid=a.fid)
+           where n.nid=${nodeId}
+          """.stripMargin.map(rs => AudioMeta(
+          rs.string("nid"),
+          rs.string("title"),
+          rs.string("playtime"),
+          rs.string("format"),
+          rs.string("filemime"),
+          rs.string("filesize"),
+          rs.string("filename"),
+          audioBaseHost + rs.string("filepath"))).single.apply()
+      }
+    }
   }
 }
 
+case class AudioMeta(nodeId: String, title: String, playTime: String, format: String, mimetype: String, fileSize: String, filename: String, url: String)

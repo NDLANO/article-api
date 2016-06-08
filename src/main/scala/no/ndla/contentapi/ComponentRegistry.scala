@@ -1,13 +1,15 @@
 package no.ndla.contentapi
 
+import com.amazonaws.auth.BasicAWSCredentials
+import com.amazonaws.regions.{Region, Regions}
+import com.amazonaws.services.s3.AmazonS3Client
 import com.sksamuel.elastic4s.{ElasticClient, ElasticsearchClientUri}
-import no.ndla.contentapi.integration.{CMDataComponent, DataSourceComponent, ElasticClientComponent}
+import no.ndla.contentapi.integration.{AmazonClientComponent, CMDataComponent, DataSourceComponent, ElasticClientComponent}
 import no.ndla.contentapi.repository.ContentRepositoryComponent
 import no.ndla.contentapi.service.converters.{ContentBrowserConverter, SimpleTagConverter}
 import no.ndla.contentapi.service._
 import org.elasticsearch.common.settings.ImmutableSettings
 import org.postgresql.ds.PGPoolingDataSource
-
 
 object ComponentRegistry
   extends DataSourceComponent
@@ -21,6 +23,8 @@ object ComponentRegistry
   with CMDataComponent
   with ContentBrowserConverter
   with ImageApiServiceComponent
+  with AmazonClientComponent
+  with StorageService
 {
   lazy val dataSource = new PGPoolingDataSource()
   dataSource.setUser(ContentApiProperties.get("META_USER_NAME"))
@@ -40,6 +44,12 @@ object ComponentRegistry
   lazy val contentRepository = new ContentRepository
   lazy val elasticContentSearch = new ElasticContentSearch
   lazy val elasticContentIndex = new ElasticContentIndex
+
+  val amazonClient = new AmazonS3Client(new BasicAWSCredentials(ContentApiProperties.StorageAccessKey, ContentApiProperties.StorageSecretKey))
+  amazonClient.setRegion(Region.getRegion(Regions.EU_CENTRAL_1))
+  lazy val storageName = ContentApiProperties.StorageName
+
+  lazy val storageService = new AmazonStorageService
 
   lazy val CMHost = scala.util.Properties.envOrNone("CM_HOST")
   lazy val CMPort = scala.util.Properties.envOrNone("CM_PORT")
