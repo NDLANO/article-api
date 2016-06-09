@@ -13,7 +13,7 @@ import scala.collection.mutable
 object ContentApiProperties extends LazyLogging {
   var ContentApiProps: mutable.Map[String, Option[String]] = mutable.HashMap()
 
-  val ApplicationPort = 30002
+  val ApplicationPort = 80
 
   lazy val ContactEmail = get("CONTACT_EMAIL")
   lazy val HostAddr = get("HOST_ADDR")
