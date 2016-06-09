@@ -73,8 +73,14 @@ trait ContentBrowserConverter {
       val imageTag = imageApiService.getMetaByExternId(cont.get("nid")) match {
         case Some(image) => s"""<img src="/images/${image.images.full.get.url}" alt="${cont.get("alt")}" />"""
         case None => {
-          errors = errors :+ s"Image with id ${cont.get("nid")} was not found"
-          s"<img src='stock.jpeg' alt='The image with id ${cont.get("nid")} was not not found' />"
+          val importedImage = imageApiService.importImage(cont.get("nid"))
+          importedImage match {
+            case Some(image) => s"""<img src="/images/${image.images.full.get.url}" alt="${cont.get("alt")}" />"""
+            case None => {
+              errors = errors :+ s"Image with id ${cont.get("nid")} was not found"
+              s"<img src='stock.jpeg' alt='The image with id ${cont.get("nid")} was not not found' />"
+            }
+          }
         }
       }
       (imageTag, errors)

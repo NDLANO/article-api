@@ -31,6 +31,16 @@ trait ImageApiServiceComponent {
         case true => None
       }
     }
+
+    def importImage(externId: String): Option[ImageMetaInformation] = {
+      val request: HttpRequest = Http(s"""${imageApiBaseUrl}/admin/import/${externId}""").postForm
+      val response = request.asString
+
+      response.isError match {
+        case true => None
+        case false => getMetaByExternId(externId)
+      }
+    }
   }
 }
 
