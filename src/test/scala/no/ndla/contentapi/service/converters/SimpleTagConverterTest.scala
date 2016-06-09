@@ -42,4 +42,27 @@ class SimpleTagConverterTest extends UnitSuite {
     element.outerHtml().replace("\n", "") should equal (expectedResult)
     requiredLibraries.length should equal (0)
   }
+
+  test("That divs with class 'right' are replaced with a aside tag") {
+    val initialContent = """<article><div class="right">I know words, I have the best words.</div></article>"""
+    val expectedResult = "<article> <aside>  I know words, I have the best words. </aside></article>"
+    val (element, requiredLibraries, errors) = SimpleTagConverter.convert(Jsoup.parseBodyFragment(initialContent).body().child(0))
+
+    element.outerHtml().replace("\n", "") should equal (expectedResult)
+    requiredLibraries.length should equal (0)
+  }
+
+  test("That divs with class 'hide' converted to details-summary tags") {
+    val initialContent = """<div class="hide">Eksempel: <a href="#" class="read-more">les mer</a>
+      <div class="details">
+        <p>Hello, this is content</p>
+        <a class="re-collapse" href="#">skjul</a>
+      </div>
+    </div>""""
+    val expectedResult = "<details> <summary>Eksempel: les mer</summary> <p>Hello, this is content</p></details>"
+    val (element, requiredLibraries, errors) = SimpleTagConverter.convert(Jsoup.parseBodyFragment(initialContent).body().child(0))
+
+    element.outerHtml().replace("\n", "") should equal (expectedResult)
+    requiredLibraries.length should equal (0)
+  }
 }
