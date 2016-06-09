@@ -57,6 +57,7 @@ trait ContentBrowserConverter {
       val converted = cont.get("insertion") match {
         case "inline" => {
           url match {
+            // TODO: iframe is only used here for demo purposes. Should be switched out with a proper alternative
             case youtubePattern(_) => s"""<iframe src="${url}" />"""
             case _ => embedCode
           }
@@ -98,6 +99,7 @@ trait ContentBrowserConverter {
                 case None => requiredLibraries = requiredLibraries :+ RequiredLibrary("text/javascript", "H5P-Resizer", "http://ndla.no/sites/all/modules/h5p/library/js/h5p-resizer.js")
                 case _ =>
               }
+              // TODO: iframe is only used here for demo purposes. Should be switched out with a proper alternative
               s"""<iframe src="http://ndla.no/h5p/embed/${nodeId}" ></iframe>"""
             }
             case Some("image") => {
