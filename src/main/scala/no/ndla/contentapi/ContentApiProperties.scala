@@ -13,7 +13,7 @@ import scala.collection.mutable
 object ContentApiProperties extends LazyLogging {
   var ContentApiProps: mutable.Map[String, Option[String]] = mutable.HashMap()
 
-  val ApplicationPort = 80
+  val ApplicationPort = 30002
 
   lazy val ContactEmail = get("CONTACT_EMAIL")
   lazy val HostAddr = get("HOST_ADDR")
@@ -27,6 +27,13 @@ object ContentApiProperties extends LazyLogging {
   lazy val DefaultPageSize: Int = getInt("SEARCH_DEFAULT_PAGE_SIZE")
   lazy val MaxPageSize: Int = getInt("SEARCH_MAX_PAGE_SIZE")
   lazy val IndexBulkSize = getInt("INDEX_BULK_SIZE")
+
+  lazy val CMHost = get("CM_HOST")
+  lazy val CMPort = get("CM_PORT")
+  lazy val CMDatabase = get("CM_DATABASE")
+  lazy val CMUser = get("CM_USER")
+  lazy val CMPassword = get("CM_PASSWORD")
+  lazy val imageApiBaseUrl = get("IMAGE_API_BASE_URL")
 
   def verify() = {
     val missingProperties = ContentApiProps.filter(entry => entry._2.isEmpty).toList
