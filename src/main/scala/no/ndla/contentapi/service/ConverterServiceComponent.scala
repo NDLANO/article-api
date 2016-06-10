@@ -1,6 +1,6 @@
 package no.ndla.contentapi.service
 
-import no.ndla.contentapi.model.{ContentInformation, ImportErrors, RequiredLibrary}
+import no.ndla.contentapi.model.{ContentInformation, ImportStatus, RequiredLibrary}
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Element
 import org.jsoup.nodes.Entities.EscapeMode
@@ -10,7 +10,7 @@ trait ConverterServiceComponent {
   val converterService: ConverterService
 
   class ConverterService {
-    def convertNode(node: ContentInformation): (ContentInformation, ImportErrors) = {
+    def convertNode(node: ContentInformation): (ContentInformation, ImportStatus) = {
       var requiredLibraries = List[RequiredLibrary]()
       var errorList = List[String]()
 
@@ -20,7 +20,7 @@ trait ConverterServiceComponent {
         errorList = errorList ::: errors
         x.copy(content=content.outerHtml())
       })
-      (node.copy(content=convertedContent, requiredLibraries=requiredLibraries.distinct), ImportErrors(errorList))
+      (node.copy(content=convertedContent, requiredLibraries=requiredLibraries.distinct), ImportStatus(errors=errorList))
     }
 
     def convert(htmlContent: String): (Element, List[RequiredLibrary], List[String]) = {

@@ -15,7 +15,7 @@ trait ContentBrowserConverter {
   class ContentBrowserConverter extends ConverterModule with LazyLogging {
     case class ContentBrowser(contentBrowserString: String) {
       // Extract the contentbrowser variables
-      private val Pattern = """(?s).*\[contentbrowser (.*) contentbrowser\].*""".r
+      private val Pattern = """(?s).*\[contentbrowser (.*) ?contentbrowser\].*""".r
       private val ContentField = contentBrowserString match {
         case Pattern(group) => group
         case _ => ""
@@ -30,20 +30,19 @@ trait ContentBrowserConverter {
       }
 
       def getStartEndIndex(): (Int, Int) = {
-        val (startIdf, endIdf) = ("[contentbrowser ", " contentbrowser]")
+        val (startIdf, endIdf) = ("[contentbrowser ", "contentbrowser]")
         val a = contentBrowserString.indexOf(ContentField)
         (a - startIdf.length(), a + ContentField.length() + endIdf.length())
       }
 
       def get(key: String): String = {
-        FieldMap.get(key).get
+        FieldMap.get(key).getOrElse("")
       }
     }
 
     def convertLink(nodeId: String, cont: ContentBrowser): (String, List[String]) = {
       var errors = List[String]()
       val (url, embedCode) = extractService.getNodeEmbedData(nodeId).get
-      val youtubePattern = """https?://(?:www\.)?youtu(?:be\.com|\.be)(/.*)?""".r
       val NDLAPattern = """.*(ndla.no).*""".r
 
       url.host match {
@@ -56,13 +55,10 @@ trait ContentBrowserConverter {
 
       val converted = cont.get("insertion") match {
         case "inline" => {
-          url match {
-            // TODO: iframe is only used here for demo purposes. Should be switched out with a proper alternative
-            case youtubePattern(_) => s"""<iframe src="${url}" />"""
-            case _ => embedCode
-          }
+          // TODO: embed code from NDLAs DB is only used here for demo purposes. Should be switched out with a proper alternative
+          embedCode
         }
-        case "link" => s"""<a href="${url}" title="${cont.get("link_title_text")}">${cont.get("link_text")}</a>"""
+        case "link" | "lightbox_large" => s"""<a href="${url}" title="${cont.get("link_title_text")}">${cont.get("link_text")}</a>"""
       }
       (converted, errors)
     }
@@ -93,7 +89,8 @@ trait ContentBrowserConverter {
         if (isContentBrowserField) {
           val (start, end) = cont.getStartEndIndex()
           val nodeId = cont.get("nid")
-          val newContent = extractService.getNodeType(cont.get("nid")) match {
+          val nodeType = extractService.getNodeType(cont.get("nid"))
+          val newContent = nodeType match {
             case Some("h5p_content") => {
               requiredLibraries find {el => el.name == "H5P-Resizer"} match {
                 case None => requiredLibraries = requiredLibraries :+ RequiredLibrary("text/javascript", "H5P-Resizer", "http://ndla.no/sites/all/modules/h5p/library/js/h5p-resizer.js")
@@ -113,9 +110,9 @@ trait ContentBrowserConverter {
               content
             }
             case _ => {
-              errors = errors :+ s"Unsupported content: ${nodeId}"
-              logger.warn("ContentBrowserConverter: Unsupported content ({})", nodeId)
-              s"{Unsupported content: ${nodeId}}"
+              errors = errors :+ s"{Unsupported content '${nodeType.getOrElse("UNKNOWN")}': ${nodeId}}"
+              logger.warn(s"{Unsupported content '${nodeType.getOrElse("UNKNOWN")}': ${nodeId}}")
+              s"{Unsupported content '${nodeType.getOrElse("UNKNOWN")}': ${nodeId}}"
             }
           }
           el.html(text.substring(0, start) + newContent+ text.substring(end))
