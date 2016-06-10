@@ -33,11 +33,15 @@ trait ImageApiServiceComponent {
     }
 
     def importImage(externId: String): Option[ImageMetaInformation] = {
-      val request: HttpRequest = Http(s"""${imageApiBaseUrl}/admin/import/${externId}""").postForm
+      val second = 1000
+      val request: HttpRequest = Http(s"""${imageApiBaseUrl}/admin/import/${externId}""").timeout(10 * second, 10 * second).postForm
       val response = request.asString
 
       response.isError match {
-        case true => None
+        case true => {
+          logger.warn("Failed to retrieve image with id {} from '{}': {}", externId, request.url ,response.code)
+          None
+        }
         case false => getMetaByExternId(externId)
       }
     }
