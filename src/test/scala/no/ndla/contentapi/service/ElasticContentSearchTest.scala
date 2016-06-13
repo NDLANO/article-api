@@ -55,7 +55,7 @@ class ElasticContentSearchTest extends UnitSuite with TestEnvironment with Elast
     results.last.id should be ("3")
   }
 
-  test("That all filtering on license only returns images with given license") {
+  test("That all filtering on license only returns documents with given license") {
     val results = elasticContentSearch.all(Some("publicdomain"), None, None)
     results.size should be (2)
     results.head.id should be ("2")
