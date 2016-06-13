@@ -73,7 +73,7 @@ trait CMDataComponent {
     def getNodeOppgave(nodeId: String): List[ContentOppgave] = {
       NamedDB('cm) readOnly { implicit session =>
         sql"""
-           select nodes.nid as id, nodes.type, nodes.language, v.title, v.body from node n
+           select nodes.nid, nodes.tnid, nodes.type, nodes.language, v.title, v.body from node n
            left join node nodes on nodes.tnid=n.tnid
            left join node_revisions v on v.vid=nodes.vid
            where n.nid=${nodeId}

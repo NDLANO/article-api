@@ -15,6 +15,8 @@ object ContentApiProperties extends LazyLogging {
 
   val ApplicationPort = 80
 
+  val maxConvertionPasses = 5
+
   lazy val ContactEmail = get("CONTACT_EMAIL")
   lazy val HostAddr = get("HOST_ADDR")
   lazy val Domains = get("DOMAINS").split(",") ++ Array(HostAddr)

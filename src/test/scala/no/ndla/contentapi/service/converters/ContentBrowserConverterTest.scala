@@ -8,8 +8,6 @@ import no.ndla.learningpathapi.UnitSuite
 import org.jsoup.Jsoup
 import org.mockito.Mockito._
 
-import scala.collection.mutable.ListBuffer
-
 class ContentBrowserConverterTest extends UnitSuite with TestEnvironment {
   val nodeId = "1234"
   val currentLanguage = "nb"
@@ -62,9 +60,6 @@ class ContentBrowserConverterTest extends UnitSuite with TestEnvironment {
     when(extractService.getNodeType(nodeId)).thenReturn(Some("oppgave"))
     when(extractService.getNodeOppgave(nodeId)).thenReturn(List(oppgave))
     val (element, requiredLibraries, errors) = contentBrowserConverter.convert(Jsoup.parseBodyFragment(initialContent).body().child(0), currentLanguage)
-
-    printf("actual  : %s\n", element.outerHtml().replace("\n", ""))
-    printf("expected: %s\n", expectedResult)
 
     element.outerHtml().replace("\n", "") should equal (expectedResult)
   }

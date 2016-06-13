@@ -1,6 +1,7 @@
 package no.ndla.contentapi.service
 
-import no.ndla.contentapi.model.{ContentInformation, ImportErrors, RequiredLibrary}
+import no.ndla.contentapi.ContentApiProperties
+import no.ndla.contentapi.model.{Content, ContentInformation, ImportErrors, RequiredLibrary}
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Element
 import org.jsoup.nodes.Entities.EscapeMode
@@ -15,7 +16,7 @@ trait ConverterServiceComponent {
       var errorList = List[String]()
 
       val convertedContent = node.content.map(x => {
-        val (content, libs, errors) = convert(x.content, x.language.getOrElse(""))
+        val (content, libs, errors) = convert(x, ContentApiProperties.maxConvertionPasses)
         requiredLibraries = requiredLibraries ::: libs
         errorList = errorList ::: errors
         x.copy(content=content.outerHtml())
@@ -23,18 +24,28 @@ trait ConverterServiceComponent {
       (node.copy(content=convertedContent, requiredLibraries=requiredLibraries.distinct), ImportErrors(errorList))
     }
 
-    def convert(htmlContent: String, currentLanguage: String): (Element, List[RequiredLibrary], List[String]) = {
-      val document = Jsoup.parseBodyFragment(htmlContent)
+    def convert(content: Content, maxPasses: Int): (Element, List[RequiredLibrary], List[String]) = {
+      val document = Jsoup.parseBodyFragment(content.content)
       val firstElement = document.body().tagName("article")
       document.outputSettings().escapeMode(EscapeMode.xhtml)
 
-      converterModules.foldLeft((firstElement, List[RequiredLibrary](), List[String]()))(
+      convertWhileUnfinished(firstElement, content.language.getOrElse(""), maxPasses, List[RequiredLibrary](), List[String]())
+    }
+
+    private def convertWhileUnfinished(el: Element, language: String, maxPassesLeft: Int, requiredLibraries: List[RequiredLibrary], errors: List[String]): (Element, List[RequiredLibrary], List[String]) = {
+      val originalContents = el.outerHtml()
+      val (newElement, reqLibs, errorMsgs) = converterModules.foldLeft((el, List[RequiredLibrary](), List[String]()))(
         (element, converter) => {
           val (el, libs, errorList) = element
-          val (convertedEl, newRequiredLibs, newErrors) = converter.convert(el, currentLanguage)
+          val (convertedEl, newRequiredLibs, newErrors) = converter.convert(el, language)
           (convertedEl, libs ::: newRequiredLibs, errorList ::: newErrors)
         }
       )
+
+      el.outerHtml() == originalContents || maxPassesLeft == 0 match {
+        case true => (newElement, requiredLibraries ::: reqLibs, errors ::: errorMsgs)
+        case false => convertWhileUnfinished(newElement, language, maxPassesLeft - 1, requiredLibraries ::: reqLibs, errors ::: errorMsgs)
+      }
     }
   }
 }
