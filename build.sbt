@@ -34,6 +34,7 @@ lazy val content_api = (project in file(".")).
     scalacOptions := Seq("-target:jvm-1.7"),
     libraryDependencies ++= Seq(
       "ndla" %% "logging" % "0.1-SNAPSHOT",
+      "ndla" %% "logging" % "0.1-SNAPSHOT" % "test" classifier "tests",
       "ndla" %% "mapping" % "0.1-SNAPSHOT",
       "ndla" %% "network" % "0.1-SNAPSHOT",
       "joda-time" % "joda-time" % "2.8.2",
