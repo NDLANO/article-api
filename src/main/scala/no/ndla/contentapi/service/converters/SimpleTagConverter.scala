@@ -8,7 +8,7 @@ import scala.collection.JavaConversions._
 
 object SimpleTagConverter extends ConverterModule {
 
-  def convert(el: Element): (Element, List[RequiredLibrary], List[String]) = {
+  def convert(el: Element, currentLanguage: String): (Element, List[RequiredLibrary], List[String]) = {
     var elements = el.select("div")
     for (el <- elements) {
       el.className() match {

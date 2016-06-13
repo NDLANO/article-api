@@ -3,12 +3,12 @@ package no.ndla.contentapi.service.converters
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.contentapi.integration.ConverterModule
 import no.ndla.contentapi.model.RequiredLibrary
-import no.ndla.contentapi.service.{ExtractServiceComponent, ImageApiServiceComponent}
+import no.ndla.contentapi.service.{ConverterModules, ExtractServiceComponent, ImageApiServiceComponent}
 import org.jsoup.nodes.Element
 import com.netaporter.uri.dsl._
 
 trait ContentBrowserConverter {
-  this: ExtractServiceComponent with ImageApiServiceComponent =>
+  this: ExtractServiceComponent with ImageApiServiceComponent with ConverterModules =>
 
   val contentBrowserConverter: ContentBrowserConverter
 
@@ -80,7 +80,17 @@ trait ContentBrowserConverter {
       (imageTag, errors)
     }
 
-    def convert(el: Element): (Element, List[RequiredLibrary], List[String]) = {
+    def convertOppgave(nodeId: String, cont: ContentBrowser, language: String): (String, List[String]) = {
+      val errors = List[String]()
+      val oppgaves = extractService.getNodeOppgave(nodeId)
+
+      oppgaves.find(x => x.language == language) match {
+        case Some(oppgave) => (oppgave.content, errors)
+        case None => ("", errors  :+ s"Failed to retrieve 'oppgave' with language '$language' ($nodeId)")
+      }
+    }
+
+    def convert(el: Element, currentLanguage: String): (Element, List[RequiredLibrary], List[String]) = {
       var isContentBrowserField = false
       var requiredLibraries = List[RequiredLibrary]()
       var errors = List[String]()
@@ -109,6 +119,11 @@ trait ContentBrowserConverter {
             }
             case Some("lenke") => {
               val (content, errorMsgs) = convertLink(nodeId, cont)
+              errors = errors ::: errorMsgs
+              content
+            }
+            case Some("oppgave") => {
+              val (content, errorMsgs) = convertOppgave(nodeId, cont, currentLanguage)
               errors = errors ::: errorMsgs
               content
             }

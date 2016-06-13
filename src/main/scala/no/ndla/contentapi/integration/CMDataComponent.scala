@@ -69,6 +69,17 @@ trait CMDataComponent {
       }
       result.map(x => (ContentTitle(x._1, Some(x._2)), Content(x._3, Some(x._2)))).unzip
     }
+
+    def getNodeOppgave(nodeId: String): List[ContentOppgave] = {
+      NamedDB('cm) readOnly { implicit session =>
+        sql"""
+           select nodes.nid as id, nodes.type, nodes.language, v.title, v.body from node n
+           left join node nodes on nodes.tnid=n.tnid
+           left join node_revisions v on v.vid=nodes.vid
+           where n.nid=${nodeId}
+           """.stripMargin.map(rs => ContentOppgave(rs.string("nid"), rs.string("tnid"), rs.string("title"), rs.string("body"), rs.string("language"))).list.apply()
+      }
+    }
     
     def getNodeAuthors(nodeId: String): List[Author] = {
       val result = NamedDB('cm) readOnly { implicit session =>
@@ -116,3 +127,7 @@ trait CMDataComponent {
   }
 }
 
+case class ContentOppgave(nid: String, tnid: String, title: String, content: String, language: String) {
+  def isMainNode = (nid == tnid || tnid == "0")
+  def isTranslation = !isMainNode
+}

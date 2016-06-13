@@ -6,5 +6,5 @@ import org.jsoup.nodes.Element
 import scala.collection.mutable.ListBuffer
 
 trait ConverterModule {
-  def convert(el: Element): (Element, List[RequiredLibrary], List[String])
+  def convert(el: Element, currentLanguage: String): (Element, List[RequiredLibrary], List[String])
 }

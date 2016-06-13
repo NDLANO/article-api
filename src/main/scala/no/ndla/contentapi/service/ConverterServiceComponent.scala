@@ -15,7 +15,7 @@ trait ConverterServiceComponent {
       var errorList = List[String]()
 
       val convertedContent = node.content.map(x => {
-        val (content, libs, errors) = convert(x.content)
+        val (content, libs, errors) = convert(x.content, x.language.getOrElse(""))
         requiredLibraries = requiredLibraries ::: libs
         errorList = errorList ::: errors
         x.copy(content=content.outerHtml())
@@ -23,7 +23,7 @@ trait ConverterServiceComponent {
       (node.copy(content=convertedContent, requiredLibraries=requiredLibraries.distinct), ImportErrors(errorList))
     }
 
-    def convert(htmlContent: String): (Element, List[RequiredLibrary], List[String]) = {
+    def convert(htmlContent: String, currentLanguage: String): (Element, List[RequiredLibrary], List[String]) = {
       val document = Jsoup.parseBodyFragment(htmlContent)
       val firstElement = document.body().tagName("article")
       document.outputSettings().escapeMode(EscapeMode.xhtml)
@@ -31,7 +31,7 @@ trait ConverterServiceComponent {
       converterModules.foldLeft((firstElement, List[RequiredLibrary](), List[String]()))(
         (element, converter) => {
           val (el, libs, errorList) = element
-          val (convertedEl, newRequiredLibs, newErrors) = converter.convert(el)
+          val (convertedEl, newRequiredLibs, newErrors) = converter.convert(el, currentLanguage)
           (convertedEl, libs ::: newRequiredLibs, errorList ::: newErrors)
         }
       )

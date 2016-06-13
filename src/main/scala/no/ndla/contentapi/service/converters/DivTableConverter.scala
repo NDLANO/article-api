@@ -8,7 +8,7 @@ import scala.collection.JavaConversions._
 import scala.collection.mutable.ListBuffer
 
 object DivTableConverter extends ConverterModule {
-  def convert(el: Element): (Element, List[RequiredLibrary], List[String]) = {
+  def convert(el: Element, currentLanguage: String): (Element, List[RequiredLibrary], List[String]) = {
     for (div <- el.select("div.ndla_table, div.ndla_table_row, div.ndla_table_cell, div.ndla_table_cell_content")) {
 
       div.classNames() match {
