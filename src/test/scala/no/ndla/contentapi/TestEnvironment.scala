@@ -5,7 +5,7 @@ import javax.sql.DataSource
 import com.sksamuel.elastic4s.ElasticClient
 import no.ndla.contentapi.integration.{CMDataComponent, DataSourceComponent, ElasticClientComponent}
 import no.ndla.contentapi.repository.ContentRepositoryComponent
-import no.ndla.contentapi.service.converters.{ContentBrowserConverter, SimpleTagConverter}
+import no.ndla.contentapi.service.converters.{ContentBrowserConverter, DivTableConverter, SimpleTagConverter}
 import no.ndla.contentapi.service._
 import org.scalatest.mock.MockitoSugar
 
@@ -35,6 +35,6 @@ trait TestEnvironment
   val extractService = mock[ExtractService]
   val converterService = mock[ConverterService]
   val contentBrowserConverter = new ContentBrowserConverter
-  val converterModules = List(SimpleTagConverter, contentBrowserConverter)
+  val converterModules = List(SimpleTagConverter, DivTableConverter, contentBrowserConverter)
   val imageApiService = mock[ImageApiService]
 }
