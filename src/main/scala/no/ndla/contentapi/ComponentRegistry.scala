@@ -40,12 +40,12 @@ object ComponentRegistry
   lazy val elasticContentSearch = new ElasticContentSearch
   lazy val elasticContentIndex = new ElasticContentIndex
 
-  lazy val CMHost = scala.util.Properties.envOrNone("CM_HOST")
-  lazy val CMPort = scala.util.Properties.envOrNone("CM_PORT")
-  lazy val CMDatabase = scala.util.Properties.envOrNone("CM_DATABASE")
-  lazy val CMUser = scala.util.Properties.envOrNone("CM_USER")
-  lazy val CMPassword = scala.util.Properties.envOrNone("CM_PASSWORD")
-  lazy val imageApiBaseUrl = scala.util.Properties.envOrNone("IMAGE_API_BASE_URL").get
+  lazy val CMHost = ContentApiProperties.CMHost
+  lazy val CMPort = ContentApiProperties.CMPort
+  lazy val CMDatabase = ContentApiProperties.CMDatabase
+  lazy val CMUser = ContentApiProperties.CMUser
+  lazy val CMPassword = ContentApiProperties.CMPassword
+  lazy val imageApiBaseUrl = ContentApiProperties.imageApiBaseUrl
 
   lazy val cmData = new CMData(CMHost, CMPort, CMDatabase, CMUser, CMPassword)
   lazy val extractService = new ExtractService
