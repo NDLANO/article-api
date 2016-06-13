@@ -20,7 +20,7 @@ trait ConverterServiceComponent {
         errorList = errorList ::: errors
         x.copy(content=content.outerHtml())
       })
-      (node.copy(content=convertedContent, requiredLibraries=requiredLibraries.distinct), ImportStatus(errors=errorList))
+      (node.copy(content=convertedContent, requiredLibraries=requiredLibraries.distinct), ImportStatus(messages=errorList))
     }
 
     def convert(htmlContent: String): (Element, List[RequiredLibrary], List[String]) = {

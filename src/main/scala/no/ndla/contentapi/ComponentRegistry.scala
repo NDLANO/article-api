@@ -3,8 +3,9 @@ package no.ndla.contentapi
 import com.sksamuel.elastic4s.{ElasticClient, ElasticsearchClientUri}
 import no.ndla.contentapi.integration.{CMDataComponent, DataSourceComponent, ElasticClientComponent}
 import no.ndla.contentapi.repository.ContentRepositoryComponent
-import no.ndla.contentapi.service.converters.{ContentBrowserConverter, DivTableConverter, SimpleTagConverter}
+import no.ndla.contentapi.service.converters.{DivTableConverter, SimpleTagConverter}
 import no.ndla.contentapi.service._
+import no.ndla.contentapi.service.converters.contentbrowser.{ContentBrowserConverter, H5PConverterModule, ImageConverterModule, LenkeConverterModule}
 import org.elasticsearch.common.settings.ImmutableSettings
 import org.postgresql.ds.PGPoolingDataSource
 
@@ -19,8 +20,11 @@ object ComponentRegistry
   with ConverterModules
   with ConverterServiceComponent
   with CMDataComponent
-  with ContentBrowserConverter
   with ImageApiServiceComponent
+  with ImageConverterModule
+  with LenkeConverterModule
+  with H5PConverterModule
+  with ContentBrowserConverter
 {
   lazy val dataSource = new PGPoolingDataSource()
   dataSource.setUser(ContentApiProperties.get("META_USER_NAME"))
