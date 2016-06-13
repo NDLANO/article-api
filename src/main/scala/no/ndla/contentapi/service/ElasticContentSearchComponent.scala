@@ -7,11 +7,11 @@ import no.ndla.contentapi.ContentApiProperties
 import no.ndla.contentapi.business.{ContentSearch, SearchIndexer}
 import no.ndla.contentapi.integration.ElasticClientComponent
 import no.ndla.contentapi.model.ContentSummary
-import org.elasticsearch.common.settings.ImmutableSettings
-import org.elasticsearch.index.query.MatchQueryBuilder
-import org.elasticsearch.indices.IndexMissingException
-import org.elasticsearch.transport.RemoteTransportException
 import no.ndla.network.ApplicationUrl
+import org.elasticsearch.index.IndexNotFoundException
+import org.elasticsearch.index.query.MatchQueryBuilder
+import org.elasticsearch.transport.RemoteTransportException
+
 import scala.collection.mutable.ListBuffer
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
@@ -22,7 +22,7 @@ trait ElasticContentSearchComponent {
 
   class ElasticContentSearch extends ContentSearch with LazyLogging {
 
-    val noCopyrightFilter = not(nestedFilter("copyright.license").filter(termFilter("license", "copyrighted")))
+    val noCopyrightFilter = not(nestedQuery("copyright.license").query(termQuery("copyright.license.license", "copyrighted")))
 
     implicit object ContentHitAs extends HitAs[ContentSummary] {
       override def as(hit: RichSearchHit): ContentSummary = {
@@ -36,15 +36,11 @@ trait ElasticContentSearchComponent {
     }
 
     override def all(license: Option[String], page: Option[Int], pageSize: Option[Int]): Iterable[ContentSummary] = {
-      val theSearch = search in ContentApiProperties.SearchIndex -> ContentApiProperties.SearchDocument
-
-      val filterList = new ListBuffer[FilterDefinition]()
-      license.foreach(license => filterList += nestedFilter("copyright.license").filter(termFilter("license", license)))
+      val filterList = new ListBuffer[QueryDefinition]()
+      license.foreach(license => filterList += nestedQuery("copyright.license").query(termQuery("copyright.license.license", license)))
       filterList += noCopyrightFilter
 
-      if (filterList.nonEmpty) {
-        theSearch.postFilter(must(filterList.toList))
-      }
+      val theSearch = search in ContentApiProperties.SearchIndex -> ContentApiProperties.SearchDocument query filter(filterList)
       theSearch.sort(field sort "id")
 
       executeSearch(theSearch, page, pageSize)
@@ -63,37 +59,22 @@ trait ElasticContentSearchComponent {
       tagSearch += matchQuery("tags.tag", query.mkString(" ")).operator(MatchQueryBuilder.Operator.AND)
       language.foreach(lang => tagSearch += termQuery("tags.language", lang))
 
+      val filterList = new ListBuffer[QueryDefinition]()
+      license.foreach(license => filterList += nestedQuery("copyright.license").query(termQuery("copyright.license.license", license)))
+      filterList += noCopyrightFilter
 
       val theSearch = search in ContentApiProperties.SearchIndex -> ContentApiProperties.SearchDocument query {
         bool {
-          should(
-            nestedQuery("titles").query {
-              bool {
-                must(titleSearch.toList)
-              }
-            },
-            nestedQuery("content").query {
-              bool {
-                must(contentSearch.toList)
-              }
-            },
-            nestedQuery("tags").query {
-              bool {
-                must(tagSearch.toList)
-              }
-            }
+          must(
+            should(
+              nestedQuery("titles").query {bool {must(titleSearch.toList)}},
+              nestedQuery("content").query {bool {must(contentSearch.toList)}},
+              nestedQuery("tags").query {bool {must(tagSearch.toList)}}
+            ),
+            filter (filterList)
           )
         }
       }
-
-      val filterList = new ListBuffer[FilterDefinition]()
-      license.foreach(license => filterList += nestedFilter("copyright.license").filter(termFilter("license", license)))
-      filterList += noCopyrightFilter
-
-      if (filterList.nonEmpty) {
-        theSearch.postFilter(must(filterList.toList))
-      }
-
       executeSearch(theSearch, page, pageSize)
     }
 
@@ -125,7 +106,7 @@ trait ElasticContentSearchComponent {
 
     def errorHandler(exception: Throwable) = {
       exception match {
-        case ex: IndexMissingException =>
+        case ex: IndexNotFoundException =>
           logger.error(ex.getDetailedMessage)
           scheduleIndexDocuments()
           throw ex

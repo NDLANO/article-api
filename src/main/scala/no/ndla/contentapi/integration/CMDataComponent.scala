@@ -32,14 +32,7 @@ import scalikejdbc.{ConnectionPool, DataSourceConnectionPool, NamedDB, _}
 trait CMDataComponent {
   val cmData: CMData
 
-  class CMData(cmHost: Option[String], cmPort: Option[String],
-               cmDatatbase: Option[String], cmUser: Option[String], cmPass: Option[String]) {
-    val host = cmHost.getOrElse(throw new RuntimeException("Missing host"))
-    val port = cmPort.getOrElse(throw new RuntimeException("Missing host"))
-    val database = cmDatatbase.getOrElse(throw new RuntimeException("Missing database"))
-    val user = cmUser.getOrElse(throw new RuntimeException("Missing user"))
-    val password = cmPass.getOrElse(throw new RuntimeException("Missing password"))
-
+  class CMData(host: String, port: String, database: String, user: String, password: String) {
     Class.forName("com.mysql.jdbc.Driver")
 
     val cmDatasource = new MysqlConnectionPoolDataSource
