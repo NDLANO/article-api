@@ -1,7 +1,7 @@
 package no.ndla.contentapi.service
 
 import no.ndla.contentapi.TestEnvironment
-import no.ndla.learningpathapi.UnitSuite
+import no.ndla.contentapi.UnitSuite
 
 
 class ElasticContentSearchTest extends UnitSuite with TestEnvironment {

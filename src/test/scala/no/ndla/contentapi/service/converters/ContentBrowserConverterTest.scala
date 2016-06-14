@@ -1,13 +1,11 @@
 package no.ndla.contentapi.service.converters
 
 import no.ndla.contentapi.TestEnvironment
-import no.ndla.contentapi.model.{Copyright, License, RequiredLibrary}
+import no.ndla.contentapi.model.{Copyright, License}
 import no.ndla.contentapi.service.{Image, ImageMetaInformation, ImageVariants}
-import no.ndla.learningpathapi.UnitSuite
+import no.ndla.contentapi.UnitSuite
 import org.jsoup.Jsoup
 import org.mockito.Mockito._
-
-import scala.collection.mutable.ListBuffer
 
 class ContentBrowserConverterTest extends UnitSuite with TestEnvironment {
   test("That content-browser strings are replaced") {

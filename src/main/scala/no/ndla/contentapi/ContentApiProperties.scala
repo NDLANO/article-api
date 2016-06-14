@@ -19,10 +19,10 @@ object ContentApiProperties extends LazyLogging {
   lazy val HostAddr = get("HOST_ADDR")
   lazy val Domains = get("DOMAINS").split(",") ++ Array(HostAddr)
 
-  val imageApiBaseUrl = get("IMAGE_API_BASE_URL")
-  val imageApiInternEndpointURLSuffix = "/admin/"
-  val imageApiImportImageURL = s"$imageApiBaseUrl/$imageApiInternEndpointURLSuffix/import/"
-  val imageApiGetByExternalIdURL = s"$imageApiBaseUrl/$imageApiInternEndpointURLSuffix/extern/"
+  lazy val imageApiBaseUrl = get("IMAGE_API_BASE_URL")
+  val imageApiInternEndpointURLSuffix = "admin"
+  val imageApiImportImageURL = s"$imageApiInternEndpointURLSuffix/import"
+  val imageApiGetByExternalIdURL = s"$imageApiInternEndpointURLSuffix/extern"
 
   val SearchHost = "search-engine"
   lazy val SearchPort = get("SEARCH_ENGINE_ENV_TCP_PORT")

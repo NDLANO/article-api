@@ -1,6 +1,5 @@
-package no.ndla.learningpathapi
+package no.ndla.contentapi
 
-import no.ndla.contentapi.ContentApiProperties
 import org.scalatest._
 import org.scalatest.mock.MockitoSugar
 
