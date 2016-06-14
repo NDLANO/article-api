@@ -33,6 +33,13 @@ object ContentApiProperties extends LazyLogging {
   lazy val MaxPageSize: Int = getInt("SEARCH_MAX_PAGE_SIZE")
   lazy val IndexBulkSize = getInt("INDEX_BULK_SIZE")
 
+  lazy val CMHost = get("CM_HOST")
+  lazy val CMPort = get("CM_PORT")
+  lazy val CMDatabase = get("CM_DATABASE")
+  lazy val CMUser = get("CM_USER")
+  lazy val CMPassword = get("CM_PASSWORD")
+  lazy val imageApiBaseUrl = get("IMAGE_API_BASE_URL")
+
   def verify() = {
     val missingProperties = ContentApiProps.filter(entry => entry._2.isEmpty).toList
     if(missingProperties.length > 0){

@@ -4,7 +4,7 @@ import org.scalatest._
 import org.scalatest.mock.MockitoSugar
 
 
-abstract class UnitSuite extends FunSuite with Matchers with OptionValues with Inside with Inspectors with MockitoSugar with BeforeAndAfterEach with BeforeAndAfter {
+abstract class UnitSuite extends FunSuite with Matchers with OptionValues with Inside with Inspectors with MockitoSugar with BeforeAndAfterEach with BeforeAndAfterAll {
   val DEFAULT_PAGE_SIZE = 12
   val MAX_PAGE_SIZE = 548
 

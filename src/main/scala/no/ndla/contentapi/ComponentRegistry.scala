@@ -3,9 +3,9 @@ package no.ndla.contentapi
 import com.sksamuel.elastic4s.{ElasticClient, ElasticsearchClientUri}
 import no.ndla.contentapi.integration.{CMDataComponent, DataSourceComponent, ElasticClientComponent}
 import no.ndla.contentapi.repository.ContentRepositoryComponent
-import no.ndla.contentapi.service.converters.{ContentBrowserConverter, SimpleTagConverter}
 import no.ndla.contentapi.service._
-import org.elasticsearch.common.settings.ImmutableSettings
+import no.ndla.contentapi.service.converters.{ContentBrowserConverter, SimpleTagConverter}
+import org.elasticsearch.common.settings.Settings
 import org.postgresql.ds.PGPoolingDataSource
 
 
@@ -32,20 +32,20 @@ object ComponentRegistry
   dataSource.setMaxConnections(ContentApiProperties.getInt("META_MAX_CONNECTIONS"))
   dataSource.setCurrentSchema(ContentApiProperties.get("META_SCHEMA"))
 
-  lazy val elasticClient = ElasticClient.remote(
-    ImmutableSettings.settingsBuilder().put("cluster.name", ContentApiProperties.SearchClusterName).build(),
-    ElasticsearchClientUri(s"elasticsearch://${ContentApiProperties.SearchHost}:${ContentApiProperties.SearchPort}")
-  )
+  lazy val elasticClient = ElasticClient.transport(
+    Settings.settingsBuilder().put("cluster.name", ContentApiProperties.SearchClusterName).build(),
+    ElasticsearchClientUri(s"elasticsearch://${ContentApiProperties.SearchHost}:${ContentApiProperties.SearchPort}"))
 
   lazy val contentRepository = new ContentRepository
   lazy val elasticContentSearch = new ElasticContentSearch
   lazy val elasticContentIndex = new ElasticContentIndex
 
-  lazy val CMHost = scala.util.Properties.envOrNone("CM_HOST")
-  lazy val CMPort = scala.util.Properties.envOrNone("CM_PORT")
-  lazy val CMDatabase = scala.util.Properties.envOrNone("CM_DATABASE")
-  lazy val CMUser = scala.util.Properties.envOrNone("CM_USER")
-  lazy val CMPassword = scala.util.Properties.envOrNone("CM_PASSWORD")
+  lazy val CMHost = ContentApiProperties.CMHost
+  lazy val CMPort = ContentApiProperties.CMPort
+  lazy val CMDatabase = ContentApiProperties.CMDatabase
+  lazy val CMUser = ContentApiProperties.CMUser
+  lazy val CMPassword = ContentApiProperties.CMPassword
+  lazy val imageApiBaseUrl = ContentApiProperties.imageApiBaseUrl
 
   lazy val cmData = new CMData(CMHost, CMPort, CMDatabase, CMUser, CMPassword)
   lazy val extractService = new ExtractService
