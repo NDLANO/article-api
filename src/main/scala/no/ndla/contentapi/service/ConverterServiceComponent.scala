@@ -6,6 +6,8 @@ import org.jsoup.Jsoup
 import org.jsoup.nodes.Element
 import org.jsoup.nodes.Entities.EscapeMode
 
+import scala.annotation.tailrec
+
 trait ConverterServiceComponent {
   this: ConverterModules =>
   val converterService: ConverterService
@@ -32,7 +34,7 @@ trait ConverterServiceComponent {
       convertWhileUnfinished(firstElement, content.language.getOrElse(""), maxPasses, List[RequiredLibrary](), List[String]())
     }
 
-    private def convertWhileUnfinished(el: Element, language: String, maxPassesLeft: Int, requiredLibraries: List[RequiredLibrary], errors: List[String]): (Element, List[RequiredLibrary], List[String]) = {
+    @tailrec private def convertWhileUnfinished(el: Element, language: String, maxPassesLeft: Int, requiredLibraries: List[RequiredLibrary], errors: List[String]): (Element, List[RequiredLibrary], List[String]) = {
       val originalContents = el.outerHtml()
       val (newElement, reqLibs, errorMsgs) = converterModules.foldLeft((el, List[RequiredLibrary](), List[String]()))(
         (element, converter) => {
@@ -42,6 +44,8 @@ trait ConverterServiceComponent {
         }
       )
 
+      // If this converting pass did not yield any changes of the content, or the maximum number of conversion passes are run, this node is finished (case true)
+      // If changes were made during this convertion, we run the converters again (case false)
       el.outerHtml() == originalContents || maxPassesLeft == 0 match {
         case true => (newElement, requiredLibraries ::: reqLibs, errors ::: errorMsgs)
         case false => convertWhileUnfinished(newElement, language, maxPassesLeft - 1, requiredLibraries ::: reqLibs, errors ::: errorMsgs)

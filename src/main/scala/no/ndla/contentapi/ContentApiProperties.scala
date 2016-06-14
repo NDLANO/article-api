@@ -15,6 +15,8 @@ object ContentApiProperties extends LazyLogging {
 
   val ApplicationPort = 80
 
+  // During the conversion of a content node, the converter may run several passes over the content to make sure
+  // everything is converted. 'maxConvertionPasses' defines a maximum number of passes performed on a content node
   val maxConvertionPasses = 5
 
   lazy val ContactEmail = get("CONTACT_EMAIL")
