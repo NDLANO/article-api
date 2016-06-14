@@ -2,8 +2,9 @@ package no.ndla.contentapi.service.converters.contentbrowser
 
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.contentapi.integration.ConverterModule
-import no.ndla.contentapi.model.RequiredLibrary
+import no.ndla.contentapi.model.{Content, RequiredLibrary}
 import no.ndla.contentapi.service.ExtractServiceComponent
+import no.ndla.contentapi.service.converters.SimpleTagConverter._
 import org.jsoup.nodes.Element
 
 trait ContentBrowserConverter {
@@ -16,37 +17,35 @@ trait ContentBrowserConverter {
       H5PConverter.typeName -> H5PConverter,
       LenkeConverter.typeName -> LenkeConverter)
 
-    def convert(el: Element): (Element, List[RequiredLibrary], List[String]) = {
+    def convert(content: Content): Content = {
+      val element = stringToJsoupDocument(content.content)
       var isContentBrowserField = false
-      var requiredLibraries = List[RequiredLibrary]()
-      var errors = List[String]()
 
       do {
-        val text = el.html()
+        val text = element.html()
         val cont = ContentBrowser(text)
 
         isContentBrowserField = cont.isContentBrowserField()
         if (isContentBrowserField) {
           val nodeType = extractService.getNodeType(cont.get("nid")).getOrElse("UNKNOWN")
 
-          val (newContent, reqLibs, errorMsgs) = contentBrowserModules.get(nodeType) match {
+          val (newContent, reqLibs, messages) = contentBrowserModules.get(nodeType) match {
             case Some(module) => module.convert(cont)
             case None => {
-              val nodeId = cont.get("nid")
-              logger.warn(s"{Unsupported content '${nodeType}': ${nodeId}}")
-              val replacement = s"{Unsupported content '${nodeType}': ${nodeId}}"
-              (replacement, List[RequiredLibrary](), List(s"{Unsupported content '${nodeType}': ${nodeId}}"))
+              val errorString = s"{Unsupported content ${nodeType}: ${cont.get("nid")}}"
+              logger.warn(errorString)
+              (errorString, List[RequiredLibrary](), List(errorString))
             }
           }
           requiredLibraries = requiredLibraries ::: reqLibs
-          errors = errors ::: errorMsgs
+          importStatus = importStatus.join(messages)
 
           val (start, end) = cont.getStartEndIndex()
-          el.html(text.substring(0, start) + newContent + text.substring(end))
+          element.html(text.substring(0, start) + newContent + text.substring(end))
         }
       } while (isContentBrowserField)
 
-      (el, requiredLibraries, errors)
+      content.copy(jsoupDocumentToString(element))
     }
   }
 }

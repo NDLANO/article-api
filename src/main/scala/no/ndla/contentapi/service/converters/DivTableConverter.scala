@@ -1,15 +1,16 @@
 package no.ndla.contentapi.service.converters
 
 import no.ndla.contentapi.integration.ConverterModule
-import no.ndla.contentapi.model.RequiredLibrary
+import no.ndla.contentapi.model.{Content, RequiredLibrary}
 import org.jsoup.nodes.Element
 
 import scala.collection.JavaConversions._
 import scala.collection.mutable.ListBuffer
 
 object DivTableConverter extends ConverterModule {
-  def convert(el: Element): (Element, List[RequiredLibrary], List[String]) = {
-    for (div <- el.select("div.ndla_table, div.ndla_table_row, div.ndla_table_cell, div.ndla_table_cell_content")) {
+  def convert(content: Content): Content = {
+    val element = stringToJsoupDocument(content.content)
+    for (div <- element.select("div.ndla_table, div.ndla_table_row, div.ndla_table_cell, div.ndla_table_cell_content")) {
 
       div.classNames() match {
         case table if table contains "ndla_table" => {
@@ -27,6 +28,6 @@ object DivTableConverter extends ConverterModule {
         case cellContent if cellContent contains "ndla_table_cell_content" => div.unwrap()
       }
     }
-    (el, List[RequiredLibrary](), List[String]())
+    content.copy(jsoupDocumentToString(element))
   }
 }
