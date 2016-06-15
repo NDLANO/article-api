@@ -8,8 +8,9 @@ trait ConverterServiceComponent {
 
   class ConverterService {
     def convertNode(contentInformation: ContentInformation): (ContentInformation, ImportStatus) =
-      converterModules.foldLeft((contentInformation, ImportStatus(List[String]())))((element, converter) => {
-        converter.convert(element._1) match { case (content, status) => (content, element._2.join(status)) }
+      converterModules.foldLeft((contentInformation, ImportStatus()))((element, converter) => {
+        val (contentInformation, importStatus) = element
+        converter.convert(contentInformation, importStatus)
       })
   }
 }

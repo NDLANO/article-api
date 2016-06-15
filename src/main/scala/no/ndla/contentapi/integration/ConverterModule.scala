@@ -8,9 +8,6 @@ import org.jsoup.nodes.Entities.EscapeMode
 import scala.collection.mutable.ListBuffer
 
 trait ConverterModule {
-  var importStatus: ImportStatus = ImportStatus(List[String]())
-  var requiredLibraries: List[RequiredLibrary] = List[RequiredLibrary]()
-
   def stringToJsoupDocument(htmlString: String): Element = {
     val document = Jsoup.parseBodyFragment(htmlString)
     document.outputSettings().escapeMode(EscapeMode.xhtml)
@@ -32,16 +29,24 @@ trait ConverterModule {
     content.outerHtml()
   }
 
-  def convert(content: Content): Content
+  def convert(content: LanguageContent): (LanguageContent, ImportStatus)
 
-  def reset() = {
-    importStatus = ImportStatus(List[String]())
-    requiredLibraries = List[RequiredLibrary]()
-  }
+  def convert(contentInformation: ContentInformation, importStatus: ImportStatus): (ContentInformation, ImportStatus) = {
+    val languageContent = contentInformation.content.map(LanguageContent(_))
+    val (convertedContent, importStatuses) = languageContent.map(x => convert(x)).unzip
 
-  def convert(contentInformation: ContentInformation): (ContentInformation, ImportStatus) = {
-    reset()
-    val content = contentInformation.content.map(convert)
-    (contentInformation.copy(content=content, requiredLibraries=requiredLibraries.map(x => x.copy())), importStatus.copy())
+    val content = convertedContent.map(content => content.asContent)
+    val requiredLibraries = convertedContent.flatMap(content => content.requiredLibraries) // Slå sammen requiredLibraries
+    val newImportStatus = importStatuses.foldLeft(importStatus)((prevStatus: ImportStatus, currStatus: ImportStatus) => prevStatus.join(currStatus)) // Slå sammen importStatus
+
+    (contentInformation.copy(content=content, requiredLibraries=requiredLibraries.distinct), newImportStatus)
   }
+}
+
+object LanguageContent {
+  def apply(arg: Content): LanguageContent = LanguageContent(arg.content, arg.language)
+}
+
+case class LanguageContent(content: String, language: Option[String], requiredLibraries: Seq[RequiredLibrary] = List[RequiredLibrary]()) {
+  def asContent(): Content = Content(content, language)
 }

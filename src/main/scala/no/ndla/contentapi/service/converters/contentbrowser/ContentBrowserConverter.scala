@@ -1,8 +1,8 @@
 package no.ndla.contentapi.service.converters.contentbrowser
 
 import com.typesafe.scalalogging.LazyLogging
-import no.ndla.contentapi.integration.ConverterModule
-import no.ndla.contentapi.model.{Content, RequiredLibrary}
+import no.ndla.contentapi.integration.{ConverterModule, LanguageContent}
+import no.ndla.contentapi.model.{Content, ImportStatus, RequiredLibrary}
 import no.ndla.contentapi.service.ExtractServiceComponent
 import no.ndla.contentapi.service.converters.SimpleTagConverter._
 import org.jsoup.nodes.Element
@@ -17,9 +17,11 @@ trait ContentBrowserConverter {
       H5PConverter.typeName -> H5PConverter,
       LenkeConverter.typeName -> LenkeConverter)
 
-    def convert(content: Content): Content = {
+    def convert(content: LanguageContent): (LanguageContent, ImportStatus) = {
       val element = stringToJsoupDocument(content.content)
       var isContentBrowserField = false
+      var requiredLibraries = List[RequiredLibrary]()
+      var importStatus = ImportStatus()
 
       do {
         val text = element.html()
@@ -45,7 +47,7 @@ trait ContentBrowserConverter {
         }
       } while (isContentBrowserField)
 
-      content.copy(jsoupDocumentToString(element))
+      (content.copy(content=jsoupDocumentToString(element), requiredLibraries=requiredLibraries), importStatus)
     }
   }
 }

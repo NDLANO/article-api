@@ -1,14 +1,11 @@
 package no.ndla.contentapi.service.converters
 
-import no.ndla.contentapi.integration.ConverterModule
-import no.ndla.contentapi.model.{Content, RequiredLibrary}
-import org.jsoup.nodes.Element
-
+import no.ndla.contentapi.integration.{ConverterModule, LanguageContent}
+import no.ndla.contentapi.model.ImportStatus
 import scala.collection.JavaConversions._
-import scala.collection.mutable.ListBuffer
 
 object DivTableConverter extends ConverterModule {
-  def convert(content: Content): Content = {
+  def convert(content: LanguageContent): (LanguageContent, ImportStatus) = {
     val element = stringToJsoupDocument(content.content)
     for (div <- element.select("div.ndla_table, div.ndla_table_row, div.ndla_table_cell, div.ndla_table_cell_content")) {
 
@@ -28,6 +25,7 @@ object DivTableConverter extends ConverterModule {
         case cellContent if cellContent contains "ndla_table_cell_content" => div.unwrap()
       }
     }
-    content.copy(jsoupDocumentToString(element))
+
+    (content.copy(content=jsoupDocumentToString(element)), ImportStatus())
   }
 }

@@ -1,20 +1,20 @@
 package no.ndla.contentapi.service.converters
 
-import no.ndla.contentapi.integration.ConverterModule
-import no.ndla.contentapi.model.{Content, RequiredLibrary}
+import no.ndla.contentapi.integration.{ConverterModule, LanguageContent}
+import no.ndla.contentapi.model.ImportStatus
 import org.jsoup.nodes.Element
 
 import scala.collection.JavaConversions._
 
 object SimpleTagConverter extends ConverterModule {
 
-  def convert(content: Content): Content = {
+  def convert(content: LanguageContent): (LanguageContent, ImportStatus) = {
     val element = stringToJsoupDocument(content.content)
     convertBody(element)
     convertDivs(element)
     convertPres(element)
 
-    content.copy(jsoupDocumentToString(element))
+    (content.copy(content=jsoupDocumentToString(element)), ImportStatus())
   }
 
   def convertDivs(el: Element) {

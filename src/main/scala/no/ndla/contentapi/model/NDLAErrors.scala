@@ -22,7 +22,7 @@ object Error {
 }
 
 case class Error(code:String, description:String, occuredAt:String = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS").format(new Date()))
-case class ImportStatus(messages: List[String]) {
+case class ImportStatus(messages: List[String] = List[String]()) {
   def join(messages: List[String]): ImportStatus = copy(messages ::: messages)
   def join(importStatus: ImportStatus): ImportStatus = join(importStatus.messages)
 }
