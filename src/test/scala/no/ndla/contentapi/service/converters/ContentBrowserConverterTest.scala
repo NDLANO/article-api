@@ -2,9 +2,10 @@ package no.ndla.contentapi.service.converters
 
 import no.ndla.contentapi.TestEnvironment
 import no.ndla.contentapi.integration.AudioMeta
-import no.ndla.contentapi.model.{Copyright, License, RequiredLibrary}
+import no.ndla.contentapi.model.{Copyright, License}
 import no.ndla.contentapi.service.{Image, ImageMetaInformation, ImageVariants}
-import no.ndla.learningpathapi.UnitSuite
+import no.ndla.contentapi.UnitSuite
+import no.ndla.contentapi.ContentApiProperties.amazonUrlPrefix
 import org.jsoup.Jsoup
 import org.mockito.Mockito._
 
@@ -67,7 +68,7 @@ class ContentBrowserConverterTest extends UnitSuite with TestEnvironment {
     val audio = AudioMeta(nodeId, "title", "1:23", "mp3", "audio/mpeg", "1024", filename, s"audio/$filename")
     val destinationPath = s"$nodeId/${audio.filename}"
     val expectedResult = s"""<article> <figure>   <figcaption>   ${audio.title}  </figcaption>
-                             |   <audio src="$destinationPath" preload="auto" controls="">
+                             |   <audio src="$amazonUrlPrefix/$destinationPath" preload="auto" controls="">
                              |    Your browser does not support the    <code>video</code> element.
                              |   </audio>
                              |  </figure> </article>""".stripMargin.replace("\n", "")

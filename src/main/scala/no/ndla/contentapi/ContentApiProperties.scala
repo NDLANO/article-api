@@ -19,6 +19,10 @@ object ContentApiProperties extends LazyLogging {
   lazy val HostAddr = get("HOST_ADDR")
   lazy val Domains = get("DOMAINS").split(",") ++ Array(HostAddr)
 
+  val audioStorageDirectory = "audio"
+  lazy val ndlaUserName = get("RED_NDLA_USERNAME")
+  lazy val ndlaPassword = get("RED_NDLA_PASSWORD")
+
   val SearchHost = "search-engine"
   lazy val SearchPort = get("SEARCH_ENGINE_ENV_TCP_PORT")
   lazy val SearchClusterName = get("SEARCH_ENGINE_ENV_CLUSTER_NAME")
@@ -31,6 +35,7 @@ object ContentApiProperties extends LazyLogging {
   lazy val StorageName = get("STORAGE_NAME")
   lazy val StorageAccessKey = get("STORAGE_ACCESS_KEY")
   lazy val StorageSecretKey = get("STORAGE_SECRET_KEY")
+  lazy val amazonUrlPrefix = s"http://s3.eu-central-1.amazonaws.com/$StorageName"
 
   def verify() = {
     val missingProperties = ContentApiProps.filter(entry => entry._2.isEmpty).toList

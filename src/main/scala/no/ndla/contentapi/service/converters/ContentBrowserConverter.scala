@@ -4,6 +4,7 @@ import com.typesafe.scalalogging.LazyLogging
 import no.ndla.contentapi.integration.ConverterModule
 import no.ndla.contentapi.model.RequiredLibrary
 import no.ndla.contentapi.service.{ExtractServiceComponent, ImageApiServiceComponent, StorageService}
+import no.ndla.contentapi.ContentApiProperties.amazonUrlPrefix
 import org.jsoup.nodes.Element
 import com.netaporter.uri.dsl._
 
@@ -89,7 +90,7 @@ trait ContentBrowserConverter {
           val player =
             s"""<figure>
                   <figcaption>${audio.title}</figcaption>
-                  <audio src="$filepath" preload="auto" controls>
+                  <audio src="$amazonUrlPrefix/$filepath" preload="auto" controls>
                     Your browser does not support the <code>video</code> element.
                   </audio>
                 </figure>

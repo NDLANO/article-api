@@ -4,6 +4,8 @@ import java.net.URL
 import com.amazonaws.AmazonServiceException
 import com.amazonaws.services.s3.model._
 import no.ndla.contentapi.integration.{AmazonClientComponent, AudioMeta}
+import no.ndla.contentapi.ContentApiProperties.{ndlaUserName, ndlaPassword}
+import scalaj.http.Base64
 
 trait StorageService {
   this: AmazonClientComponent =>
@@ -12,12 +14,13 @@ trait StorageService {
   class AmazonStorageService {
     def uploadAudiofromUrl(storageKeyPrefix: String, audioMeta: AudioMeta): String = {
       val storageKey = s"${storageKeyPrefix}/${audioMeta.filename}"
-      val audioStream = new URL(audioMeta.url).openStream()
+      val audioConnection = new URL(audioMeta.url).openConnection()
+      audioConnection.setRequestProperty ("Authorization", s"Basic ${Base64.encodeString(s"$ndlaUserName:$ndlaPassword")}")
       val metaData = new ObjectMetadata()
       metaData.setContentType(audioMeta.mimetype)
       metaData.setContentLength(audioMeta.fileSize.toLong)
 
-      val request = new PutObjectRequest(storageName, storageKey, audioStream, metaData)
+      val request = new PutObjectRequest(storageName, storageKey, audioConnection.getInputStream(), metaData)
       amazonClient.putObject(request)
       storageKey
     }

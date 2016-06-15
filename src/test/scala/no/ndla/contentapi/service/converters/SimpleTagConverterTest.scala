@@ -1,7 +1,7 @@
 package no.ndla.contentapi.service.converters
 
 import no.ndla.contentapi.model.RequiredLibrary
-import no.ndla.learningpathapi.UnitSuite
+import no.ndla.contentapi.UnitSuite
 import org.jsoup.Jsoup
 
 import scala.collection.mutable.ListBuffer
