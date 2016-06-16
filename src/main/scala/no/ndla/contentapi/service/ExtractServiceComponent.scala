@@ -12,7 +12,7 @@ trait ExtractServiceComponent {
     def importNode(nodeId: String): ContentInformation = cmData.getNode(nodeId)
     def getNodeType(nodeId: String): Option[String] = cmData.getNodeType(nodeId)
     def getNodeEmbedData(nodeId: String): Option[(String, String)] = cmData.getNodeEmbedData(nodeId)
-    def getNodeOppgave(nodeId: String): List[ContentOppgave] = {
+    def getNodeOppgave(nodeId: String): Seq[ContentOppgave] = {
       val oppgaves = cmData.getNodeOppgave(nodeId)
 
       // make sure to return the oppgave along with all its translations

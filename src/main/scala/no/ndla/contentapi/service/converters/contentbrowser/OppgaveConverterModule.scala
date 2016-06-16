@@ -19,7 +19,7 @@ trait OppgaveConverterModule {
       oppgaves.find(x => x.language == content.language.getOrElse("")) match {
         case Some(oppgave) => (oppgave.content, requiredLibraries, messages)
         case None => {
-          val errorMsg = s"Failed to retrieve 'oppgave' with language '$language' ($nodeId)"
+          val errorMsg = s"Failed to retrieve 'oppgave' with language '${content.language.getOrElse("")}' ($nodeId)"
           logger.warn(errorMsg)
           (s"{Import error: $errorMsg}", requiredLibraries, messages  :+ errorMsg)
         }
