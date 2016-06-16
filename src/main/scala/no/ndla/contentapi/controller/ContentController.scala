@@ -2,16 +2,16 @@ package no.ndla.contentapi.controller
 
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.contentapi.ComponentRegistry
-import org.elasticsearch.indices.IndexMissingException
-import org.json4s.{DefaultFormats, Formats}
-import org.scalatra.ScalatraServlet
-import org.scalatra.json.NativeJsonSupport
-import org.scalatra.swagger.{Swagger, SwaggerSupport}
 import no.ndla.contentapi.business.{ContentData, ContentSearch}
 import no.ndla.contentapi.model.Error._
 import no.ndla.contentapi.model.{ContentInformation, ContentSummary, Error}
 import no.ndla.logging.LoggerContext
 import no.ndla.network.ApplicationUrl
+import org.elasticsearch.index.IndexNotFoundException
+import org.json4s.{DefaultFormats, Formats}
+import org.scalatra.ScalatraServlet
+import org.scalatra.json.NativeJsonSupport
+import org.scalatra.swagger.{Swagger, SwaggerSupport}
 
 import scala.util.Try
 
@@ -57,7 +57,7 @@ class ContentController (implicit val swagger:Swagger) extends ScalatraServlet w
   }
 
   error{
-    case e:IndexMissingException =>
+    case e:IndexNotFoundException =>
       halt(status = 500, body = Error.IndexMissingError)
     case t:Throwable =>
       logger.error(Error.GenericError.toString, t)

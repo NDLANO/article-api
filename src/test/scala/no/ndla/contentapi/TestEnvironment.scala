@@ -6,8 +6,9 @@ import com.amazonaws.services.s3.AmazonS3Client
 import com.sksamuel.elastic4s.ElasticClient
 import no.ndla.contentapi.integration.{AmazonClientComponent, CMDataComponent, DataSourceComponent, ElasticClientComponent}
 import no.ndla.contentapi.repository.ContentRepositoryComponent
-import no.ndla.contentapi.service.converters.{ContentBrowserConverter, SimpleTagConverter}
+import no.ndla.contentapi.service.converters.SimpleTagConverter
 import no.ndla.contentapi.service._
+import no.ndla.contentapi.service.converters.contentbrowser._
 import org.scalatest.mock.MockitoSugar
 
 
@@ -22,6 +23,10 @@ trait TestEnvironment
   with ExtractServiceComponent
   with ConverterModules
   with ConverterServiceComponent
+  with ImageConverterModule
+  with LenkeConverterModule
+  with H5PConverterModule
+  with AudioConverterModule
   with ContentBrowserConverter
   with ImageApiServiceComponent
   with AmazonClientComponent

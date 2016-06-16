@@ -34,8 +34,10 @@ lazy val content_api = (project in file(".")).
     scalacOptions := Seq("-target:jvm-1.7"),
     libraryDependencies ++= Seq(
       "ndla" %% "logging" % "0.1-SNAPSHOT",
+      "ndla" %% "logging" % "0.1-SNAPSHOT" % "test" classifier "tests",
       "ndla" %% "mapping" % "0.1-SNAPSHOT",
       "ndla" %% "network" % "0.1-SNAPSHOT",
+      "joda-time" % "joda-time" % "2.8.2",
       "org.scalatra" %% "scalatra" % Scalatraversion,
       "org.eclipse.jetty" % "jetty-webapp" % Jettyversion % "container;compile",
       "org.eclipse.jetty" % "jetty-plus" % Jettyversion % "container",
@@ -49,7 +51,8 @@ lazy val content_api = (project in file(".")).
       "mysql" % "mysql-connector-java" % "5.1.36",
       "com.amazonaws" % "aws-java-sdk-s3" % AwsSdkversion,
       "org.scalaj" %% "scalaj-http" % "1.1.5",
-      "com.sksamuel.elastic4s" %% "elastic4s-core" % "1.7.4",
+      "com.sksamuel.elastic4s" %% "elastic4s-core" % "2.3.0",
+      "com.sksamuel.elastic4s" %% "elastic4s-testkit" % "2.3.0" % "test",
       "org.scalatest" % "scalatest_2.11" % ScalaTestVersion % "test",
       "org.jsoup" % "jsoup" % "1.7.3",
       "org.mockito" % "mockito-all" % MockitoVersion % "test",
@@ -66,6 +69,7 @@ assemblyMergeStrategy in assembly := {
   case "mime.types" => MergeStrategy.filterDistinctLines
   case PathList("org", "joda", "convert", "ToString.class")  => MergeStrategy.first
   case PathList("org", "joda", "convert", "FromString.class")  => MergeStrategy.first
+  case PathList("org", "joda", "time", "base", "BaseDateTime.class")  => MergeStrategy.first
   case x =>
     val oldStrategy = (assemblyMergeStrategy in assembly).value
     oldStrategy(x)
