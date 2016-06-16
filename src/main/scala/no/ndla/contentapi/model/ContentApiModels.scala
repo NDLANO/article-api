@@ -16,11 +16,11 @@ case class ContentSummary(
 @ApiModel(description = "Information about the content")
 case class ContentInformation(
   @(ApiModelProperty @field)(description = "The unique id of the content") id:String,
-  @(ApiModelProperty @field)(description = "Available titles for the content") titles:List[ContentTitle],
-  @(ApiModelProperty @field)(description = "The content in available languages") content: List[Content],
+  @(ApiModelProperty @field)(description = "Available titles for the content") titles:Seq[ContentTitle],
+  @(ApiModelProperty @field)(description = "The content in available languages") content: Seq[Content],
   @(ApiModelProperty @field)(description = "Describes the copyright information for the content") copyright:Copyright,
-  @(ApiModelProperty @field)(description = "Searchable tags for the content") tags:List[ContentTag],
-  @(ApiModelProperty @field)(description = "Required libraries in order to render the content") requiredLibraries:List[RequiredLibrary]
+  @(ApiModelProperty @field)(description = "Searchable tags for the content") tags:Seq[ContentTag],
+  @(ApiModelProperty @field)(description = "Required libraries in order to render the content") requiredLibraries:Seq[RequiredLibrary]
 )
 
 @ApiModel(description = "The content in the specified language")
@@ -39,7 +39,7 @@ case class ContentTitle(
 case class Copyright(
   @(ApiModelProperty @field)(description = "Describes the license of the content") license:License,
   @(ApiModelProperty @field)(description = "Reference to where the content is procured") origin:String,
-  @(ApiModelProperty @field)(description = "List of authors") authors:List[Author]
+  @(ApiModelProperty @field)(description = "List of authors") authors:Seq[Author]
 )
 
 @ApiModel(description = "Description of the tags of the content")
