@@ -1,11 +1,7 @@
 package no.ndla.contentapi.service
 
-import no.ndla.contentapi.ContentApiProperties
-import no.ndla.contentapi.model.{Content, ContentInformation, ImportErrors, RequiredLibrary}
-import org.jsoup.Jsoup
-import org.jsoup.nodes.Element
-import org.jsoup.nodes.Entities.EscapeMode
-
+import no.ndla.contentapi.ContentApiProperties.maxConvertionRounds
+import no.ndla.contentapi.model.{ContentInformation, ImportStatus}
 import scala.annotation.tailrec
 
 trait ConverterServiceComponent {
@@ -13,43 +9,28 @@ trait ConverterServiceComponent {
   val converterService: ConverterService
 
   class ConverterService {
-    def convertNode(node: ContentInformation): (ContentInformation, ImportErrors) = {
-      var requiredLibraries = List[RequiredLibrary]()
-      var errorList = List[String]()
+    def convertNode(contentInformation: ContentInformation): (ContentInformation, ImportStatus) = {
+      @tailrec def convertNode(contentInformation: ContentInformation, maxRoundsLeft: Int, importStatus: ImportStatus = ImportStatus()): (ContentInformation, ImportStatus) = {
+        if (maxRoundsLeft == 0)
+          return (contentInformation, importStatus)
 
-      val convertedContent = node.content.map(x => {
-        val (content, libs, errors) = convert(x, ContentApiProperties.maxConvertionPasses)
-        requiredLibraries = requiredLibraries ::: libs
-        errorList = errorList ::: errors
-        x.copy(content=content.outerHtml())
-      })
-      (node.copy(content=convertedContent, requiredLibraries=requiredLibraries.distinct), ImportErrors(errorList))
-    }
+        val (updatedContent, updatedStatus) = convert(contentInformation)
 
-    def convert(content: Content, maxPasses: Int): (Element, List[RequiredLibrary], List[String]) = {
-      val document = Jsoup.parseBodyFragment(content.content)
-      val firstElement = document.body().tagName("article")
-      document.outputSettings().escapeMode(EscapeMode.xhtml)
-
-      convertWhileUnfinished(firstElement, content.language.getOrElse(""), maxPasses, List[RequiredLibrary](), List[String]())
-    }
-
-    @tailrec private def convertWhileUnfinished(el: Element, language: String, maxPassesLeft: Int, requiredLibraries: List[RequiredLibrary], errors: List[String]): (Element, List[RequiredLibrary], List[String]) = {
-      val originalContents = el.outerHtml()
-      val (newElement, reqLibs, errorMsgs) = converterModules.foldLeft((el, List[RequiredLibrary](), List[String]()))(
-        (element, converter) => {
-          val (el, libs, errorList) = element
-          val (convertedEl, newRequiredLibs, newErrors) = converter.convert(el, language)
-          (convertedEl, libs ::: newRequiredLibs, errorList ::: newErrors)
+        // If this converting round did not yield any changes to the content, this node is finished (case true)
+        // If changes were made during this convertion, we run the converters again (case false)
+        updatedContent == contentInformation match {
+          case true => (updatedContent, updatedStatus)
+          case false => convertNode(updatedContent, maxRoundsLeft - 1, ImportStatus(importStatus.messages ++ updatedStatus.messages))
         }
-      )
-
-      // If this converting pass did not yield any changes of the content, or the maximum number of conversion passes are run, this node is finished (case true)
-      // If changes were made during this convertion, we run the converters again (case false)
-      el.outerHtml() == originalContents || maxPassesLeft == 0 match {
-        case true => (newElement, requiredLibraries ::: reqLibs, errors ::: errorMsgs)
-        case false => convertWhileUnfinished(newElement, language, maxPassesLeft - 1, requiredLibraries ::: reqLibs, errors ::: errorMsgs)
       }
+
+      convertNode(contentInformation, maxConvertionRounds)
     }
+
+    private def convert(contentInformation: ContentInformation): (ContentInformation, ImportStatus) =
+      converterModules.foldLeft((contentInformation, ImportStatus()))((element, converter) => {
+        val (contentInformation, importStatus) = element
+        converter.convert(contentInformation, importStatus)
+      })
   }
 }

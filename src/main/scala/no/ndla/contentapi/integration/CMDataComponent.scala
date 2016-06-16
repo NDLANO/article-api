@@ -32,14 +32,7 @@ import scalikejdbc.{ConnectionPool, DataSourceConnectionPool, NamedDB, _}
 trait CMDataComponent {
   val cmData: CMData
 
-  class CMData(cmHost: Option[String], cmPort: Option[String],
-               cmDatatbase: Option[String], cmUser: Option[String], cmPass: Option[String]) {
-    val host = cmHost.getOrElse(throw new RuntimeException("Missing host"))
-    val port = cmPort.getOrElse(throw new RuntimeException("Missing host"))
-    val database = cmDatatbase.getOrElse(throw new RuntimeException("Missing database"))
-    val user = cmUser.getOrElse(throw new RuntimeException("Missing user"))
-    val password = cmPass.getOrElse(throw new RuntimeException("Missing password"))
-
+  class CMData(host: String, port: String, database: String, user: String, password: String) {
     Class.forName("com.mysql.jdbc.Driver")
 
     val cmDatasource = new MysqlConnectionPoolDataSource
@@ -52,7 +45,7 @@ trait CMDataComponent {
     def getNode(nodeId: String): ContentInformation = {
       val (titles, contents) = getNodeMeta(nodeId)
       val authors = getNodeAuthors(nodeId)
-      val license = License(license=getNodeCopyrightLicence(nodeId), "", Some(""))
+      val license = License(license=getNodeCopyrightLicence(nodeId).getOrElse(""), "", Some(""))
       val copyright = Copyright(license, "", authors)
       val requiredLibraries = List(RequiredLibrary("", "", ""))
       ContentInformation("0", titles, contents, copyright, Tags.forContent(nodeId), requiredLibraries)
@@ -94,7 +87,7 @@ trait CMDataComponent {
       result.map(x => Author(x._1, x._2))
     }
 
-    def getNodeCopyrightLicence(nodeId: String): String = {
+    def getNodeCopyrightLicence(nodeId: String): Option[String] = {
       val result = NamedDB('cm) readOnly { implicit session =>
         sql"""
           select cc.license from node n
@@ -102,7 +95,7 @@ trait CMDataComponent {
             where n.nid=${nodeId}
           """.stripMargin.map(rs => rs.string("license")).single.apply()
       }
-      result.get
+      result
     }
 
     def getNodeType(nodeId: String): Option[String] = {
@@ -118,8 +111,8 @@ trait CMDataComponent {
       NamedDB('cm) readOnly { implicit session =>
         sql"""
            select n.nid, n.title, url.field_url_url as url, ec.field_embed_code_value as embed_code from node n
-           left join content_field_embed_code ec on (ec.nid = n.nid)
-           left join content_field_url url on (url.nid = n.nid)
+           left join content_field_embed_code ec on (ec.nid = n.nid and ec.vid = n.vid)
+           left join content_field_url url on (url.nid = n.nid and url.vid = n.vid)
            where n.nid=${nodeId}
           """.stripMargin.map(rs => (rs.string("url"), rs.string("embed_code"))).single.apply()
       }

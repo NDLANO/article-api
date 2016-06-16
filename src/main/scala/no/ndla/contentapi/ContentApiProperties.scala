@@ -15,9 +15,9 @@ object ContentApiProperties extends LazyLogging {
 
   val ApplicationPort = 80
 
-  // During the conversion of a content node, the converter may run several passes over the content to make sure
-  // everything is converted. 'maxConvertionPasses' defines a maximum number of passes performed on a content node
-  val maxConvertionPasses = 5
+  // When converting a content node, the converter may run several times over the content to make sure
+  // everything is converted. This value defines a maximum number of times the converter runs on a node
+  val maxConvertionRounds = 5
 
   lazy val ContactEmail = get("CONTACT_EMAIL")
   lazy val HostAddr = get("HOST_ADDR")
@@ -31,6 +31,13 @@ object ContentApiProperties extends LazyLogging {
   lazy val DefaultPageSize: Int = getInt("SEARCH_DEFAULT_PAGE_SIZE")
   lazy val MaxPageSize: Int = getInt("SEARCH_MAX_PAGE_SIZE")
   lazy val IndexBulkSize = getInt("INDEX_BULK_SIZE")
+
+  lazy val CMHost = get("CM_HOST")
+  lazy val CMPort = get("CM_PORT")
+  lazy val CMDatabase = get("CM_DATABASE")
+  lazy val CMUser = get("CM_USER")
+  lazy val CMPassword = get("CM_PASSWORD")
+  lazy val imageApiBaseUrl = get("IMAGE_API_BASE_URL")
 
   def verify() = {
     val missingProperties = ContentApiProps.filter(entry => entry._2.isEmpty).toList
