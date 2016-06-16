@@ -40,7 +40,7 @@ trait ContentBrowserConverter {
             }
           }
           requiredLibraries = requiredLibraries ::: reqLibs
-          importStatus = importStatus.join(messages)
+          importStatus = ImportStatus(importStatus.messages ++ messages)
 
           val (start, end) = cont.getStartEndIndex()
           element.html(text.substring(0, start) + newContent + text.substring(end))

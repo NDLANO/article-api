@@ -37,9 +37,9 @@ trait ConverterModule {
 
     val content = convertedContent.map(content => content.asContent)
     val requiredLibraries = convertedContent.flatMap(content => content.requiredLibraries) // Slå sammen requiredLibraries
-    val newImportStatus = importStatuses.foldLeft(importStatus)((prevStatus: ImportStatus, currStatus: ImportStatus) => prevStatus.join(currStatus)) // Slå sammen importStatus
+    val finalImportStatuses = ImportStatus(importStatuses.flatMap(is => is.messages) ++ importStatus.messages)  // Slå sammen importStatus
 
-    (contentInformation.copy(content=content, requiredLibraries=requiredLibraries.distinct), newImportStatus)
+    (contentInformation.copy(content=content, requiredLibraries=requiredLibraries.distinct), finalImportStatuses)
   }
 }
 
