@@ -6,7 +6,7 @@ import no.ndla.contentapi.repository.ContentRepositoryComponent
 import no.ndla.contentapi.service._
 import no.ndla.contentapi.service.converters.{DivTableConverter, SimpleTagConverter}
 import org.elasticsearch.common.settings.Settings
-import no.ndla.contentapi.service.converters.contentbrowser.{ContentBrowserConverter, H5PConverterModule, ImageConverterModule, LenkeConverterModule}
+import no.ndla.contentapi.service.converters.contentbrowser._
 import org.postgresql.ds.PGPoolingDataSource
 
 
@@ -24,6 +24,7 @@ object ComponentRegistry
   with ImageConverterModule
   with LenkeConverterModule
   with H5PConverterModule
+  with FagstoffConverterModule
   with ContentBrowserConverter
 {
   lazy val dataSource = new PGPoolingDataSource()
