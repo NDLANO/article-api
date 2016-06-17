@@ -32,10 +32,11 @@ object ContentApiProperties extends LazyLogging {
   lazy val MaxPageSize: Int = getInt("SEARCH_MAX_PAGE_SIZE")
   lazy val IndexBulkSize = getInt("INDEX_BULK_SIZE")
 
+  lazy val AmazonBaseUrl = get("AMAZON_BASE_URL")
   lazy val StorageName = get("STORAGE_NAME")
   lazy val StorageAccessKey = get("STORAGE_ACCESS_KEY")
   lazy val StorageSecretKey = get("STORAGE_SECRET_KEY")
-  lazy val amazonUrlPrefix = s"http://s3.eu-central-1.amazonaws.com/$StorageName"
+  lazy val amazonUrlPrefix = s"$AmazonBaseUrl/$StorageName"
 
   lazy val CMHost = get("CM_HOST")
   lazy val CMPort = get("CM_PORT")

@@ -28,6 +28,7 @@ abstract class UnitSuite extends FunSuite with Matchers with OptionValues with I
     "SEARCH_MAX_PAGE_SIZE" -> Some(s"$MAX_PAGE_SIZE"),
     "INDEX_BULK_SIZE" -> Some("500"),
 
+    "AMAZON_BASE_URL" -> Some("http://amazon"),
     "STORAGE_NAME" -> Some("test.storage")
   ))
 }
