@@ -8,14 +8,15 @@ import no.ndla.contentapi.service.converters.SimpleTagConverter._
 import org.jsoup.nodes.Element
 
 trait ContentBrowserConverter {
-  this: ExtractServiceComponent with ImageConverterModule with LenkeConverterModule with H5PConverterModule =>
+  this: ExtractServiceComponent with ImageConverterModule with LenkeConverterModule with H5PConverterModule with AktualitetConverterModule =>
   val contentBrowserConverter: ContentBrowserConverter
 
   class ContentBrowserConverter extends ConverterModule with LazyLogging {
     private val contentBrowserModules = Map[String, ContentBrowserConverterModule](
       ImageConverter.typeName -> ImageConverter,
       H5PConverter.typeName -> H5PConverter,
-      LenkeConverter.typeName -> LenkeConverter)
+      LenkeConverter.typeName -> LenkeConverter,
+      AktualitetConverter.typeName -> AktualitetConverter)
 
     def convert(content: LanguageContent): (LanguageContent, ImportStatus) = {
       val element = stringToJsoupDocument(content.content)
