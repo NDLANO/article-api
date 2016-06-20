@@ -5,8 +5,6 @@ import org.jsoup.Jsoup
 import org.jsoup.nodes.Element
 import org.jsoup.nodes.Entities.EscapeMode
 
-import scala.collection.mutable.ListBuffer
-
 trait ConverterModule {
   def stringToJsoupDocument(htmlString: String): Element = {
     val document = Jsoup.parseBodyFragment(htmlString)
@@ -38,8 +36,9 @@ trait ConverterModule {
     val content = convertedContent.map(content => content.asContent)
     val requiredLibraries = convertedContent.flatMap(content => content.requiredLibraries) // Slå sammen requiredLibraries
     val finalImportStatuses = ImportStatus(importStatuses.flatMap(is => is.messages) ++ importStatus.messages)  // Slå sammen importStatus
+    val finalRequiredLibraries = contentInformation.requiredLibraries ++ requiredLibraries
 
-    (contentInformation.copy(content=content, requiredLibraries=requiredLibraries.distinct), finalImportStatuses)
+    (contentInformation.copy(content=content, requiredLibraries=finalRequiredLibraries.distinct), finalImportStatuses)
   }
 }
 

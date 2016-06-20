@@ -7,7 +7,7 @@ import no.ndla.contentapi.integration.{CMDataComponent, DataSourceComponent, Ela
 import no.ndla.contentapi.repository.ContentRepositoryComponent
 import no.ndla.contentapi.service.converters.SimpleTagConverter
 import no.ndla.contentapi.service._
-import no.ndla.contentapi.service.converters.contentbrowser.{ContentBrowserConverter, H5PConverterModule, ImageConverterModule, LenkeConverterModule}
+import no.ndla.contentapi.service.converters.contentbrowser._
 import org.scalatest.mock.MockitoSugar
 
 
@@ -25,6 +25,7 @@ trait TestEnvironment
   with ImageConverterModule
   with LenkeConverterModule
   with H5PConverterModule
+  with VideoConverterModule
   with ContentBrowserConverter
   with ImageApiServiceComponent
 {
