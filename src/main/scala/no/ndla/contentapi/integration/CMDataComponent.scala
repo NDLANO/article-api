@@ -48,7 +48,7 @@ trait CMDataComponent {
       val license = License(license=getNodeCopyrightLicence(nodeId).getOrElse(""), "", Some(""))
       val copyright = Copyright(license, "", authors)
       val requiredLibraries = List(RequiredLibrary("", "", ""))
-      ContentInformation("0", titles, contents, copyright, Tags.forContent(nodeId), requiredLibraries)
+      ContentInformation(nodeId, titles, contents, copyright, Tags.forContent(nodeId), requiredLibraries)
     }
 
     def getNodeMeta(nodeId: String): (List[ContentTitle], List[Content]) = {
@@ -56,13 +56,13 @@ trait CMDataComponent {
         sql"""
           select nodes.nid as id, nodes.language, v.title, v.body from node n
             left join node nodes on nodes.tnid=n.tnid
-            left join node_revisions v on v.vid=nodes.vid
+            left join node_revisions v on (v.nid = nodes.nid and v.vid=nodes.vid)
             where n.nid=${nodeId}
           """.stripMargin.map(rs => (rs.string("title"), rs.string("language"), rs.string("body"))).list.apply()
       }
       result.map(x => (ContentTitle(x._1, Some(x._2)), Content(x._3, Some(x._2)))).unzip
     }
-    
+
     def getNodeAuthors(nodeId: String): List[Author] = {
       val result = NamedDB('cm) readOnly { implicit session =>
         sql"""
@@ -106,6 +106,18 @@ trait CMDataComponent {
           """.stripMargin.map(rs => (rs.string("url"), rs.string("embed_code"))).single.apply()
       }
     }
+
+    def getNodeIngress(nodeId: String): Option[NodeIngress] = {
+      NamedDB('cm) readOnly { implicit session =>
+        sql"""
+           select n.nid, ing_bilde.field_ingress_bilde_nid as bilde_ing, ing.field_ingress_value as ingress from node n
+           left join content_field_ingress ing on (ing.nid = n.nid and ing.vid = n.vid)
+           left join content_field_ingress_bilde ing_bilde on (ing_bilde.nid = n.nid and ing_bilde.vid = n.vid)
+           where n.nid=$nodeId
+          """.map(rs => NodeIngress(rs.string("nid"), rs.string("ingress"), Option(rs.string("bilde_ing")))).single.apply()
+      }
+    }
   }
 }
 
+case class NodeIngress(nid: String, content: String, imageNid: Option[String])

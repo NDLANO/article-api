@@ -32,7 +32,7 @@ trait ConverterModule {
   def convert(content: LanguageContent): (LanguageContent, ImportStatus)
 
   def convert(contentInformation: ContentInformation, importStatus: ImportStatus): (ContentInformation, ImportStatus) = {
-    val languageContent = contentInformation.content.map(LanguageContent(_))
+    val languageContent = contentInformation.content.map(LanguageContent(_, contentInformation.id))
     val (convertedContent, importStatuses) = languageContent.map(x => convert(x)).unzip
 
     val content = convertedContent.map(content => content.asContent)
@@ -44,9 +44,9 @@ trait ConverterModule {
 }
 
 object LanguageContent {
-  def apply(arg: Content): LanguageContent = LanguageContent(arg.content, arg.language)
+  def apply(arg: Content, nodeId: String): LanguageContent = LanguageContent(nodeId, arg.content, arg.language)
 }
 
-case class LanguageContent(content: String, language: Option[String], requiredLibraries: Seq[RequiredLibrary] = List[RequiredLibrary]()) {
+case class LanguageContent(nodeId: String, content: String, language: Option[String], requiredLibraries: Seq[RequiredLibrary] = List[RequiredLibrary]()) {
   def asContent(): Content = Content(content, language)
 }
