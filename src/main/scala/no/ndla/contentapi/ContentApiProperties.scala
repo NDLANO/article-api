@@ -20,8 +20,7 @@ object ContentApiProperties extends LazyLogging {
   lazy val Domains = get("DOMAINS").split(",") ++ Array(HostAddr)
 
   val audioStorageDirectory = "audio"
-  lazy val ndlaUserName = get("RED_NDLA_USERNAME")
-  lazy val ndlaPassword = get("RED_NDLA_PASSWORD")
+  val audioBaseHost = "http://ndla.no/"
 
   val SearchHost = "search-engine"
   lazy val SearchPort = get("SEARCH_ENGINE_ENV_TCP_PORT")

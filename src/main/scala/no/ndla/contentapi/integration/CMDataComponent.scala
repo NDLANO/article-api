@@ -3,6 +3,7 @@ package no.ndla.contentapi.integration
 import com.mysql.jdbc.jdbc2.optional.MysqlConnectionPoolDataSource
 import no.ndla.contentapi.model._
 import no.ndla.contentapi.service.Tags
+import no.ndla.contentapi.ContentApiProperties.audioBaseHost
 import scalikejdbc.{ConnectionPool, DataSourceConnectionPool, NamedDB, _}
 
 /**
@@ -108,7 +109,6 @@ trait CMDataComponent {
     }
 
     def getAudioMeta(nodeId: String): Option[AudioMeta] = {
-      val audioBaseHost = "http://red.ndla.no/"
       NamedDB('cm) readOnly { implicit session =>
         sql"""
            select n.nid, a.title_format as title, a.playtime, a.format, f.filemime, f.filesize, f.filename, f.filepath from node n
