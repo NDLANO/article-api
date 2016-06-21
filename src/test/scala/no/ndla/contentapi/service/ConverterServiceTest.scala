@@ -3,7 +3,7 @@ package no.ndla.contentapi.service
 import no.ndla.contentapi.TestEnvironment
 import no.ndla.contentapi.integration.ContentOppgave
 import no.ndla.contentapi.model._
-import no.ndla.learningpathapi.UnitSuite
+import no.ndla.contentapi.UnitSuite
 import org.mockito.Mockito._
 
 class ConverterServiceTest extends UnitSuite with TestEnvironment {
