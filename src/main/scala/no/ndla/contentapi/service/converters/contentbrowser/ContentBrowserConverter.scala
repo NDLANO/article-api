@@ -6,14 +6,15 @@ import no.ndla.contentapi.model.{ImportStatus, RequiredLibrary}
 import no.ndla.contentapi.service.ExtractServiceComponent
 
 trait ContentBrowserConverter {
-  this: ExtractServiceComponent with ImageConverterModule with LenkeConverterModule with H5PConverterModule =>
+  this: ExtractServiceComponent with ImageConverterModule with LenkeConverterModule with H5PConverterModule with OppgaveConverterModule =>
   val contentBrowserConverter: ContentBrowserConverter
 
   class ContentBrowserConverter extends ConverterModule with LazyLogging {
     private val contentBrowserModules = Map[String, ContentBrowserConverterModule](
       ImageConverter.typeName -> ImageConverter,
       H5PConverter.typeName -> H5PConverter,
-      LenkeConverter.typeName -> LenkeConverter)
+      LenkeConverter.typeName -> LenkeConverter,
+      OppgaveConverter.typeName -> OppgaveConverter)
 
     def convert(content: LanguageContent): (LanguageContent, ImportStatus) = {
       val element = stringToJsoupDocument(content.content)
@@ -23,7 +24,7 @@ trait ContentBrowserConverter {
 
       do {
         val text = element.html()
-        val cont = ContentBrowser(text)
+        val cont = ContentBrowser(text, content.language)
 
         isContentBrowserField = cont.isContentBrowserField()
         if (isContentBrowserField) {
@@ -37,7 +38,7 @@ trait ContentBrowserConverter {
               (errorString, List[RequiredLibrary](), List(errorString))
             }
           }
-          requiredLibraries = requiredLibraries ::: reqLibs
+          requiredLibraries = requiredLibraries ++ reqLibs
           importStatus = ImportStatus(importStatus.messages ++ messages)
 
           val (start, end) = cont.getStartEndIndex()
