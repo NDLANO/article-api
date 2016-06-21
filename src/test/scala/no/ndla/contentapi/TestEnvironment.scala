@@ -5,8 +5,9 @@ import javax.sql.DataSource
 import com.sksamuel.elastic4s.ElasticClient
 import no.ndla.contentapi.integration.{CMDataComponent, DataSourceComponent, ElasticClientComponent}
 import no.ndla.contentapi.repository.ContentRepositoryComponent
-import no.ndla.contentapi.service.converters.{ContentBrowserConverter, SimpleTagConverter}
+import no.ndla.contentapi.service.converters.SimpleTagConverter
 import no.ndla.contentapi.service._
+import no.ndla.contentapi.service.converters.contentbrowser.{ContentBrowserConverter, H5PConverterModule, ImageConverterModule, LenkeConverterModule}
 import org.scalatest.mock.MockitoSugar
 
 
@@ -21,6 +22,9 @@ trait TestEnvironment
   with ExtractServiceComponent
   with ConverterModules
   with ConverterServiceComponent
+  with ImageConverterModule
+  with LenkeConverterModule
+  with H5PConverterModule
   with ContentBrowserConverter
   with ImageApiServiceComponent
 {
