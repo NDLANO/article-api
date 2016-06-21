@@ -28,6 +28,8 @@ object ContentApiProperties extends LazyLogging {
   val imageApiImportImageURL = s"$imageApiInternEndpointURLSuffix/import"
   val imageApiGetByExternalIdURL = s"$imageApiInternEndpointURLSuffix/extern"
 
+  val ndlaBaseHost = "http://ndla.no/"
+
   val SearchHost = "search-engine"
   lazy val SearchPort = get("SEARCH_ENGINE_ENV_TCP_PORT")
   lazy val SearchClusterName = get("SEARCH_ENGINE_ENV_CLUSTER_NAME")
