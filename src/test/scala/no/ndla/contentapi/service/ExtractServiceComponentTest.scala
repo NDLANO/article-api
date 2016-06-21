@@ -1,8 +1,7 @@
 package no.ndla.contentapi.service
 
-import no.ndla.contentapi.TestEnvironment
+import no.ndla.contentapi.{TestEnvironment, UnitSuite}
 import no.ndla.contentapi.integration.ContentOppgave
-import no.ndla.learningpathapi.UnitSuite
 import org.mockito.Mockito._
 
 class ExtractServiceComponentTest extends UnitSuite with TestEnvironment {
