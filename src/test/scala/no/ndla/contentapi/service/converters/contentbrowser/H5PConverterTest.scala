@@ -1,7 +1,6 @@
 package no.ndla.contentapi.service.converters.contentbrowser
 
-import no.ndla.contentapi.TestEnvironment
-import no.ndla.contentapi.UnitSuite
+import no.ndla.contentapi.{TestEnvironment, UnitSuite}
 
 class H5PConverterTest extends UnitSuite with TestEnvironment {
   val nodeId = "1234"

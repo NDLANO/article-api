@@ -1,7 +1,7 @@
 package no.ndla.contentapi.service.converters
 
-import no.ndla.contentapi.integration.LanguageContent
 import no.ndla.contentapi.UnitSuite
+import no.ndla.contentapi.integration.LanguageContent
 
 class DivTableConverterTest extends UnitSuite {
 

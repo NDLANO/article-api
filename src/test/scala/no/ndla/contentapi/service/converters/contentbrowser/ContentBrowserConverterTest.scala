@@ -1,10 +1,9 @@
 package no.ndla.contentapi.service.converters.contentbrowser
 
-import no.ndla.contentapi.TestEnvironment
+import no.ndla.contentapi.{TestEnvironment, UnitSuite}
 import no.ndla.contentapi.integration.LanguageContent
 import no.ndla.contentapi.model.{Copyright, License}
 import no.ndla.contentapi.service.{Image, ImageMetaInformation, ImageVariants}
-import no.ndla.contentapi.UnitSuite
 import org.mockito.Mockito._
 
 class ContentBrowserConverterTest extends UnitSuite with TestEnvironment {

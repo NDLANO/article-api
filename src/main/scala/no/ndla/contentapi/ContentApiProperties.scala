@@ -22,6 +22,11 @@ object ContentApiProperties extends LazyLogging {
   val audioStorageDirectory = "audio"
   val audioBaseHost = "http://ndla.no/"
 
+  lazy val imageApiBaseUrl = get("IMAGE_API_BASE_URL")
+  val imageApiInternEndpointURLSuffix = "admin"
+  val imageApiImportImageURL = s"$imageApiInternEndpointURLSuffix/import"
+  val imageApiGetByExternalIdURL = s"$imageApiInternEndpointURLSuffix/extern"
+
   val SearchHost = "search-engine"
   lazy val SearchPort = get("SEARCH_ENGINE_ENV_TCP_PORT")
   lazy val SearchClusterName = get("SEARCH_ENGINE_ENV_CLUSTER_NAME")
@@ -42,7 +47,6 @@ object ContentApiProperties extends LazyLogging {
   lazy val CMDatabase = get("CM_DATABASE")
   lazy val CMUser = get("CM_USER")
   lazy val CMPassword = get("CM_PASSWORD")
-  lazy val imageApiBaseUrl = get("IMAGE_API_BASE_URL")
 
   def verify() = {
     val missingProperties = ContentApiProps.filter(entry => entry._2.isEmpty).toList
