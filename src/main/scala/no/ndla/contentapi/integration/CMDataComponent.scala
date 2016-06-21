@@ -110,14 +110,15 @@ trait CMDataComponent {
     def getNodeIngress(nodeId: String): Option[NodeIngress] = {
       NamedDB('cm) readOnly { implicit session =>
         sql"""
-           select n.nid, ing_bilde.field_ingress_bilde_nid as bilde_ing, ing.field_ingress_value as ingress from node n
+           select n.nid, ing_bilde.field_ingress_bilde_nid as bilde_ing, ing.field_ingress_value as ingress, ing_side.field_ingressvispaasiden_value from node n
            left join content_field_ingress ing on (ing.nid = n.nid and ing.vid = n.vid)
            left join content_field_ingress_bilde ing_bilde on (ing_bilde.nid = n.nid and ing_bilde.vid = n.vid)
+           left join content_field_ingressvispaasiden ing_side on (ing_side.nid = n.nid and ing_side.vid = n.vid)
            where n.nid=$nodeId
-          """.map(rs => NodeIngress(rs.string("nid"), rs.string("ingress"), Option(rs.string("bilde_ing")))).single.apply()
+          """.map(rs => NodeIngress(rs.string("nid"), rs.string("ingress"), Option(rs.string("bilde_ing")), rs.int("field_ingressvispaasiden_value"))).single.apply()
       }
     }
   }
 }
 
-case class NodeIngress(nid: String, content: String, imageNid: Option[String])
+case class NodeIngress(nid: String, content: String, imageNid: Option[String], ingressVisPaaSiden: Int)

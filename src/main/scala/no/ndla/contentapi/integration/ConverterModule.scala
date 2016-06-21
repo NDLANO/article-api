@@ -5,8 +5,6 @@ import org.jsoup.Jsoup
 import org.jsoup.nodes.Element
 import org.jsoup.nodes.Entities.EscapeMode
 
-import scala.collection.mutable.ListBuffer
-
 trait ConverterModule {
   def stringToJsoupDocument(htmlString: String): Element = {
     val document = Jsoup.parseBodyFragment(htmlString)

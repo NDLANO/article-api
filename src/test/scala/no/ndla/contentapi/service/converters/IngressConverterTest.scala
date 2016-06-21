@@ -18,7 +18,7 @@ class IngressConverterTest extends UnitSuite with TestEnvironment {
     val ingressText = "<p>Introduksjon til banankake</p>"
     val expectedContent = s"<article> <section> $ingressText </section> <div> Banankake </div></article>"
     val node = LanguageContent(nodeId, initialContent, Some("nb"))
-    val ingressNode = NodeIngress(nodeId, "<p>Introduksjon til banankake</p>", None)
+    val ingressNode = NodeIngress(nodeId, "<p>Introduksjon til banankake</p>", None, 1)
 
     when(extractService.getNodeIngress(nodeId)).thenReturn(Some(ingressNode))
     val (result, status) = ingressConverter.convert(node)
@@ -36,7 +36,7 @@ class IngressConverterTest extends UnitSuite with TestEnvironment {
     val ingressText = "<p>Introduksjon til banankake</p>"
     val expectedContent = s"""<article> <section> <img src="/images/full.jpg" /> $ingressText </section> <div> Banankake </div></article>"""
     val node = LanguageContent(nodeId, initialContent, Some("nb"))
-    val ingressNode = NodeIngress(nodeId, "<p>Introduksjon til banankake</p>", Some(imageNid))
+    val ingressNode = NodeIngress(nodeId, "<p>Introduksjon til banankake</p>", Some(imageNid), 1)
 
     when(extractService.getNodeIngress(nodeId)).thenReturn(Some(ingressNode))
     when(imageApiService.getMetaByExternId(imageNid)).thenReturn(Some(image))

@@ -9,12 +9,19 @@ trait IngressConverter {
   val ingressConverter: IngressConverter
 
   class IngressConverter extends ConverterModule {
+
     override def convert(content: LanguageContent): (LanguageContent, ImportStatus) = {
       extractService.getNodeIngress(content.nodeId) match {
         case Some(ingress) => {
-          val element = stringToJsoupDocument(content.content)
-          element.children().first().before(createIngress(ingress))
-          (content.copy(content = jsoupDocumentToString(element)), ImportStatus())
+
+          ingress.ingressVisPaaSiden match {
+            case 0 => return (content, ImportStatus())
+            case _ => {
+              val element = stringToJsoupDocument(content.content)
+              element.children().first().before(createIngress(ingress))
+              (content.copy(content = jsoupDocumentToString(element)), ImportStatus())
+            }
+          }
         }
         case None => (content, ImportStatus())
       }
