@@ -1,7 +1,6 @@
 package no.ndla.contentapi.service.converters.contentbrowser
 
-import no.ndla.contentapi.TestEnvironment
-import no.ndla.learningpathapi.UnitSuite
+import no.ndla.contentapi.{TestEnvironment, UnitSuite}
 import org.mockito.Mockito._
 
 class LenkeConverterTest extends UnitSuite with TestEnvironment {

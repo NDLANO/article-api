@@ -2,10 +2,8 @@ package no.ndla.contentapi.service.converters.contentbrowser
 
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.contentapi.integration.{ConverterModule, LanguageContent}
-import no.ndla.contentapi.model.{Content, ImportStatus, RequiredLibrary}
+import no.ndla.contentapi.model.{ImportStatus, RequiredLibrary}
 import no.ndla.contentapi.service.ExtractServiceComponent
-import no.ndla.contentapi.service.converters.SimpleTagConverter._
-import org.jsoup.nodes.Element
 
 trait ContentBrowserConverter {
   this: ExtractServiceComponent with ImageConverterModule with LenkeConverterModule with H5PConverterModule =>

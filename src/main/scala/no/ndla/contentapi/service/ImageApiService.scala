@@ -4,7 +4,7 @@ import com.typesafe.scalalogging.LazyLogging
 import no.ndla.contentapi.model.Copyright
 import org.json4s.DefaultFormats
 import org.json4s.native.Serialization._
-import no.ndla.contentapi.ComponentRegistry.imageApiBaseUrl
+import no.ndla.contentapi.ContentApiProperties.{imageApiBaseUrl, imageApiImportImageURL, imageApiGetByExternalIdURL}
 import scalaj.http.{Http, HttpRequest}
 
 trait ImageApiServiceComponent {
@@ -14,7 +14,7 @@ trait ImageApiServiceComponent {
     implicit val formats = DefaultFormats
 
     def getMetaByExternId(externId: String): Option[ImageMetaInformation] = {
-      val request: HttpRequest = Http(s"""${imageApiBaseUrl}/admin/extern/${externId}""")
+      val request: HttpRequest = Http(s"""$imageApiBaseUrl/$imageApiGetByExternalIdURL/$externId""")
       val response = request.asString
       response.isError match {
         case false => {
@@ -29,6 +29,20 @@ trait ImageApiServiceComponent {
           }
         }
         case true => None
+      }
+    }
+
+    def importImage(externId: String): Option[ImageMetaInformation] = {
+      val second = 1000
+      val request: HttpRequest = Http(s"""$imageApiBaseUrl/$imageApiImportImageURL/${externId}""").timeout(10 * second, 10 * second).postForm
+      val response = request.asString
+
+      response.isError match {
+        case true => {
+          logger.warn(s"Failed to retrieve image with id {} from '{}': ${response.code}", externId, request.url)
+          None
+        }
+        case false => getMetaByExternId(externId)
       }
     }
   }
