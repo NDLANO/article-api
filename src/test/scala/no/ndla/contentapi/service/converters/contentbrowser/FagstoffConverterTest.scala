@@ -1,8 +1,7 @@
 package no.ndla.contentapi.service.converters.contentbrowser
 
-import no.ndla.contentapi.TestEnvironment
+import no.ndla.contentapi.{TestEnvironment, UnitSuite}
 import no.ndla.contentapi.integration.ContentFagstoff
-import no.ndla.learningpathapi.UnitSuite
 import org.mockito.Mockito._
 
 class FagstoffConverterTest extends UnitSuite with TestEnvironment {

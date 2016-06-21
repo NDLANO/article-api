@@ -10,12 +10,12 @@ trait H5PConverterModule {
   object H5PConverter extends ContentBrowserConverterModule with LazyLogging {
     override val typeName: String = "h5p_content"
 
-    override def convert(content: ContentBrowser): (String, List[RequiredLibrary], List[String]) = {
+    override def convert(content: ContentBrowser): (String, Seq[RequiredLibrary], Seq[String]) = {
       val requiredLibraries = List(RequiredLibrary("text/javascript", "H5P-Resizer", "http://ndla.no/sites/all/modules/h5p/library/js/h5p-resizer.js"))
       // TODO: iframe is only used here for demo purposes. Should be switched out with a proper alternative
       val replacement = s"""<iframe src="http://ndla.no/h5p/embed/${content.get("nid")}" ></iframe>"""
 
-      (replacement, requiredLibraries, List[String]())
+      (replacement, requiredLibraries, Seq[String]())
     }
   }
 }

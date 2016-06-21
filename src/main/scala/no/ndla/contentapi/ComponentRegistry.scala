@@ -25,6 +25,7 @@ object ComponentRegistry
   with LenkeConverterModule
   with H5PConverterModule
   with FagstoffConverterModule
+  with OppgaveConverterModule
   with ContentBrowserConverter
 {
   lazy val dataSource = new PGPoolingDataSource()
