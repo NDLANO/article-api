@@ -10,7 +10,7 @@ import no.ndla.contentapi.ComponentRegistry.{contentRepository, converterService
 import no.ndla.logging.LoggerContext
 import no.ndla.network.ApplicationUrl
 
-class AdminController extends ScalatraServlet with NativeJsonSupport with LazyLogging {
+class InternController extends ScalatraServlet with NativeJsonSupport with LazyLogging {
 
   protected implicit override val jsonFormats: Formats = DefaultFormats
 
