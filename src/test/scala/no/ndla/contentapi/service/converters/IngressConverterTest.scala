@@ -55,4 +55,17 @@ class IngressConverterTest extends UnitSuite with TestEnvironment {
 
     result.content should equal(initialContent)
   }
+
+  test("That an ingress is added to the content only if it should be used") {
+    val initialContent = """<article><div>Banankake</div></article>"""
+    val ingressText = "<p>Introduksjon til banankake</p>"
+    val expectedContent = s"<article> <section> $ingressText </section> <div> Banankake </div></article>"
+    val node = LanguageContent(nodeId, initialContent, Some("nb"))
+    val ingressNode = NodeIngress(nodeId, "<p>Introduksjon til banankake</p>", None, 0)
+
+    when(extractService.getNodeIngress(nodeId)).thenReturn(Some(ingressNode))
+    val (result, status) = ingressConverter.convert(node)
+
+    result.content should equal(initialContent)
+  }
 }
