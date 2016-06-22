@@ -26,6 +26,7 @@ object ComponentRegistry
   with ImageConverterModule
   with LenkeConverterModule
   with H5PConverterModule
+  with FagstoffConverterModule
   with AudioConverterModule
   with OppgaveConverterModule
   with ContentBrowserConverter

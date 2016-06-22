@@ -5,7 +5,7 @@ import org.json4s.{DefaultFormats, Formats}
 import org.scalatra.json.NativeJsonSupport
 import org.scalatra.{Ok, ScalatraServlet}
 import no.ndla.contentapi.business.SearchIndexer
-import no.ndla.contentapi.model.Error
+import no.ndla.contentapi.model.{Error, ImportStatus}
 import no.ndla.contentapi.ComponentRegistry.{contentRepository, converterService, extractService}
 import no.ndla.logging.LoggerContext
 import no.ndla.network.ApplicationUrl
@@ -32,16 +32,16 @@ class InternController extends ScalatraServlet with NativeJsonSupport with LazyL
   post("/import/:node_id") {
     val nodeId = params("node_id")
     val node = extractService.importNode(nodeId)
-    val (convertedNode, errorList) = converterService.convertNode(node)
+    val (convertedNode, importStatus) = converterService.convertNode(node)
 
     logger.info("Converting node {}", nodeId)
 
-    contentRepository.exists(nodeId) match {
+    val newNodeId = contentRepository.exists(nodeId) match {
       case true => contentRepository.update(convertedNode, nodeId)
       case false => contentRepository.insert(convertedNode, nodeId)
     }
 
-    errorList
+    ImportStatus(importStatus.messages :+ s"Successfully converted node: $newNodeId")
   }
 
   error{

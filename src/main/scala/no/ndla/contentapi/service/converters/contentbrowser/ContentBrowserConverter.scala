@@ -6,7 +6,7 @@ import no.ndla.contentapi.model.{ImportStatus, RequiredLibrary}
 import no.ndla.contentapi.service.ExtractServiceComponent
 
 trait ContentBrowserConverter {
-  this: ExtractServiceComponent with ImageConverterModule with LenkeConverterModule with H5PConverterModule with OppgaveConverterModule with AudioConverterModule =>
+  this: ExtractServiceComponent with ImageConverterModule with LenkeConverterModule with H5PConverterModule with OppgaveConverterModule with FagstoffConverterModule with AudioConverterModule =>
   val contentBrowserConverter: ContentBrowserConverter
 
   class ContentBrowserConverter extends ConverterModule with LazyLogging {
@@ -15,6 +15,7 @@ trait ContentBrowserConverter {
       H5PConverter.typeName -> H5PConverter,
       LenkeConverter.typeName -> LenkeConverter,
       OppgaveConverter.typeName -> OppgaveConverter,
+      FagstoffConverter.typeName -> FagstoffConverter,
       AudioConverter.typeName -> AudioConverter)
 
     def convert(content: LanguageContent): (LanguageContent, ImportStatus) = {
