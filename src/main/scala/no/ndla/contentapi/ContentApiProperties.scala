@@ -15,9 +15,20 @@ object ContentApiProperties extends LazyLogging {
 
   val ApplicationPort = 80
 
+  // When converting a content node, the converter may run several times over the content to make sure
+  // everything is converted. This value defines a maximum number of times the converter runs on a node
+  val maxConvertionRounds = 5
+
   lazy val ContactEmail = get("CONTACT_EMAIL")
   lazy val HostAddr = get("HOST_ADDR")
   lazy val Domains = get("DOMAINS").split(",") ++ Array(HostAddr)
+
+  lazy val imageApiBaseUrl = get("IMAGE_API_BASE_URL")
+  val imageApiInternEndpointURLSuffix = "admin"
+  val imageApiImportImageURL = s"$imageApiInternEndpointURLSuffix/import"
+  val imageApiGetByExternalIdURL = s"$imageApiInternEndpointURLSuffix/extern"
+
+  val ndlaBaseHost = "http://ndla.no"
 
   val SearchHost = "search-engine"
   lazy val SearchPort = get("SEARCH_ENGINE_ENV_TCP_PORT")
@@ -33,7 +44,6 @@ object ContentApiProperties extends LazyLogging {
   lazy val CMDatabase = get("CM_DATABASE")
   lazy val CMUser = get("CM_USER")
   lazy val CMPassword = get("CM_PASSWORD")
-  lazy val imageApiBaseUrl = get("IMAGE_API_BASE_URL")
 
   def verify() = {
     val missingProperties = ContentApiProps.filter(entry => entry._2.isEmpty).toList

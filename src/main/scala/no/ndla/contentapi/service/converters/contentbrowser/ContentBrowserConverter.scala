@@ -2,13 +2,11 @@ package no.ndla.contentapi.service.converters.contentbrowser
 
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.contentapi.integration.{ConverterModule, LanguageContent}
-import no.ndla.contentapi.model.{Content, ImportStatus, RequiredLibrary}
+import no.ndla.contentapi.model.{ImportStatus, RequiredLibrary}
 import no.ndla.contentapi.service.ExtractServiceComponent
-import no.ndla.contentapi.service.converters.SimpleTagConverter._
-import org.jsoup.nodes.Element
 
 trait ContentBrowserConverter {
-  this: ExtractServiceComponent with ImageConverterModule with LenkeConverterModule with H5PConverterModule with AktualitetConverterModule =>
+  this: ExtractServiceComponent with ImageConverterModule with LenkeConverterModule with H5PConverterModule with OppgaveConverterModule with FagstoffConverterModule with AktualitetConverterModule =>
   val contentBrowserConverter: ContentBrowserConverter
 
   class ContentBrowserConverter extends ConverterModule with LazyLogging {
@@ -16,6 +14,8 @@ trait ContentBrowserConverter {
       ImageConverter.typeName -> ImageConverter,
       H5PConverter.typeName -> H5PConverter,
       LenkeConverter.typeName -> LenkeConverter,
+      OppgaveConverter.typeName -> OppgaveConverter,
+      FagstoffConverter.typeName -> FagstoffConverter,
       AktualitetConverter.typeName -> AktualitetConverter)
 
     def convert(content: LanguageContent): (LanguageContent, ImportStatus) = {
@@ -26,7 +26,7 @@ trait ContentBrowserConverter {
 
       do {
         val text = element.html()
-        val cont = ContentBrowser(text)
+        val cont = ContentBrowser(text, content.language)
 
         isContentBrowserField = cont.isContentBrowserField()
         if (isContentBrowserField) {
@@ -40,7 +40,7 @@ trait ContentBrowserConverter {
               (errorString, List[RequiredLibrary](), List(errorString))
             }
           }
-          requiredLibraries = requiredLibraries ::: reqLibs
+          requiredLibraries = requiredLibraries ++ reqLibs
           importStatus = ImportStatus(importStatus.messages ++ messages)
 
           val (start, end) = cont.getStartEndIndex()
