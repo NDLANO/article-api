@@ -9,11 +9,11 @@ class AudioConverterTest extends UnitSuite with TestEnvironment {
   val nodeId = "1234"
   val altText = "Jente som spiser melom. Grønn bakgrunn, rød melon. Fotografi."
   val contentString = s"[contentbrowser ==nid=$nodeId==imagecache=Fullbredde==width===alt=$altText==link===node_link=1==link_type=link_to_content==lightbox_size===remove_fields[76661]=1==remove_fields[76663]=1==remove_fields[76664]=1==remove_fields[76666]=1==insertion===link_title_text= ==link_text= ==text_align===css_class=contentbrowser contentbrowser]"
-  val content = ContentBrowser(contentString)
+  val content = ContentBrowser(contentString, Some("nb"))
 
   test("That AudioConverter returns a HTML audio player with the mp3 uploaded to an S3 bucket") {
     val audio = AudioMeta(nodeId, "title", "1:00", "mp3", "audio/mp3", "1024", "goat.mp3", "/audio/goat.mp3")
-    val expectedResult = s"""<figure> <figcaption>title</figcaption> <audio src=\"$amazonUrlPrefix/$nodeId/goat.mp3\" preload=\"auto\" controls> Your browser does not support the <code>video</code> element. </audio> </figure> """
+    val expectedResult = s"""<figure> <figcaption>title</figcaption> <audio src=\"$amazonUrlPrefix/$nodeId/goat.mp3\" preload=\"auto\" controls> Your browser does not support the <code>audio</code> element. </audio> </figure> """
 
     when(extractService.getAudioMeta(nodeId)).thenReturn(Some(audio))
     when(storageService.uploadAudiofromUrl(nodeId, audio)).thenReturn(s"$nodeId/goat.mp3")

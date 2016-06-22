@@ -24,7 +24,7 @@ trait AudioConverterModule  {
             s"""<figure>
                   <figcaption>${audio.title}</figcaption>
                   <audio src="$amazonUrlPrefix/$filepath" preload="auto" controls>
-                    Your browser does not support the <code>video</code> element.
+                    Your browser does not support the <code>audio</code> element.
                   </audio>
                 </figure>
             """.stripMargin
