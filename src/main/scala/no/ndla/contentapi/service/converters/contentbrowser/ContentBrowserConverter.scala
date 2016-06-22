@@ -6,7 +6,7 @@ import no.ndla.contentapi.model.{ImportStatus, RequiredLibrary}
 import no.ndla.contentapi.service.ExtractServiceComponent
 
 trait ContentBrowserConverter {
-  this: ExtractServiceComponent with ImageConverterModule with LenkeConverterModule with H5PConverterModule with OppgaveConverterModule with FagstoffConverterModule =>
+  this: ContentBrowserConverterModules =>
   val contentBrowserConverter: ContentBrowserConverter
 
   class ContentBrowserConverter extends ConverterModule with LazyLogging {
@@ -15,7 +15,8 @@ trait ContentBrowserConverter {
       H5PConverter.typeName -> H5PConverter,
       LenkeConverter.typeName -> LenkeConverter,
       OppgaveConverter.typeName -> OppgaveConverter,
-      FagstoffConverter.typeName -> FagstoffConverter)
+      FagstoffConverter.typeName -> FagstoffConverter,
+      NonExistentNodeConverter.typeName -> NonExistentNodeConverter)
 
     def convert(content: LanguageContent): (LanguageContent, ImportStatus) = {
       val element = stringToJsoupDocument(content.content)
@@ -29,7 +30,7 @@ trait ContentBrowserConverter {
 
         isContentBrowserField = cont.isContentBrowserField()
         if (isContentBrowserField) {
-          val nodeType = extractService.getNodeType(cont.get("nid")).getOrElse("UNKNOWN")
+          val nodeType = extractService.getNodeType(cont.get("nid")).getOrElse(NonExistentNodeConverter.typeName)
 
           val (newContent, reqLibs, messages) = contentBrowserModules.get(nodeType) match {
             case Some(module) => module.convert(cont)

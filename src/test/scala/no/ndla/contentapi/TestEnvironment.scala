@@ -22,11 +22,7 @@ trait TestEnvironment
   with ExtractServiceComponent
   with ConverterModules
   with ConverterServiceComponent
-  with ImageConverterModule
-  with LenkeConverterModule
-  with H5PConverterModule
-  with OppgaveConverterModule
-  with FagstoffConverterModule
+  with ContentBrowserConverterModules
   with ContentBrowserConverter
   with ImageApiServiceComponent
 {

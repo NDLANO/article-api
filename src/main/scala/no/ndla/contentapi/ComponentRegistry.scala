@@ -21,11 +21,7 @@ object ComponentRegistry
   with ConverterServiceComponent
   with CMDataComponent
   with ImageApiServiceComponent
-  with ImageConverterModule
-  with LenkeConverterModule
-  with H5PConverterModule
-  with FagstoffConverterModule
-  with OppgaveConverterModule
+  with ContentBrowserConverterModules
   with ContentBrowserConverter
 {
   lazy val dataSource = new PGPoolingDataSource()
