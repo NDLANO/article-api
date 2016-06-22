@@ -1,6 +1,6 @@
 package no.ndla.contentapi.service.converters.contentbrowser
 
-case class ContentBrowser(contentBrowserString: String) {
+case class ContentBrowser(contentBrowserString: String, language: Option[String]) {
   // Extract the contentbrowser variables
   private val Pattern = """(?s).*\[contentbrowser (.*) ?contentbrowser\].*""".r
   private val ContentField = contentBrowserString match {
@@ -23,6 +23,6 @@ case class ContentBrowser(contentBrowserString: String) {
   }
 
   def get(key: String): String = {
-    FieldMap.get(key).getOrElse("")
+    FieldMap.getOrElse(key, "")
   }
 }

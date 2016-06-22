@@ -1,7 +1,7 @@
 package no.ndla.contentapi.service.converters
 
+import no.ndla.contentapi.UnitSuite
 import no.ndla.contentapi.integration.LanguageContent
-import no.ndla.learningpathapi.UnitSuite
 
 class SimpleTagConverterTest extends UnitSuite {
   val nodeId = "1234"

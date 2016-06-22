@@ -1,10 +1,9 @@
 package no.ndla.contentapi.service.converters
 
-import no.ndla.contentapi.TestEnvironment
+import no.ndla.contentapi.{TestEnvironment, UnitSuite}
 import no.ndla.contentapi.integration.{LanguageContent, NodeIngress}
 import no.ndla.contentapi.model.{Author, Copyright, License}
 import no.ndla.contentapi.service._
-import no.ndla.learningpathapi.UnitSuite
 import org.mockito.Mockito._
 
 class IngressConverterTest extends UnitSuite with TestEnvironment {

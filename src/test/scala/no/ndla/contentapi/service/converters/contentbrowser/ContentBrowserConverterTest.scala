@@ -1,18 +1,15 @@
 package no.ndla.contentapi.service.converters.contentbrowser
 
-import no.ndla.contentapi.TestEnvironment
-import no.ndla.contentapi.integration.LanguageContent
-import no.ndla.contentapi.model.{Content, Copyright, License}
-import no.ndla.contentapi.service.converters.SimpleTagConverter
+import no.ndla.contentapi.{TestEnvironment, UnitSuite}
+import no.ndla.contentapi.model.{Copyright, License}
+import no.ndla.contentapi.integration.{ContentOppgave, ContentFagstoff, LanguageContent}
 import no.ndla.contentapi.service.{Image, ImageMetaInformation, ImageVariants}
-import no.ndla.learningpathapi.UnitSuite
-import org.jsoup.Jsoup
 import org.mockito.Mockito._
 
 class ContentBrowserConverterTest extends UnitSuite with TestEnvironment {
   val nodeId = "1234"
   val sampleAlt = "Fotografi"
-  val sampleContentString = s"[contentbrowser ==nid=${nodeId}==imagecache=Fullbredde==width===alt=$sampleAlt==link===node_link=1==link_type=link_to_content==lightbox_size===remove_fields[76661]=1==remove_fields[76663]=1==remove_fields[76664]=1==remove_fields[76666]=1==insertion===link_title_text= ==link_text= ==text_align===css_class=contentbrowser contentbrowser]"
+  val sampleContentString = s"[contentbrowser ==nid=${nodeId}==imagecache=Fullbredde==width===alt=$sampleAlt==link===node_link=1==link_type=link_to_content==lightbox_size===remove_fields[76661]=1==remove_fields[76663]=1==remove_fields[76664]=1==remove_fields[76666]=1==insertion=inline==link_title_text= ==link_text= ==text_align===css_class=contentbrowser contentbrowser]"
 
 
   test("That content-browser strings are replaced") {
@@ -50,5 +47,34 @@ class ContentBrowserConverterTest extends UnitSuite with TestEnvironment {
 
     result.content.replace("\n", "") should equal (expectedResult)
     result.requiredLibraries.length should equal (0)
+  }
+
+  test("That Content-browser strings of type oppgave are converted into content") {
+    val initialContent = LanguageContent(nodeId, s"<article>$sampleContentString</article>", Some("no"))
+    val contentTitle = "Oppgave title"
+    val content = """<div class="paragraph">   Very important oppgave text  </div>"""
+    val oppgave = ContentOppgave(nodeId, nodeId, contentTitle, content, "no")
+    val expectedResult = s"""<article> $content</article>"""
+
+    when(extractService.getNodeType(nodeId)).thenReturn(Some("oppgave"))
+    when(extractService.getNodeOppgave(nodeId)).thenReturn(List(oppgave))
+    val (result, status) = contentBrowserConverter.convert(initialContent)
+
+    result.content.replace("\n", "") should equal (expectedResult)
+  }
+
+
+  test("That Content-browser strings of type fagstoff are converted into content") {
+    val initialContent = LanguageContent(nodeId, s"<article>$sampleContentString</article>", Some("no"))
+    val contentTitle = "Fasgtoff title"
+    val content = """<div class="paragraph">   Very important fagstoff text  </div>"""
+    val oppgave = ContentFagstoff(nodeId, nodeId, contentTitle, content, "no")
+    val expectedResult = s"""<article> $content</article>"""
+
+    when(extractService.getNodeType(nodeId)).thenReturn(Some("fagstoff"))
+    when(extractService.getNodeFagstoff(nodeId)).thenReturn(List(oppgave))
+    val (result, status) = contentBrowserConverter.convert(initialContent)
+
+    result.content.replace("\n", "") should equal (expectedResult)
   }
 }
