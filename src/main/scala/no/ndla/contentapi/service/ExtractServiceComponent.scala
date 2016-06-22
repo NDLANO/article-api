@@ -1,6 +1,6 @@
 package no.ndla.contentapi.service
 
-import no.ndla.contentapi.integration.{CMDataComponent, ContentOppgave, ContentFagstoff}
+import no.ndla.contentapi.integration.{CMDataComponent, ContentAktualitet, ContentFagstoff, ContentOppgave}
 import no.ndla.contentapi.model.ContentInformation
 
 trait ExtractServiceComponent {
@@ -31,8 +31,15 @@ trait ExtractServiceComponent {
         case false => if (oppgaves.nonEmpty) cmData.getNodeOppgave(oppgaves(0).tnid) else oppgaves
       }
     }
-    def getNodeAktualitet(nodeId: String): Option[NodeAktualitet] = None // TODO
+
+    def getNodeAktualitet(nodeId: String): Seq[ContentAktualitet] = {
+      val aktualitets = cmData.getNodeAktualitet(nodeId)
+
+      // make sure to return the aktualitet along with all its translations
+      aktualitets.exists {x => x.isMainNode} match {
+        case true => aktualitets
+        case false => if (aktualitets.nonEmpty) cmData.getNodeAktualitet(aktualitets(0).tnid) else aktualitets
+      }
+    }
   }
 }
-
-case class NodeAktualitet(nid: String, tnid: String, language: String, title: String, aktualitet: String)

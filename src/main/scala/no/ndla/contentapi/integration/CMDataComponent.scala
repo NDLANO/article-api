@@ -71,6 +71,9 @@ trait CMDataComponent {
     def getNodeOppgave(nodeId: String): Seq[ContentOppgave] =
       getNodeGeneralContent(nodeId).map(x => x.asContentOppgave)
 
+    def getNodeAktualitet(nodeId: String): Seq[ContentAktualitet] =
+      getNodeGeneralContent(nodeId).map(x => x.asContentAktualitet)
+
     def getNodeAuthors(nodeId: String): List[Author] = {
       val result = NamedDB('cm) readOnly { implicit session =>
         sql"""
@@ -121,6 +124,7 @@ case class NodeGeneralContent(nid: String, tnid: String, title: String, content:
   def asContent = Content(content, Some(language))
   def asContentFagstoff = ContentFagstoff(nid, tnid, title, content, language)
   def asContentOppgave =  ContentOppgave(nid, tnid, title, content, language)
+  def asContentAktualitet = ContentAktualitet(nid, tnid, title, content, language)
 }
 
 case class ContentFagstoff(nid: String, tnid: String, title: String, fagstoff: String, language: String) {
@@ -129,6 +133,11 @@ case class ContentFagstoff(nid: String, tnid: String, title: String, fagstoff: S
 }
 
 case class ContentOppgave(nid: String, tnid: String, title: String, content: String, language: String) {
+  def isMainNode = (nid == tnid || tnid == "0")
+  def isTranslation = !isMainNode
+}
+
+case class ContentAktualitet(nid: String, tnid: String, title: String, aktualitet: String, language: String) {
   def isMainNode = (nid == tnid || tnid == "0")
   def isTranslation = !isMainNode
 }
