@@ -47,4 +47,18 @@ class LenkeConverterTest extends UnitSuite with TestEnvironment {
     requiredLibraries.length should equal(0)
     errors.length should equal(0)
   }
+
+  test("That LenkeConverter returns a collapsed embed code if insertion method is 'collapsed_body'") {
+    val insertion = "collapsed_body"
+    val contentString = s"[contentbrowser ==nid=$nodeId==imagecache=Fullbredde==width===alt=$altText==link===node_link=1==link_type=link_to_content==lightbox_size===remove_fields[76661]=1==remove_fields[76663]=1==remove_fields[76664]=1==remove_fields[76666]=1==insertion=$insertion==link_title_text= ==link_text= ==text_align===css_class=contentbrowser contentbrowser]"
+    val content = ContentBrowser(contentString, Some("nb"))
+    val expectedResult = s"<details><summary>${content.get("link_text")}</summary>$linkEmbedCode</details>"
+
+    when(extractService.getNodeEmbedData(nodeId)).thenReturn(Some((linkUrl, linkEmbedCode)))
+    val (result, requiredLibraries, errors) = LenkeConverter.convert(content)
+
+    result should equal(expectedResult)
+    requiredLibraries.length should equal(0)
+    errors.length should equal(0)
+  }
 }

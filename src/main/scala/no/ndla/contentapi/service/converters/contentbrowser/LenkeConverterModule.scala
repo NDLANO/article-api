@@ -35,6 +35,10 @@ trait LenkeConverterModule {
           embedCode
         }
         case "link" | "lightbox_large" => s"""<a href="${url}" title="${cont.get("link_title_text")}">${cont.get("link_text")}</a>"""
+        case "collapsed_body" => {
+          // TODO: embed code from NDLAs DB is only used here for demo purposes. Should be switched out with a proper alternative
+          s"<details><summary>${cont.get("link_text")}</summary>$embedCode</details>"
+        }
       }
       (converted, errors)
     }
