@@ -32,7 +32,7 @@ class InternController extends ScalatraServlet with NativeJsonSupport with LazyL
   post("/import/:node_id") {
     val nodeId = params("node_id")
     val node = extractService.importNode(nodeId)
-    val (convertedNode, errorList) = converterService.convertNode(node)
+    val (convertedNode, importStatus) = converterService.convertNode(node)
 
     logger.info("Converting node {}", nodeId)
 
@@ -41,7 +41,7 @@ class InternController extends ScalatraServlet with NativeJsonSupport with LazyL
       case false => contentRepository.insert(convertedNode, nodeId)
     }
 
-    ImportStatus(errorList.messages :+ s"Successfully converted node: $newNodeId")
+    ImportStatus(importStatus.messages :+ s"Successfully converted node: $newNodeId")
   }
 
   error{
