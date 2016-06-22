@@ -6,7 +6,7 @@ import no.ndla.contentapi.model.{ImportStatus, RequiredLibrary}
 import no.ndla.contentapi.service.ExtractServiceComponent
 
 trait ContentBrowserConverter {
-  this: ExtractServiceComponent with ImageConverterModule with LenkeConverterModule with H5PConverterModule with AudioConverterModule =>
+  this: ExtractServiceComponent with ImageConverterModule with LenkeConverterModule with H5PConverterModule with OppgaveConverterModule with AudioConverterModule =>
   val contentBrowserConverter: ContentBrowserConverter
 
   class ContentBrowserConverter extends ConverterModule with LazyLogging {
@@ -14,6 +14,7 @@ trait ContentBrowserConverter {
       ImageConverter.typeName -> ImageConverter,
       H5PConverter.typeName -> H5PConverter,
       LenkeConverter.typeName -> LenkeConverter,
+      OppgaveConverter.typeName -> OppgaveConverter,
       AudioConverter.typeName -> AudioConverter)
 
     def convert(content: LanguageContent): (LanguageContent, ImportStatus) = {
@@ -24,7 +25,7 @@ trait ContentBrowserConverter {
 
       do {
         val text = element.html()
-        val cont = ContentBrowser(text)
+        val cont = ContentBrowser(text, content.language)
 
         isContentBrowserField = cont.isContentBrowserField()
         if (isContentBrowserField) {
@@ -38,7 +39,7 @@ trait ContentBrowserConverter {
               (errorString, List[RequiredLibrary](), List(errorString))
             }
           }
-          requiredLibraries = requiredLibraries ::: reqLibs
+          requiredLibraries = requiredLibraries ++ reqLibs
           importStatus = ImportStatus(importStatus.messages ++ messages)
 
           val (start, end) = cont.getStartEndIndex()

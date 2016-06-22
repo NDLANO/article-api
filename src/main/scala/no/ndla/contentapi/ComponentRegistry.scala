@@ -27,6 +27,7 @@ object ComponentRegistry
   with LenkeConverterModule
   with H5PConverterModule
   with AudioConverterModule
+  with OppgaveConverterModule
   with ContentBrowserConverter
   with AmazonClientComponent
   with StorageService

@@ -4,6 +4,6 @@ import no.ndla.contentapi.model.RequiredLibrary
 
 
 trait ContentBrowserConverterModule {
-  def convert(content: ContentBrowser): (String, List[RequiredLibrary], List[String])
+  def convert(content: ContentBrowser): (String, Seq[RequiredLibrary], Seq[String])
   val typeName: String
 }

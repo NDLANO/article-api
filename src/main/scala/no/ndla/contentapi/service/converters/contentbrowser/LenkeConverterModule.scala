@@ -11,13 +11,13 @@ trait LenkeConverterModule {
   object LenkeConverter extends ContentBrowserConverterModule with LazyLogging {
     override val typeName: String = "lenke"
 
-    override def convert(content: ContentBrowser): (String, List[RequiredLibrary], List[String]) = {
+    override def convert(content: ContentBrowser): (String, Seq[RequiredLibrary], Seq[String]) = {
       val (replacement, errors) = convertLink(content)
       (replacement, List[RequiredLibrary](), errors)
     }
 
-    def convertLink(cont: ContentBrowser): (String, List[String]) = {
-      var errors = List[String]()
+    def convertLink(cont: ContentBrowser): (String, Seq[String]) = {
+      var errors = Seq[String]()
       val (url, embedCode) = extractService.getNodeEmbedData(cont.get("nid")).get
       val NDLAPattern = """.*(ndla.no).*""".r
 

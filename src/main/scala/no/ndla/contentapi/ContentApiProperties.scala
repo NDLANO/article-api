@@ -15,6 +15,10 @@ object ContentApiProperties extends LazyLogging {
 
   val ApplicationPort = 80
 
+  // When converting a content node, the converter may run several times over the content to make sure
+  // everything is converted. This value defines a maximum number of times the converter runs on a node
+  val maxConvertionRounds = 5
+
   lazy val ContactEmail = get("CONTACT_EMAIL")
   lazy val HostAddr = get("HOST_ADDR")
   lazy val Domains = get("DOMAINS").split(",") ++ Array(HostAddr)
