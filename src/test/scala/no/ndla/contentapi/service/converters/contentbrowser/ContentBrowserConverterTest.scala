@@ -2,7 +2,7 @@ package no.ndla.contentapi.service.converters.contentbrowser
 
 import no.ndla.contentapi.{TestEnvironment, UnitSuite}
 import no.ndla.contentapi.model.{Copyright, License}
-import no.ndla.contentapi.integration.{ContentOppgave, LanguageContent}
+import no.ndla.contentapi.integration.{ContentOppgave, ContentFagstoff, LanguageContent}
 import no.ndla.contentapi.service.{Image, ImageMetaInformation, ImageVariants}
 import org.mockito.Mockito._
 
@@ -63,4 +63,18 @@ class ContentBrowserConverterTest extends UnitSuite with TestEnvironment {
     result.content.replace("\n", "") should equal (expectedResult)
   }
 
+
+  test("That Content-browser strings of type fagstoff are converted into content") {
+    val initialContent = LanguageContent(s"<article>$sampleContentString</article>", Some("no"))
+    val contentTitle = "Fasgtoff title"
+    val content = """<div class="paragraph">   Very important fagstoff text  </div>"""
+    val oppgave = ContentFagstoff(nodeId, nodeId, contentTitle, content, "no")
+    val expectedResult = s"""<article> $content</article>"""
+
+    when(extractService.getNodeType(nodeId)).thenReturn(Some("fagstoff"))
+    when(extractService.getNodeFagstoff(nodeId)).thenReturn(List(oppgave))
+    val (result, status) = contentBrowserConverter.convert(initialContent)
+
+    result.content.replace("\n", "") should equal (expectedResult)
+  }
 }

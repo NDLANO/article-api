@@ -51,29 +51,26 @@ trait CMDataComponent {
       ContentInformation("0", titles, contents, copyright, Tags.forContent(nodeId), requiredLibraries)
     }
 
-    def getNodeMeta(nodeId: String): (List[ContentTitle], List[Content]) = {
-      val result = NamedDB('cm) readOnly { implicit session =>
+    def getNodeGeneralContent(nodeId: String): Seq[NodeGeneralContent] = {
+      NamedDB('cm) readOnly { implicit session =>
         sql"""
-          select nodes.nid as id, nodes.language, v.title, v.body from node n
+          select nodes.nid, nodes.tnid, nodes.language, v.title, v.body from node n
             left join node nodes on nodes.tnid=n.tnid
             left join node_revisions v on v.vid=nodes.vid
             where n.nid=${nodeId}
-          """.stripMargin.map(rs => (rs.string("title"), rs.string("language"), rs.string("body"))).list.apply()
+          """.stripMargin.map(rs => NodeGeneralContent(rs.string("nid"), rs.string("tnid"), rs.string("title"), rs.string("body"), rs.string("language"))).list.apply()
       }
-      result.map(x => (ContentTitle(x._1, Some(x._2)), Content(x._3, Some(x._2)))).unzip
     }
 
-    def getNodeOppgave(nodeId: String): List[ContentOppgave] = {
-      NamedDB('cm) readOnly { implicit session =>
-        sql"""
-           select nodes.nid, nodes.tnid, nodes.type, nodes.language, v.title, v.body from node n
-           left join node nodes on nodes.tnid=n.tnid
-           left join node_revisions v on v.vid=nodes.vid
-           where n.nid=${nodeId}
-           """.stripMargin.map(rs => ContentOppgave(rs.string("nid"), rs.string("tnid"), rs.string("title"), rs.string("body"), rs.string("language"))).list.apply()
-      }
-    }
-    
+    def getNodeMeta(nodeId: String): (Seq[ContentTitle], Seq[Content]) =
+      getNodeGeneralContent(nodeId).map(x => (x.asContentTitle, x.asContent)).unzip
+
+    def getNodeFagstoff(nodeId: String): Seq[ContentFagstoff] =
+      getNodeGeneralContent(nodeId).map(x => x.asContentFagstoff)
+
+    def getNodeOppgave(nodeId: String): Seq[ContentOppgave] =
+      getNodeGeneralContent(nodeId).map(x => x.asContentOppgave)
+
     def getNodeAuthors(nodeId: String): List[Author] = {
       val result = NamedDB('cm) readOnly { implicit session =>
         sql"""
@@ -118,6 +115,17 @@ trait CMDataComponent {
       }
     }
   }
+}
+case class NodeGeneralContent(nid: String, tnid: String, title: String, content: String, language: String) {
+  def asContentTitle = ContentTitle(title, Some(language))
+  def asContent = Content(content, Some(language))
+  def asContentFagstoff = ContentFagstoff(nid, tnid, title, content, language)
+  def asContentOppgave =  ContentOppgave(nid, tnid, title, content, language)
+}
+
+case class ContentFagstoff(nid: String, tnid: String, title: String, fagstoff: String, language: String) {
+  def isMainNode = (nid == tnid || tnid == "0")
+  def isTranslation = !isMainNode
 }
 
 case class ContentOppgave(nid: String, tnid: String, title: String, content: String, language: String) {

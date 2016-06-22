@@ -24,6 +24,7 @@ object ComponentRegistry
   with ImageConverterModule
   with LenkeConverterModule
   with H5PConverterModule
+  with FagstoffConverterModule
   with OppgaveConverterModule
   with ContentBrowserConverter
 {

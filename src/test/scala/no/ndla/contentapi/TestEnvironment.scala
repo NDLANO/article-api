@@ -26,6 +26,7 @@ trait TestEnvironment
   with LenkeConverterModule
   with H5PConverterModule
   with OppgaveConverterModule
+  with FagstoffConverterModule
   with ContentBrowserConverter
   with ImageApiServiceComponent
 {
