@@ -23,6 +23,9 @@ object ContentApiProperties extends LazyLogging {
   lazy val HostAddr = get("HOST_ADDR")
   lazy val Domains = get("DOMAINS").split(",") ++ Array(HostAddr)
 
+  val audioStorageDirectory = "audio"
+  val audioBaseHost = "http://ndla.no/"
+
   lazy val imageApiBaseUrl = get("IMAGE_API_BASE_URL")
   val imageApiInternEndpointURLSuffix = "admin"
   val imageApiImportImageURL = s"$imageApiInternEndpointURLSuffix/import"
@@ -38,6 +41,12 @@ object ContentApiProperties extends LazyLogging {
   lazy val DefaultPageSize: Int = getInt("SEARCH_DEFAULT_PAGE_SIZE")
   lazy val MaxPageSize: Int = getInt("SEARCH_MAX_PAGE_SIZE")
   lazy val IndexBulkSize = getInt("INDEX_BULK_SIZE")
+
+  lazy val AmazonBaseUrl = get("AMAZON_BASE_URL")
+  lazy val StorageName = get("STORAGE_NAME")
+  lazy val StorageAccessKey = get("STORAGE_ACCESS_KEY")
+  lazy val StorageSecretKey = get("STORAGE_SECRET_KEY")
+  lazy val amazonUrlPrefix = s"$AmazonBaseUrl/$StorageName"
 
   lazy val CMHost = get("CM_HOST")
   lazy val CMPort = get("CM_PORT")
