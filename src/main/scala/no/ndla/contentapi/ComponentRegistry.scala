@@ -29,6 +29,7 @@ object ComponentRegistry
   with FagstoffConverterModule
   with AudioConverterModule
   with OppgaveConverterModule
+  with FilConverterModule
   with ContentBrowserConverter
   with AmazonClientComponent
   with StorageService

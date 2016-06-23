@@ -29,6 +29,7 @@ trait TestEnvironment
   with OppgaveConverterModule
   with FagstoffConverterModule
   with AudioConverterModule
+  with FilConverterModule
   with ContentBrowserConverter
   with ImageApiServiceComponent
   with AmazonClientComponent

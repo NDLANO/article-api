@@ -19,7 +19,7 @@ trait ConverterServiceComponent {
         // If this converting round did not yield any changes to the content, this node is finished (case true)
         // If changes were made during this convertion, we run the converters again (case false)
         updatedContent == contentInformation match {
-          case true => (updatedContent, updatedStatus)
+          case true => (updatedContent, ImportStatus(importStatus.messages ++ updatedStatus.messages))
           case false => convertNode(updatedContent, maxRoundsLeft - 1, ImportStatus(importStatus.messages ++ updatedStatus.messages))
         }
       }

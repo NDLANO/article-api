@@ -1,6 +1,6 @@
 package no.ndla.contentapi.service.converters.contentbrowser
 
-import no.ndla.contentapi.integration.AudioMeta
+import no.ndla.contentapi.integration.ContentFilMeta
 import no.ndla.contentapi.{TestEnvironment, UnitSuite}
 import no.ndla.contentapi.ContentApiProperties.amazonUrlPrefix
 import org.mockito.Mockito._
@@ -12,14 +12,14 @@ class AudioConverterTest extends UnitSuite with TestEnvironment {
   val content = ContentBrowser(contentString, Some("nb"))
 
   test("That AudioConverter returns a HTML audio player with the mp3 uploaded to an S3 bucket") {
-    val audio = AudioMeta(nodeId, "title", "1:00", "mp3", "audio/mp3", "1024", "goat.mp3", "/audio/goat.mp3")
+    val audio = ContentFilMeta(nodeId, "0", "title", "goat.mp3", "/audio/goat.mp3", "audio/mp3", "1024")
     val expectedResult = s"""<figure> <figcaption>title</figcaption> <audio src=\"$amazonUrlPrefix/$nodeId/goat.mp3\" preload=\"auto\" controls> Your browser does not support the <code>audio</code> element. </audio> </figure> """
 
     when(extractService.getAudioMeta(nodeId)).thenReturn(Some(audio))
-    when(storageService.uploadAudiofromUrl(nodeId, audio)).thenReturn(s"$nodeId/goat.mp3")
+    when(storageService.uploadFileFromUrl(nodeId, audio)).thenReturn(s"$nodeId/goat.mp3")
 
     val (result, requiredLibraries, status) = AudioConverter.convert(content)
-    val strippedResult = " +".r.replaceAllIn(result, " ")
+    val strippedResult = " +".r.replaceAllIn(result.replace("\n", ""), " ")
 
     strippedResult.replace("\n", "") should equal (expectedResult)
   }

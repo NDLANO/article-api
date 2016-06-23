@@ -3,21 +3,21 @@ package no.ndla.contentapi.service
 import java.net.URL
 import com.amazonaws.AmazonServiceException
 import com.amazonaws.services.s3.model._
-import no.ndla.contentapi.integration.{AmazonClientComponent, AudioMeta}
+import no.ndla.contentapi.integration.{AmazonClientComponent, ContentFilMeta}
 
 trait StorageService {
   this: AmazonClientComponent =>
   val storageService: AmazonStorageService
 
   class AmazonStorageService {
-    def uploadAudiofromUrl(storageKeyPrefix: String, audioMeta: AudioMeta): String = {
-      val storageKey = s"${storageKeyPrefix}/${audioMeta.filename}"
-      val audioConnection = new URL(audioMeta.url).openConnection()
+    def uploadFileFromUrl(storageKeyPrefix: String, filMeta: ContentFilMeta): String = {
+      val storageKey = s"${storageKeyPrefix}/${filMeta.fileName}"
+      val connection = new URL(filMeta.url).openConnection()
       val metaData = new ObjectMetadata()
-      metaData.setContentType(audioMeta.mimetype)
-      metaData.setContentLength(audioMeta.fileSize.toLong)
+      metaData.setContentType(filMeta.mimeType)
+      metaData.setContentLength(filMeta.fileSize.toLong)
 
-      val request = new PutObjectRequest(storageName, storageKey, audioConnection.getInputStream(), metaData)
+      val request = new PutObjectRequest(storageName, storageKey, connection.getInputStream(), metaData)
       amazonClient.putObject(request)
       storageKey
     }

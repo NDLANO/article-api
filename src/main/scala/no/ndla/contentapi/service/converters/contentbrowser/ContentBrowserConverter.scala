@@ -6,7 +6,7 @@ import no.ndla.contentapi.model.{ImportStatus, RequiredLibrary}
 import no.ndla.contentapi.service.ExtractServiceComponent
 
 trait ContentBrowserConverter {
-  this: ExtractServiceComponent with ImageConverterModule with LenkeConverterModule with H5PConverterModule with OppgaveConverterModule with FagstoffConverterModule with AudioConverterModule =>
+  this: ExtractServiceComponent with ImageConverterModule with LenkeConverterModule with H5PConverterModule with OppgaveConverterModule with FagstoffConverterModule with AudioConverterModule with FilConverterModule =>
   val contentBrowserConverter: ContentBrowserConverter
 
   class ContentBrowserConverter extends ConverterModule with LazyLogging {
@@ -16,7 +16,8 @@ trait ContentBrowserConverter {
       LenkeConverter.typeName -> LenkeConverter,
       OppgaveConverter.typeName -> OppgaveConverter,
       FagstoffConverter.typeName -> FagstoffConverter,
-      AudioConverter.typeName -> AudioConverter)
+      AudioConverter.typeName -> AudioConverter,
+      FilConverter.typeName -> FilConverter)
 
     def convert(content: LanguageContent): (LanguageContent, ImportStatus) = {
       val element = stringToJsoupDocument(content.content)

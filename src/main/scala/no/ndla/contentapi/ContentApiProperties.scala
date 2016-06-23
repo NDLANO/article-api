@@ -13,7 +13,7 @@ import scala.collection.mutable
 object ContentApiProperties extends LazyLogging {
   var ContentApiProps: mutable.Map[String, Option[String]] = mutable.HashMap()
 
-  val ApplicationPort = 80
+  val ApplicationPort = 30002
 
   // When converting a content node, the converter may run several times over the content to make sure
   // everything is converted. This value defines a maximum number of times the converter runs on a node
@@ -24,14 +24,13 @@ object ContentApiProperties extends LazyLogging {
   lazy val Domains = get("DOMAINS").split(",") ++ Array(HostAddr)
 
   val audioStorageDirectory = "audio"
-  val audioBaseHost = "http://ndla.no/"
 
   lazy val imageApiBaseUrl = get("IMAGE_API_BASE_URL")
-  val imageApiInternEndpointURLSuffix = "admin"
+  val imageApiInternEndpointURLSuffix = "intern"
   val imageApiImportImageURL = s"$imageApiInternEndpointURLSuffix/import"
   val imageApiGetByExternalIdURL = s"$imageApiInternEndpointURLSuffix/extern"
 
-  val ndlaBaseHost = "http://ndla.no"
+  val ndlaBaseHost = "http://ndla.no/"
 
   val SearchHost = "search-engine"
   lazy val SearchPort = get("SEARCH_ENGINE_ENV_TCP_PORT")

@@ -3,7 +3,7 @@ package no.ndla.contentapi.integration
 import com.mysql.jdbc.jdbc2.optional.MysqlConnectionPoolDataSource
 import no.ndla.contentapi.model._
 import no.ndla.contentapi.service.Tags
-import no.ndla.contentapi.ContentApiProperties.audioBaseHost
+import no.ndla.contentapi.ContentApiProperties.ndlaBaseHost
 import scalikejdbc.{ConnectionPool, DataSourceConnectionPool, NamedDB, _}
 
 /**
@@ -41,7 +41,8 @@ trait CMDataComponent {
     cmDatasource.setUser(user)
     cmDatasource.setUrl(s"jdbc:mysql://$host:$port/$database")
 
-    ConnectionPool.add('cm, new DataSourceConnectionPool(cmDatasource))
+    val connectionPool = new DataSourceConnectionPool(cmDatasource)
+    ConnectionPool.add('cm, connectionPool)
 
     def getNode(nodeId: String): ContentInformation = {
       val (titles, contents) = getNodeMeta(nodeId)
@@ -55,10 +56,9 @@ trait CMDataComponent {
     def getNodeGeneralContent(nodeId: String): Seq[NodeGeneralContent] = {
       NamedDB('cm) readOnly { implicit session =>
         sql"""
-          select nodes.nid, nodes.tnid, nodes.language, v.title, v.body from node n
-            left join node nodes on nodes.tnid=n.tnid
-            left join node_revisions v on v.vid=nodes.vid
-            where n.nid=${nodeId}
+           select n.nid, n.vid, n.tnid, n.language, v.title, v.body from node n
+           left join node_revisions v on (v.vid=n.vid and v.nid = n.nid)
+           where n.nid=$nodeId or n.tnid=$nodeId
           """.stripMargin.map(rs => NodeGeneralContent(rs.string("nid"), rs.string("tnid"), rs.string("title"), rs.string("body"), rs.string("language"))).list.apply()
       }
     }
@@ -116,26 +116,44 @@ trait CMDataComponent {
       }
     }
 
-    def getAudioMeta(nodeId: String): Option[AudioMeta] = {
+    def getAudioMeta(nodeId: String): Option[ContentFilMeta] = {
       NamedDB('cm) readOnly { implicit session =>
         sql"""
-           select n.nid, a.title_format as title, a.playtime, a.format, f.filemime, f.filesize, f.filename, f.filepath from node n
+           select n.nid, a.title_format as title, f.filemime, f.filesize, f.filename, f.filepath from node n
            left join audio a on (a.vid=n.vid)
            left join files f on (f.fid=a.fid)
            where n.nid=${nodeId}
-          """.stripMargin.map(rs => AudioMeta(
+          """.stripMargin.map(rs => ContentFilMeta(
           rs.string("nid"),
+          rs.string("tnid"),
           rs.string("title"),
-          rs.string("playtime"),
-          rs.string("format"),
-          rs.string("filemime"),
-          rs.string("filesize"),
           rs.string("filename"),
-          audioBaseHost + rs.string("filepath"))).single.apply()
+          ndlaBaseHost + rs.string("filepath"),
+          rs.string("filemime"),
+          rs.string("filesize"))).single.apply()
+      }
+    }
+
+    def getNodeFilMeta(nodeId: String): Option[ContentFilMeta] = {
+      NamedDB('cm) readOnly  { implicit session =>
+        sql"""
+              select n.nid, n.tnid, n.title, fil.filename, fil.filepath, fil.filemime, fil.filesize from node n
+              left join content_field_vedlegg vedlegg on (vedlegg.nid = n.nid and vedlegg.vid = n.vid)
+              left join files fil on (fil.fid = vedlegg.field_vedlegg_fid)
+              where n.nid=${nodeId}
+          """.stripMargin.map(rs => ContentFilMeta(
+            rs.string("nid"),
+            rs.string("tnid"),
+            rs.string("title"),
+            rs.string("filename"),
+            ndlaBaseHost + rs.string("filepath"),
+            rs.string("filemime"),
+            rs.string("filesize"))).single.apply()
       }
     }
   }
 }
+
 case class NodeGeneralContent(nid: String, tnid: String, title: String, content: String, language: String) {
   def asContentTitle = ContentTitle(title, Some(language))
   def asContent = Content(content, Some(language))
@@ -153,4 +171,4 @@ case class ContentOppgave(nid: String, tnid: String, title: String, content: Str
   def isTranslation = !isMainNode
 }
 
-case class AudioMeta(nodeId: String, title: String, playTime: String, format: String, mimetype: String, fileSize: String, filename: String, url: String)
+case class ContentFilMeta(nid: String, tnid: String, title: String, fileName: String, url: String, mimeType: String, fileSize: String)

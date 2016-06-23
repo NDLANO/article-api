@@ -19,7 +19,7 @@ trait AudioConverterModule  {
 
       audioMeta match {
         case Some(audio) => {
-          val filepath = storageService.uploadAudiofromUrl(nodeId, audio)
+          val filepath = storageService.uploadFileFromUrl(nodeId, audio)
           val player =
             s"""<figure>
                   <figcaption>${audio.title}</figcaption>
