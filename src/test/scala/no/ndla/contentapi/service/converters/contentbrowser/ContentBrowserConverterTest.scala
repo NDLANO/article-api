@@ -2,7 +2,7 @@ package no.ndla.contentapi.service.converters.contentbrowser
 
 import no.ndla.contentapi.{TestEnvironment, UnitSuite}
 import no.ndla.contentapi.model.{Copyright, License}
-import no.ndla.contentapi.integration.{ContentOppgave, ContentFagstoff, LanguageContent}
+import no.ndla.contentapi.integration._
 import no.ndla.contentapi.service.{Image, ImageMetaInformation, ImageVariants}
 import org.mockito.Mockito._
 
@@ -10,6 +10,8 @@ class ContentBrowserConverterTest extends UnitSuite with TestEnvironment {
   val nodeId = "1234"
   val sampleAlt = "Fotografi"
   val sampleContentString = s"[contentbrowser ==nid=${nodeId}==imagecache=Fullbredde==width===alt=$sampleAlt==link===node_link=1==link_type=link_to_content==lightbox_size===remove_fields[76661]=1==remove_fields[76663]=1==remove_fields[76664]=1==remove_fields[76666]=1==insertion=inline==link_title_text= ==link_text= ==text_align===css_class=contentbrowser contentbrowser]"
+  val sampleBiblio = Biblio("The Catcher in the Rye", "Book", "1951", "1", "Little, Brown and Company")
+  val sampleBiblioAuthors = Seq(BiblioAuthor("J. D. Salinger", "Salinger", "Jerome David"))
 
 
   test("That content-browser strings are replaced") {
@@ -76,5 +78,17 @@ class ContentBrowserConverterTest extends UnitSuite with TestEnvironment {
     val (result, status) = contentBrowserConverter.convert(initialContent)
 
     result.content.replace("\n", "") should equal (expectedResult)
+  }
+
+  test("That content-browser strings of type biblio are converted into content") {
+    val initialContent = LanguageContent(s"""<article>$sampleContentString</a><h1>CONTENT</h1>more content</article>""", Some("en"))
+    val expectedResult = s"""<article> <a id="biblio-$nodeId"></a> <h1>CONTENT</h1>more content</article>"""
+
+    when(extractService.getNodeType(nodeId)).thenReturn(Some("biblio"))
+    val (result, status) = contentBrowserConverter.convert(initialContent)
+    val strippedContent = " +".r.replaceAllIn(result.content.replace("\n", ""), " ")
+
+    strippedContent should equal (expectedResult)
+    status.messages.isEmpty should be (true)
   }
 }
