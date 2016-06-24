@@ -27,7 +27,7 @@ object ContentApiProperties extends LazyLogging {
   val audioBaseHost = "http://ndla.no/"
 
   lazy val imageApiBaseUrl = get("IMAGE_API_BASE_URL")
-  val imageApiInternEndpointURLSuffix = "admin"
+  val imageApiInternEndpointURLSuffix = "intern"
   val imageApiImportImageURL = s"$imageApiInternEndpointURLSuffix/import"
   val imageApiGetByExternalIdURL = s"$imageApiInternEndpointURLSuffix/extern"
 

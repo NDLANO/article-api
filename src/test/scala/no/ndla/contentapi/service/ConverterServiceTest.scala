@@ -20,9 +20,12 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
   test("That the document is wrapped in an article tag") {
     val initialContent = "<h1>Heading</h1>"
     val node = ContentInformation("1", List(contentTitle), List(Content(initialContent, Some("nb"))), copyright, List(tag), List(requiredLibrary))
-    val expedtedResult = "<article>" + initialContent + "</article>"
+    val expectedResult = "<article>" + initialContent + "</article>"
 
-    service.convertNode(node)._1.content(0).content.replace("\n", "").replace(" ", "") should equal (expedtedResult)
+    val (result, status) = service.convertNode(node)
+    val strippedResult = result.content.head.content.replace("\n", "").replace(" ", "")
+
+    strippedResult should equal (expectedResult)
   }
 
   test("That content embedded in a node is converted") {

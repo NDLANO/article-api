@@ -7,7 +7,7 @@ import com.sksamuel.elastic4s.{ElasticClient, ElasticsearchClientUri}
 import no.ndla.contentapi.integration.{AmazonClientComponent, CMDataComponent, DataSourceComponent, ElasticClientComponent}
 import no.ndla.contentapi.repository.ContentRepositoryComponent
 import no.ndla.contentapi.service._
-import no.ndla.contentapi.service.converters.{DivTableConverter, SimpleTagConverter}
+import no.ndla.contentapi.service.converters.{BiblioConverter, DivTableConverter, SimpleTagConverter}
 import org.elasticsearch.common.settings.Settings
 import no.ndla.contentapi.service.converters.contentbrowser._
 import org.postgresql.ds.PGPoolingDataSource
@@ -29,6 +29,8 @@ object ComponentRegistry
   with FagstoffConverterModule
   with AudioConverterModule
   with OppgaveConverterModule
+  with BiblioConverterModule
+  with BiblioConverter
   with ContentBrowserConverter
   with AmazonClientComponent
   with StorageService
@@ -69,5 +71,6 @@ object ComponentRegistry
   lazy val imageApiService = new ImageApiService
 
   lazy val contentBrowserConverter = new ContentBrowserConverter
-  lazy val converterModules = List(contentBrowserConverter, DivTableConverter, SimpleTagConverter)
+  lazy val biblioConverter = new BiblioConverter
+  lazy val converterModules = List(contentBrowserConverter, biblioConverter, DivTableConverter, SimpleTagConverter)
 }

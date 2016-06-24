@@ -1,6 +1,6 @@
 package no.ndla.contentapi.service
 
-import no.ndla.contentapi.integration.{CMDataComponent, ContentOppgave, ContentFagstoff, AudioMeta}
+import no.ndla.contentapi.integration._
 import no.ndla.contentapi.model.ContentInformation
 
 trait ExtractServiceComponent {
@@ -32,5 +32,8 @@ trait ExtractServiceComponent {
       }
     }
     def getAudioMeta(nodeId: String): Option[AudioMeta] = cmData.getAudioMeta(nodeId)
+
+    def getBiblio(nodeId: String): Option[Biblio] = cmData.getBiblio(nodeId)
+    def getBiblioAuthors(nodeId: String): Seq[BiblioAuthor] = cmData.getBiblioAuthors(nodeId)
   }
 }

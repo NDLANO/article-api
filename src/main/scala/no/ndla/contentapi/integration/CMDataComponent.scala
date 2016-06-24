@@ -134,6 +134,34 @@ trait CMDataComponent {
           audioBaseHost + rs.string("filepath"))).single.apply()
       }
     }
+
+    def getBiblio(nodeId: String): Option[Biblio] = {
+      NamedDB('cm) readOnly { implicit session =>
+        sql"""
+          select n.title, t.name as biblio_type, b.biblio_year, b.biblio_edition, b.biblio_publisher from node n
+          left join biblio b on (b.nid=n.nid)
+          left join biblio_types t on (t.tid=b.biblio_type)
+          where b.nid=$nodeId
+        """.stripMargin.map(rs => Biblio(
+          rs.string("title"),
+          rs.string("biblio_type"),
+          rs.string("biblio_year"),
+          rs.string("biblio_edition"),
+          rs.string("biblio_publisher"))).single.apply()
+      }
+    }
+
+    def getBiblioAuthors(nodeId: String): Seq[BiblioAuthor] = {
+      NamedDB('cm) readOnly { implicit session =>
+        sql"""
+           select d.name, d.lastname, d.firstname from node n
+           left join biblio b on (b.nid=n.nid)
+           left join biblio_contributor cont on (cont.nid=b.nid)
+           left join biblio_contributor_data d on (d.cid=cont.cid)
+           where b.nid=$nodeId
+        """.stripMargin.map(rs => BiblioAuthor(rs.string("name"), rs.string("lastname"), rs.string("firstname"))).list.apply()
+      }
+    }
   }
 }
 case class NodeGeneralContent(nid: String, tnid: String, title: String, content: String, language: String) {
@@ -154,3 +182,6 @@ case class ContentOppgave(nid: String, tnid: String, title: String, content: Str
 }
 
 case class AudioMeta(nodeId: String, title: String, playTime: String, format: String, mimetype: String, fileSize: String, filename: String, url: String)
+
+case class Biblio(title: String, bibType: String, year: String, edition: String, publisher: String)
+case class BiblioAuthor(name: String, lastname: String, firstname: String)
