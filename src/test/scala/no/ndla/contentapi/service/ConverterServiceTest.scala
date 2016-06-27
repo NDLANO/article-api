@@ -17,10 +17,13 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
   val requiredLibrary = RequiredLibrary("", "", "")
 
   test("That the document is wrapped in an article tag") {
+    val nodeId = "1"
     val initialContent = "<h1>Heading</h1>"
-    val contentNode = LanguageContent("1", "1", initialContent, Some("nb"))
+    val contentNode = LanguageContent(nodeId, nodeId, initialContent, Some("nb"))
     val node = NodeToConvert(List(contentTitle), List(contentNode), copyright, List(tag))
     val expedtedResult = "<article>" + initialContent + "</article>"
+
+    when(extractService.getNodeIngress(nodeId)).thenReturn(None)
 
     service.convertNode(node)._1.content(0).content.replace("\n", "").replace(" ", "") should equal (expedtedResult)
   }
@@ -36,9 +39,11 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     val contentNode = LanguageContent(nodeId, nodeId, initialContent, Some("nb"))
     val node = NodeToConvert(List(contentTitle), List(contentNode), copyright, List(tag))
 
+    when(extractService.getNodeIngress(nodeId)).thenReturn(None)
     when(extractService.getNodeType(nodeId)).thenReturn(Some("oppgave"))
     when(extractService.getNodeOppgave(nodeId)).thenReturn(Seq(sampleOppgave1))
 
+    when(extractService.getNodeIngress(nodeId2)).thenReturn(None)
     when(extractService.getNodeType(nodeId2)).thenReturn(Some("oppgave"))
     when(extractService.getNodeOppgave(nodeId2)).thenReturn(Seq(sampleOppgave2))
 
