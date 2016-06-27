@@ -43,13 +43,14 @@ trait CMDataComponent {
 
     ConnectionPool.add('cm, new DataSourceConnectionPool(cmDatasource))
 
-    def getNode(nodeId: String): ContentInformation = {
-      val (titles, contents) = getNodeMeta(nodeId)
+    def getNode(nodeId: String): NodeToConvert = {
+      val contents = getNodeContent(nodeId)
+      val titles = getNodeTitles(nodeId)
       val authors = getNodeAuthors(nodeId)
       val license = License(license=getNodeCopyrightLicence(nodeId).getOrElse(""), "", Some(""))
       val copyright = Copyright(license, "", authors)
-      val requiredLibraries = List(RequiredLibrary("", "", ""))
-      ContentInformation(nodeId, titles, contents, copyright, Tags.forContent(nodeId), requiredLibraries)
+
+      NodeToConvert(titles, contents, copyright, Tags.forContent(nodeId))
     }
 
     def getNodeGeneralContent(nodeId: String): Seq[NodeGeneralContent] = {
@@ -60,6 +61,22 @@ trait CMDataComponent {
             left join node_revisions v on (v.nid = nodes.nid and v.vid=nodes.vid)
             where n.nid=${nodeId}
           """.stripMargin.map(rs => NodeGeneralContent(rs.string("nid"), rs.string("tnid"), rs.string("title"), rs.string("body"), rs.string("language"))).list.apply()
+      }
+    }
+
+    def getNodeTitles(nodeId: String): Seq[ContentTitle] = {
+      val titles = getNodeGeneralContent(nodeId)
+      titles.exists {x => x.isMainNode} match {
+        case true => titles.map(x => x.asContentTitle)
+        case false => if (titles.isEmpty) Seq() else getNodeTitles(titles.head.tnid)
+      }
+    }
+
+    def getNodeContent(nodeId: String): Seq[LanguageContent] = {
+      val contents = getNodeGeneralContent(nodeId)
+      contents.exists {x => x.isMainNode} match {
+        case true => contents.map(_.asLanguageContent)
+        case false => if (contents.isEmpty) Seq() else getNodeContent(contents.head.tnid)
       }
     }
 
@@ -149,10 +166,21 @@ trait CMDataComponent {
   }
 }
 case class NodeGeneralContent(nid: String, tnid: String, title: String, content: String, language: String) {
+  def isMainNode = (nid == tnid || tnid == "0")
+  def isTranslation = !isMainNode
+
   def asContentTitle = ContentTitle(title, Some(language))
   def asContent = Content(content, Some(language))
   def asContentFagstoff = ContentFagstoff(nid, tnid, title, content, language)
   def asContentOppgave =  ContentOppgave(nid, tnid, title, content, language)
+  def asLanguageContent = LanguageContent(nid, tnid, content, Some(language))
+}
+
+case class NodeToConvert(titles: Seq[ContentTitle], contents: Seq[LanguageContent], copyright: Copyright, tags: Seq[ContentTag]) {
+  def asContentInformation: ContentInformation = {
+    val requiredLibraries = contents.flatMap(_.requiredLibraries).distinct
+    ContentInformation("0", titles, contents.map(_.asContent), copyright, tags, requiredLibraries)
+  }
 }
 
 case class ContentFagstoff(nid: String, tnid: String, title: String, fagstoff: String, language: String) {

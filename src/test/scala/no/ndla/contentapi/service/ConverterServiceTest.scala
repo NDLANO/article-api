@@ -1,7 +1,7 @@
 package no.ndla.contentapi.service
 
 import no.ndla.contentapi.TestEnvironment
-import no.ndla.contentapi.integration.ContentOppgave
+import no.ndla.contentapi.integration.{ContentOppgave, LanguageContent, NodeToConvert}
 import no.ndla.contentapi.model._
 import no.ndla.contentapi.UnitSuite
 import org.mockito.Mockito._
@@ -9,7 +9,6 @@ import org.mockito.Mockito._
 class ConverterServiceTest extends UnitSuite with TestEnvironment {
 
   val service = new ConverterService
-
   val contentTitle = ContentTitle("", Some(""))
   val license = License("licence", "description", Some("http://"))
   val author = Author("forfatter", "Henrik")
@@ -19,7 +18,8 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
 
   test("That the document is wrapped in an article tag") {
     val initialContent = "<h1>Heading</h1>"
-    val node = ContentInformation("1", List(contentTitle), List(Content(initialContent, Some("nb"))), copyright, List(tag), List(requiredLibrary))
+    val contentNode = LanguageContent("1", "1", initialContent, Some("nb"))
+    val node = NodeToConvert(List(contentTitle), List(contentNode), copyright, List(tag))
     val expedtedResult = "<article>" + initialContent + "</article>"
 
     service.convertNode(node)._1.content(0).content.replace("\n", "").replace(" ", "") should equal (expedtedResult)
@@ -33,7 +33,8 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     val sampleOppgave1 = ContentOppgave(nodeId, nodeId, "Tittel", s"Innhold! $contentString2", "nb")
     val sampleOppgave2 = ContentOppgave(nodeId, nodeId2, "Tittel", "Enda mer innhold!", "nb")
     val initialContent = s"$contentString"
-    val node = ContentInformation(nodeId, List(contentTitle), List(Content(initialContent, Some("nb"))), copyright, List(tag), List(requiredLibrary))
+    val contentNode = LanguageContent(nodeId, nodeId, initialContent, Some("nb"))
+    val node = NodeToConvert(List(contentTitle), List(contentNode), copyright, List(tag))
 
     when(extractService.getNodeType(nodeId)).thenReturn(Some("oppgave"))
     when(extractService.getNodeOppgave(nodeId)).thenReturn(Seq(sampleOppgave1))

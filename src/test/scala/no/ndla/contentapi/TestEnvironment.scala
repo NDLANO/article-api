@@ -49,7 +49,7 @@ trait TestEnvironment
   val converterService = mock[ConverterService]
   val contentBrowserConverter = new ContentBrowserConverter
   val ingressConverter = new IngressConverter
-  val converterModules = List(SimpleTagConverter, DivTableConverter, contentBrowserConverter)
+  val converterModules = List(SimpleTagConverter, ingressConverter, DivTableConverter, contentBrowserConverter)
   val imageApiService = mock[ImageApiService]
   val storageService = mock[AmazonStorageService]
 }

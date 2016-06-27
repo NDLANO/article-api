@@ -16,7 +16,7 @@ class IngressConverterTest extends UnitSuite with TestEnvironment {
     val initialContent = """<article><div>Banankake</div></article>"""
     val ingressText = "<p>Introduksjon til banankake</p>"
     val expectedContent = s"<article> <section> $ingressText </section> <div> Banankake </div></article>"
-    val node = LanguageContent(nodeId, initialContent, Some("nb"))
+    val node = LanguageContent(nodeId, nodeId, initialContent, Some("nb"))
     val ingressNode = NodeIngress(nodeId, "<p>Introduksjon til banankake</p>", None, 1)
 
     when(extractService.getNodeIngress(nodeId)).thenReturn(Some(ingressNode))
@@ -34,7 +34,7 @@ class IngressConverterTest extends UnitSuite with TestEnvironment {
     val initialContent = """<article><div>Banankake</div></article>"""
     val ingressText = "<p>Introduksjon til banankake</p>"
     val expectedContent = s"""<article> <section> <img src="/images/full.jpg" /> $ingressText </section> <div> Banankake </div></article>"""
-    val node = LanguageContent(nodeId, initialContent, Some("nb"))
+    val node = LanguageContent(nodeId, nodeId, initialContent, Some("nb"))
     val ingressNode = NodeIngress(nodeId, "<p>Introduksjon til banankake</p>", Some(imageNid), 1)
 
     when(extractService.getNodeIngress(nodeId)).thenReturn(Some(ingressNode))
@@ -47,7 +47,7 @@ class IngressConverterTest extends UnitSuite with TestEnvironment {
 
   test("That the content remains unchanged if the node does not contain an ingress field") {
     val initialContent = """<article><div>Banankake</div></article>"""
-    val node = LanguageContent(nodeId, initialContent, Some("nb"))
+    val node = LanguageContent(nodeId, nodeId, initialContent, Some("nb"))
 
     when(extractService.getNodeIngress(nodeId)).thenReturn(None)
     val (result, status) = ingressConverter.convert(node)
@@ -59,7 +59,7 @@ class IngressConverterTest extends UnitSuite with TestEnvironment {
     val initialContent = """<article><div>Banankake</div></article>"""
     val ingressText = "<p>Introduksjon til banankake</p>"
     val expectedContent = s"<article> <section> $ingressText </section> <div> Banankake </div></article>"
-    val node = LanguageContent(nodeId, initialContent, Some("nb"))
+    val node = LanguageContent(nodeId, nodeId, initialContent, Some("nb"))
     val ingressNode = NodeIngress(nodeId, "<p>Introduksjon til banankake</p>", None, 0)
 
     when(extractService.getNodeIngress(nodeId)).thenReturn(Some(ingressNode))
