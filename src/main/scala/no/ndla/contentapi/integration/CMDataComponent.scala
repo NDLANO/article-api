@@ -3,6 +3,7 @@ package no.ndla.contentapi.integration
 import com.mysql.jdbc.jdbc2.optional.MysqlConnectionPoolDataSource
 import no.ndla.contentapi.model._
 import no.ndla.contentapi.service.Tags
+import no.ndla.contentapi.ContentApiProperties.audioBaseHost
 import scalikejdbc.{ConnectionPool, DataSourceConnectionPool, NamedDB, _}
 
 /**
@@ -115,6 +116,25 @@ trait CMDataComponent {
       }
     }
 
+    def getAudioMeta(nodeId: String): Option[AudioMeta] = {
+      NamedDB('cm) readOnly { implicit session =>
+        sql"""
+           select n.nid, a.title_format as title, a.playtime, a.format, f.filemime, f.filesize, f.filename, f.filepath from node n
+           left join audio a on (a.vid=n.vid)
+           left join files f on (f.fid=a.fid)
+           where n.nid=${nodeId}
+          """.stripMargin.map(rs => AudioMeta(
+          rs.string("nid"),
+          rs.string("title"),
+          rs.string("playtime"),
+          rs.string("format"),
+          rs.string("filemime"),
+          rs.string("filesize"),
+          rs.string("filename"),
+          audioBaseHost + rs.string("filepath"))).single.apply()
+      }
+    }
+
     def getNodeIngress(nodeId: String): Option[NodeIngress] = {
       NamedDB('cm) readOnly { implicit session =>
         sql"""
@@ -144,5 +164,7 @@ case class ContentOppgave(nid: String, tnid: String, title: String, content: Str
   def isMainNode = (nid == tnid || tnid == "0")
   def isTranslation = !isMainNode
 }
+
+case class AudioMeta(nodeId: String, title: String, playTime: String, format: String, mimetype: String, fileSize: String, filename: String, url: String)
 
 case class NodeIngress(nid: String, content: String, imageNid: Option[String], ingressVisPaaSiden: Int)

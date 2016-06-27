@@ -1,6 +1,6 @@
 package no.ndla.contentapi.service
 
-import no.ndla.contentapi.integration.{CMDataComponent, ContentOppgave, ContentFagstoff, NodeIngress}
+import no.ndla.contentapi.integration.{CMDataComponent, ContentOppgave, ContentFagstoff, AudioMeta, NodeIngress}
 import no.ndla.contentapi.model.ContentInformation
 
 trait ExtractServiceComponent {
@@ -31,6 +31,7 @@ trait ExtractServiceComponent {
         case false => if (oppgaves.nonEmpty) cmData.getNodeOppgave(oppgaves(0).tnid) else oppgaves
       }
     }
+    def getAudioMeta(nodeId: String): Option[AudioMeta] = cmData.getAudioMeta(nodeId)
 
     def getNodeIngress(nodeId: String): Option[NodeIngress] = cmData.getNodeIngress(nodeId)
   }

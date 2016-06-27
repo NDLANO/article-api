@@ -2,8 +2,9 @@ package no.ndla.contentapi
 
 import javax.sql.DataSource
 
+import com.amazonaws.services.s3.AmazonS3Client
 import com.sksamuel.elastic4s.ElasticClient
-import no.ndla.contentapi.integration.{CMDataComponent, DataSourceComponent, ElasticClientComponent}
+import no.ndla.contentapi.integration.{AmazonClientComponent, CMDataComponent, DataSourceComponent, ElasticClientComponent}
 import no.ndla.contentapi.repository.ContentRepositoryComponent
 import no.ndla.contentapi.service.converters.{DivTableConverter, SimpleTagConverter, IngressConverter}
 import no.ndla.contentapi.service._
@@ -27,9 +28,12 @@ trait TestEnvironment
   with H5PConverterModule
   with OppgaveConverterModule
   with FagstoffConverterModule
+  with AudioConverterModule
   with ContentBrowserConverter
-  with ImageApiServiceComponent
   with IngressConverter
+  with ImageApiServiceComponent
+  with AmazonClientComponent
+  with StorageService
 {
   val elasticClient = mock[ElasticClient]
   val elasticContentSearch = mock[ElasticContentSearch]
@@ -37,6 +41,8 @@ trait TestEnvironment
 
   val dataSource = mock[DataSource]
   val contentRepository = new ContentRepository
+  val amazonClient = mock[AmazonS3Client]
+  val storageName = "testStorageName"
 
   val cmData = mock[CMData]
   val extractService = mock[ExtractService]
@@ -45,4 +51,5 @@ trait TestEnvironment
   val ingressConverter = new IngressConverter
   val converterModules = List(SimpleTagConverter, DivTableConverter, contentBrowserConverter)
   val imageApiService = mock[ImageApiService]
+  val storageService = mock[AmazonStorageService]
 }
