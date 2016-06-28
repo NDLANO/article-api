@@ -11,22 +11,22 @@ trait ConverterServiceComponent {
   val converterService: ConverterService
 
   class ConverterService {
-    def convertNode(contentInformation: NodeToConvert): (ContentInformation, ImportStatus) = {
-      @tailrec def convertNode(contentInformation: NodeToConvert, maxRoundsLeft: Int, importStatus: ImportStatus = ImportStatus()): (ContentInformation, ImportStatus) = {
+    def convertNode(nodeToConvert: NodeToConvert): (ContentInformation, ImportStatus) = {
+      @tailrec def convertNode(nodeToConvert: NodeToConvert, maxRoundsLeft: Int, importStatus: ImportStatus = ImportStatus()): (ContentInformation, ImportStatus) = {
         if (maxRoundsLeft == 0)
-          return (contentInformation.asContentInformation, importStatus)
+          return (nodeToConvert.asContentInformation, importStatus)
 
-        val (updatedContent, updatedStatus) = convert(contentInformation)
+        val (updatedContent, updatedStatus) = convert(nodeToConvert)
 
         // If this converting round did not yield any changes to the content, this node is finished (case true)
         // If changes were made during this convertion, we run the converters again (case false)
-        updatedContent == contentInformation match {
+        updatedContent == nodeToConvert match {
           case true => (updatedContent.asContentInformation, ImportStatus(importStatus.messages ++ updatedStatus.messages))
           case false => convertNode(updatedContent, maxRoundsLeft - 1, ImportStatus(importStatus.messages ++ updatedStatus.messages))
         }
       }
 
-      convertNode(contentInformation, maxConvertionRounds)
+      convertNode(nodeToConvert, maxConvertionRounds)
     }
 
     private def convert(contentInformation: NodeToConvert): (NodeToConvert, ImportStatus) =
