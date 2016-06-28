@@ -10,51 +10,55 @@ import no.ndla.contentapi.ComponentRegistry.{contentRepository, converterService
 import no.ndla.logging.LoggerContext
 import no.ndla.network.ApplicationUrl
 
-class InternController extends ScalatraServlet with NativeJsonSupport with LazyLogging {
+trait InternController {
+  val internController: InternController
 
-  protected implicit override val jsonFormats: Formats = DefaultFormats
+  class InternController extends ScalatraServlet with NativeJsonSupport with LazyLogging {
 
-  before() {
-    contentType = formats("json")
-    LoggerContext.setCorrelationID(Option(request.getHeader("X-Correlation-ID")))
-    ApplicationUrl.set(request)
-  }
+    protected implicit override val jsonFormats: Formats = DefaultFormats
 
-  after() {
-    LoggerContext.clearCorrelationID()
-    ApplicationUrl.clear()
-  }
-
-  post("/index") {
-    Ok(SearchIndexer.indexDocuments())
-  }
-
-  post("/import/:node_id") {
-    val nodeId = params("node_id")
-    val node = extractService.importNode(nodeId)
-
-    node.contents.find(_.isMainNode) match {
-      case Some(mainNode) => {
-        val mainNodeId = mainNode.nid
-        val (convertedNode, importStatus) = converterService.convertNode(node)
-
-        val newNodeId = contentRepository.exists(mainNodeId) match {
-          case true => contentRepository.update(convertedNode, mainNodeId)
-          case false => contentRepository.insert(convertedNode, mainNodeId)
-        }
-
-        val importedNodes = node.contents.map(_.nid).mkString(",")
-        logger.info("Converted nodes {}", importedNodes)
-        ImportStatus(importStatus.messages :+ s"Successfully imported nodes $importedNodes: $newNodeId")
-      }
-      case None => throw new Exception(s"$nodeId is a translation; Could not find main node")
+    before() {
+      contentType = formats("json")
+      LoggerContext.setCorrelationID(Option(request.getHeader("X-Correlation-ID")))
+      ApplicationUrl.set(request)
     }
-  }
 
-  error{
-    case t:Throwable => {
-      logger.error(t.getMessage, t)
-      halt(status = 500, body = Error(Error.GENERIC, t.getMessage))
+    after() {
+      LoggerContext.clearCorrelationID()
+      ApplicationUrl.clear()
+    }
+
+    post("/index") {
+      Ok(SearchIndexer.indexDocuments())
+    }
+
+    post("/import/:node_id") {
+      val nodeId = params("node_id")
+      val node = extractService.importNode(nodeId)
+
+      node.contents.find(_.isMainNode) match {
+        case Some(mainNode) => {
+          val mainNodeId = mainNode.nid
+          val (convertedNode, importStatus) = converterService.convertNode(node)
+
+          val newNodeId = contentRepository.exists(mainNodeId) match {
+            case true => contentRepository.update(convertedNode, mainNodeId)
+            case false => contentRepository.insert(convertedNode, mainNodeId)
+          }
+
+          val importedNodes = node.contents.map(_.nid).mkString(",")
+          logger.info("Converted nodes {}", importedNodes)
+          ImportStatus(importStatus.messages :+ s"Successfully imported nodes $importedNodes: $newNodeId")
+        }
+        case None => throw new Exception(s"$nodeId is a translation; Could not find main node")
+      }
+    }
+
+    error {
+      case t: Throwable => {
+        logger.error(t.getMessage, t)
+        halt(status = 500, body = Error(Error.GENERIC, t.getMessage))
+      }
     }
   }
 }
