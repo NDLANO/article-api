@@ -26,6 +26,7 @@ trait TestEnvironment
   with ImageConverterModule
   with LenkeConverterModule
   with H5PConverterModule
+  with AktualitetConverterModule
   with OppgaveConverterModule
   with FagstoffConverterModule
   with AudioConverterModule

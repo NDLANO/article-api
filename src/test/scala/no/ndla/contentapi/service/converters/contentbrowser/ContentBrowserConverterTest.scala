@@ -77,4 +77,18 @@ class ContentBrowserConverterTest extends UnitSuite with TestEnvironment {
 
     result.content.replace("\n", "") should equal (expectedResult)
   }
+
+  test("That Content-browser strings of type aktualitet are converted into content") {
+    val initialContent = LanguageContent(nodeId, nodeId, s"<article>$sampleContentString</article>", Some("no"))
+    val contentTitle = "Aktualitet title"
+    val content = """<div class="paragraph">   Very important aktualitet text  </div>"""
+    val oppgave = ContentFagstoff(nodeId, nodeId, contentTitle, content, "no")
+    val expectedResult = s"""<article> $content</article>"""
+
+    when(extractService.getNodeType(nodeId)).thenReturn(Some("fagstoff"))
+    when(extractService.getNodeFagstoff(nodeId)).thenReturn(List(oppgave))
+    val (result, status) = contentBrowserConverter.convert(initialContent)
+
+    result.content.replace("\n", "") should equal (expectedResult)
+  }
 }

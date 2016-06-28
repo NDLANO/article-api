@@ -1,5 +1,6 @@
 package no.ndla.contentapi.service
 
+import no.ndla.contentapi.model.ContentInformation
 import no.ndla.contentapi.integration._
 
 trait ExtractServiceComponent {
@@ -31,6 +32,16 @@ trait ExtractServiceComponent {
       }
     }
     def getAudioMeta(nodeId: String): Option[AudioMeta] = cmData.getAudioMeta(nodeId)
+
+    def getNodeAktualitet(nodeId: String): Seq[ContentAktualitet] = {
+      val aktualitets = cmData.getNodeAktualitet(nodeId)
+
+      // make sure to return the aktualitet along with all its translations
+      aktualitets.exists {x => x.isMainNode} match {
+        case true => aktualitets
+        case false => if (aktualitets.nonEmpty) cmData.getNodeAktualitet(aktualitets(0).tnid) else aktualitets
+      }
+    }
 
     def getNodeIngress(nodeId: String): Option[NodeIngress] = cmData.getNodeIngress(nodeId)
   }
