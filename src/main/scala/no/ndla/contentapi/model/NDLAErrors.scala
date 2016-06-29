@@ -23,3 +23,5 @@ object Error {
 
 case class Error(code:String, description:String, occuredAt:String = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS").format(new Date()))
 case class ImportStatus(messages: Seq[String] = Seq[String]())
+
+case class NodeNotFoundException(message: String) extends Exception(message)

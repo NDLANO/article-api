@@ -5,7 +5,7 @@ import org.json4s.{DefaultFormats, Formats}
 import org.scalatra.json.NativeJsonSupport
 import org.scalatra.{Ok, ScalatraServlet}
 import no.ndla.contentapi.business.SearchIndexer
-import no.ndla.contentapi.model.{Error, ImportStatus}
+import no.ndla.contentapi.model.{Error, ImportStatus, NodeNotFoundException}
 import no.ndla.contentapi.ComponentRegistry.{contentRepository, converterService, extractService}
 import no.ndla.logging.LoggerContext
 import no.ndla.network.ApplicationUrl
@@ -35,7 +35,9 @@ trait InternController {
     post("/import/:node_id") {
       val nodeId = params("node_id")
       val node = extractService.importNode(nodeId)
+      val nodesToImport = node.contents.map(_.nid).mkString(",")
 
+      logger.info("Converting nodes {}", nodesToImport)
       node.contents.find(_.isMainNode) match {
         case Some(mainNode) => {
           val mainNodeId = mainNode.nid
@@ -46,11 +48,9 @@ trait InternController {
             case false => contentRepository.insert(convertedNode, mainNodeId)
           }
 
-          val importedNodes = node.contents.map(_.nid).mkString(",")
-          logger.info("Converted nodes {}", importedNodes)
-          ImportStatus(importStatus.messages :+ s"Successfully imported nodes $importedNodes: $newNodeId")
+          ImportStatus(importStatus.messages :+ s"Successfully imported nodes $nodesToImport: $newNodeId")
         }
-        case None => throw new Exception(s"$nodeId is a translation; Could not find main node")
+        case None => throw new NodeNotFoundException(s"$nodeId is a translation; Could not find main node")
       }
     }
 
