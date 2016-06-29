@@ -34,7 +34,13 @@ trait LenkeConverterModule {
           // TODO: embed code from NDLAs DB is only used here for demo purposes. Should be switched out with a proper alternative
           embedCode
         }
-        case "link" | "lightbox_large" => s"""<a href="${url}" title="${cont.get("link_title_text")}">${cont.get("link_text")}</a>"""
+        case "link" | "lightbox_large" => s"""<a href="$url" title="${cont.get("link_title_text")}">${cont.get("link_text")}</a>"""
+        case _ => {
+          val message = s"""Unhandled fagstoff insertion method '${_}' on '${cont.get("link_text")}'. Defaulting to link."""
+          logger.warn(message)
+          errors = errors :+ message
+          s"""<a href="$url" title="${cont.get("link_title_text")}">${cont.get("link_text")}</a>"""
+        }
       }
       (converted, errors)
     }
