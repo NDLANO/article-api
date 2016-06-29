@@ -45,6 +45,13 @@ trait ImageApiServiceComponent {
         case false => getMetaByExternId(externId)
       }
     }
+
+    def importOrGetMetaByExternId(externId: String): Option[ImageMetaInformation] = {
+      getMetaByExternId(externId) match {
+        case Some(image) => Some(image)
+        case None => importImage(externId)
+      }
+    }
   }
 }
 

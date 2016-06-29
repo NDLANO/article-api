@@ -17,11 +17,12 @@ trait IngressConverter {
       extractService.getNodeIngress(content.nid) match {
         case Some(ingress) => {
           ingress.ingressVisPaaSiden match {
-            case 0 => return (content.copy(containsIngress = true), ImportStatus())
+            case 0 => (content.copy(containsIngress = true), ImportStatus())
             case _ => {
               val element = stringToJsoupDocument(content.content)
-              element.prepend(createIngress(ingress))
-              (content.copy(content = jsoupDocumentToString(element), containsIngress = true), ImportStatus())
+              val (ingressContent, status) = createIngress(ingress)
+              element.prepend(ingressContent)
+              (content.copy(content = jsoupDocumentToString(element), containsIngress = true), status)
             }
           }
         }
@@ -29,18 +30,19 @@ trait IngressConverter {
       }
     }
 
-    private def createIngress(ingress: NodeIngress): String = {
-      val imageTag = ingress.imageNid match {
+    private def createIngress(ingress: NodeIngress): (String, ImportStatus) = {
+      val (imageTag, message) = ingress.imageNid match {
         case Some(imageId) => {
-          imageApiService.getMetaByExternId(imageId) match {
-            case Some(image) => s"""<img src="/images/${image.images.full.get.url}" />"""
-            case None => ""
+          imageApiService.importOrGetMetaByExternId(imageId) match {
+            case Some(image) => (s"""<img src="/images/${image.images.full.get.url}" />""", ImportStatus())
+            case None => {
+              ("", ImportStatus(s"Image with id $imageId was not found"))
+            }
           }
         }
-        case None => ""
+        case None => ("", ImportStatus())
       }
-
-      s"<section>$imageTag ${ingress.content}</section>"
+      (s"<section>$imageTag ${ingress.content}</section>", message)
     }
   }
 }
