@@ -11,8 +11,10 @@ trait ConverterServiceComponent {
   class ConverterService {
     def convertNode(contentInformation: ContentInformation): (ContentInformation, ImportStatus) = {
       @tailrec def convertNode(contentInformation: ContentInformation, maxRoundsLeft: Int, importStatus: ImportStatus = ImportStatus()): (ContentInformation, ImportStatus) = {
-        if (maxRoundsLeft == 0)
-          return (contentInformation, importStatus)
+        if (maxRoundsLeft == 0) {
+          val message = "Maximum number of converter rounds reached; Some content might not be converted"
+          return (contentInformation, ImportStatus(importStatus.messages :+ message))
+        }
 
         val (updatedContent, updatedStatus) = convert(contentInformation)
 
