@@ -44,8 +44,7 @@ trait CMDataComponent {
     ConnectionPool.add('cm, new DataSourceConnectionPool(cmDatasource))
 
     def getNode(nodeId: String): NodeToConvert = {
-      val contents = getNodeContent(nodeId)
-      val titles = getNodeTitles(nodeId)
+      val (contents, titles) = getNodeContent(nodeId)
       val authors = getNodeAuthors(nodeId)
       val license = License(license=getNodeCopyrightLicence(nodeId).getOrElse(""), "", Some(""))
       val copyright = Copyright(license, "", authors)
@@ -56,27 +55,24 @@ trait CMDataComponent {
     def getNodeGeneralContent(nodeId: String): Seq[NodeGeneralContent] = {
       NamedDB('cm) readOnly { implicit session =>
         sql"""
-          select nodes.nid, nodes.tnid, nodes.language, v.title, v.body from node n
-            left join node nodes on nodes.tnid=n.tnid
-            left join node_revisions v on (v.nid = nodes.nid and v.vid=nodes.vid)
-            where n.nid=${nodeId}
+          select n.nid, n.tnid, n.language, v.title, v.body from node n
+            left join node_revisions v on (v.nid = n.nid and v.vid=n.vid)
+            where n.nid=${nodeId} or n.tnid=${nodeId}
           """.stripMargin.map(rs => NodeGeneralContent(rs.string("nid"), rs.string("tnid"), rs.string("title"), rs.string("body"), rs.string("language"))).list.apply()
       }
     }
 
-    def getNodeTitles(nodeId: String): Seq[ContentTitle] = {
-      val titles = getNodeGeneralContent(nodeId)
-      titles.exists {x => x.isMainNode} match {
-        case true => titles.map(x => x.asContentTitle)
-        case false => if (titles.isEmpty) Seq() else getNodeTitles(titles.head.tnid)
-      }
-    }
+    def getNodeContent(nodeId: String): (Seq[LanguageContent], Seq[ContentTitle]) = {
+      val res = getNodeGeneralContent(nodeId)
 
-    def getNodeContent(nodeId: String): Seq[LanguageContent] = {
-      val contents = getNodeGeneralContent(nodeId)
-      contents.exists {x => x.isMainNode} match {
-        case true => contents.map(_.asLanguageContent)
-        case false => if (contents.isEmpty) Seq() else getNodeContent(contents.head.tnid)
+      res.exists {x => x.isMainNode} match {
+        case true => res.map(rs => (rs.asLanguageContent, rs.asContentTitle)).unzip
+        case false => {
+          if (res.nonEmpty)
+            getNodeGeneralContent(res.head.tnid).map(rs => (rs.asLanguageContent, rs.asContentTitle)).unzip
+          else
+            (Seq(), Seq())
+        }
       }
     }
 
@@ -163,7 +159,7 @@ trait CMDataComponent {
            left join content_field_ingress_bilde ing_bilde on (ing_bilde.nid = n.nid and ing_bilde.vid = n.vid)
            left join content_field_ingressvispaasiden ing_side on (ing_side.nid = n.nid and ing_side.vid = n.vid)
            where n.nid=$nodeId
-          """.map(rs => NodeIngress(rs.string("nid"), rs.string("ingress"), Option(rs.string("bilde_ing")), rs.int("field_ingressvispaasiden_value"))).single.apply()
+          """.map(rs => NodeIngress(rs.string("nid"), rs.string("ingress"), rs.stringOpt("bilde_ing"), rs.int("field_ingressvispaasiden_value"))).single.apply()
       }
     }
   }

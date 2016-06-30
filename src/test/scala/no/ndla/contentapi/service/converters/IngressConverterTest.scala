@@ -38,7 +38,7 @@ class IngressConverterTest extends UnitSuite with TestEnvironment {
     val ingressNode = NodeIngress(nodeId, "<p>Introduksjon til banankake</p>", Some(imageNid), 1)
 
     when(extractService.getNodeIngress(nodeId)).thenReturn(Some(ingressNode))
-    when(imageApiService.getMetaByExternId(imageNid)).thenReturn(Some(image))
+    when(imageApiService.importOrGetMetaByExternId(imageNid)).thenReturn(Some(image))
     val (result, status) = ingressConverter.convert(node)
     val strippedResult = " +".r.replaceAllIn(result.content.replace("\n", ""), " ")
 

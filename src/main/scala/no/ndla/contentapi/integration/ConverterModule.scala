@@ -30,10 +30,10 @@ trait ConverterModule {
 
   def convert(content: LanguageContent): (LanguageContent, ImportStatus)
 
-  def convert(contentInformation: NodeToConvert, importStatus: ImportStatus): (NodeToConvert, ImportStatus) = {
-    val (convertedContent, importStatuses) = contentInformation.contents.map(x => convert(x)).unzip
+  def convert(nodeToConvert: NodeToConvert, importStatus: ImportStatus): (NodeToConvert, ImportStatus) = {
+    val (convertedContent, importStatuses) = nodeToConvert.contents.map(x => convert(x)).unzip
     val finalImportStatuses = ImportStatus(importStatuses.flatMap(is => is.messages) ++ importStatus.messages)  // Slå sammen importStatus
-    (contentInformation.copy(contents=convertedContent), finalImportStatuses)
+    (nodeToConvert.copy(contents=convertedContent), finalImportStatuses)
   }
 }
 
