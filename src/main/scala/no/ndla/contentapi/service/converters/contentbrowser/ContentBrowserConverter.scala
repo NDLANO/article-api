@@ -3,10 +3,9 @@ package no.ndla.contentapi.service.converters.contentbrowser
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.contentapi.integration.{ConverterModule, LanguageContent}
 import no.ndla.contentapi.model.{ImportStatus, RequiredLibrary}
-import no.ndla.contentapi.service.ExtractServiceComponent
 
 trait ContentBrowserConverter {
-  this: ExtractServiceComponent with ImageConverterModule with LenkeConverterModule with H5PConverterModule with OppgaveConverterModule with FagstoffConverterModule with AudioConverterModule with AktualitetConverterModule with VideoConverterModule =>
+  this: ContentBrowserConverterModules =>
   val contentBrowserConverter: ContentBrowserConverter
 
   class ContentBrowserConverter extends ConverterModule with LazyLogging {
@@ -18,6 +17,7 @@ trait ContentBrowserConverter {
       FagstoffConverter.typeName -> FagstoffConverter,
       AudioConverter.typeName -> AudioConverter,
       AktualitetConverter.typeName -> AktualitetConverter,
+      NonExistentNodeConverter.typeName -> NonExistentNodeConverter,
       VideoConverter.typeName -> VideoConverter)
 
     def convert(content: LanguageContent): (LanguageContent, ImportStatus) = {
@@ -32,7 +32,7 @@ trait ContentBrowserConverter {
 
         isContentBrowserField = cont.isContentBrowserField()
         if (isContentBrowserField) {
-          val nodeType = extractService.getNodeType(cont.get("nid")).getOrElse("UNKNOWN")
+          val nodeType = extractService.getNodeType(cont.get("nid")).getOrElse(NonExistentNodeConverter.typeName)
 
           val (newContent, reqLibs, messages) = contentBrowserModules.get(nodeType) match {
             case Some(module) => module.convert(cont)
