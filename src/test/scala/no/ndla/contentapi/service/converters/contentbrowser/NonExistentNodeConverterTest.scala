@@ -13,5 +13,6 @@ class NonExistentNodeConverterTest extends UnitSuite with TestEnvironment {
 
     result should equal ("")
     messages.nonEmpty should be (true)
+    messages.head should equal (s"Found nonexistant node with id ${content.get("nid")}")
   }
 }
