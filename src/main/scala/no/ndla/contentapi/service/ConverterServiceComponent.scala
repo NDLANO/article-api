@@ -29,10 +29,10 @@ trait ConverterServiceComponent {
       convertNode(nodeToConvert, maxConvertionRounds)
     }
 
-    private def convert(contentInformation: NodeToConvert): (NodeToConvert, ImportStatus) =
-      converterModules.foldLeft((contentInformation, ImportStatus()))((element, converter) => {
-        val (contentInformation, importStatus) = element
-        converter.convert(contentInformation, importStatus)
+    private def convert(nodeToConvert: NodeToConvert): (NodeToConvert, ImportStatus) =
+      converterModules.foldLeft((nodeToConvert, ImportStatus()))((element, converter) => {
+        val (updatedNodeToConvert, importStatus) = element
+        converter.convert(updatedNodeToConvert, importStatus)
       })
   }
 }
