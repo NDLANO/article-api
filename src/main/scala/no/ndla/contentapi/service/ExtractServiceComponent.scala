@@ -1,7 +1,7 @@
 package no.ndla.contentapi.service
 
-import no.ndla.contentapi.integration._
 import no.ndla.contentapi.model.ContentInformation
+import no.ndla.contentapi.integration._
 
 trait ExtractServiceComponent {
   this: CMDataComponent =>
@@ -9,7 +9,7 @@ trait ExtractServiceComponent {
   val extractService: ExtractService
 
   class ExtractService {
-    def importNode(nodeId: String): ContentInformation = cmData.getNode(nodeId)
+    def importNode(nodeId: String): NodeToConvert = cmData.getNode(nodeId)
     def getNodeType(nodeId: String): Option[String] = cmData.getNodeType(nodeId)
     def getNodeEmbedData(nodeId: String): Option[(String, String)] = cmData.getNodeEmbedData(nodeId)
     def getNodeFagstoff(nodeId: String): Seq[ContentFagstoff] = {
@@ -32,6 +32,18 @@ trait ExtractServiceComponent {
       }
     }
     def getAudioMeta(nodeId: String): Option[AudioMeta] = cmData.getAudioMeta(nodeId)
+
+    def getNodeAktualitet(nodeId: String): Seq[ContentAktualitet] = {
+      val aktualitets = cmData.getNodeAktualitet(nodeId)
+
+      // make sure to return the aktualitet along with all its translations
+      aktualitets.exists {x => x.isMainNode} match {
+        case true => aktualitets
+        case false => if (aktualitets.nonEmpty) cmData.getNodeAktualitet(aktualitets(0).tnid) else aktualitets
+      }
+    }
+
+    def getNodeIngress(nodeId: String): Option[NodeIngress] = cmData.getNodeIngress(nodeId)
 
     def getBiblio(nodeId: String): Option[Biblio] = cmData.getBiblio(nodeId)
     def getBiblioAuthors(nodeId: String): Seq[BiblioAuthor] = cmData.getBiblioAuthors(nodeId)

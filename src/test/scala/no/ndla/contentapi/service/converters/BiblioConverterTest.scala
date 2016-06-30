@@ -13,7 +13,7 @@ class BiblioConverterTest extends UnitSuite with TestEnvironment {
   val sampleBiblioAuthors = Seq(BiblioAuthor("J. D. Salinger", "Salinger", "Jerome David"))
 
   test("That BiblioConverter initializes empty references and generates a reference list at the end of the document") {
-    val initialContent = LanguageContent(s"""<article><a id="biblio-$nodeId"></a><h1>CONTENT</h1>more content</article>""", Some("en"))
+    val initialContent = LanguageContent(nodeId, nodeId, s"""<article><a id="biblio-$nodeId"></a><h1>CONTENT</h1>more content</article>""", Some("en"))
     val expectedResult =
       s"""<article>
          | <a id=\"reference_1\" href=\"#reference_list-$nodeId\">1</a>
