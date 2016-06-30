@@ -1,7 +1,9 @@
 package no.ndla.contentapi.service
 
 import no.ndla.contentapi.ContentApiProperties.maxConvertionRounds
+import no.ndla.contentapi.integration.NodeToConvert
 import no.ndla.contentapi.model.{ContentInformation, ImportStatus}
+
 import scala.annotation.tailrec
 
 trait ConverterServiceComponent {
@@ -9,28 +11,28 @@ trait ConverterServiceComponent {
   val converterService: ConverterService
 
   class ConverterService {
-    def convertNode(contentInformation: ContentInformation): (ContentInformation, ImportStatus) = {
-      @tailrec def convertNode(contentInformation: ContentInformation, maxRoundsLeft: Int, importStatus: ImportStatus = ImportStatus()): (ContentInformation, ImportStatus) = {
+    def convertNode(nodeToConvert: NodeToConvert): (ContentInformation, ImportStatus) = {
+      @tailrec def convertNode(nodeToConvert: NodeToConvert, maxRoundsLeft: Int, importStatus: ImportStatus = ImportStatus()): (ContentInformation, ImportStatus) = {
         if (maxRoundsLeft == 0)
-          return (contentInformation, importStatus)
+          return (nodeToConvert.asContentInformation, importStatus)
 
-        val (updatedContent, updatedStatus) = convert(contentInformation)
+        val (updatedContent, updatedStatus) = convert(nodeToConvert)
 
         // If this converting round did not yield any changes to the content, this node is finished (case true)
         // If changes were made during this convertion, we run the converters again (case false)
-        updatedContent == contentInformation match {
-          case true => (updatedContent, ImportStatus(importStatus.messages ++ updatedStatus.messages))
+        updatedContent == nodeToConvert match {
+          case true => (updatedContent.asContentInformation, ImportStatus(importStatus.messages ++ updatedStatus.messages))
           case false => convertNode(updatedContent, maxRoundsLeft - 1, ImportStatus(importStatus.messages ++ updatedStatus.messages))
         }
       }
 
-      convertNode(contentInformation, maxConvertionRounds)
+      convertNode(nodeToConvert, maxConvertionRounds)
     }
 
-    private def convert(contentInformation: ContentInformation): (ContentInformation, ImportStatus) =
-      converterModules.foldLeft((contentInformation, ImportStatus()))((element, converter) => {
-        val (contentInformation, importStatus) = element
-        converter.convert(contentInformation, importStatus)
+    private def convert(nodeToConvert: NodeToConvert): (NodeToConvert, ImportStatus) =
+      converterModules.foldLeft((nodeToConvert, ImportStatus()))((element, converter) => {
+        val (updatedNodeToConvert, importStatus) = element
+        converter.convert(updatedNodeToConvert, importStatus)
       })
   }
 }

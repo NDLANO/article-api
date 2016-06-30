@@ -41,25 +41,38 @@ trait CMDataComponent {
     cmDatasource.setUser(user)
     cmDatasource.setUrl(s"jdbc:mysql://$host:$port/$database")
 
-    val connectionPool = new DataSourceConnectionPool(cmDatasource)
-    ConnectionPool.add('cm, connectionPool)
+    ConnectionPool.add('cm, new DataSourceConnectionPool(cmDatasource))
 
-    def getNode(nodeId: String): ContentInformation = {
-      val (titles, contents) = getNodeMeta(nodeId)
+    def getNode(nodeId: String): NodeToConvert = {
+      val (contents, titles) = getNodeContent(nodeId)
       val authors = getNodeAuthors(nodeId)
       val license = License(license=getNodeCopyrightLicence(nodeId).getOrElse(""), "", Some(""))
       val copyright = Copyright(license, "", authors)
-      val requiredLibraries = List(RequiredLibrary("", "", ""))
-      ContentInformation("0", titles, contents, copyright, Tags.forContent(nodeId), requiredLibraries)
+
+      NodeToConvert(titles, contents, copyright, Tags.forContent(nodeId))
     }
 
     def getNodeGeneralContent(nodeId: String): Seq[NodeGeneralContent] = {
       NamedDB('cm) readOnly { implicit session =>
         sql"""
-           select n.nid, n.vid, n.tnid, n.language, v.title, v.body from node n
-           left join node_revisions v on (v.vid=n.vid and v.nid = n.nid)
-           where n.nid=$nodeId or n.tnid=$nodeId
+          select n.nid, n.tnid, n.language, v.title, v.body from node n
+            left join node_revisions v on (v.nid = n.nid and v.vid=n.vid)
+            where n.nid=${nodeId} or n.tnid=${nodeId}
           """.stripMargin.map(rs => NodeGeneralContent(rs.string("nid"), rs.string("tnid"), rs.string("title"), rs.string("body"), rs.string("language"))).list.apply()
+      }
+    }
+
+    def getNodeContent(nodeId: String): (Seq[LanguageContent], Seq[ContentTitle]) = {
+      val res = getNodeGeneralContent(nodeId)
+
+      res.exists {x => x.isMainNode} match {
+        case true => res.map(rs => (rs.asLanguageContent, rs.asContentTitle)).unzip
+        case false => {
+          if (res.nonEmpty)
+            getNodeGeneralContent(res.head.tnid).map(rs => (rs.asLanguageContent, rs.asContentTitle)).unzip
+          else
+            (Seq(), Seq())
+        }
       }
     }
 
@@ -71,6 +84,9 @@ trait CMDataComponent {
 
     def getNodeOppgave(nodeId: String): Seq[ContentOppgave] =
       getNodeGeneralContent(nodeId).map(x => x.asContentOppgave)
+
+    def getNodeAktualitet(nodeId: String): Seq[ContentAktualitet] =
+      getNodeGeneralContent(nodeId).map(x => x.asContentAktualitet)
 
     def getNodeAuthors(nodeId: String): List[Author] = {
       val result = NamedDB('cm) readOnly { implicit session =>
@@ -151,14 +167,38 @@ trait CMDataComponent {
             rs.string("filesize"))).single.apply()
       }
     }
+
+    def getNodeIngress(nodeId: String): Option[NodeIngress] = {
+      NamedDB('cm) readOnly { implicit session =>
+        sql"""
+           select n.nid, ing_bilde.field_ingress_bilde_nid as bilde_ing, ing.field_ingress_value as ingress, ing_side.field_ingressvispaasiden_value from node n
+           left join content_field_ingress ing on (ing.nid = n.nid and ing.vid = n.vid)
+           left join content_field_ingress_bilde ing_bilde on (ing_bilde.nid = n.nid and ing_bilde.vid = n.vid)
+           left join content_field_ingressvispaasiden ing_side on (ing_side.nid = n.nid and ing_side.vid = n.vid)
+           where n.nid=$nodeId
+          """.map(rs => NodeIngress(rs.string("nid"), rs.string("ingress"), rs.stringOpt("bilde_ing"), rs.int("field_ingressvispaasiden_value"))).single.apply()
+      }
+    }
   }
 }
 
 case class NodeGeneralContent(nid: String, tnid: String, title: String, content: String, language: String) {
+  def isMainNode = (nid == tnid || tnid == "0")
+  def isTranslation = !isMainNode
+
   def asContentTitle = ContentTitle(title, Some(language))
   def asContent = Content(content, Some(language))
   def asContentFagstoff = ContentFagstoff(nid, tnid, title, content, language)
   def asContentOppgave =  ContentOppgave(nid, tnid, title, content, language)
+  def asContentAktualitet = ContentAktualitet(nid, tnid, title, content, language)
+  def asLanguageContent = LanguageContent(nid, tnid, content, Some(language))
+}
+
+case class NodeToConvert(titles: Seq[ContentTitle], contents: Seq[LanguageContent], copyright: Copyright, tags: Seq[ContentTag]) {
+  def asContentInformation: ContentInformation = {
+    val requiredLibraries = contents.flatMap(_.requiredLibraries).distinct
+    ContentInformation("0", titles, contents.map(_.asContent), copyright, tags, requiredLibraries)
+  }
 }
 
 case class ContentFagstoff(nid: String, tnid: String, title: String, fagstoff: String, language: String) {
@@ -171,4 +211,13 @@ case class ContentOppgave(nid: String, tnid: String, title: String, content: Str
   def isTranslation = !isMainNode
 }
 
+case class ContentAktualitet(nid: String, tnid: String, title: String, aktualitet: String, language: String) {
+  def isMainNode = (nid == tnid || tnid == "0")
+  def isTranslation = !isMainNode
+}
+
+case class AudioMeta(nodeId: String, title: String, playTime: String, format: String, mimetype: String, fileSize: String, filename: String, url: String)
+
 case class ContentFilMeta(nid: String, tnid: String, title: String, fileName: String, url: String, mimeType: String, fileSize: String)
+
+case class NodeIngress(nid: String, content: String, imageNid: Option[String], ingressVisPaaSiden: Int)
