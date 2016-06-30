@@ -3,7 +3,7 @@ package no.ndla.contentapi.service.converters.contentbrowser
 import no.ndla.contentapi.TestEnvironment
 import no.ndla.contentapi.model.{Author, Copyright, License}
 import no.ndla.contentapi.service._
-import no.ndla.learningpathapi.UnitSuite
+import no.ndla.contentapi.UnitSuite
 import org.mockito.Mockito._
 
 class ImageConverterTest extends UnitSuite with TestEnvironment {

@@ -1,7 +1,8 @@
 package no.ndla.contentapi.service.converters.contentbrowser
 
 import no.ndla.contentapi.TestEnvironment
-import no.ndla.learningpathapi.UnitSuite
+import no.ndla.contentapi.UnitSuite
+import no.ndla.contentapi.ContentApiProperties.{NDLABrightcoveAccountId, NDLABrightcovePlayerId}
 
 class VideoConverterTest extends UnitSuite with TestEnvironment {
   val nodeId = "1234"
@@ -10,18 +11,8 @@ class VideoConverterTest extends UnitSuite with TestEnvironment {
 
   test("That VideoConverter converts a ContentBrowser to html code") {
     val content = ContentBrowser(contentString)
-    val expectedResult = s"""<div style="display: block; position: relative; max-width: 100%;">
-                           | <div style="padding-top: 56.25%;">
-                           | <video
-                           | data-video-id="ref:$nodeId"
-                           | data-account="4806596774001"
-                           | data-player="BkLm8fT"
-                           | data-embed="default"
-                           | class="video-js"
-                           | controls
-                           | style="width: 100%; height: 100%; position: absolute; top: 0px; bottom: 0px; right: 0px; left: 0px;">
-                           | </video>
-                           | </div></div>""".stripMargin.replace("\n", "")
+    val expectedResult = s"""<figure data-resource="brightcove" data-id="ref:${content.get("nid")}" data-account="$NDLABrightcoveAccountId" data-player="$NDLABrightcovePlayerId"></figure>"""
+
     val (result, requiredLibraries, messages) = VideoConverter.convert(content)
     val strippedResult = " +".r.replaceAllIn(result, " ")
     strippedResult.replace("\n", "") should equal(expectedResult)

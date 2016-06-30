@@ -2,7 +2,7 @@ package no.ndla.contentapi.service.converters.contentbrowser
 
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.contentapi.model.RequiredLibrary
-
+import no.ndla.contentapi.ContentApiProperties.{NDLABrightcoveAccountId, NDLABrightcovePlayerId}
 
 trait VideoConverterModule {
 
@@ -10,23 +10,12 @@ trait VideoConverterModule {
     override val typeName: String = "video"
 
     override def convert(content: ContentBrowser): (String, List[RequiredLibrary], List[String]) = {
-      val requiredLibrary = RequiredLibrary("text/javascript", "Brightcove video", "http://players.brightcove.net/4806596774001/BkLm8fT_default/index.min.js")
-      val embedVideo = s"""<div style="display: block; position: relative; max-width: 100%;">
-             <div style="padding-top: 56.25%;">
-               <video
-                 data-video-id="ref:${content.get("nid")}"
-                 data-account="4806596774001"
-                 data-player="BkLm8fT"
-                 data-embed="default"
-                 class="video-js"
-                 controls
-                 style="width: 100%; height: 100%; position: absolute; top: 0px; bottom: 0px; right: 0px; left: 0px;">
-               </video>
-             </div></div>"""
+      val requiredLibrary = RequiredLibrary("text/javascript", "Brightcove video", s"http://players.brightcove.net/$NDLABrightcoveAccountId/${NDLABrightcovePlayerId}_default/index.min.js")
+      val embedVideoMeta = s"""<figure data-resource="brightcove" data-id="ref:${content.get("nid")}" data-account="$NDLABrightcoveAccountId" data-player="$NDLABrightcovePlayerId"></figure>"""
 
       val errorMsg = s"Added video with nid ${content.get("nid")}"
       logger.info(errorMsg)
-      (embedVideo, List(requiredLibrary), List[String](errorMsg))
+      (embedVideoMeta, List(requiredLibrary), List[String](errorMsg))
     }
   }
 }

@@ -1,7 +1,7 @@
 package no.ndla.contentapi.service.converters.contentbrowser
 
 import no.ndla.contentapi.TestEnvironment
-import no.ndla.learningpathapi.UnitSuite
+import no.ndla.contentapi.UnitSuite
 
 
 class ContentBrowserTest extends UnitSuite with TestEnvironment {

@@ -1,7 +1,7 @@
 package no.ndla.contentapi.service.converters
 
 import no.ndla.contentapi.integration.LanguageContent
-import no.ndla.learningpathapi.UnitSuite
+import no.ndla.contentapi.UnitSuite
 
 class SimpleTagConverterTest extends UnitSuite {
   test("That divs with class 'paragraph' are replaced with section") {

@@ -1,12 +1,11 @@
 package no.ndla.contentapi.service.converters.contentbrowser
 
+import no.ndla.contentapi.ContentApiProperties._
 import no.ndla.contentapi.TestEnvironment
 import no.ndla.contentapi.integration.LanguageContent
-import no.ndla.contentapi.model.{Content, Copyright, License}
-import no.ndla.contentapi.service.converters.SimpleTagConverter
+import no.ndla.contentapi.model.{Copyright, License}
 import no.ndla.contentapi.service.{Image, ImageMetaInformation, ImageVariants}
-import no.ndla.learningpathapi.UnitSuite
-import org.jsoup.Jsoup
+import no.ndla.contentapi.UnitSuite
 import org.mockito.Mockito._
 
 class ContentBrowserConverterTest extends UnitSuite with TestEnvironment {
@@ -54,22 +53,12 @@ class ContentBrowserConverterTest extends UnitSuite with TestEnvironment {
 
   test("That Content-browser strings of type video are converted into HTML img tags") {
     val initialContent = LanguageContent(s"<article>$sampleContentString</article>", Some("en"))
-    val expectedResult = s"""<article> <div style="display: block; position: relative; max-width: 100%;">
-                             |  <div style="padding-top: 56.25%;">
-                             |  <video
-                             | data-video-id="ref:$nodeId"
-                             | data-account="4806596774001"
-                             | data-player="BkLm8fT"
-                             | data-embed="default"
-                             | class="video-js"
-                             | controls=""
-                             | style="width: 100%; height: 100%; position: absolute; top: 0px; bottom: 0px; right: 0px; left: 0px;">
-                             |  </video>
-                             |  </div> </div></article>""".stripMargin.replace("\n", "")
+    val expectedResult = s"""<article> <figure data-resource="brightcove" data-id="ref:$nodeId" data-account="$NDLABrightcoveAccountId" data-player="$NDLABrightcovePlayerId"></figure></article>"""
+
 
     when(extractService.getNodeType(nodeId)).thenReturn((Some("video")))
     val (result, status) = contentBrowserConverter.convert(initialContent)
-    val strippedResult = " +".r.replaceAllIn(result.content, " ")
+    val strippedResult = " +".r.replaceAllIn(result.content.replace("\n", ""), " ")
 
     strippedResult.replace("\n", "") should equal (expectedResult)
     result.requiredLibraries.length should equal (1)

@@ -3,7 +3,7 @@ package no.ndla.contentapi.service
 import com.sksamuel.elastic4s.testkit.ElasticSugar
 import no.ndla.contentapi.TestEnvironment
 import no.ndla.contentapi.model._
-import no.ndla.learningpathapi.UnitSuite
+import no.ndla.contentapi.UnitSuite
 
 
 class ElasticContentSearchTest extends UnitSuite with TestEnvironment with ElasticSugar {

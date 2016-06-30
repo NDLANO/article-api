@@ -15,6 +15,9 @@ object ContentApiProperties extends LazyLogging {
 
   val ApplicationPort = 80
 
+  val NDLABrightcoveAccountId = "4806596774001"
+  val NDLABrightcovePlayerId = "BkLm8fT"
+
   lazy val ContactEmail = get("CONTACT_EMAIL")
   lazy val HostAddr = get("HOST_ADDR")
   lazy val Domains = get("DOMAINS").split(",") ++ Array(HostAddr)
