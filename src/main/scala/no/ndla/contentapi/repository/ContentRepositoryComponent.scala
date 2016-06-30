@@ -2,7 +2,6 @@ package no.ndla.contentapi.repository
 
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.contentapi.ContentApiProperties
-import no.ndla.contentapi.business.ContentData
 import no.ndla.contentapi.integration.DataSourceComponent
 import no.ndla.contentapi.model.{ContentInformation, ContentSummary}
 import org.postgresql.util.PGobject
@@ -13,11 +12,11 @@ trait ContentRepositoryComponent {
   this: DataSourceComponent =>
   val contentRepository: ContentRepository
 
-  class ContentRepository extends ContentData with LazyLogging {
+  class ContentRepository extends LazyLogging {
 
     ConnectionPool.singleton(new DataSourceConnectionPool(dataSource))
 
-    override def insert(contentInformation: ContentInformation, externalId: String) = {
+    def insert(contentInformation: ContentInformation, externalId: String)(implicit session: DBSession = AutoSession): Long = {
       import org.json4s.native.Serialization.write
       implicit val formats = org.json4s.DefaultFormats
 
@@ -26,14 +25,13 @@ trait ContentRepositoryComponent {
       dataObject.setType("jsonb")
       dataObject.setValue(json)
 
-      DB localTx { implicit session =>
-        sql"insert into contentdata(external_id, document) values(${externalId}, ${dataObject})".update.apply
-      }
+      val contentId: Long = sql"insert into contentdata(external_id, document) values(${externalId}, ${dataObject})".updateAndReturnGeneratedKey().apply
 
-      logger.info(s"Inserted ${externalId}")
+      logger.info(s"Inserted node ${externalId}: $contentId")
+      contentId
     }
 
-    override def update(contentInformation: ContentInformation, externalId: String) = {
+    def update(contentInformation: ContentInformation, externalId: String)(implicit session: DBSession = AutoSession): Long = {
       import org.json4s.native.Serialization.write
       implicit val formats = org.json4s.DefaultFormats
 
@@ -42,11 +40,10 @@ trait ContentRepositoryComponent {
       dataObject.setType("jsonb")
       dataObject.setValue(json)
 
-      DB localTx { implicit session =>
-        sql"update contentdata set document = ${dataObject} where external_id = ${externalId}".update.apply
-      }
+      val contentId: Long = sql"update contentdata set document = ${dataObject} where external_id = ${externalId}".updateAndReturnGeneratedKey().apply
 
-      logger.info(s"Updated ${externalId}")
+      logger.info(s"Updated node ${externalId}: $contentId")
+      contentId
     }
 
     def minMaxId: (Long, Long) = {
@@ -60,7 +57,7 @@ trait ContentRepositoryComponent {
       }
     }
 
-    override def applyToAll(func: (List[ContentInformation]) => Unit): Unit = {
+    def applyToAll(func: (List[ContentInformation]) => Unit): Unit = {
       val (minId, maxId) = minMaxId
       val groupRanges = Seq.range(minId, maxId + 1).grouped(ContentApiProperties.IndexBulkSize).map(group => (group.head, group.last))
 
@@ -75,13 +72,13 @@ trait ContentRepositoryComponent {
       }
     }
 
-    override def all: List[ContentSummary] = {
+    def all: List[ContentSummary] = {
       DB readOnly { implicit session =>
         sql"select id, document from contentdata limit 100".map(rs => asContentSummary(rs.long("id"), rs.string("document"))).list().apply()
       }
     }
 
-    override def withId(contentId: String): Option[ContentInformation] = {
+    def withId(contentId: String): Option[ContentInformation] = {
       DB readOnly { implicit session =>
         sql"select document from contentdata where id = ${contentId.toInt}".map(rs => rs.string("document")).single.apply match {
           case Some(json) => Option(asContentInformation(contentId, json))
@@ -90,7 +87,7 @@ trait ContentRepositoryComponent {
       }
     }
 
-    override def exists(externalId: String): Boolean = {
+    def exists(externalId: String): Boolean = {
       DB readOnly { implicit session =>
         sql"select exists(select 1 from contentdata where external_id=${externalId})".map(rs => (rs.boolean(1))).single.apply match {
           case Some(t) => t

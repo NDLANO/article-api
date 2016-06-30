@@ -1,14 +1,16 @@
 package no.ndla.contentapi
 
+import com.amazonaws.auth.BasicAWSCredentials
+import com.amazonaws.regions.{Region, Regions}
+import com.amazonaws.services.s3.AmazonS3Client
 import com.sksamuel.elastic4s.{ElasticClient, ElasticsearchClientUri}
-import no.ndla.contentapi.integration.{CMDataComponent, DataSourceComponent, ElasticClientComponent}
+import no.ndla.contentapi.integration.{AmazonClientComponent, CMDataComponent, DataSourceComponent, ElasticClientComponent}
 import no.ndla.contentapi.repository.ContentRepositoryComponent
 import no.ndla.contentapi.service._
-import no.ndla.contentapi.service.converters.{DivTableConverter, SimpleTagConverter}
+import no.ndla.contentapi.service.converters.{DivTableConverter, IngressConverter, SimpleTagConverter}
 import org.elasticsearch.common.settings.Settings
 import no.ndla.contentapi.service.converters.contentbrowser._
 import org.postgresql.ds.PGPoolingDataSource
-
 
 object ComponentRegistry
   extends DataSourceComponent
@@ -24,8 +26,15 @@ object ComponentRegistry
   with ImageConverterModule
   with LenkeConverterModule
   with H5PConverterModule
-  with VideoConverterModule
+  with FagstoffConverterModule
+  with AudioConverterModule
+  with OppgaveConverterModule
+  with AktualitetConverterModule
   with ContentBrowserConverter
+  with VideoConverterModule
+  with AmazonClientComponent
+  with StorageService
+  with IngressConverter
 {
   lazy val dataSource = new PGPoolingDataSource()
   dataSource.setUser(ContentApiProperties.get("META_USER_NAME"))
@@ -45,6 +54,11 @@ object ComponentRegistry
   lazy val elasticContentSearch = new ElasticContentSearch
   lazy val elasticContentIndex = new ElasticContentIndex
 
+  val amazonClient = new AmazonS3Client(new BasicAWSCredentials(ContentApiProperties.StorageAccessKey, ContentApiProperties.StorageSecretKey))
+  amazonClient.setRegion(Region.getRegion(Regions.EU_CENTRAL_1))
+  lazy val storageName = ContentApiProperties.StorageName
+  lazy val storageService = new AmazonStorageService
+
   lazy val CMHost = ContentApiProperties.CMHost
   lazy val CMPort = ContentApiProperties.CMPort
   lazy val CMDatabase = ContentApiProperties.CMDatabase
@@ -58,5 +72,6 @@ object ComponentRegistry
   lazy val imageApiService = new ImageApiService
 
   lazy val contentBrowserConverter = new ContentBrowserConverter
-  lazy val converterModules = List(contentBrowserConverter, DivTableConverter, SimpleTagConverter)
+  lazy val ingressConverter = new IngressConverter
+  lazy val converterModules = List(ingressConverter, contentBrowserConverter, DivTableConverter, SimpleTagConverter)
 }

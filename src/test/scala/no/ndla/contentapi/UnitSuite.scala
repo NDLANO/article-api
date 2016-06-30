@@ -1,6 +1,5 @@
 package no.ndla.contentapi
 
-import no.ndla.contentapi.ContentApiProperties
 import org.scalatest._
 import org.scalatest.mock.MockitoSugar
 
@@ -27,6 +26,9 @@ abstract class UnitSuite extends FunSuite with Matchers with OptionValues with I
     "SEARCH_DOCUMENT" -> Some("learningpath"),
     "SEARCH_DEFAULT_PAGE_SIZE" -> Some(s"$DEFAULT_PAGE_SIZE"),
     "SEARCH_MAX_PAGE_SIZE" -> Some(s"$MAX_PAGE_SIZE"),
-    "INDEX_BULK_SIZE" -> Some("500")
+    "INDEX_BULK_SIZE" -> Some("500"),
+
+    "AMAZON_BASE_URL" -> Some("http://amazon"),
+    "STORAGE_NAME" -> Some("test.storage")
   ))
 }

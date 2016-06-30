@@ -1,15 +1,13 @@
 package no.ndla.contentapi.service.converters.contentbrowser
 
-import no.ndla.contentapi.TestEnvironment
-import no.ndla.contentapi.UnitSuite
-
+import no.ndla.contentapi.{TestEnvironment, UnitSuite}
 
 class ContentBrowserTest extends UnitSuite with TestEnvironment {
   val nodeId = "1234"
   val altText = "Jente som spiser melom. Grønn bakgrunn, rød melon. Fotografi."
   val contentString = s"[contentbrowser ==nid=$nodeId==imagecache=Fullbredde==width===alt=$altText==link===node_link=1==link_type=link_to_content==lightbox_size===remove_fields[76661]=1==remove_fields[76663]=1==remove_fields[76664]=1==remove_fields[76666]=1==insertion===link_title_text= ==link_text= ==text_align===css_class=contentbrowser contentbrowser]"
-  val validContentBrowser = ContentBrowser(contentString)
-  val invalidContentBrowser = ContentBrowser(contentString.substring(1))
+  val validContentBrowser = ContentBrowser(contentString, Some("nb"))
+  val invalidContentBrowser = ContentBrowser(contentString.substring(1), Some("nb"))
 
   test("That isContentBrowserField returns true for a valid contentbrowser string") {
     validContentBrowser.isContentBrowserField() should equal(true)
@@ -21,7 +19,7 @@ class ContentBrowserTest extends UnitSuite with TestEnvironment {
 
   test("That getStartEndIndex returns the correct start and end indexes") {
     validContentBrowser.getStartEndIndex() should equal((0, 382))
-    ContentBrowser("junk junk" + contentString + "also junk").getStartEndIndex() should equal((9, 391))
+    ContentBrowser("junk junk" + contentString + "also junk", Some("nb")).getStartEndIndex() should equal((9, 391))
   }
 
   test("That get returns the associated value if the key exists") {

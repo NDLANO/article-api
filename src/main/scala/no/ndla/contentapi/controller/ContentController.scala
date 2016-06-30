@@ -1,10 +1,9 @@
 package no.ndla.contentapi.controller
 
 import com.typesafe.scalalogging.LazyLogging
-import no.ndla.contentapi.ComponentRegistry
-import no.ndla.contentapi.business.{ContentData, ContentSearch}
 import no.ndla.contentapi.model.Error._
 import no.ndla.contentapi.model.{ContentInformation, ContentSummary, Error}
+import no.ndla.contentapi.ComponentRegistry.{contentRepository, elasticContentSearch}
 import no.ndla.logging.LoggerContext
 import no.ndla.network.ApplicationUrl
 import org.elasticsearch.index.IndexNotFoundException
@@ -64,9 +63,6 @@ class ContentController (implicit val swagger:Swagger) extends ScalatraServlet w
       halt(status = 500, body = Error.GenericError)
   }
 
-  val contentRepository: ContentData = ComponentRegistry.contentRepository
-  val contentSearch: ContentSearch = ComponentRegistry.elasticContentSearch
-
   get("/", operation(getAllContent)) {
     val query = params.get("query")
     val language = params.get("language")
@@ -76,14 +72,14 @@ class ContentController (implicit val swagger:Swagger) extends ScalatraServlet w
     logger.info("GET / with params query='{}', language={}, license={}, page={}, page-size={}", query, language, license, page, pageSize)
 
     query match {
-      case Some(query) => contentSearch.matchingQuery(
+      case Some(query) => elasticContentSearch.matchingQuery(
         query = query.toLowerCase().split(" ").map(_.trim),
         language = language,
         license = license,
         page = page,
         pageSize = pageSize)
 
-      case None => contentSearch.all(license = license, page = page, pageSize = pageSize)
+      case None => elasticContentSearch.all(license = license, page = page, pageSize = pageSize)
     }
   }
 
