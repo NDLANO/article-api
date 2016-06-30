@@ -13,6 +13,7 @@ trait LenkeConverterModule {
 
     override def convert(content: ContentBrowser): (String, Seq[RequiredLibrary], Seq[String]) = {
       val (replacement, errors) = convertLink(content)
+      logger.info(s"Converting lenke with nid ${content.get("nid")}")
       (replacement, List[RequiredLibrary](), errors)
     }
 
@@ -29,14 +30,15 @@ trait LenkeConverterModule {
         case _ =>
       }
 
-      val converted = cont.get("insertion") match {
+      val insertionMethod = cont.get("insertion")
+      val converted = insertionMethod match {
         case "inline" => {
           // TODO: embed code from NDLAs DB is only used here for demo purposes. Should be switched out with a proper alternative
           embedCode
         }
         case "link" | "lightbox_large" => s"""<a href="$url" title="${cont.get("link_title_text")}">${cont.get("link_text")}</a>"""
         case _ => {
-          val message = s"""Unhandled fagstoff insertion method '${_}' on '${cont.get("link_text")}'. Defaulting to link."""
+          val message = s"""Unhandled fagstoff insertion method '$insertionMethod' on '${cont.get("link_text")}'. Defaulting to link."""
           logger.warn(message)
           errors = errors :+ message
           s"""<a href="$url" title="${cont.get("link_title_text")}">${cont.get("link_text")}</a>"""

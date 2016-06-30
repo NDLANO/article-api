@@ -16,6 +16,8 @@ trait AktualitetConverterModule {
       val requiredLibraries = List[RequiredLibrary]()
       val aktualitet = extractService.getNodeAktualitet(nodeId)
 
+      logger.info(s"Converting aktualitet with nid $nodeId")
+
       aktualitet.find(x => x.language == content.language.getOrElse("")) match {
         case Some(aktualitet) => {
           val (finalAktualitet, messages) = insertAktualitet(aktualitet.aktualitet, content)

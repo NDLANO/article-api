@@ -17,6 +17,8 @@ trait AudioConverterModule  {
       val nodeId = content.get("nid")
       val audioMeta = extractService.getAudioMeta(nodeId)
 
+      logger.info(s"Converting audio with nid $nodeId")
+
       audioMeta match {
         case Some(audio) => {
           val filepath = storageService.uploadAudiofromUrl(nodeId, audio)
