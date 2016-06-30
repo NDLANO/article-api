@@ -3,7 +3,6 @@ package no.ndla.contentapi.service.converters.contentbrowser
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.contentapi.integration.{ConverterModule, LanguageContent}
 import no.ndla.contentapi.model.{ImportStatus, RequiredLibrary}
-import no.ndla.contentapi.service.ExtractServiceComponent
 
 trait ContentBrowserConverter {
   this: ContentBrowserConverterModules =>
@@ -16,6 +15,8 @@ trait ContentBrowserConverter {
       LenkeConverter.typeName -> LenkeConverter,
       OppgaveConverter.typeName -> OppgaveConverter,
       FagstoffConverter.typeName -> FagstoffConverter,
+      AudioConverter.typeName -> AudioConverter,
+      AktualitetConverter.typeName -> AktualitetConverter,
       NonExistentNodeConverter.typeName -> NonExistentNodeConverter)
 
     def convert(content: LanguageContent): (LanguageContent, ImportStatus) = {
