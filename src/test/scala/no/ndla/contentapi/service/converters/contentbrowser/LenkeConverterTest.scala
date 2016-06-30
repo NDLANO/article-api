@@ -7,14 +7,15 @@ class LenkeConverterTest extends UnitSuite with TestEnvironment {
   val nodeId = "1234"
   val altText = "Jente som spiser melom. Grønn bakgrunn, rød melon. Fotografi."
   val contentString = s"[contentbrowser ==nid=$nodeId==imagecache=Fullbredde==width===alt=$altText==link===node_link=1==link_type=link_to_content==lightbox_size===remove_fields[76661]=1==remove_fields[76663]=1==remove_fields[76664]=1==remove_fields[76666]=1==insertion===link_title_text= ==link_text= ==text_align===css_class=contentbrowser contentbrowser]"
-  val (linkUrl, linkEmbedCode) = ("https://www.youtube.com/watch?v=1qN72LEQnaU", """<iframe src="https://www.youtube.com/embed/1qN72LEQnaU?feature=oembed"></iframe>""")
+  val linkUrl = "https://www.youtube.com/watch?v=1qN72LEQnaU"
+  val linkEmbedCode = s"""<figure data-resource="external" data-url="$linkUrl"></figure>"""
 
   test("That LenkeConverter returns an embed code if insertion method is 'inline'") {
     val insertion = "inline"
     val contentString = s"[contentbrowser ==nid=$nodeId==imagecache=Fullbredde==width===alt=$altText==link===node_link=1==link_type=link_to_content==lightbox_size===remove_fields[76661]=1==remove_fields[76663]=1==remove_fields[76664]=1==remove_fields[76666]=1==insertion=$insertion==link_title_text= ==link_text= ==text_align===css_class=contentbrowser contentbrowser]"
     val content = ContentBrowser(contentString, Some("nb"))
 
-    when(extractService.getNodeEmbedData(nodeId)).thenReturn(Some((linkUrl, linkEmbedCode)))
+    when(extractService.getNodeEmbedData(nodeId)).thenReturn(Some(linkUrl))
 
     val (result, requiredLibraries, errors) = LenkeConverter.convert(content)
     result should equal(linkEmbedCode)
@@ -28,7 +29,7 @@ class LenkeConverterTest extends UnitSuite with TestEnvironment {
     val content = ContentBrowser(contentString, Some("nb"))
     val expectedResult = "<a href=\"https://www.youtube.com/watch?v=1qN72LEQnaU\" title=\" \"> </a>"
 
-    when(extractService.getNodeEmbedData(nodeId)).thenReturn(Some((linkUrl, linkEmbedCode)))
+    when(extractService.getNodeEmbedData(nodeId)).thenReturn(Some(linkUrl))
     val (result, requiredLibraries, errors) = LenkeConverter.convert(content)
     result should equal(expectedResult)
     requiredLibraries.length should equal(0)
@@ -41,7 +42,7 @@ class LenkeConverterTest extends UnitSuite with TestEnvironment {
     val content = ContentBrowser(contentString, Some("nb"))
     val expectedResult = "<a href=\"https://www.youtube.com/watch?v=1qN72LEQnaU\" title=\" \"> </a>"
 
-    when(extractService.getNodeEmbedData(nodeId)).thenReturn(Some((linkUrl, linkEmbedCode)))
+    when(extractService.getNodeEmbedData(nodeId)).thenReturn(Some(linkUrl))
     val (result, requiredLibraries, errors) = LenkeConverter.convert(content)
     result should equal(expectedResult)
     requiredLibraries.length should equal(0)
@@ -54,7 +55,7 @@ class LenkeConverterTest extends UnitSuite with TestEnvironment {
     val content = ContentBrowser(contentString, Some("nb"))
     val expectedResult = s"<details><summary>${content.get("link_text")}</summary>$linkEmbedCode</details>"
 
-    when(extractService.getNodeEmbedData(nodeId)).thenReturn(Some((linkUrl, linkEmbedCode)))
+    when(extractService.getNodeEmbedData(nodeId)).thenReturn(Some(linkUrl))
     val (result, requiredLibraries, errors) = LenkeConverter.convert(content)
 
     result should equal(expectedResult)

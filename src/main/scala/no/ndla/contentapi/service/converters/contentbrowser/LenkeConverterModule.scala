@@ -18,7 +18,7 @@ trait LenkeConverterModule {
 
     def convertLink(cont: ContentBrowser): (String, Seq[String]) = {
       var errors = Seq[String]()
-      val (url, embedCode) = extractService.getNodeEmbedData(cont.get("nid")).get
+      val url = extractService.getNodeEmbedData(cont.get("nid")).get
       val NDLAPattern = """.*(ndla.no).*""".r
 
       url.host match {
@@ -29,15 +29,13 @@ trait LenkeConverterModule {
         case _ =>
       }
 
+      val embedMeta = s"""<figure data-resource="external" data-url="$url"></figure>"""
+
       val converted = cont.get("insertion") match {
-        case "inline" => {
-          // TODO: embed code from NDLAs DB is only used here for demo purposes. Should be switched out with a proper alternative
-          embedCode
-        }
-        case "link" | "lightbox_large" => s"""<a href="${url}" title="${cont.get("link_title_text")}">${cont.get("link_text")}</a>"""
+        case "inline" => embedMeta
+        case "link" | "lightbox_large" => s"""<a href="$url" title="${cont.get("link_title_text")}">${cont.get("link_text")}</a>"""
         case "collapsed_body" => {
-          // TODO: embed code from NDLAs DB is only used here for demo purposes. Should be switched out with a proper alternative
-          s"<details><summary>${cont.get("link_text")}</summary>$embedCode</details>"
+          s"<details><summary>${cont.get("link_text")}</summary>$embedMeta</details>"
         }
       }
       (converted, errors)
