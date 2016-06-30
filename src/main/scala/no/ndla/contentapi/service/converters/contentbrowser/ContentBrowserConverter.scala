@@ -17,7 +17,8 @@ trait ContentBrowserConverter {
       FagstoffConverter.typeName -> FagstoffConverter,
       AudioConverter.typeName -> AudioConverter,
       AktualitetConverter.typeName -> AktualitetConverter,
-      NonExistentNodeConverter.typeName -> NonExistentNodeConverter)
+      NonExistentNodeConverter.typeName -> NonExistentNodeConverter,
+      VideoConverter.typeName -> VideoConverter)
 
     def convert(content: LanguageContent): (LanguageContent, ImportStatus) = {
       val element = stringToJsoupDocument(content.content)

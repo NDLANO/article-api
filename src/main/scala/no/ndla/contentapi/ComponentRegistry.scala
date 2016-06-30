@@ -25,6 +25,7 @@ object ComponentRegistry
   with ImageApiServiceComponent
   with ContentBrowserConverterModules
   with ContentBrowserConverter
+  with VideoConverterModule
   with AmazonClientComponent
   with StorageService
   with IngressConverter

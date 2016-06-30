@@ -25,10 +25,10 @@ trait TestEnvironment
   with ConverterServiceComponent
   with ContentBrowserConverterModules
   with ContentBrowserConverter
+  with IngressConverter
   with ImageApiServiceComponent
   with AmazonClientComponent
   with StorageService
-  with IngressConverter
 {
   val elasticClient = mock[ElasticClient]
   val elasticContentSearch = mock[ElasticContentSearch]
