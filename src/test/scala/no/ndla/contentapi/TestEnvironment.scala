@@ -29,6 +29,7 @@ trait TestEnvironment
   with AktualitetConverterModule
   with OppgaveConverterModule
   with FagstoffConverterModule
+  with VeiledningConverterModule
   with AudioConverterModule
   with ContentBrowserConverter
   with IngressConverter

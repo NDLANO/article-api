@@ -30,6 +30,7 @@ object ComponentRegistry
   with AudioConverterModule
   with OppgaveConverterModule
   with AktualitetConverterModule
+  with VeiledningConverterModule
   with ContentBrowserConverter
   with AmazonClientComponent
   with StorageService

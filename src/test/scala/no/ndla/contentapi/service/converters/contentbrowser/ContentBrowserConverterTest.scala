@@ -2,7 +2,7 @@ package no.ndla.contentapi.service.converters.contentbrowser
 
 import no.ndla.contentapi.{TestEnvironment, UnitSuite}
 import no.ndla.contentapi.model.{Copyright, License}
-import no.ndla.contentapi.integration.{ContentOppgave, ContentFagstoff, LanguageContent}
+import no.ndla.contentapi.integration.{NodeGeneralContent, LanguageContent}
 import no.ndla.contentapi.service.{Image, ImageMetaInformation, ImageVariants}
 import org.mockito.Mockito._
 
@@ -53,11 +53,11 @@ class ContentBrowserConverterTest extends UnitSuite with TestEnvironment {
     val initialContent = LanguageContent(nodeId, nodeId, s"<article>$sampleContentString</article>", Some("no"))
     val contentTitle = "Oppgave title"
     val content = """<div class="paragraph">   Very important oppgave text  </div>"""
-    val oppgave = ContentOppgave(nodeId, nodeId, contentTitle, content, "no")
+    val oppgave = NodeGeneralContent(nodeId, nodeId, contentTitle, content, "no")
     val expectedResult = s"""<article> $content</article>"""
 
     when(extractService.getNodeType(nodeId)).thenReturn(Some("oppgave"))
-    when(extractService.getNodeOppgave(nodeId)).thenReturn(List(oppgave))
+    when(extractService.getNodeGeneralContent(nodeId)).thenReturn(List(oppgave))
     val (result, status) = contentBrowserConverter.convert(initialContent)
 
     result.content.replace("\n", "") should equal (expectedResult)
@@ -68,11 +68,11 @@ class ContentBrowserConverterTest extends UnitSuite with TestEnvironment {
     val initialContent = LanguageContent(nodeId, nodeId, s"<article>$sampleContentString</article>", Some("no"))
     val contentTitle = "Fasgtoff title"
     val content = """<div class="paragraph">   Very important fagstoff text  </div>"""
-    val oppgave = ContentFagstoff(nodeId, nodeId, contentTitle, content, "no")
+    val oppgave = NodeGeneralContent(nodeId, nodeId, contentTitle, content, "no")
     val expectedResult = s"""<article> $content</article>"""
 
     when(extractService.getNodeType(nodeId)).thenReturn(Some("fagstoff"))
-    when(extractService.getNodeFagstoff(nodeId)).thenReturn(List(oppgave))
+    when(extractService.getNodeGeneralContent(nodeId)).thenReturn(List(oppgave))
     val (result, status) = contentBrowserConverter.convert(initialContent)
 
     result.content.replace("\n", "") should equal (expectedResult)
@@ -82,11 +82,25 @@ class ContentBrowserConverterTest extends UnitSuite with TestEnvironment {
     val initialContent = LanguageContent(nodeId, nodeId, s"<article>$sampleContentString</article>", Some("no"))
     val contentTitle = "Aktualitet title"
     val content = """<div class="paragraph">   Very important aktualitet text  </div>"""
-    val oppgave = ContentFagstoff(nodeId, nodeId, contentTitle, content, "no")
+    val oppgave = NodeGeneralContent(nodeId, nodeId, contentTitle, content, "no")
     val expectedResult = s"""<article> $content</article>"""
 
-    when(extractService.getNodeType(nodeId)).thenReturn(Some("fagstoff"))
-    when(extractService.getNodeFagstoff(nodeId)).thenReturn(List(oppgave))
+    when(extractService.getNodeType(nodeId)).thenReturn(Some("aktualitet"))
+    when(extractService.getNodeGeneralContent(nodeId)).thenReturn(List(oppgave))
+    val (result, status) = contentBrowserConverter.convert(initialContent)
+
+    result.content.replace("\n", "") should equal (expectedResult)
+  }
+
+  test("That Content-browser strings of type veiledning are converted into content") {
+    val initialContent = LanguageContent(nodeId, nodeId, s"<article>$sampleContentString</article>", Some("no"))
+    val contentTitle = "Veiledning title"
+    val content = """<div class="paragraph">   Very important veiledning text  </div>"""
+    val oppgave = NodeGeneralContent(nodeId, nodeId, contentTitle, content, "no")
+    val expectedResult = s"""<article> $content</article>"""
+
+    when(extractService.getNodeType(nodeId)).thenReturn(Some("veiledning"))
+    when(extractService.getNodeGeneralContent(nodeId)).thenReturn(List(oppgave))
     val (result, status) = contentBrowserConverter.convert(initialContent)
 
     result.content.replace("\n", "") should equal (expectedResult)
