@@ -3,7 +3,7 @@ package no.ndla.contentapi.integration
 import com.mysql.jdbc.jdbc2.optional.MysqlConnectionPoolDataSource
 import no.ndla.contentapi.model._
 import no.ndla.contentapi.service.Tags
-import no.ndla.contentapi.ContentApiProperties.audioBaseHost
+import no.ndla.contentapi.ContentApiProperties.ndlaBaseHost
 import scalikejdbc.{ConnectionPool, DataSourceConnectionPool, NamedDB, _}
 
 /**
@@ -147,7 +147,7 @@ trait CMDataComponent {
           rs.string("filemime"),
           rs.string("filesize"),
           rs.string("filename"),
-          audioBaseHost + rs.string("filepath"))).single.apply()
+          ndlaBaseHost + rs.string("filepath"))).single.apply()
       }
     }
 

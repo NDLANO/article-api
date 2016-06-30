@@ -23,17 +23,11 @@ trait TestEnvironment
   with ExtractServiceComponent
   with ConverterModules
   with ConverterServiceComponent
-  with ImageConverterModule
-  with LenkeConverterModule
-  with H5PConverterModule
-  with AktualitetConverterModule
-  with OppgaveConverterModule
-  with FagstoffConverterModule
-  with AudioConverterModule
-  with BiblioConverterModule
-  with BiblioConverter
+  with ContentBrowserConverterModules
   with ContentBrowserConverter
   with IngressConverter
+  with BiblioConverterModule
+  with BiblioConverter
   with ImageApiServiceComponent
   with AmazonClientComponent
   with StorageService
