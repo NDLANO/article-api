@@ -23,18 +23,12 @@ trait TestEnvironment
   with ExtractServiceComponent
   with ConverterModules
   with ConverterServiceComponent
-  with ImageConverterModule
-  with LenkeConverterModule
-  with H5PConverterModule
-  with AktualitetConverterModule
-  with OppgaveConverterModule
-  with FagstoffConverterModule
-  with AudioConverterModule
+  with ContentBrowserConverterModules
   with ContentBrowserConverter
-  with IngressConverter
   with ImageApiServiceComponent
   with AmazonClientComponent
   with StorageService
+  with IngressConverter
 {
   val elasticClient = mock[ElasticClient]
   val elasticContentSearch = mock[ElasticContentSearch]
