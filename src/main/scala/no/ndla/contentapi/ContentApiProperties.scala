@@ -19,6 +19,9 @@ object ContentApiProperties extends LazyLogging {
   // everything is converted. This value defines a maximum number of times the converter runs on a node
   val maxConvertionRounds = 5
 
+  lazy val NDLABrightcoveAccountId = get("NDLA_BRIGHTCOVE_ACCOUNT_ID")
+  lazy val NDLABrightcovePlayerId = get("NDLA_BRIGHTCOVE_PLAYER_ID")
+
   lazy val ContactEmail = get("CONTACT_EMAIL")
   lazy val HostAddr = get("HOST_ADDR")
   lazy val Domains = get("DOMAINS").split(",") ++ Array(HostAddr)
@@ -55,7 +58,7 @@ object ContentApiProperties extends LazyLogging {
 
   def verify() = {
     val missingProperties = ContentApiProps.filter(entry => entry._2.isEmpty).toList
-    if(missingProperties.length > 0){
+    if(missingProperties.nonEmpty){
       missingProperties.foreach(entry => logger.error("Missing required environment variable {}", entry._1))
 
       logger.error("Shutting down.")

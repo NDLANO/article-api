@@ -23,14 +23,7 @@ object ComponentRegistry
   with ConverterServiceComponent
   with CMDataComponent
   with ImageApiServiceComponent
-  with ImageConverterModule
-  with LenkeConverterModule
-  with H5PConverterModule
-  with FagstoffConverterModule
-  with AudioConverterModule
-  with OppgaveConverterModule
-  with AktualitetConverterModule
-  with FilConverterModule
+  with ContentBrowserConverterModules
   with ContentBrowserConverter
   with AmazonClientComponent
   with StorageService
