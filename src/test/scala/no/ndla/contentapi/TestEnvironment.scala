@@ -6,7 +6,7 @@ import com.amazonaws.services.s3.AmazonS3Client
 import com.sksamuel.elastic4s.ElasticClient
 import no.ndla.contentapi.integration.{AmazonClientComponent, CMDataComponent, DataSourceComponent, ElasticClientComponent}
 import no.ndla.contentapi.repository.ContentRepositoryComponent
-import no.ndla.contentapi.service.converters.{DivTableConverter, SimpleTagConverter}
+import no.ndla.contentapi.service.converters.{DivTableConverter, SimpleTagConverter, IngressConverter}
 import no.ndla.contentapi.service._
 import no.ndla.contentapi.service.converters.contentbrowser._
 import org.scalatest.mock.MockitoSugar
@@ -31,6 +31,7 @@ trait TestEnvironment
   with FagstoffConverterModule
   with AudioConverterModule
   with ContentBrowserConverter
+  with IngressConverter
   with ImageApiServiceComponent
   with AmazonClientComponent
   with StorageService
@@ -48,7 +49,8 @@ trait TestEnvironment
   val extractService = mock[ExtractService]
   val converterService = mock[ConverterService]
   val contentBrowserConverter = new ContentBrowserConverter
-  val converterModules = List(SimpleTagConverter, DivTableConverter, contentBrowserConverter)
+  val ingressConverter = new IngressConverter
+  val converterModules = List(SimpleTagConverter, ingressConverter, DivTableConverter, contentBrowserConverter)
   val imageApiService = mock[ImageApiService]
   val storageService = mock[AmazonStorageService]
 }
