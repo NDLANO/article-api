@@ -11,8 +11,9 @@ trait IngressConverter {
   class IngressConverter extends ConverterModule {
 
     override def convert(content: LanguageContent): (LanguageContent, ImportStatus) = {
-      if (content.containsIngress)
+      if (content.containsIngress) {
         return (content, ImportStatus())
+      }
 
       extractService.getNodeIngress(content.nid) match {
         case Some(ingress) => {
