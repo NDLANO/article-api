@@ -15,6 +15,10 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
   val copyright = Copyright(license, "", List(author))
   val tag = ContentTag("asdf", Some("nb"))
   val requiredLibrary = RequiredLibrary("", "", "")
+  val nodeId = "1234"
+  val sampleAlt = "Fotografi"
+  val sampleContentString = s"[contentbrowser ==nid=${nodeId}==imagecache=Fullbredde==width===alt=Foto==link===node_link=1==link_type=link_to_content==lightbox_size===remove_fields[76661]=1==remove_fields[76663]=1==remove_fields[76664]=1==remove_fields[76666]=1==insertion===link_title_text= ==link_text= ==text_align===css_class=contentbrowser contentbrowser]"
+
 
   test("That the document is wrapped in an article tag") {
     val nodeId = "1"

@@ -1,9 +1,11 @@
 package no.ndla.contentapi.service.converters.contentbrowser
 
-import no.ndla.contentapi.{TestEnvironment, UnitSuite}
+import no.ndla.contentapi.ContentApiProperties._
+import no.ndla.contentapi.TestEnvironment
 import no.ndla.contentapi.model.{Copyright, License}
 import no.ndla.contentapi.integration.{NodeGeneralContent, LanguageContent}
 import no.ndla.contentapi.service.{Image, ImageMetaInformation, ImageVariants}
+import no.ndla.contentapi.UnitSuite
 import org.mockito.Mockito._
 
 class ContentBrowserConverterTest extends UnitSuite with TestEnvironment {
@@ -104,5 +106,18 @@ class ContentBrowserConverterTest extends UnitSuite with TestEnvironment {
     val (result, status) = contentBrowserConverter.convert(initialContent)
 
     result.content.replace("\n", "") should equal (expectedResult)
+  }
+
+  test("That Content-browser strings of type video are converted into HTML img tags") {
+    val initialContent = LanguageContent(nodeId, nodeId, s"<article>$sampleContentString</article>", Some("en"))
+    val expectedResult = s"""<article> <figure data-resource="brightcove" data-id="ref:$nodeId" data-account="$NDLABrightcoveAccountId" data-player="$NDLABrightcovePlayerId"></figure></article>"""
+
+
+    when(extractService.getNodeType(nodeId)).thenReturn((Some("video")))
+    val (result, status) = contentBrowserConverter.convert(initialContent)
+    val strippedResult = " +".r.replaceAllIn(result.content.replace("\n", ""), " ")
+
+    strippedResult.replace("\n", "") should equal (expectedResult)
+    result.requiredLibraries.length should equal (1)
   }
 }
