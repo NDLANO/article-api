@@ -3,7 +3,9 @@ package no.ndla.contentapi.service.converters.contentbrowser
 import no.ndla.contentapi.model.RequiredLibrary
 import com.netaporter.uri.dsl._
 import com.typesafe.scalalogging.LazyLogging
+import no.ndla.contentapi.ContentApiProperties._
 import no.ndla.contentapi.service.ExtractServiceComponent
+import no.ndla.contentapi.service.converters.contentbrowser.AktualitetConverterModule.AktualitetConverter._
 
 trait LenkeConverterModule {
   this: ExtractServiceComponent =>
@@ -34,7 +36,14 @@ trait LenkeConverterModule {
           // TODO: embed code from NDLAs DB is only used here for demo purposes. Should be switched out with a proper alternative
           embedCode
         }
-        case "link" | "lightbox_large" => s"""<a href="${url}" title="${cont.get("link_title_text")}">${cont.get("link_text")}</a>"""
+        case "link" => s"""<a href="${url}" title="${cont.get("link_title_text")}">${cont.get("link_text")}</a>"""
+        case _ => {
+          val linkText = cont.get("link_text")
+          val warnMessage = s"""Unhandled lenke insertion method '${_}' on '$linkText'. Defaulting to link."""
+          logger.warn(warnMessage)
+          s"""<a href="${url}" title="${cont.get("link_title_text")}">${cont.get("link_text")}</a>"""
+        }
+
       }
       (converted, errors)
     }
