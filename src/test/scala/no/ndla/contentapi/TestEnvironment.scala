@@ -47,7 +47,7 @@ trait TestEnvironment
   val contentController = mock[ContentController]
 
   val dataSource = mock[DataSource]
-  val contentRepository = new ContentRepository
+  val contentRepository = mock[ContentRepository]
   val amazonClient = mock[AmazonS3Client]
   val storageName = "testStorageName"
 

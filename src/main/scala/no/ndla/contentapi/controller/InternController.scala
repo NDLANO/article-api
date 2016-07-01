@@ -6,11 +6,13 @@ import org.scalatra.json.NativeJsonSupport
 import org.scalatra.{Ok, ScalatraServlet}
 import no.ndla.contentapi.business.SearchIndexer
 import no.ndla.contentapi.model.{Error, ImportStatus, NodeNotFoundException}
-import no.ndla.contentapi.ComponentRegistry.{contentRepository, converterService, extractService}
+import no.ndla.contentapi.repository.ContentRepositoryComponent
+import no.ndla.contentapi.service.{ConverterServiceComponent, ExtractServiceComponent}
 import no.ndla.logging.LoggerContext
 import no.ndla.network.ApplicationUrl
 
 trait InternController {
+  this: ExtractServiceComponent with ConverterServiceComponent with ContentRepositoryComponent =>
   val internController: InternController
 
   class InternController extends ScalatraServlet with NativeJsonSupport with LazyLogging {
@@ -28,13 +30,21 @@ trait InternController {
       ApplicationUrl.clear()
     }
 
+    error {
+      case t: Throwable => {
+        logger.error(t.getMessage, t)
+        halt(status = 500, body = Error(Error.GENERIC, t.getMessage))
+      }
+    }
+
     post("/index") {
       Ok(SearchIndexer.indexDocuments())
     }
 
     post("/import/:node_id") {
       val nodeId = params("node_id")
-      val node = extractService.importNode(nodeId)
+
+      val node = extractService.getNodeData(nodeId)
       val nodesToImport = node.contents.map(_.nid).mkString(",")
 
       logger.info("Converting nodes {}", nodesToImport)
@@ -51,13 +61,6 @@ trait InternController {
           ImportStatus(importStatus.messages :+ s"Successfully imported nodes $nodesToImport: $newNodeId")
         }
         case None => throw new NodeNotFoundException(s"$nodeId is a translation; Could not find main node")
-      }
-    }
-
-    error {
-      case t: Throwable => {
-        logger.error(t.getMessage, t)
-        halt(status = 500, body = Error(Error.GENERIC, t.getMessage))
       }
     }
   }
