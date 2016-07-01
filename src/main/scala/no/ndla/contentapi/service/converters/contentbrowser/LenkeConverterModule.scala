@@ -13,12 +13,13 @@ trait LenkeConverterModule {
 
     override def convert(content: ContentBrowser): (String, Seq[RequiredLibrary], Seq[String]) = {
       val (replacement, errors) = convertLink(content)
+      logger.info(s"Converting lenke with nid ${content.get("nid")}")
       (replacement, List[RequiredLibrary](), errors)
     }
 
     def convertLink(cont: ContentBrowser): (String, Seq[String]) = {
       var errors = Seq[String]()
-      val (url, embedCode) = extractService.getNodeEmbedData(cont.get("nid")).get
+      val url = extractService.getNodeEmbedData(cont.get("nid")).get
       val NDLAPattern = """.*(ndla.no).*""".r
 
       url.host match {
@@ -29,12 +30,21 @@ trait LenkeConverterModule {
         case _ =>
       }
 
-      val converted = cont.get("insertion") match {
-        case "inline" => {
-          // TODO: embed code from NDLAs DB is only used here for demo purposes. Should be switched out with a proper alternative
-          embedCode
+      val embedMeta = s"""<figure data-resource="external" data-url="$url"></figure>"""
+      val insertionMethod = cont.get("insertion")
+
+      val converted = insertionMethod match {
+        case "inline" => embedMeta
+        case "link" | "lightbox_large" => s"""<a href="$url" title="${cont.get("link_title_text")}">${cont.get("link_text")}</a>"""
+        case "collapsed_body" => {
+          s"<details><summary>${cont.get("link_text")}</summary>$embedMeta</details>"
         }
-        case "link" | "lightbox_large" => s"""<a href="${url}" title="${cont.get("link_title_text")}">${cont.get("link_text")}</a>"""
+        case _ => {
+          val message = s"""Unhandled fagstoff insertion method '$insertionMethod' on '${cont.get("link_text")}'. Defaulting to link."""
+          logger.warn(message)
+          errors = errors :+ message
+          s"""<a href="$url" title="${cont.get("link_title_text")}">${cont.get("link_text")}</a>"""
+        }
       }
       (converted, errors)
     }

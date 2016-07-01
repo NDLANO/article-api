@@ -43,6 +43,7 @@ lazy val content_api = (project in file(".")).
       "org.eclipse.jetty" % "jetty-plus" % Jettyversion % "container",
       "javax.servlet" % "javax.servlet-api" % "3.1.0" % "container;provided;test",
       "org.scalatra" %% "scalatra-json" % Scalatraversion,
+      "org.scalatra" %% "scalatra-scalatest" % Scalatraversion % "test",
       "org.json4s"   %% "json4s-native" % "3.2.11",
       "org.scalatra" %% "scalatra-swagger"  % Scalatraversion,
       "org.webjars" % "swagger-ui" % SwaggerUIVersion,

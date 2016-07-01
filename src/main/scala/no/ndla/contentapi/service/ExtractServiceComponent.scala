@@ -8,9 +8,9 @@ trait ExtractServiceComponent {
   val extractService: ExtractService
 
   class ExtractService {
-    def importNode(nodeId: String): NodeToConvert = cmData.getNode(nodeId)
+    def getNodeData(nodeId: String): NodeToConvert = cmData.getNode(nodeId)
     def getNodeType(nodeId: String): Option[String] = cmData.getNodeType(nodeId)
-    def getNodeEmbedData(nodeId: String): Option[(String, String)] = cmData.getNodeEmbedData(nodeId)
+    def getNodeEmbedData(nodeId: String): Option[String] = cmData.getNodeEmbedData(nodeId)
 
     def getAudioMeta(nodeId: String): Option[AudioMeta] = cmData.getAudioMeta(nodeId)
 
