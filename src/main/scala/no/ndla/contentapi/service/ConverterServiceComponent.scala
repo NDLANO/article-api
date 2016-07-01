@@ -13,8 +13,9 @@ trait ConverterServiceComponent {
   class ConverterService {
     def convertNode(nodeToConvert: NodeToConvert): (ContentInformation, ImportStatus) = {
       @tailrec def convertNode(nodeToConvert: NodeToConvert, maxRoundsLeft: Int, importStatus: ImportStatus = ImportStatus()): (ContentInformation, ImportStatus) = {
-        if (maxRoundsLeft == 0)
+        if (maxRoundsLeft == 0) {
           return (nodeToConvert.asContentInformation, importStatus)
+        }
 
         val (updatedContent, updatedStatus) = convert(nodeToConvert)
 
