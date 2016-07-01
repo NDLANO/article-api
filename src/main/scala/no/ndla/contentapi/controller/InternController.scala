@@ -5,49 +5,63 @@ import org.json4s.{DefaultFormats, Formats}
 import org.scalatra.json.NativeJsonSupport
 import org.scalatra.{Ok, ScalatraServlet}
 import no.ndla.contentapi.business.SearchIndexer
-import no.ndla.contentapi.model.{Error, ImportStatus}
-import no.ndla.contentapi.ComponentRegistry.{contentRepository, converterService, extractService}
+import no.ndla.contentapi.model.{Error, ImportStatus, NodeNotFoundException}
+import no.ndla.contentapi.repository.ContentRepositoryComponent
+import no.ndla.contentapi.service.{ConverterServiceComponent, ExtractServiceComponent}
 import no.ndla.logging.LoggerContext
 import no.ndla.network.ApplicationUrl
 
-class InternController extends ScalatraServlet with NativeJsonSupport with LazyLogging {
+trait InternController {
+  this: ExtractServiceComponent with ConverterServiceComponent with ContentRepositoryComponent =>
+  val internController: InternController
 
-  protected implicit override val jsonFormats: Formats = DefaultFormats
+  class InternController extends ScalatraServlet with NativeJsonSupport with LazyLogging {
 
-  before() {
-    contentType = formats("json")
-    LoggerContext.setCorrelationID(Option(request.getHeader("X-Correlation-ID")))
-    ApplicationUrl.set(request)
-  }
+    protected implicit override val jsonFormats: Formats = DefaultFormats
 
-  after() {
-    LoggerContext.clearCorrelationID()
-    ApplicationUrl.clear()
-  }
-
-  post("/index") {
-    Ok(SearchIndexer.indexDocuments())
-  }
-
-  post("/import/:node_id") {
-    val nodeId = params("node_id")
-    val node = extractService.importNode(nodeId)
-    val (convertedNode, importStatus) = converterService.convertNode(node)
-
-    logger.info("Converting node {}", nodeId)
-
-    val newNodeId = contentRepository.exists(nodeId) match {
-      case true => contentRepository.update(convertedNode, nodeId)
-      case false => contentRepository.insert(convertedNode, nodeId)
+    before() {
+      contentType = formats("json")
+      LoggerContext.setCorrelationID(Option(request.getHeader("X-Correlation-ID")))
+      ApplicationUrl.set(request)
     }
 
-    ImportStatus(importStatus.messages :+ s"Successfully converted node: $newNodeId")
-  }
+    after() {
+      LoggerContext.clearCorrelationID()
+      ApplicationUrl.clear()
+    }
 
-  error{
-    case t:Throwable => {
-      logger.error(t.getMessage, t)
-      halt(status = 500, body = Error(Error.GENERIC, t.getMessage))
+    error {
+      case t: Throwable => {
+        logger.error(t.getMessage, t)
+        halt(status = 500, body = Error(Error.GENERIC, t.getMessage))
+      }
+    }
+
+    post("/index") {
+      Ok(SearchIndexer.indexDocuments())
+    }
+
+    post("/import/:node_id") {
+      val nodeId = params("node_id")
+
+      val node = extractService.getNodeData(nodeId)
+      val nodesToImport = node.contents.map(_.nid).mkString(",")
+
+      logger.info("Converting nodes {}", nodesToImport)
+      node.contents.find(_.isMainNode) match {
+        case Some(mainNode) => {
+          val mainNodeId = mainNode.nid
+          val (convertedNode, importStatus) = converterService.convertNode(node)
+
+          val newNodeId = contentRepository.exists(mainNodeId) match {
+            case true => contentRepository.update(convertedNode, mainNodeId)
+            case false => contentRepository.insert(convertedNode, mainNodeId)
+          }
+
+          ImportStatus(importStatus.messages :+ s"Successfully imported nodes $nodesToImport: $newNodeId")
+        }
+        case None => throw new NodeNotFoundException(s"$nodeId is a translation; Could not find main node")
+      }
     }
   }
 }

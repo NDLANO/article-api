@@ -36,7 +36,7 @@ trait FagstoffConverterModule {
       insertionMethod match {
         case "inline" => (fagstoff, List[String]())
         case "collapsed_body" => (s"<details><summary>${contentBrowser.get("link_text")}</summary>$fagstoff</details>", List[String]())
-        case "link" | "lightbox_large" => {
+        case "link" => {
           val warnMessage = s"""Link to old ndla.no ($ndlaBaseHost/node/${contentBrowser.get("nid")})"""
           logger.warn(warnMessage)
           (s"""<a href="$ndlaBaseHost/node/${contentBrowser.get("nid")}">${contentBrowser.get("link_text")}</a>""", List(warnMessage))

@@ -4,6 +4,7 @@ import com.amazonaws.auth.BasicAWSCredentials
 import com.amazonaws.regions.{Region, Regions}
 import com.amazonaws.services.s3.AmazonS3Client
 import com.sksamuel.elastic4s.{ElasticClient, ElasticsearchClientUri}
+import no.ndla.contentapi.controller.{ContentController, InternController}
 import no.ndla.contentapi.integration.{AmazonClientComponent, CMDataComponent, DataSourceComponent, ElasticClientComponent}
 import no.ndla.contentapi.repository.ContentRepositoryComponent
 import no.ndla.contentapi.service._
@@ -14,6 +15,8 @@ import org.postgresql.ds.PGPoolingDataSource
 
 object ComponentRegistry
   extends DataSourceComponent
+  with InternController
+  with ContentController
   with ContentRepositoryComponent
   with ElasticClientComponent
   with ElasticContentSearchComponent
@@ -30,6 +33,8 @@ object ComponentRegistry
   with StorageService
   with IngressConverter
 {
+  implicit val swagger = new ContentSwagger
+
   lazy val dataSource = new PGPoolingDataSource()
   dataSource.setUser(ContentApiProperties.get("META_USER_NAME"))
   dataSource.setPassword(ContentApiProperties.get("META_PASSWORD"))
@@ -39,6 +44,10 @@ object ComponentRegistry
   dataSource.setInitialConnections(ContentApiProperties.getInt("META_INITIAL_CONNECTIONS"))
   dataSource.setMaxConnections(ContentApiProperties.getInt("META_MAX_CONNECTIONS"))
   dataSource.setCurrentSchema(ContentApiProperties.get("META_SCHEMA"))
+
+  lazy val internController = new InternController
+  lazy val contentController = new ContentController
+  lazy val resourcesApp = new ResourcesApp
 
   lazy val elasticClient = ElasticClient.transport(
     Settings.settingsBuilder().put("cluster.name", ContentApiProperties.SearchClusterName).build(),
