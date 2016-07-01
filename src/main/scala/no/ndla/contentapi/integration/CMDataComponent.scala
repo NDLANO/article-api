@@ -3,7 +3,7 @@ package no.ndla.contentapi.integration
 import com.mysql.jdbc.jdbc2.optional.MysqlConnectionPoolDataSource
 import no.ndla.contentapi.model._
 import no.ndla.contentapi.service.Tags
-import no.ndla.contentapi.ContentApiProperties.audioBaseHost
+import no.ndla.contentapi.ContentApiProperties.ndlaBaseHost
 import scalikejdbc.{ConnectionPool, DataSourceConnectionPool, NamedDB, _}
 
 /**
@@ -121,14 +121,14 @@ trait CMDataComponent {
       }
     }
 
-    def getNodeEmbedData(nodeId: String): Option[(String, String)] = {
+    def getNodeEmbedData(nodeId: String): Option[String] = {
       NamedDB('cm) readOnly { implicit session =>
         sql"""
            select n.nid, n.title, url.field_url_url as url, ec.field_embed_code_value as embed_code from node n
            left join content_field_embed_code ec on (ec.nid = n.nid and ec.vid = n.vid)
            left join content_field_url url on (url.nid = n.nid and url.vid = n.vid)
            where n.nid=${nodeId}
-          """.stripMargin.map(rs => (rs.string("url"), rs.string("embed_code"))).single.apply()
+          """.stripMargin.map(rs => rs.string("url")).single.apply()
       }
     }
 
@@ -147,7 +147,7 @@ trait CMDataComponent {
           rs.string("filemime"),
           rs.string("filesize"),
           rs.string("filename"),
-          audioBaseHost + rs.string("filepath"))).single.apply()
+          ndlaBaseHost + rs.string("filepath"))).single.apply()
       }
     }
 

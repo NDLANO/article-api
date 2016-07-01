@@ -1,5 +1,6 @@
 package no.ndla.contentapi.service
 
+import com.typesafe.scalalogging.LazyLogging
 import no.ndla.contentapi.ContentApiProperties.maxConvertionRounds
 import no.ndla.contentapi.integration.NodeToConvert
 import no.ndla.contentapi.model.{ContentInformation, ImportStatus}
@@ -10,11 +11,14 @@ trait ConverterServiceComponent {
   this: ConverterModules =>
   val converterService: ConverterService
 
-  class ConverterService {
+  class ConverterService extends LazyLogging {
     def convertNode(nodeToConvert: NodeToConvert): (ContentInformation, ImportStatus) = {
       @tailrec def convertNode(nodeToConvert: NodeToConvert, maxRoundsLeft: Int, importStatus: ImportStatus = ImportStatus()): (ContentInformation, ImportStatus) = {
-        if (maxRoundsLeft == 0)
-          return (nodeToConvert.asContentInformation, importStatus)
+        if (maxRoundsLeft == 0) {
+          val message = "Maximum number of converter rounds reached; Some content might not be converted"
+          logger.warn(message)
+          return (nodeToConvert.asContentInformation, ImportStatus(importStatus.messages :+ message))
+        }
 
         val (updatedContent, updatedStatus) = convert(nodeToConvert)
 

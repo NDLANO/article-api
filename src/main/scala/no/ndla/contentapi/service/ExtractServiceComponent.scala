@@ -10,7 +10,7 @@ trait ExtractServiceComponent {
   class ExtractService {
     def getNodeData(nodeId: String): NodeToConvert = cmData.getNode(nodeId)
     def getNodeType(nodeId: String): Option[String] = cmData.getNodeType(nodeId)
-    def getNodeEmbedData(nodeId: String): Option[(String, String)] = cmData.getNodeEmbedData(nodeId)
+    def getNodeEmbedData(nodeId: String): Option[String] = cmData.getNodeEmbedData(nodeId)
     def getNodeFagstoff(nodeId: String): Seq[ContentFagstoff] = {
       val fagstoffs = cmData.getNodeFagstoff(nodeId)
 

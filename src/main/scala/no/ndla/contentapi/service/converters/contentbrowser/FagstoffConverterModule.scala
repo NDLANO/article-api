@@ -16,6 +16,8 @@ trait FagstoffConverterModule {
       val requiredLibraries = List[RequiredLibrary]()
       val fagstoffs = extractService.getNodeFagstoff(nodeId)
 
+      logger.info(s"Converting fagstoff with nid $nodeId")
+
       fagstoffs.find(x => x.language == content.language.getOrElse("")) match {
         case Some(fagstoff) => {
           val (finalFagstoff, messages) = insertFagstoff(fagstoff.fagstoff, content)

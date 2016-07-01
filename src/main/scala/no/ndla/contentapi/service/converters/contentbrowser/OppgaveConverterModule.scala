@@ -16,6 +16,8 @@ trait OppgaveConverterModule {
       val requiredLibraries = Seq[RequiredLibrary]()
       val oppgaves = extractService.getNodeOppgave(nodeId)
 
+      logger.info(s"Converting oppgave with nid $nodeId")
+
       oppgaves.find(x => x.language == content.language.getOrElse("")) match {
         case Some(oppgave) => {
           val (finalOppgave, messages) = insertOppgave(oppgave.content, content)
