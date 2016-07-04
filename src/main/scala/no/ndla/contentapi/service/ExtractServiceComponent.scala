@@ -1,6 +1,5 @@
 package no.ndla.contentapi.service
 
-import no.ndla.contentapi.model.ContentInformation
 import no.ndla.contentapi.integration._
 
 trait ExtractServiceComponent {
@@ -9,9 +8,9 @@ trait ExtractServiceComponent {
   val extractService: ExtractService
 
   class ExtractService {
-    def importNode(nodeId: String): NodeToConvert = cmData.getNode(nodeId)
+    def getNodeData(nodeId: String): NodeToConvert = cmData.getNode(nodeId)
     def getNodeType(nodeId: String): Option[String] = cmData.getNodeType(nodeId)
-    def getNodeEmbedData(nodeId: String): Option[(String, String)] = cmData.getNodeEmbedData(nodeId)
+    def getNodeEmbedData(nodeId: String): Option[String] = cmData.getNodeEmbedData(nodeId)
     def getNodeFagstoff(nodeId: String): Seq[ContentFagstoff] = {
       val fagstoffs = cmData.getNodeFagstoff(nodeId)
 
