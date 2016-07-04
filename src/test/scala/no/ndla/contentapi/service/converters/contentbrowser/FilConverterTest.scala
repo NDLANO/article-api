@@ -3,6 +3,7 @@ package no.ndla.contentapi.service.converters.contentbrowser
 import no.ndla.contentapi.integration.ContentFilMeta
 import no.ndla.contentapi.{TestEnvironment, UnitSuite}
 import org.mockito.Mockito._
+import no.ndla.contentapi.integration.ContentFilMeta._
 
 class FilConverterTest extends UnitSuite with TestEnvironment {
   val nodeId = "1234"
@@ -11,12 +12,12 @@ class FilConverterTest extends UnitSuite with TestEnvironment {
 
   test("That FilConverter returns a link to the file") {
     val content = ContentBrowser(contentString, Some("nb"))
-    val fileMeta = ContentFilMeta(nodeId, "0", "title", "title.pdf", "/path/to/title.pdf", "application/pdf", "1024")
+    val fileMeta = ContentFilMeta(nodeId, "0", "title", "title.pdf", "http://path/to/title.pdf", "application/pdf", "1024")
     val filePath = s"/some/file/path/to/${fileMeta.fileName}"
     val expectedResult = s"""<a href="$filePath">${fileMeta.fileName}</a>"""
 
     when(extractService.getNodeFilMeta(nodeId)).thenReturn(Some(fileMeta))
-    when(storageService.uploadFileFromUrl(nodeId, fileMeta)).thenReturn(filePath)
+    when(storageService.uploadFileFromUrl(nodeId, fileMeta)).thenReturn(Some(filePath))
     val (result, requiredLibraries, messages) = FilConverter.convert(content)
 
     result should equal(expectedResult)

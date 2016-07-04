@@ -1,26 +1,38 @@
 package no.ndla.contentapi.service
 
 import java.net.URL
-import com.amazonaws.AmazonServiceException
+
+import com.amazonaws.{AmazonClientException, AmazonServiceException}
 import com.amazonaws.services.s3.model._
+import com.typesafe.scalalogging.LazyLogging
 import no.ndla.contentapi.integration.{AmazonClientComponent, ContentFilMeta}
 
 trait StorageService {
   this: AmazonClientComponent =>
   val storageService: AmazonStorageService
 
-  class AmazonStorageService {
-    def uploadFileFromUrl(storageKeyPrefix: String, filMeta: ContentFilMeta): String = {
-      val storageKey = s"${storageKeyPrefix}/${filMeta.fileName}"
-      val connection = new URL(filMeta.url).openConnection()
+  class AmazonStorageService extends LazyLogging {
+    def uploadFileFromUrl(storageKeyPrefix: String, filMeta: ContentFilMeta): Option[String] = {
+      val storageKey = s"$storageKeyPrefix/${filMeta.fileName}"
+      val connection = filMeta.url.openConnection()
       val metaData = new ObjectMetadata()
       metaData.setContentType(filMeta.mimeType)
       metaData.setContentLength(filMeta.fileSize.toLong)
 
-      val request = new PutObjectRequest(storageName, storageKey, connection.getInputStream(), metaData)
-      amazonClient.putObject(request)
-      storageKey
+      uploadFile(new PutObjectRequest(storageName, storageKey, connection.getInputStream, metaData), storageKey)
     }
+
+  def uploadFile(request: PutObjectRequest, storageKey: String): Option[String] = {
+    try {
+      amazonClient.putObject(request)
+      Some(storageKey)
+    } catch {
+      case ace @ (_: AmazonClientException | _: AmazonServiceException) => {
+        logger.warn("Failed to upload file to S3")
+        None
+      }
+    }
+  }
 
     def contains(storageKey: String): Boolean = {
       try {

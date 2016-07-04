@@ -1,10 +1,13 @@
 package no.ndla.contentapi.integration
 
+import java.net.URL
+
 import com.mysql.jdbc.jdbc2.optional.MysqlConnectionPoolDataSource
 import no.ndla.contentapi.model._
 import no.ndla.contentapi.service.Tags
 import no.ndla.contentapi.ContentApiProperties.ndlaBaseHost
 import scalikejdbc.{ConnectionPool, DataSourceConnectionPool, NamedDB, _}
+import ContentFilMeta._
 
 /**
   * Forfatter og body for en node id
@@ -218,6 +221,9 @@ case class ContentAktualitet(nid: String, tnid: String, title: String, aktualite
 
 case class AudioMeta(nodeId: String, title: String, playTime: String, format: String, mimetype: String, fileSize: String, filename: String, url: String)
 
-case class ContentFilMeta(nid: String, tnid: String, title: String, fileName: String, url: String, mimeType: String, fileSize: String)
+case class ContentFilMeta(nid: String, tnid: String, title: String, fileName: String, url: URL, mimeType: String, fileSize: String)
+object ContentFilMeta {
+  implicit def stringToUrl(s: String): URL = new URL(s)
+}
 
 case class NodeIngress(nid: String, content: String, imageNid: Option[String], ingressVisPaaSiden: Int)

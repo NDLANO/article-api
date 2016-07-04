@@ -14,8 +14,15 @@ trait FilConverterModule {
 
       extractService.getNodeFilMeta(nodeId) match {
         case Some(fileMeta) => {
-          val filePath = storageService.uploadFileFromUrl(nodeId, fileMeta)
-          (s"""<a href="$filePath">${fileMeta.fileName}</a>""", List[RequiredLibrary](), List[String]())
+          val (filePath, uploadError) = storageService.uploadFileFromUrl(nodeId, fileMeta) match {
+            case Some(path) => (path, List())
+            case None => {
+              val msg = s"Failed to upload audio (node $nodeId)"
+              logger.warn(msg)
+              ("", List(msg))
+            }
+          }
+          (s"""<a href="$filePath">${fileMeta.fileName}</a>""", List[RequiredLibrary](), uploadError)
         }
         case None => {
           val message = s"File with node ID $nodeId was not found"
