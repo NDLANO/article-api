@@ -8,6 +8,7 @@ import no.ndla.contentapi.service.Tags
 import no.ndla.contentapi.ContentApiProperties.ndlaBaseHost
 import scalikejdbc.{ConnectionPool, DataSourceConnectionPool, NamedDB, _}
 import ContentFilMeta._
+import com.netaporter.uri.dsl._
 
 /**
   * Forfatter og body for en node id
@@ -223,7 +224,7 @@ case class AudioMeta(nodeId: String, title: String, playTime: String, format: St
 
 case class ContentFilMeta(nid: String, tnid: String, title: String, fileName: String, url: URL, mimeType: String, fileSize: String)
 object ContentFilMeta {
-  implicit def stringToUrl(s: String): URL = new URL(s)
+  implicit def stringToUrl(s: String): URL = new URL(s.uri)
 }
 
 case class NodeIngress(nid: String, content: String, imageNid: Option[String], ingressVisPaaSiden: Int)
