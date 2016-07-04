@@ -41,7 +41,7 @@ class ContentBrowserConverterTest extends UnitSuite with TestEnvironment {
   test("That Content-browser strings of type image are converted into HTML img tags") {
     val (nodeId, imageUrl, alt) = ("1234", "full.jpeg", "Fotografi")
     val initialContent = LanguageContent(nodeId, nodeId, s"<article><p>$sampleContentString</p></article>", Some("en"))
-    val expectedResult = s"""<article> <p><img src="/images/${imageUrl}" alt="${alt}" /></p></article>"""
+    val expectedResult = s"""<article> <p><img class="fullbredde" src="/images/${imageUrl}" alt="${alt}" /></p></article>"""
     val imageMeta = Some(ImageMetaInformation("1", List(), List(), ImageVariants(Some(Image("small.jpeg", 128, "")), Some(Image(imageUrl, 256, ""))), Copyright(License("", "", Some("")), "", List()), List()))
 
     when(extractService.getNodeType(nodeId)).thenReturn((Some("image")))
