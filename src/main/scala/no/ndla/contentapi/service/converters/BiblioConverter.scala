@@ -1,10 +1,11 @@
 package no.ndla.contentapi.service.converters
 
 import com.typesafe.scalalogging.LazyLogging
-import no.ndla.contentapi.integration.{ConverterModule, LanguageContent}
-import no.ndla.contentapi.model.ImportStatus
+import no.ndla.contentapi.integration.{Biblio, BiblioAuthor, ConverterModule, LanguageContent}
+import no.ndla.contentapi.model.{FootNoteItem, ImportStatus}
 import no.ndla.contentapi.service.ExtractServiceComponent
 import org.jsoup.nodes.Element
+
 import scala.collection.JavaConversions._
 import org.jsoup.parser.Tag
 
@@ -16,28 +17,13 @@ trait BiblioConverter {
     def convert(content: LanguageContent): (LanguageContent, ImportStatus) = {
       val element = stringToJsoupDocument(content.content)
 
-      val errorMessages = convertBiblios(element) match {
-        case Some((referenceList, errorMessages)) => {
-          element.appendChild(referenceList)
-          errorMessages
-        }
-        case None => List[String]()
-      }
-
-      (content.copy(content=jsoupDocumentToString(element)), ImportStatus(errorMessages))
-    }
-
-    def convertBiblios(element: Element): Option[(Element, Seq[String])] = {
       val references = buildReferences(element)
-
-      references.isEmpty match {
-        case true => None
-        case false => {
-          val (referenceList, errorMessages) = buildReferenceList(new Element(Tag.valueOf("ul"), ""), references)
-          val finalReferenceList = new Element(Tag.valueOf("div"), "").appendChild(referenceList)
-          Some(finalReferenceList, errorMessages)
-        }
+      val (map, messages) = references.isEmpty match {
+        case true => return (content, ImportStatus())
+        case false => buildReferenceMap(references)
       }
+
+      (content.copy(content=jsoupDocumentToString(element), footNotes=content.footNotes ++ map), ImportStatus(messages))
     }
 
     def buildReferences(element: Element): Seq[String] = {
@@ -49,44 +35,40 @@ trait BiblioConverter {
         val nodeId = id.substring(id.indexOf("-") + 1)
         referenceNodes = referenceNodes :+ nodeId
 
-        references(i).attr("id", s"reference_${i + 1}")
-        references(i).attr("href", s"#reference_list-$nodeId")
+        references(i).attr("id", s"ref_${i + 1}")
         references(i).html(s"${i + 1}")
       }
 
       referenceNodes
     }
 
-    def buildReferenceList(el: Element, references: Seq[String]): (Element, Seq[String]) = {
+    def buildReferenceMap(references: Seq[String]): (Map[String, FootNoteItem], Seq[String]) = {
       var errorList = List[String]()
+      var biblioMap = Map[String, FootNoteItem]()
 
       for ((nodeId, index) <- references.zipWithIndex) {
-        val newEl = new Element(Tag.valueOf("li"), "")
-        newEl.attr("id", s"reference_list-$nodeId")
         buildReferenceItem(nodeId, index + 1) match {
-          case Some(html) => newEl.html(html)
+          case (Some(fotNote)) => biblioMap += s"ref_${index + 1}" -> fotNote
           case None => {
             val errorMessage = s"Could not find biblio with id $nodeId"
             logger.warn(errorMessage)
             errorList :+ errorMessage
           }
         }
-        el.appendChild(newEl)
       }
-
-      (el, errorList)
+      (biblioMap, errorList)
     }
 
-    def buildReferenceItem(nodeId: String, num: Int): Option[String] = {
+    def buildReferenceItem(nodeId: String, num: Int): Option[FootNoteItem] = {
       extractService.getBiblio(nodeId) match {
         case Some(biblio) => {
-          val authorNames = extractService.getBiblioAuthors(nodeId).map(a => a.name).mkString(",")
-          Some(s"""<a href="#reference_$num">$num.</a>
-                   |${biblio.title} (${biblio.year}), $authorNames, Edition: ${biblio.edition}, Publisher: ${biblio.publisher}
-           """.stripMargin)
+          val authors = extractService.getBiblioAuthors(nodeId)
+          Some(FootNoteItem(biblio, authors))
         }
         case None => None
       }
     }
   }
 }
+
+

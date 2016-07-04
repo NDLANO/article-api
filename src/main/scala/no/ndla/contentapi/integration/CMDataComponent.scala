@@ -197,7 +197,7 @@ case class NodeGeneralContent(nid: String, tnid: String, title: String, content:
   def isTranslation = !isMainNode
 
   def asContentTitle = ContentTitle(title, Some(language))
-  def asContent = Content(content, Some(language))
+  def asContent = Content(content, Map(), Some(language))
   def asContentFagstoff = ContentFagstoff(nid, tnid, title, content, language)
   def asContentOppgave =  ContentOppgave(nid, tnid, title, content, language)
   def asContentAktualitet = ContentAktualitet(nid, tnid, title, content, language)
