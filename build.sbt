@@ -117,3 +117,4 @@ resolvers ++= Seq(
 )
 
 credentials += Credentials("Sonatype Nexus Repository Manager", "nexus.knowit.no", "ndla", "1814Ndla")
+parallelExecution in Test := false

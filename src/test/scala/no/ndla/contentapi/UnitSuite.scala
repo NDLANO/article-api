@@ -31,6 +31,7 @@ abstract class UnitSuite extends FunSuite with Matchers with OptionValues with I
     "AMAZON_BASE_URL" -> Some("http://amazon"),
     "STORAGE_NAME" -> Some("test.storage"),
     "NDLA_BRIGHTCOVE_ACCOUNT_ID" -> Some("0123456789"),
-    "NDLA_BRIGHTCOVE_PLAYER_ID" -> Some("qwerty")
+    "NDLA_BRIGHTCOVE_PLAYER_ID" -> Some("qwerty"),
+    "ENV_BASE_URL" -> Some("http://localhost/")
   ))
 }

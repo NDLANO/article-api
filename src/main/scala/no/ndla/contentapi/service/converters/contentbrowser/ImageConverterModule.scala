@@ -3,6 +3,7 @@ package no.ndla.contentapi.service.converters.contentbrowser
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.contentapi.model.RequiredLibrary
 import no.ndla.contentapi.service.{ImageApiServiceComponent, ImageMetaInformation}
+import no.ndla.contentapi.ContentApiProperties.environmentBaseUrl
 
 trait ImageConverterModule {
   this: ImageApiServiceComponent =>
@@ -21,13 +22,16 @@ trait ImageConverterModule {
       val imageSizeHint = cont.get("imagecache").toLowerCase
 
       val imageTag = imageApiService.getMetaByExternId(cont.get("nid")) match {
-        case Some(image) => s"""<img class="$imageSizeHint" src="/images/${image.images.full.get.url}" alt="${cont.get("alt")}" />"""
+        case Some(image) =>
+          s"""<figure data-resource="image" data-url="$environmentBaseUrl/images/${image.id}" data-size="$imageSizeHint"></figure>"""
         case None => {
             imageApiService.importImage(cont.get("nid")) match {
-            case Some(image) => s"""<img class="$imageSizeHint" src="/images/${image.images.full.get.url}" alt="${cont.get("alt")}" />"""
+            case Some(image) =>
+              s"""<figure data-resource="image" data-url="$environmentBaseUrl/images/${image.id}" data-size="$imageSizeHint"></figure>"""
             case None => {
               errors = errors :+ s"Image with id ${cont.get("nid")} was not found"
               s"<img src='stock.jpeg' alt='The image with id ${cont.get("nid")} was not not found' />"
+
             }
           }
         }
