@@ -12,7 +12,8 @@ trait ExtractServiceComponent {
     def getNodeType(nodeId: String): Option[String] = cmData.getNodeType(nodeId)
     def getNodeEmbedData(nodeId: String): Option[String] = cmData.getNodeEmbedData(nodeId)
 
-    def getAudioMeta(nodeId: String): Option[AudioMeta] = cmData.getAudioMeta(nodeId)
+    def getAudioMeta(nodeId: String): Option[ContentFilMeta] = cmData.getAudioMeta(nodeId)
+    def getNodeFilMeta(nodeId: String): Option[ContentFilMeta] = cmData.getNodeFilMeta(nodeId)
 
     def getNodeGeneralContent(nodeId: String): Seq[NodeGeneralContent] = {
       val content = cmData.getNodeGeneralContent(nodeId)

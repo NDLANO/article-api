@@ -56,7 +56,7 @@ trait ElasticContentSearchComponent {
       language.foreach(lang => contentSearch += termQuery("content.language", lang))
 
       val tagSearch = new ListBuffer[QueryDefinition]
-      tagSearch += matchQuery("tags.tag", query.mkString(" ")).operator(MatchQueryBuilder.Operator.AND)
+      tagSearch += matchQuery("tags.tags", query.mkString(" ")).operator(MatchQueryBuilder.Operator.AND)
       language.foreach(lang => tagSearch += termQuery("tags.language", lang))
 
       val filterList = new ListBuffer[QueryDefinition]()

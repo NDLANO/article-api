@@ -26,5 +26,6 @@ trait ContentBrowserConverterModules
   with AudioConverterModule
   with AktualitetConverterModule
   with VideoConverterModule
+  with FilConverterModule
   with VeiledningConverterModule
 

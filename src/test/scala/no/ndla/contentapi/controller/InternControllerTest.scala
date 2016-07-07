@@ -18,7 +18,7 @@ class InternControllerTest extends UnitSuite with TestEnvironment with ScalatraF
   val license = License("licence", "description", Some("http://"))
   val author = Author("forfatter", "Henrik")
   val copyright = Copyright(license, "", List(author))
-  val sampleNode = NodeToConvert(List(sampleTitle), List(sampleContent), copyright, List(ContentTag("tag", Some("en"))))
+  val sampleNode = NodeToConvert(List(sampleTitle), List(sampleContent), copyright, List(ContentTag(List("tag"), Some("en"))))
   val sampleNode2 = sampleNode.copy(contents=List(sampleContent2))
 
   lazy val controller = new InternController

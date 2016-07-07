@@ -30,7 +30,7 @@ class IngressConverterTest extends UnitSuite with TestEnvironment {
     val imageNid = "5678"
     val (small, full) = (Image("small.jpg", 1024, ""), Image("full.jpg", 1024, ""))
     val imageVariants = ImageVariants(Some(small), Some(full))
-    val image = ImageMetaInformation("1234", List(ImageTitle("", Some("nb"))), List(ImageAltText("", Some("nb"))), imageVariants, copyright, List(ImageTag("", Some(""))))
+    val image = ImageMetaInformation("1234", List(ImageTitle("", Some("nb"))), List(ImageAltText("", Some("nb"))), imageVariants, copyright, List(ImageTag(List(""), Some(""))))
     val initialContent = """<article><div>Banankake</div></article>"""
     val ingressText = "<p>Introduksjon til banankake</p>"
     val expectedContent = s"""<article> <section> <img src="/images/full.jpg" /> $ingressText </section> <div> Banankake </div></article>"""

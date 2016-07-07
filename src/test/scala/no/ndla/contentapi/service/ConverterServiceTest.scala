@@ -13,7 +13,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
   val license = License("licence", "description", Some("http://"))
   val author = Author("forfatter", "Henrik")
   val copyright = Copyright(license, "", List(author))
-  val tag = ContentTag("asdf", Some("nb"))
+  val tag = ContentTag(List("asdf"), Some("nb"))
   val requiredLibrary = RequiredLibrary("", "", "")
   val nodeId = "1234"
   val sampleAlt = "Fotografi"
