@@ -207,7 +207,6 @@ case class NodeGeneralContent(nid: String, tnid: String, title: String, content:
   def isTranslation = !isMainNode
 
   def asContentTitle = ContentTitle(title, Some(language))
-  def asContent = Content(content, Some(language))
   def asLanguageContent = LanguageContent(nid, tnid, content, Some(language))
 }
 
