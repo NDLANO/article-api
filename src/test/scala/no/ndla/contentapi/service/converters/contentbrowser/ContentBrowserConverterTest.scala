@@ -13,6 +13,9 @@ class ContentBrowserConverterTest extends UnitSuite with TestEnvironment {
   val sampleAlt = "Fotografi"
   val sampleContentString = s"[contentbrowser ==nid=${nodeId}==imagecache=Fullbredde==width===alt=$sampleAlt==link===node_link=1==link_type=link_to_content==lightbox_size===remove_fields[76661]=1==remove_fields[76663]=1==remove_fields[76664]=1==remove_fields[76666]=1==insertion=inline==link_title_text= ==link_text= ==text_align===css_class=contentbrowser contentbrowser]"
 
+  override def beforeEach() = {
+    ContentBrowser.reset
+  }
 
   test("That content-browser strings are replaced") {
     val initialContent = LanguageContent(nodeId, nodeId, s"<article><p>$sampleContentString</p></article>", Some("en"))
@@ -43,7 +46,7 @@ class ContentBrowserConverterTest extends UnitSuite with TestEnvironment {
     val imageMeta = ImageMetaInformation("1", List(), List(), ImageVariants(Some(Image("small.jpeg", 128, "")), Some(Image(imageUrl, 256, ""))), Copyright(License("", "", Some("")), "", List()), List())
     val expectedResult =
       s"""<article>
-        | <figure data-resource="image" data-url="http://localhost/images/${imageMeta.id}" data-size="fullbredde"></figure>
+        | <figure data-resource="image" data-id="1" data-url="http://localhost/images/${imageMeta.id}" data-size="fullbredde"></figure>
          |</article>""".stripMargin.replace("\n", "")
 
     when(extractService.getNodeType(nodeId)).thenReturn((Some("image")))
@@ -113,8 +116,7 @@ class ContentBrowserConverterTest extends UnitSuite with TestEnvironment {
 
   test("That Content-browser strings of type video are converted into HTML img tags") {
     val initialContent = LanguageContent(nodeId, nodeId, s"<article>$sampleContentString</article>", Some("en"))
-    val expectedResult = s"""<article> <figure data-resource="brightcove" data-id="ref:$nodeId" data-account="$NDLABrightcoveAccountId" data-player="$NDLABrightcovePlayerId"></figure></article>"""
-
+    val expectedResult = s"""<article> <figure data-resource="brightcove" data-id="1" data-videoid="ref:$nodeId" data-account="$NDLABrightcoveAccountId" data-player="$NDLABrightcovePlayerId"></figure></article>"""
 
     when(extractService.getNodeType(nodeId)).thenReturn((Some("video")))
     val (result, status) = contentBrowserConverter.convert(initialContent)

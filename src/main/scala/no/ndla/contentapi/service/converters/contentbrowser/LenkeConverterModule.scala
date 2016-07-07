@@ -30,7 +30,7 @@ trait LenkeConverterModule {
         case _ =>
       }
 
-      val embedMeta = s"""<figure data-resource="external" data-url="$url"></figure>"""
+      val embedMeta = s"""<figure data-resource="external" data-id="${cont.id}" data-url="$url"></figure>"""
       val insertionMethod = cont.get("insertion")
 
       val converted = insertionMethod match {

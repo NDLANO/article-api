@@ -2,7 +2,6 @@ package no.ndla.contentapi.service.converters.contentbrowser
 
 import no.ndla.contentapi.integration.{AmazonClientComponent, CMDataComponent}
 import no.ndla.contentapi.model.RequiredLibrary
-import no.ndla.contentapi.service.converters.IngressConverter
 import no.ndla.contentapi.service.{ExtractServiceComponent, ImageApiServiceComponent, StorageService}
 
 
