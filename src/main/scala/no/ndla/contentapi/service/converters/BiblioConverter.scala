@@ -35,7 +35,9 @@ trait BiblioConverter {
         val nodeId = id.substring(id.indexOf("-") + 1)
         referenceNodes = referenceNodes :+ nodeId
 
-        references(i).attr("id", s"ref_${i + 1}")
+        references(i).removeAttr("id")
+        references(i).attr("data-resource", "footnote")
+        references(i).attr("data-key", s"ref_${i + 1}")
         references(i).html(s"${i + 1}")
       }
 
