@@ -80,18 +80,6 @@ trait CMDataComponent {
       }
     }
 
-    def getNodeMeta(nodeId: String): (Seq[ContentTitle], Seq[Content]) =
-      getNodeGeneralContent(nodeId).map(x => (x.asContentTitle, x.asContent)).unzip
-
-    def getNodeFagstoff(nodeId: String): Seq[ContentFagstoff] =
-      getNodeGeneralContent(nodeId).map(x => x.asContentFagstoff)
-
-    def getNodeOppgave(nodeId: String): Seq[ContentOppgave] =
-      getNodeGeneralContent(nodeId).map(x => x.asContentOppgave)
-
-    def getNodeAktualitet(nodeId: String): Seq[ContentAktualitet] =
-      getNodeGeneralContent(nodeId).map(x => x.asContentAktualitet)
-
     def getNodeAuthors(nodeId: String): List[Author] = {
       val result = NamedDB('cm) readOnly { implicit session =>
         sql"""
@@ -192,9 +180,6 @@ case class NodeGeneralContent(nid: String, tnid: String, title: String, content:
 
   def asContentTitle = ContentTitle(title, Some(language))
   def asContent = Content(content, Some(language))
-  def asContentFagstoff = ContentFagstoff(nid, tnid, title, content, language)
-  def asContentOppgave =  ContentOppgave(nid, tnid, title, content, language)
-  def asContentAktualitet = ContentAktualitet(nid, tnid, title, content, language)
   def asLanguageContent = LanguageContent(nid, tnid, content, Some(language))
 }
 
@@ -204,23 +189,6 @@ case class NodeToConvert(titles: Seq[ContentTitle], contents: Seq[LanguageConten
     ContentInformation("0", titles, contents.map(_.asContent), copyright, tags, requiredLibraries)
   }
 }
-
-case class ContentFagstoff(nid: String, tnid: String, title: String, fagstoff: String, language: String) {
-  def isMainNode = (nid == tnid || tnid == "0")
-  def isTranslation = !isMainNode
-}
-
-case class ContentOppgave(nid: String, tnid: String, title: String, content: String, language: String) {
-  def isMainNode = (nid == tnid || tnid == "0")
-  def isTranslation = !isMainNode
-}
-
-case class ContentAktualitet(nid: String, tnid: String, title: String, aktualitet: String, language: String) {
-  def isMainNode = (nid == tnid || tnid == "0")
-  def isTranslation = !isMainNode
-}
-
-case class AudioMeta(nodeId: String, title: String, playTime: String, format: String, mimetype: String, fileSize: String, filename: String, url: String)
 
 case class ContentFilMeta(nid: String, tnid: String, title: String, fileName: String, url: URL, mimeType: String, fileSize: String)
 object ContentFilMeta {
