@@ -14,13 +14,13 @@ class V2__ChangeTagStructureTest extends UnitSuite with TestEnvironment {
   }
 
   test("That converting an already converted content node returns none") {
-    val content = V2_DBContent(2,"""{"tags":[{"tag": ["eple", "banan"], "language": "nb"}, {"tag": ["apple", "banana"], "language": "en"}]}""")
+    val content = V2_DBContent(2,"""{"tags":[{"tags": ["eple", "banan"], "language": "nb"}, {"tag": ["apple", "banana"], "language": "en"}]}""")
     migrator.convertTagsToNewFormat(content) should be(None)
   }
 
   test("That convertTagsToNewFormat converts to expected format") {
     val before = """{"tags": [{"tag": "eple", "language":"nb"}, {"tag": "banan", "language":"nb"}, {"tag": "apple", "language":"en"}, {"tag": "banana", "language":"en"}]}"""
-    val expectedAfter = """{"tags":[{"tag":["eple","banan"],"language":"nb"},{"tag":["apple","banana"],"language":"en"}]}"""
+    val expectedAfter = """{"tags":[{"tags":["eple","banan"],"language":"nb"},{"tags":["apple","banana"],"language":"en"}]}"""
     val content = V2_DBContent(3, before)
 
     val optConverted = migrator.convertTagsToNewFormat(content)
