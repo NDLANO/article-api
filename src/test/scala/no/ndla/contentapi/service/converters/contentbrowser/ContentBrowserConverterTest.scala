@@ -44,7 +44,7 @@ class ContentBrowserConverterTest extends UnitSuite with TestEnvironment {
     val imageMeta = ImageMetaInformation("1", List(), List(), ImageVariants(Some(Image("small.jpeg", 128, "")), Some(Image(imageUrl, 256, ""))), Copyright(License("", "", Some("")), "", List()), List())
     val expectedResult =
       s"""<article>
-        | <figure data-resource="image" data-url="http://localhost//images/${imageMeta.id}" data-size="fullbredde"></figure>
+        | <figure data-resource="image" data-url="http://localhost/images/${imageMeta.id}" data-size="fullbredde"></figure>
          |</article>""".stripMargin.replace("\n", "")
 
     when(extractService.getNodeType(nodeId)).thenReturn((Some("image")))

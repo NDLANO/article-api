@@ -32,6 +32,7 @@ abstract class UnitSuite extends FunSuite with Matchers with OptionValues with I
     "STORAGE_NAME" -> Some("test.storage"),
     "NDLA_BRIGHTCOVE_ACCOUNT_ID" -> Some("0123456789"),
     "NDLA_BRIGHTCOVE_PLAYER_ID" -> Some("qwerty"),
-    "ENV_BASE_URL" -> Some("http://localhost/")
+    "NDLA_API_URL" -> Some("http://localhost"),
+    "IMAGE_API_URL" -> Some("http://localhost/images")
   ))
 }

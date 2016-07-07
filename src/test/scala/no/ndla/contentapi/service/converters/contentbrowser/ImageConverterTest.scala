@@ -17,8 +17,8 @@ class ImageConverterTest extends UnitSuite with TestEnvironment {
   test("That a contentbrowser string of type 'image' returns an HTML img-tag with path to image") {
     val (small, full) = (Image("small.jpg", 1024, ""), Image("full.jpg", 1024, ""))
     val imageVariants = ImageVariants(Some(small), Some(full))
-    val image = ImageMetaInformation("1234", List(ImageTitle("", Some("nb"))), List(ImageAltText("", Some("nb"))), imageVariants, copyright, List(ImageTag("", Some(""))))
-    val expectedResult = s"""<figure data-resource="image" data-url="http://localhost//images/${image.id}" data-size="${content.get("imagecache").toLowerCase}"></figure>"""
+    val image = ImageMetaInformation("1234", List(ImageTitle("", Some("nb"))), List(ImageAltText("", Some("nb"))), imageVariants, copyright, List(ImageTag(List(""), Some(""))))
+    val expectedResult = s"""<figure data-resource="image" data-url="http://localhost/images/${image.id}" data-size="${content.get("imagecache").toLowerCase}"></figure>"""
 
     when(imageApiService.getMetaByExternId(nodeId)).thenReturn(Some(image))
 
@@ -31,8 +31,8 @@ class ImageConverterTest extends UnitSuite with TestEnvironment {
   test("That a contentbrowser string of type 'image' imports the image if it does not exist") {
     val (small, full) = (Image("small.jpg", 1024, ""), Image("full.jpg", 1024, ""))
     val imageVariants = ImageVariants(Some(small), Some(full))
-    val image = ImageMetaInformation("1234", List(ImageTitle("", Some("nb"))), List(ImageAltText("", Some("nb"))), imageVariants, copyright, List(ImageTag("", Some(""))))
-    val expectedResult = s"""<figure data-resource="image" data-url="http://localhost//images/${image.id}" data-size="${content.get("imagecache").toLowerCase}"></figure>"""
+    val image = ImageMetaInformation("1234", List(ImageTitle("", Some("nb"))), List(ImageAltText("", Some("nb"))), imageVariants, copyright, List(ImageTag(List(""), Some(""))))
+    val expectedResult = s"""<figure data-resource="image" data-url="http://localhost/images/${image.id}" data-size="${content.get("imagecache").toLowerCase}"></figure>"""
 
     when(imageApiService.getMetaByExternId(nodeId)).thenReturn(None)
     when(imageApiService.importImage(nodeId)).thenReturn(Some(image))

@@ -58,6 +58,6 @@ trait ImageApiServiceComponent {
 case class ImageMetaInformation(id:String, titles:List[ImageTitle], alttexts:List[ImageAltText], images:ImageVariants, copyright:Copyright, tags:List[ImageTag])
 case class ImageTitle(title:String, language:Option[String])
 case class ImageAltText(alttext:String, language:Option[String])
-case class ImageTag(tag:String, language:Option[String])
+case class ImageTag(tags: Seq[String], language:Option[String])
 case class ImageVariants(small: Option[Image], full: Option[Image])
 case class Image(url:String, size:Int, contentType:String)
