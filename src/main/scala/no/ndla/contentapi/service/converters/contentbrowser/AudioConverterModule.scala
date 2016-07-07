@@ -12,7 +12,6 @@ trait AudioConverterModule  {
     override val typeName: String = "audio"
 
     override def convert(content: ContentBrowser): (String, List[RequiredLibrary], List[String]) = {
-      val errors = List[String]()
       val requiredLibraries = List[RequiredLibrary]()
       val nodeId = content.get("nid")
       val audioMeta = extractService.getAudioMeta(nodeId)
@@ -21,21 +20,29 @@ trait AudioConverterModule  {
 
       audioMeta match {
         case Some(audio) => {
-          val filepath = storageService.uploadAudiofromUrl(nodeId, audio)
+          val (filePath, uploadError) = storageService.uploadFileFromUrl(nodeId, audio) match {
+            case Some(filepath) => (filepath, List())
+            case None => {
+              val msg = s"""Failed to upload audio (node $nodeId)"""
+              logger.warn(msg)
+              ("", List(msg))
+            }
+          }
+
           val player =
             s"""<figure>
-                  <figcaption>${audio.title}</figcaption>
-                  <audio src="$amazonUrlPrefix/$filepath" preload="auto" controls>
-                    Your browser does not support the <code>audio</code> element.
-                  </audio>
-                </figure>
-            """.stripMargin
-          (player, requiredLibraries, errors)
+              <figcaption>${audio.title}</figcaption>
+              <audio src="$amazonUrlPrefix/$filePath" preload="auto" controls>
+                Your browser does not support the <code>audio</code> element.
+              </audio>
+            </figure>
+          """.stripMargin
+          (player, requiredLibraries, uploadError)
         }
         case None => {
           val msg = s"""Failed to retrieve audio metadata for node $nodeId"""
           logger.warn(msg)
-          (s"{Error: $msg}", requiredLibraries, errors :+ msg)
+          (s"{Error: $msg}", requiredLibraries, List(msg))
         }
       }
     }

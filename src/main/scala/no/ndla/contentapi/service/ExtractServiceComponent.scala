@@ -30,7 +30,7 @@ trait ExtractServiceComponent {
         case false => if (oppgaves.nonEmpty) cmData.getNodeOppgave(oppgaves(0).tnid) else oppgaves
       }
     }
-    def getAudioMeta(nodeId: String): Option[AudioMeta] = cmData.getAudioMeta(nodeId)
+    def getAudioMeta(nodeId: String): Option[ContentFilMeta] = cmData.getAudioMeta(nodeId)
 
     def getNodeAktualitet(nodeId: String): Seq[ContentAktualitet] = {
       val aktualitets = cmData.getNodeAktualitet(nodeId)
@@ -43,5 +43,7 @@ trait ExtractServiceComponent {
     }
 
     def getNodeIngress(nodeId: String): Option[NodeIngress] = cmData.getNodeIngress(nodeId)
+
+    def getNodeFilMeta(nodeId: String): Option[ContentFilMeta] = cmData.getNodeFilMeta(nodeId)
   }
 }

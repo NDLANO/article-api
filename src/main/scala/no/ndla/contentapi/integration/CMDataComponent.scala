@@ -1,10 +1,14 @@
 package no.ndla.contentapi.integration
 
+import java.net.URL
+
 import com.mysql.jdbc.jdbc2.optional.MysqlConnectionPoolDataSource
 import no.ndla.contentapi.model._
 import no.ndla.contentapi.service.Tags
 import no.ndla.contentapi.ContentApiProperties.ndlaBaseHost
 import scalikejdbc.{ConnectionPool, DataSourceConnectionPool, NamedDB, _}
+import ContentFilMeta._
+import com.netaporter.uri.dsl._
 
 /**
   * Forfatter og body for en node id
@@ -132,22 +136,39 @@ trait CMDataComponent {
       }
     }
 
-    def getAudioMeta(nodeId: String): Option[AudioMeta] = {
+    def getAudioMeta(nodeId: String): Option[ContentFilMeta] = {
       NamedDB('cm) readOnly { implicit session =>
         sql"""
-           select n.nid, a.title_format as title, a.playtime, a.format, f.filemime, f.filesize, f.filename, f.filepath from node n
+           select n.nid, a.title_format as title, f.filemime, f.filesize, f.filename, f.filepath from node n
            left join audio a on (a.vid=n.vid)
            left join files f on (f.fid=a.fid)
            where n.nid=${nodeId}
-          """.stripMargin.map(rs => AudioMeta(
+          """.stripMargin.map(rs => ContentFilMeta(
           rs.string("nid"),
+          rs.string("tnid"),
           rs.string("title"),
-          rs.string("playtime"),
-          rs.string("format"),
-          rs.string("filemime"),
-          rs.string("filesize"),
           rs.string("filename"),
-          ndlaBaseHost + rs.string("filepath"))).single.apply()
+          ndlaBaseHost + rs.string("filepath"),
+          rs.string("filemime"),
+          rs.string("filesize"))).single.apply()
+      }
+    }
+
+    def getNodeFilMeta(nodeId: String): Option[ContentFilMeta] = {
+      NamedDB('cm) readOnly  { implicit session =>
+        sql"""
+              select n.nid, n.tnid, n.title, fil.filename, fil.filepath, fil.filemime, fil.filesize from node n
+              left join content_field_vedlegg vedlegg on (vedlegg.nid = n.nid and vedlegg.vid = n.vid)
+              left join files fil on (fil.fid = vedlegg.field_vedlegg_fid)
+              where n.nid=${nodeId}
+          """.stripMargin.map(rs => ContentFilMeta(
+            rs.string("nid"),
+            rs.string("tnid"),
+            rs.string("title"),
+            rs.string("filename"),
+            ndlaBaseHost + rs.string("filepath"),
+            rs.string("filemime"),
+            rs.string("filesize"))).single.apply()
       }
     }
 
@@ -164,6 +185,7 @@ trait CMDataComponent {
     }
   }
 }
+
 case class NodeGeneralContent(nid: String, tnid: String, title: String, content: String, language: String) {
   def isMainNode = (nid == tnid || tnid == "0")
   def isTranslation = !isMainNode
@@ -199,5 +221,10 @@ case class ContentAktualitet(nid: String, tnid: String, title: String, aktualite
 }
 
 case class AudioMeta(nodeId: String, title: String, playTime: String, format: String, mimetype: String, fileSize: String, filename: String, url: String)
+
+case class ContentFilMeta(nid: String, tnid: String, title: String, fileName: String, url: URL, mimeType: String, fileSize: String)
+object ContentFilMeta {
+  implicit def stringToUrl(s: String): URL = new URL(s.uri)
+}
 
 case class NodeIngress(nid: String, content: String, imageNid: Option[String], ingressVisPaaSiden: Int)
