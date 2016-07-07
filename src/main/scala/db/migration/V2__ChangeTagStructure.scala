@@ -49,6 +49,6 @@ class V2__ChangeTagStructure extends JdbcMigration {
 
 }
 
-case class V2_ContentTags(tag: Seq[String], language:Option[String])
+case class V2_ContentTags(tags: Seq[String], language:Option[String])
 case class V2_OldTag(tag: String, language: Option[String])
 case class V2_DBContent(id: Long, document: String)
