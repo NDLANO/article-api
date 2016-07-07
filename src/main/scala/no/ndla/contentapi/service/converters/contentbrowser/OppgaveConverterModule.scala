@@ -16,6 +16,8 @@ trait OppgaveConverterModule {
       val requiredLibraries = Seq[RequiredLibrary]()
       val oppgaves = extractService.getNodeOppgave(nodeId)
 
+      logger.info(s"Converting oppgave with nid $nodeId")
+
       oppgaves.find(x => x.language == content.language.getOrElse("")) match {
         case Some(oppgave) => {
           val (finalOppgave, messages) = insertOppgave(oppgave.content, content)
@@ -34,7 +36,7 @@ trait OppgaveConverterModule {
       insertionMethod match {
         case "inline" => (oppgave, List[String]())
         case "collapsed_body" => (s"<details><summary>${contentBrowser.get("link_text")}</summary>$oppgave</details>", List[String]())
-        case "link" | "lightbox_large" => {
+        case "link" => {
           val warnMessage = s"""Link to old ndla.no ($ndlaBaseHost/node/${contentBrowser.get("nid")})"""
           logger.warn(warnMessage)
           (s"""<a href="$ndlaBaseHost/node/${contentBrowser.get("nid")}">${contentBrowser.get("link_text")}</a>""", List(warnMessage))

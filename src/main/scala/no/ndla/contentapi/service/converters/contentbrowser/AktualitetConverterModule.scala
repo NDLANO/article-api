@@ -16,6 +16,8 @@ trait AktualitetConverterModule {
       val requiredLibraries = List[RequiredLibrary]()
       val aktualitet = extractService.getNodeAktualitet(nodeId)
 
+      logger.info(s"Converting aktualitet with nid $nodeId")
+
       aktualitet.find(x => x.language == content.language.getOrElse("")) match {
         case Some(aktualitet) => {
           val (finalAktualitet, messages) = insertAktualitet(aktualitet.aktualitet, content)
@@ -34,7 +36,7 @@ trait AktualitetConverterModule {
       insertionMethod match {
         case "inline" => (aktualitet, List[String]())
         case "collapsed_body" => (s"<details><summary>${contentBrowser.get("link_text")}</summary>$aktualitet</details>", List[String]())
-        case "link" | "lightbox_large" => {
+        case "link" => {
           val warnMessage = s"""Link to old ndla.no ($ndlaBaseHost/node/${contentBrowser.get("nid")})"""
           logger.warn(warnMessage)
           (s"""<a href="$ndlaBaseHost/node/${contentBrowser.get("nid")}">${contentBrowser.get("link_text")}</a>""", List(warnMessage))
