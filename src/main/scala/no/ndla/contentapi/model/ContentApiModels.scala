@@ -26,9 +26,9 @@ case class ContentInformation(
 
 @ApiModel(description = "The content in the specified language")
 case class Content(
-                    @(ApiModelProperty @field)(description = "The html content") content: String,
-                    @(ApiModelProperty @field)(description = "Foot notes referred to within the html content") footNotes: Map[String, FootNoteItem],
-                    @(ApiModelProperty @field)(description = "ISO 639-1 code that represents the language used in title") language: Option[String]
+  @(ApiModelProperty @field)(description = "The html content") content: String,
+  @(ApiModelProperty @field)(description = "Foot notes referred to within the html content") footNotes: Map[String, FootNoteItem],
+  @(ApiModelProperty @field)(description = "ISO 639-1 code that represents the language used in title") language: Option[String]
 )
 
 @ApiModel(description = "Description of a title")
@@ -46,8 +46,8 @@ case class Copyright(
 
 @ApiModel(description = "Description of the tags of the content")
 case class ContentTag(
-  @(ApiModelProperty @field)(description = "The searchable tag.") tag: String,
-  @(ApiModelProperty @field)(description = "ISO 639-1 code that represents the language used in tag") language: Option[String]
+  @(ApiModelProperty @field)(description = "The searchable tag.") tags: Seq[String],
+  @(ApiModelProperty @field)(description = "ISO 639-1 code that represents the language used in tag") language:Option[String]
 )
 
 @ApiModel(description = "Description of license information")

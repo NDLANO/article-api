@@ -16,9 +16,11 @@ trait ContentBrowserConverter {
       OppgaveConverter.typeName -> OppgaveConverter,
       FagstoffConverter.typeName -> FagstoffConverter,
       AudioConverter.typeName -> AudioConverter,
+      FilConverter.typeName -> FilConverter,
       AktualitetConverter.typeName -> AktualitetConverter,
       NonExistentNodeConverter.typeName -> NonExistentNodeConverter,
       VideoConverter.typeName -> VideoConverter,
+      VeiledningConverter.typeName -> VeiledningConverter,
       BiblioConverter.typeName -> BiblioConverter)
 
     def convert(content: LanguageContent): (LanguageContent, ImportStatus) = {
