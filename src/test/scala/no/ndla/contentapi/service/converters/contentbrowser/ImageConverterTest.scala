@@ -9,7 +9,7 @@ class ImageConverterTest extends UnitSuite with TestEnvironment {
   val nodeId = "1234"
   val altText = "Jente som spiser melom. Grønn bakgrunn, rød melon. Fotografi."
   val contentString = s"[contentbrowser ==nid=$nodeId==imagecache=Fullbredde==width===alt=$altText==link===node_link=1==link_type=link_to_content==lightbox_size===remove_fields[76661]=1==remove_fields[76663]=1==remove_fields[76664]=1==remove_fields[76666]=1==insertion===link_title_text= ==link_text= ==text_align===css_class=contentbrowser contentbrowser]"
-  val content = ContentBrowser(contentString, Some("nb"))
+  val content = ContentBrowser(contentString, Some("nb"), 1)
   val license = License("licence", "description", Some("http://"))
   val author = Author("forfatter", "Henrik")
   val copyright = Copyright(license, "", List(author))
@@ -18,7 +18,7 @@ class ImageConverterTest extends UnitSuite with TestEnvironment {
     val (small, full) = (Image("small.jpg", 1024, ""), Image("full.jpg", 1024, ""))
     val imageVariants = ImageVariants(Some(small), Some(full))
     val image = ImageMetaInformation("1234", List(ImageTitle("", Some("nb"))), List(ImageAltText("", Some("nb"))), imageVariants, copyright, List(ImageTag(List(""), Some(""))))
-    val expectedResult = s"""<figure data-resource="image" data-url="http://localhost/images/${image.id}" data-size="${content.get("imagecache").toLowerCase}"></figure>"""
+    val expectedResult = s"""<figure data-resource="image" data-id="1" data-url="http://localhost/images/${image.id}" data-size="${content.get("imagecache").toLowerCase}"></figure>"""
 
     when(imageApiService.getMetaByExternId(nodeId)).thenReturn(Some(image))
 
@@ -32,7 +32,7 @@ class ImageConverterTest extends UnitSuite with TestEnvironment {
     val (small, full) = (Image("small.jpg", 1024, ""), Image("full.jpg", 1024, ""))
     val imageVariants = ImageVariants(Some(small), Some(full))
     val image = ImageMetaInformation("1234", List(ImageTitle("", Some("nb"))), List(ImageAltText("", Some("nb"))), imageVariants, copyright, List(ImageTag(List(""), Some(""))))
-    val expectedResult = s"""<figure data-resource="image" data-url="http://localhost/images/${image.id}" data-size="${content.get("imagecache").toLowerCase}"></figure>"""
+    val expectedResult = s"""<figure data-resource="image" data-id="1" data-url="http://localhost/images/${image.id}" data-size="${content.get("imagecache").toLowerCase}"></figure>"""
 
     when(imageApiService.getMetaByExternId(nodeId)).thenReturn(None)
     when(imageApiService.importImage(nodeId)).thenReturn(Some(image))

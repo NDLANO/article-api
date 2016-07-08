@@ -1,6 +1,6 @@
 package no.ndla.contentapi.service.converters.contentbrowser
 
-case class ContentBrowser(contentBrowserString: String, language: Option[String]) {
+case class ContentBrowser(contentBrowserString: String, language: Option[String], id: Int = 1) {
   // Extract the contentbrowser variables
   private val Pattern = """(?s).*\[contentbrowser (.*) ?contentbrowser\].*""".r
   private val ContentField = contentBrowserString match {

@@ -127,7 +127,7 @@ trait CMDataComponent {
     def getAudioMeta(nodeId: String): Option[ContentFilMeta] = {
       NamedDB('cm) readOnly { implicit session =>
         sql"""
-           select n.nid, a.title_format as title, f.filemime, f.filesize, f.filename, f.filepath from node n
+           select n.nid, n.tnid, a.title_format as title, f.filemime, f.filesize, f.filename, f.filepath from node n
            left join audio a on (a.vid=n.vid)
            left join files f on (f.fid=a.fid)
            where n.nid=${nodeId}

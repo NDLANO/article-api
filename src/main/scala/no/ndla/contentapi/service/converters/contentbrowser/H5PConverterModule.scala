@@ -15,8 +15,7 @@ trait H5PConverterModule {
 
       logger.info(s"Converting h5p_content with nid $nodeId")
       val requiredLibraries = List(RequiredLibrary("text/javascript", "H5P-Resizer", "http://ndla.no/sites/all/modules/h5p/library/js/h5p-resizer.js"))
-      // TODO: iframe is only used here for demo purposes. Should be switched out with a proper alternative
-      val replacement = s"""<iframe src="http://ndla.no/h5p/embed/$nodeId" ></iframe>"""
+      val replacement = s"""<figure data-resource="h5p" data-id="${content.id}" data-url="http://ndla.no/h5p/embed/$nodeId"></figure>"""
 
       (replacement, requiredLibraries, Seq[String]())
     }
