@@ -3,6 +3,9 @@ package no.ndla.contentapi.service.converters.contentbrowser
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.contentapi.integration.{ConverterModule, LanguageContent}
 import no.ndla.contentapi.model.{ImportStatus, RequiredLibrary}
+import org.jsoup.nodes.Element
+
+import scala.annotation.tailrec
 
 trait ContentBrowserConverter {
   this: ContentBrowserConverterModules =>
@@ -23,37 +26,36 @@ trait ContentBrowserConverter {
       VeiledningConverter.typeName -> VeiledningConverter,
       BiblioConverter.typeName -> BiblioConverter)
 
-    def convert(content: LanguageContent): (LanguageContent, ImportStatus) = {
-      val element = stringToJsoupDocument(content.content)
-      var isContentBrowserField = false
-      var requiredLibraries = List[RequiredLibrary]()
-      var importStatus = ImportStatus()
-
-      do {
+    def convert(languageContent: LanguageContent): (LanguageContent, ImportStatus) = {
+      @tailrec def convert(element: Element, languageContent: LanguageContent, importStatus: ImportStatus): (LanguageContent, ImportStatus) = {
         val text = element.html()
-        val cont = ContentBrowser(text, content.language)
+        val cont = ContentBrowser(text, languageContent.language)
 
-        isContentBrowserField = cont.isContentBrowserField()
-        if (isContentBrowserField) {
-          val nodeType = extractService.getNodeType(cont.get("nid")).getOrElse(NonExistentNodeConverter.typeName)
+        if (!cont.isContentBrowserField)
+          return (languageContent, importStatus)
 
-          val (newContent, reqLibs, messages) = contentBrowserModules.get(nodeType) match {
-            case Some(module) => module.convert(cont)
-            case None => {
-              val errorString = s"{Unsupported content ${nodeType}: ${cont.get("nid")}}"
-              logger.warn(errorString)
-              (errorString, List[RequiredLibrary](), List(errorString))
-            }
+        val nodeType = extractService.getNodeType(cont.get("nid")).getOrElse(NonExistentNodeConverter.typeName)
+
+        val (newContent, reqLibs, messages) = contentBrowserModules.get(nodeType) match {
+          case Some(module) => module.convert(cont)
+          case None => {
+            val errorString = s"{Unsupported content ${nodeType}: ${cont.get("nid")}}"
+            logger.warn(errorString)
+            (errorString, List[RequiredLibrary](), List(errorString))
           }
-          requiredLibraries = requiredLibraries ++ reqLibs
-          importStatus = ImportStatus(importStatus.messages ++ messages)
-
-          val (start, end) = cont.getStartEndIndex()
-          element.html(text.substring(0, start) + newContent + text.substring(end))
         }
-      } while (isContentBrowserField)
 
-      (content.copy(content=jsoupDocumentToString(element), requiredLibraries=requiredLibraries), importStatus)
+        val (start, end) = cont.getStartEndIndex()
+        element.html(text.substring(0, start) + newContent + text.substring(end))
+
+        val updatedRequiredLibraries = languageContent.requiredLibraries ++ reqLibs
+
+        convert(element, languageContent.copy(requiredLibraries=updatedRequiredLibraries), ImportStatus(importStatus.messages ++ messages))
+      }
+
+      val element = stringToJsoupDocument(languageContent.content)
+      val (updatedLanguageContent, importStatus) = convert(element, languageContent, ImportStatus())
+      (updatedLanguageContent.copy(content=jsoupDocumentToString(element)), importStatus)
     }
   }
 }

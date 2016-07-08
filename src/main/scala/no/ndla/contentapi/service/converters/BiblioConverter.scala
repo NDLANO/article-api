@@ -8,6 +8,9 @@ import org.jsoup.nodes.Element
 
 import scala.collection.JavaConversions._
 import org.jsoup.parser.Tag
+import org.jsoup.select.Elements
+
+import scala.annotation.tailrec
 
 trait BiblioConverter {
   this: ExtractServiceComponent =>
@@ -27,49 +30,45 @@ trait BiblioConverter {
     }
 
     def buildReferences(element: Element): Seq[String] = {
-      var referenceNodes = List[String]()
-      val references = element.select("a[id~=biblio-(.*)]")
+      @tailrec def buildReferences(references: List[Element], referenceNodes: Seq[String], index: Int): Seq[String] = {
+        if (references.isEmpty)
+          return referenceNodes
 
-      for (i <- 0 until references.size) {
-        val id = references(i).id()
+        val id = references.head.id()
         val nodeId = id.substring(id.indexOf("-") + 1)
-        referenceNodes = referenceNodes :+ nodeId
 
-        references(i).removeAttr("id")
-        references(i).attr("data-resource", "footnote")
-        references(i).attr("data-key", s"ref_${i + 1}")
-        references(i).html(s"${i + 1}")
+        references.head.removeAttr("id")
+        references.head.attr("data-resource", "footnote")
+        references.head.attr("data-key", s"ref_$index")
+        references.head.html(s"$index")
+
+        buildReferences(references.tail, referenceNodes :+ nodeId, index + 1)
       }
 
-      referenceNodes
+      buildReferences(element.select("a[id~=biblio-(.*)]").toList, List[String](), 1)
     }
 
-    def buildReferenceMap(references: Seq[String]): (Map[String, FootNoteItem], Seq[String]) = {
-      var errorList = List[String]()
-      var biblioMap = Map[String, FootNoteItem]()
+    def buildReferenceMap(references: Seq[String]) = {
+      @tailrec def buildReferenceMap(references: Seq[String], biblioMap: Map[String, FootNoteItem], errorList: Seq[String], index: Int): (Map[String, FootNoteItem], Seq[String]) = {
+        if (references.isEmpty)
+          return (biblioMap, errorList)
 
-      for ((nodeId, index) <- references.zipWithIndex) {
-        buildReferenceItem(nodeId, index + 1) match {
-          case (Some(fotNote)) => biblioMap += s"ref_${index + 1}" -> fotNote
+        buildReferenceItem(references.head) match {
+          case (Some(fotNote)) => {
+            buildReferenceMap(references.tail, biblioMap + (s"ref_$index" -> fotNote), errorList, index + 1)
+          }
           case None => {
-            val errorMessage = s"Could not find biblio with id $nodeId"
+            val errorMessage = s"Could not find biblio with id ${references.head}"
             logger.warn(errorMessage)
-            errorList :+ errorMessage
+            buildReferenceMap(references.tail, biblioMap, errorList :+ errorMessage, index + 1)
           }
         }
       }
-      (biblioMap, errorList)
+      buildReferenceMap(references, Map[String, FootNoteItem](), List[String](), 1)
     }
 
-    def buildReferenceItem(nodeId: String, num: Int): Option[FootNoteItem] = {
-      extractService.getBiblio(nodeId) match {
-        case Some(biblio) => {
-          val authors = extractService.getBiblioAuthors(nodeId)
-          Some(FootNoteItem(biblio, authors))
-        }
-        case None => None
-      }
-    }
+    def buildReferenceItem(nodeId: String): Option[FootNoteItem] =
+      extractService.getBiblio(nodeId).map(biblio => FootNoteItem(biblio, extractService.getBiblioAuthors(nodeId)))
   }
 }
 
