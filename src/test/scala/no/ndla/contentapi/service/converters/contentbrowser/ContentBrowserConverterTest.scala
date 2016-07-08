@@ -13,10 +13,6 @@ class ContentBrowserConverterTest extends UnitSuite with TestEnvironment {
   val sampleAlt = "Fotografi"
   val sampleContentString = s"[contentbrowser ==nid=${nodeId}==imagecache=Fullbredde==width===alt=$sampleAlt==link===node_link=1==link_type=link_to_content==lightbox_size===remove_fields[76661]=1==remove_fields[76663]=1==remove_fields[76664]=1==remove_fields[76666]=1==insertion=inline==link_title_text= ==link_text= ==text_align===css_class=contentbrowser contentbrowser]"
 
-  override def beforeEach() = {
-    ContentBrowser.reset
-  }
-
   test("That content-browser strings are replaced") {
     val initialContent = LanguageContent(nodeId, nodeId, s"<article><p>$sampleContentString</p></article>", Some("en"))
     val expectedResult = s"<article> <p>{Unsupported content unsupported type: ${nodeId}}</p></article>"
@@ -31,7 +27,7 @@ class ContentBrowserConverterTest extends UnitSuite with TestEnvironment {
   test("That content-browser strings of type h5p_content are converted correctly") {
     val nodeId = "1234"
     val initialContent = LanguageContent(nodeId, nodeId, s"<article>$sampleContentString</article>", Some("en"))
-    val expectedResult = s"""<article> <iframe src="http://ndla.no/h5p/embed/${nodeId}"></iframe></article>"""
+    val expectedResult = s"""<article> <figure data-resource="h5p" data-id="1" data-url="http://ndla.no/h5p/embed/${nodeId}"></figure></article>"""
 
     when(extractService.getNodeType(nodeId)).thenReturn(Some("h5p_content"))
     val (result, status) = contentBrowserConverter.convert(initialContent)
