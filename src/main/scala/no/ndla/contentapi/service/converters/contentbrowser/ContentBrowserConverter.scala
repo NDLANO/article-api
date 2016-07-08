@@ -39,7 +39,7 @@ trait ContentBrowserConverter {
         val (newContent, reqLibs, messages) = contentBrowserModules.get(nodeType) match {
           case Some(module) => module.convert(cont)
           case None => {
-            val errorString = s"{Unsupported content ${nodeType}: ${cont.get("nid")}}"
+            val errorString = s"{Unsupported content $nodeType: ${cont.get("nid")}}"
             logger.warn(errorString)
             (errorString, List[RequiredLibrary](), List(errorString))
           }

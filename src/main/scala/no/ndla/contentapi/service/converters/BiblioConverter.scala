@@ -45,7 +45,7 @@ trait BiblioConverter {
         buildReferences(references.tail, referenceNodes :+ nodeId, index + 1)
       }
 
-      buildReferences(element.select("a[id~=biblio-(.*)]").toList, List[String](), 1)
+      buildReferences(element.select("a[id~=biblio-(.*)]").toList, List(), 1)
     }
 
     def buildReferenceMap(references: Seq[String]) = {
@@ -54,9 +54,7 @@ trait BiblioConverter {
           return (biblioMap, errorList)
 
         buildReferenceItem(references.head) match {
-          case (Some(fotNote)) => {
-            buildReferenceMap(references.tail, biblioMap + (s"ref_$index" -> fotNote), errorList, index + 1)
-          }
+          case (Some(fotNote)) => buildReferenceMap(references.tail, biblioMap + (s"ref_$index" -> fotNote), errorList, index + 1)
           case None => {
             val errorMessage = s"Could not find biblio with id ${references.head}"
             logger.warn(errorMessage)
@@ -64,7 +62,7 @@ trait BiblioConverter {
           }
         }
       }
-      buildReferenceMap(references, Map[String, FootNoteItem](), List[String](), 1)
+      buildReferenceMap(references, Map(), List(), 1)
     }
 
     def buildReferenceItem(nodeId: String): Option[FootNoteItem] =
