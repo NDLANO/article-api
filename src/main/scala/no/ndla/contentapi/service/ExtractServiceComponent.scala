@@ -26,5 +26,8 @@ trait ExtractServiceComponent {
     }
 
     def getNodeIngress(nodeId: String): Option[NodeIngress] = cmData.getNodeIngress(nodeId)
+
+    def getBiblio(nodeId: String): Option[Biblio] = cmData.getBiblio(nodeId)
+    def getBiblioAuthors(nodeId: String): Seq[BiblioAuthor] = cmData.getBiblioAuthors(nodeId)
   }
 }

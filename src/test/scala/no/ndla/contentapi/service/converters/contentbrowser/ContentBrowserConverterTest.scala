@@ -123,4 +123,16 @@ class ContentBrowserConverterTest extends UnitSuite with TestEnvironment {
     strippedResult.replace("\n", "") should equal (expectedResult)
     result.requiredLibraries.length should equal (1)
   }
+
+  test("That content-browser strings of type biblio are converted into content") {
+    val initialContent = LanguageContent(nodeId, nodeId, s"""<article>$sampleContentString</a><h1>CONTENT</h1>more content</article>""", Some("en"))
+    val expectedResult = s"""<article> <a id="biblio-$nodeId"></a> <h1>CONTENT</h1>more content</article>"""
+
+    when(extractService.getNodeType(nodeId)).thenReturn(Some("biblio"))
+    val (result, status) = contentBrowserConverter.convert(initialContent)
+    val strippedContent = " +".r.replaceAllIn(result.content.replace("\n", ""), " ")
+
+    strippedContent should equal (expectedResult)
+    status.messages.isEmpty should be (true)
+  }
 }

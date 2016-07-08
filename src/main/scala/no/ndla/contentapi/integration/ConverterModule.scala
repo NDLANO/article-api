@@ -1,6 +1,6 @@
 package no.ndla.contentapi.integration
 
-import no.ndla.contentapi.model.{Content, ContentInformation, ImportStatus, RequiredLibrary}
+import no.ndla.contentapi.model._
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Element
 import org.jsoup.nodes.Entities.EscapeMode
@@ -37,9 +37,10 @@ trait ConverterModule {
   }
 }
 
-case class LanguageContent(nid: String, tnid: String, content: String, language: Option[String], requiredLibraries: Seq[RequiredLibrary] = List[RequiredLibrary](), containsIngress: Boolean = false) {
+case class LanguageContent(nid: String, tnid: String, content: String, language: Option[String], requiredLibraries: Seq[RequiredLibrary] = List[RequiredLibrary](),
+                           containsIngress: Boolean = false, footNotes: Map[String, FootNoteItem] = Map[String, FootNoteItem]()) {
   def isMainNode = (nid == tnid || tnid == "0")
   def isTranslation = !isMainNode
 
-  def asContent: Content = Content(content, language)
+  def asContent: Content = Content(content, footNotes, language)
 }

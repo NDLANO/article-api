@@ -29,7 +29,10 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
 
     when(extractService.getNodeIngress(nodeId)).thenReturn(None)
 
-    service.convertNode(node)._1.content(0).content.replace("\n", "").replace(" ", "") should equal (expedtedResult)
+    val (result, status) = service.convertNode(node)
+    val strippedResult = result.content.head.content.replace("\n", "").replace(" ", "")
+
+    strippedResult should equal (expedtedResult)
   }
 
   test("That content embedded in a node is converted") {
@@ -64,8 +67,8 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     val node = NodeToConvert(List(contentTitle), List(contentNodeBokmal, contentNodeNynorsk), copyright, List(tag))
     val ingressNodeBokmal = NodeIngress(nodeId, "Hvem er sterkest?", None, 1)
     val ingressNodeNynorsk = NodeIngress(nodeId2, "Kven er sterkast?", None, 1)
-    val bokmalExpectedResult = "<article> <section> Hvem er sterkest? </section> Nordavinden og sola kranglet en gang om hvem av dem som var den sterkeste </article>"
-    val nynorskExpectedResult = "<article> <section> Kven er sterkast? </section> Nordavinden og sola krangla ein gong om kven av dei som var den sterkaste </article>"
+    val bokmalExpectedResult = "<article> <section> Hvem er sterkest? </section>Nordavinden og sola kranglet en gang om hvem av dem som var den sterkeste </article>"
+    val nynorskExpectedResult = "<article> <section> Kven er sterkast? </section>Nordavinden og sola krangla ein gong om kven av dei som var den sterkaste </article>"
 
     when(extractService.getNodeIngress(nodeId)).thenReturn(Some(ingressNodeBokmal))
     when(extractService.getNodeIngress(nodeId2)).thenReturn(Some(ingressNodeNynorsk))
