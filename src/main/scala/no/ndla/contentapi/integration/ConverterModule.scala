@@ -39,7 +39,7 @@ trait ConverterModule {
 
 case class LanguageContent(nid: String, tnid: String, content: String, language: Option[String], requiredLibraries: Seq[RequiredLibrary] = List[RequiredLibrary](),
                            containsIngress: Boolean = false, footNotes: Map[String, FootNoteItem] = Map[String, FootNoteItem]()) {
-  def isMainNode = (nid == tnid || tnid == "0")
+  def isMainNode = nid == tnid || tnid == "0"
   def isTranslation = !isMainNode
 
   def asContent: Content = Content(content, footNotes, language)
