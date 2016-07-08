@@ -27,4 +27,4 @@ trait ContentBrowserConverterModules
   with VideoConverterModule
   with FilConverterModule
   with VeiledningConverterModule
-
+  with BiblioConverterModule

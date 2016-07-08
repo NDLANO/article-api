@@ -8,7 +8,7 @@ import no.ndla.contentapi.controller.{ContentController, InternController}
 import no.ndla.contentapi.integration.{AmazonClientComponent, CMDataComponent, DataSourceComponent, ElasticClientComponent}
 import no.ndla.contentapi.repository.ContentRepositoryComponent
 import no.ndla.contentapi.service._
-import no.ndla.contentapi.service.converters.{DivTableConverter, IngressConverter, SimpleTagConverter}
+import no.ndla.contentapi.service.converters.{DivTableConverter, IngressConverter, SimpleTagConverter, BiblioConverter}
 import org.elasticsearch.common.settings.Settings
 import no.ndla.contentapi.service.converters.contentbrowser._
 import org.postgresql.ds.PGPoolingDataSource
@@ -28,6 +28,8 @@ object ComponentRegistry
   with ImageApiServiceComponent
   with ContentBrowserConverterModules
   with ContentBrowserConverter
+  with BiblioConverterModule
+  with BiblioConverter
   with AmazonClientComponent
   with StorageService
   with IngressConverter
@@ -75,5 +77,6 @@ object ComponentRegistry
 
   lazy val contentBrowserConverter = new ContentBrowserConverter
   lazy val ingressConverter = new IngressConverter
-  lazy val converterModules = List(ingressConverter, contentBrowserConverter, DivTableConverter, SimpleTagConverter)
+  lazy val biblioConverter = new BiblioConverter
+  lazy val converterModules = List(ingressConverter, contentBrowserConverter, biblioConverter, DivTableConverter, SimpleTagConverter)
 }
