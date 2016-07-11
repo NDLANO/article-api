@@ -38,7 +38,7 @@ trait ConverterModule {
 }
 
 case class LanguageContent(nid: String, tnid: String, content: String, language: Option[String], requiredLibraries: Seq[RequiredLibrary] = List[RequiredLibrary](),
-                           containsIngress: Boolean = false, footNotes: Map[String, FootNoteItem] = Map[String, FootNoteItem]()) {
+                           containsIngress: Boolean = false, footNotes: Option[Map[String, FootNoteItem]] = None) {
   def isMainNode = nid == tnid || tnid == "0"
   def isTranslation = !isMainNode
 
