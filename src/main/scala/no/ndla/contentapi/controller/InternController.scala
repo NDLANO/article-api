@@ -7,12 +7,12 @@ import org.scalatra.{Ok, ScalatraServlet}
 import no.ndla.contentapi.business.SearchIndexer
 import no.ndla.contentapi.model.{Error, ImportStatus, NodeNotFoundException}
 import no.ndla.contentapi.repository.ContentRepositoryComponent
-import no.ndla.contentapi.service.{ConverterServiceComponent, ExtractServiceComponent}
+import no.ndla.contentapi.service.{ConverterServiceComponent, ExtractServiceComponent, HtmlTagsUsage}
 import no.ndla.logging.LoggerContext
 import no.ndla.network.ApplicationUrl
 
 trait InternController {
-  this: ExtractServiceComponent with ConverterServiceComponent with ContentRepositoryComponent =>
+  this: ExtractServiceComponent with ConverterServiceComponent with ContentRepositoryComponent with HtmlTagsUsage =>
   val internController: InternController
 
   class InternController extends ScalatraServlet with NativeJsonSupport with LazyLogging {
@@ -41,8 +41,8 @@ trait InternController {
       Ok(SearchIndexer.indexDocuments())
     }
 
-    post("/import/:node_id") {
-      val nodeId = params("node_id")
+    post("/import/:external_id") {
+      val nodeId = params("external_id")
 
       val node = extractService.getNodeData(nodeId)
       val nodesToImport = node.contents.map(_.nid).mkString(",")
@@ -63,5 +63,10 @@ trait InternController {
         case None => throw new NodeNotFoundException(s"$nodeId is a translation; Could not find main node")
       }
     }
+
+    get("/htmltag_stats") {
+      HtmlTagsUsage.getHtmlTagsMap
+    }
+
   }
 }
