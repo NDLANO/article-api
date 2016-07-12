@@ -64,7 +64,7 @@ trait InternController {
       }
     }
 
-    get("/htmltag_stats") {
+    get("/tagsinuse") {
       HtmlTagsUsage.getHtmlTagsMap
     }
 
