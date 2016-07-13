@@ -33,6 +33,7 @@ object ComponentRegistry
   with AmazonClientComponent
   with StorageService
   with IngressConverter
+  with HtmlTagsUsage
 {
   implicit val swagger = new ContentSwagger
 

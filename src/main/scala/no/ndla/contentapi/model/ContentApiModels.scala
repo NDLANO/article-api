@@ -27,7 +27,7 @@ case class ContentInformation(
 @ApiModel(description = "The content in the specified language")
 case class Content(
   @(ApiModelProperty @field)(description = "The html content") content: String,
-  @(ApiModelProperty @field)(description = "Foot notes referred to within the html content") footNotes: Map[String, FootNoteItem],
+  @(ApiModelProperty @field)(description = "Foot notes referred to within the html content") footNotes: Option[Map[String, FootNoteItem]],
   @(ApiModelProperty @field)(description = "ISO 639-1 code that represents the language used in title") language: Option[String]
 )
 

@@ -1,14 +1,12 @@
 package no.ndla.contentapi.service.converters
 
 import com.typesafe.scalalogging.LazyLogging
-import no.ndla.contentapi.integration.{Biblio, BiblioAuthor, ConverterModule, LanguageContent}
+import no.ndla.contentapi.integration.{ConverterModule, LanguageContent}
 import no.ndla.contentapi.model.{FootNoteItem, ImportStatus}
 import no.ndla.contentapi.service.ExtractServiceComponent
 import org.jsoup.nodes.Element
 
 import scala.collection.JavaConversions._
-import org.jsoup.parser.Tag
-import org.jsoup.select.Elements
 
 import scala.annotation.tailrec
 
@@ -26,7 +24,7 @@ trait BiblioConverter {
         case false => buildReferenceMap(references)
       }
 
-      (content.copy(content=jsoupDocumentToString(element), footNotes=content.footNotes ++ map), ImportStatus(messages))
+      (content.copy(content=jsoupDocumentToString(element), footNotes=Some(content.footNotes.getOrElse(map))), ImportStatus(messages))
     }
 
     def buildReferences(element: Element): Seq[String] = {

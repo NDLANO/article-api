@@ -72,9 +72,9 @@ trait ContentRepositoryComponent {
       }
     }
 
-    def all: List[ContentSummary] = {
+    def all: List[ContentInformation] = {
       DB readOnly { implicit session =>
-        sql"select id, document from contentdata limit 100".map(rs => asContentSummary(rs.long("id"), rs.string("document"))).list().apply()
+        sql"select id, document from contentdata".map(rs => asContentInformation(rs.string("id"), rs.string("document"))).list().apply()
       }
     }
 
