@@ -114,7 +114,7 @@ class GeneralContentConverterTest extends UnitSuite with TestEnvironment {
     when(contentRepository.withExternalId(nodeId)).thenReturn(None)
     when(extractConvertStoreContent.processNode(nodeId, ImportStatus(Seq(), Seq(nodeId2)))).thenReturn(Try((newNodeid, ImportStatus(Seq(), Seq(nodeId2, nodeId)))))
 
-    val languageContent = LanguageContent(nodeId, nodeId, "<div>sample content</div>", Some("en"), Seq(), false, Map())
+    val languageContent = LanguageContent(nodeId, nodeId, "<div>sample content</div>", Some("en"), Seq(), false, Some(Map()))
     val nodeToConvert = NodeToConvert(Seq(ContentTitle("title", Some("en"))), Seq(languageContent), Copyright(License("publicdomain", "public", None), "", Seq()), Seq())
     val (result, requiredLibraries, status) = generalContentConverter.convert(content, Seq(nodeId2))
     val strippedResult = " +".r.replaceAllIn(result.replace("\n", ""), " ")
@@ -132,7 +132,7 @@ class GeneralContentConverterTest extends UnitSuite with TestEnvironment {
     when(contentRepository.withExternalId(nodeId)).thenReturn(None)
     when(extractConvertStoreContent.processNode(nodeId, ImportStatus(Seq(), Seq(nodeId2)))).thenReturn(Failure(NodeNotFoundException("Node was not found")))
 
-    val languageContent = LanguageContent(nodeId, nodeId2, "<div>sample content</div>", Some("en"), Seq(), false, Map())
+    val languageContent = LanguageContent(nodeId, nodeId2, "<div>sample content</div>", Some("en"), Seq(), false, Some(Map()))
     val nodeToConvert = NodeToConvert(Seq(ContentTitle("title", Some("en"))), Seq(languageContent), Copyright(License("publicdomain", "public", None), "", Seq()), Seq())
 
     val (result, requiredLibraries, status) = generalContentConverter.convert(content, Seq(nodeId2))

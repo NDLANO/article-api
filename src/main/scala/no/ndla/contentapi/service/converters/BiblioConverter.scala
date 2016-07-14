@@ -5,6 +5,7 @@ import no.ndla.contentapi.integration.{ConverterModule, LanguageContent}
 import no.ndla.contentapi.model.{FootNoteItem, ImportStatus}
 import no.ndla.contentapi.service.ExtractServiceComponent
 import org.jsoup.nodes.Element
+
 import scala.collection.JavaConversions._
 
 import scala.annotation.tailrec
@@ -24,7 +25,7 @@ trait BiblioConverter {
       }
 
       val finalImportStatus = ImportStatus(importStatus.messages ++ messages, importStatus.visitedNodes)
-      (content.copy(content=jsoupDocumentToString(element), footNotes=content.footNotes ++ map), finalImportStatus)
+      (content.copy(content=jsoupDocumentToString(element), footNotes=Some(content.footNotes.getOrElse(map))), finalImportStatus)
     }
 
     def buildReferences(element: Element): Seq[String] = {
@@ -67,5 +68,4 @@ trait BiblioConverter {
       extractService.getBiblio(nodeId).map(biblio => FootNoteItem(biblio, extractService.getBiblioAuthors(nodeId)))
   }
 }
-
 

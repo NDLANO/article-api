@@ -34,6 +34,7 @@ trait TestEnvironment
   with ImageApiServiceComponent
   with AmazonClientComponent
   with StorageService
+  with HtmlTagsUsage
   with ExtractConvertStoreContent
 {
   val elasticClient = mock[ElasticClient]

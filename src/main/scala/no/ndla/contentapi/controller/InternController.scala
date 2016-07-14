@@ -7,14 +7,13 @@ import org.scalatra.{Ok, ScalatraServlet}
 import no.ndla.contentapi.business.SearchIndexer
 import no.ndla.contentapi.model.{Error, ImportStatus, NodeNotFoundException}
 import no.ndla.contentapi.repository.ContentRepositoryComponent
-import no.ndla.contentapi.service.{ConverterServiceComponent, ExtractConvertStoreContent, ExtractServiceComponent}
+import no.ndla.contentapi.service.{ConverterServiceComponent, ExtractConvertStoreContent, ExtractServiceComponent, HtmlTagsUsage}
 import no.ndla.logging.LoggerContext
 import no.ndla.network.ApplicationUrl
-
 import scala.util.{Failure, Success}
 
 trait InternController {
-  this: ExtractConvertStoreContent =>
+  this: ExtractServiceComponent with ConverterServiceComponent with ContentRepositoryComponent with HtmlTagsUsage with ExtractConvertStoreContent =>
   val internController: InternController
 
   class InternController extends ScalatraServlet with NativeJsonSupport with LazyLogging {
@@ -50,6 +49,10 @@ trait InternController {
         case Success((newId, status)) => ImportStatus(status.messages :+ s"Successfully imported node $externalId: $newId", status.visitedNodes)
         case Failure(exc) => throw exc
       }
+    }
+
+    get("/tagsinuse") {
+      HtmlTagsUsage.getHtmlTagsMap
     }
 
   }
