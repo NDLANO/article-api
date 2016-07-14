@@ -13,7 +13,7 @@ import scala.collection.mutable
 object ContentApiProperties extends LazyLogging {
   var ContentApiProps: mutable.Map[String, Option[String]] = mutable.HashMap()
 
-  val ApplicationPort = 80
+  val ApplicationPort = 30002
 
   // When converting a content node, the converter may run several times over the content to make sure
   // everything is converted. This value defines a maximum number of times the converter runs on a node
@@ -57,6 +57,10 @@ object ContentApiProperties extends LazyLogging {
   lazy val CMDatabase = get("CM_DATABASE")
   lazy val CMUser = get("CM_USER")
   lazy val CMPassword = get("CM_PASSWORD")
+
+  val mathJaxTags = Set("math", "msqrt", "msub", "mtd", "msup", "mfenced", "mrow", "mn", "mi", "mo") // TODO initialize list with all MathJax tags
+  val permittedHTMLTags = Set("article", "section", "table", "tr", "td", "li", "a", "button", "div", "p", "pre", "code", "sup",
+    "h1", "h2", "h3", "h4", "h5", "h6", "aside", "strong", "figure", "ul", "br", "ol", "i", "em", "b", "th", "tbody") ++ mathJaxTags
 
   def verify() = {
     val missingProperties = ContentApiProps.filter(entry => entry._2.isEmpty).toList

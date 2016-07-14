@@ -3,9 +3,12 @@ package no.ndla.contentapi.service
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.contentapi.ContentApiProperties.maxConvertionRounds
 import no.ndla.contentapi.integration.NodeToConvert
-import no.ndla.contentapi.model.{ContentInformation, ImportStatus}
+import no.ndla.contentapi.model.{Content, ContentInformation, ImportStatus}
+import no.ndla.contentapi.ContentApiProperties.permittedHTMLTags
+import org.jsoup.Jsoup
 
 import scala.annotation.tailrec
+import scala.collection.JavaConversions._
 
 trait ConverterServiceComponent {
   this: ConverterModules =>
@@ -30,7 +33,9 @@ trait ConverterServiceComponent {
         }
       }
 
-      convertNode(nodeToConvert, maxConvertionRounds)
+      val (contentInformation, importStatus) = convertNode(nodeToConvert, maxConvertionRounds)
+      val illegalTagsMessages = checkIllegalTags(contentInformation.content).map(x => s"Illegal tag in article: $x")
+      (contentInformation, ImportStatus(importStatus.messages ++ illegalTagsMessages))
     }
 
     private def convert(nodeToConvert: NodeToConvert): (NodeToConvert, ImportStatus) =
@@ -38,5 +43,14 @@ trait ConverterServiceComponent {
         val (updatedNodeToConvert, importStatus) = element
         converter.convert(updatedNodeToConvert, importStatus)
       })
+
+    def checkIllegalTags(contents: Seq[Content]): Seq[String] = {
+      contents.foldLeft(Seq[String]())((list, content) => {
+        list ++ Jsoup.parseBodyFragment(content.content).select("article").select("*").toList
+          .map(x => x.tagName).distinct // get a list of all html tags in the article
+          .filter(x => !permittedHTMLTags.contains(x)) // get all tags which is not defined in the permittedHTMLTags list
+      }).distinct
+    }
+
   }
 }

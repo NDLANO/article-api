@@ -82,4 +82,14 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     status.messages.isEmpty should equal (true)
     result.requiredLibraries.isEmpty should equal (true)
   }
+
+  test("That checkIllegalTags returns an empty list if the article contains no illegal tags") {
+    val content = Content("<article><section><div>content</div></section></article>", None, None)
+    service.checkIllegalTags(List(content)).isEmpty should equal (true)
+  }
+
+  test("That checkIllegalTags returns a list of illegal tags in an article") {
+    val content = Content("<article><section><div></div><p>asdf</p><startpunkt><hehe></hehe></startpunkt></section></article>", None, None)
+    service.checkIllegalTags(List(content)) should equal (List("startpunkt", "hehe"))
+  }
 }
