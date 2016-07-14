@@ -33,6 +33,7 @@ object ComponentRegistry
   with AmazonClientComponent
   with StorageService
   with IngressConverter
+  with ExtractConvertStoreContent
 {
   implicit val swagger = new ContentSwagger
 
@@ -46,6 +47,7 @@ object ComponentRegistry
   dataSource.setMaxConnections(ContentApiProperties.getInt("META_MAX_CONNECTIONS"))
   dataSource.setCurrentSchema(ContentApiProperties.get("META_SCHEMA"))
 
+  lazy val extractConvertStoreContent = new ExtractConvertStoreContent
   lazy val internController = new InternController
   lazy val contentController = new ContentController
   lazy val resourcesApp = new ResourcesApp

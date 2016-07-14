@@ -1,6 +1,6 @@
 package no.ndla.contentapi.service.converters.contentbrowser
 
-import no.ndla.contentapi.model.RequiredLibrary
+import no.ndla.contentapi.model.{ImportStatus, RequiredLibrary}
 import com.netaporter.uri.dsl._
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.contentapi.service.ExtractServiceComponent
@@ -11,10 +11,10 @@ trait LenkeConverterModule {
   object LenkeConverter extends ContentBrowserConverterModule with LazyLogging {
     override val typeName: String = "lenke"
 
-    override def convert(content: ContentBrowser): (String, Seq[RequiredLibrary], Seq[String]) = {
+    override def convert(content: ContentBrowser, visitedNodes: Seq[String]): (String, Seq[RequiredLibrary], ImportStatus) = {
       val (replacement, errors) = convertLink(content)
       logger.info(s"Converting lenke with nid ${content.get("nid")}")
-      (replacement, List[RequiredLibrary](), errors)
+      (replacement, List[RequiredLibrary](), ImportStatus(errors, visitedNodes))
     }
 
     def convertLink(cont: ContentBrowser): (String, Seq[String]) = {

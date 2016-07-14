@@ -1,12 +1,12 @@
 package no.ndla.contentapi.controller
 
-import no.ndla.contentapi.ComponentRegistry._
 import no.ndla.contentapi.integration.{LanguageContent, NodeToConvert}
 import no.ndla.contentapi.model._
 import no.ndla.contentapi.{TestEnvironment, UnitSuite}
 import org.json4s.native.Serialization._
 import org.scalatra.test.scalatest.ScalatraFunSuite
 import org.mockito.Mockito._
+import scala.util.Try
 
 class InternControllerTest extends UnitSuite with TestEnvironment with ScalatraFunSuite {
   implicit val formats = org.json4s.DefaultFormats
@@ -34,16 +34,12 @@ class InternControllerTest extends UnitSuite with TestEnvironment with ScalatraF
   }
 
   test("That POST /import/:node_id returns a json status-object on success") {
-    val newNodeid = 4444
-    when(extractService.getNodeData(nodeId)).thenReturn(sampleNode)
-    when(converterService.convertNode(sampleNode)).thenReturn((sampleNode.asContentInformation, ImportStatus()))
-    when(contentRepository.exists(sampleNode.contents.head.nid)).thenReturn(true)
-    when(contentRepository.update(sampleNode.asContentInformation, nodeId)).thenReturn(newNodeid)
+    val newNodeid: Long = 4444
+    when(extractConvertStoreContent.processNode(nodeId)).thenReturn(Try((newNodeid, ImportStatus())))
 
     post(s"/import/$nodeId") {
       status should equal(200)
       val convertedBody = read[ImportStatus](body)
-      convertedBody.messages.head should equal (s"Successfully imported nodes $nodeId: $newNodeid")
     }
   }
 }

@@ -1,7 +1,7 @@
 package no.ndla.contentapi.service.converters.contentbrowser
 
 import com.typesafe.scalalogging.LazyLogging
-import no.ndla.contentapi.model.RequiredLibrary
+import no.ndla.contentapi.model.{ImportStatus, RequiredLibrary}
 import no.ndla.contentapi.service.ImageApiServiceComponent
 import no.ndla.contentapi.ContentApiProperties.imageApiUrl
 
@@ -11,10 +11,10 @@ trait ImageConverterModule {
   object ImageConverter extends ContentBrowserConverterModule with LazyLogging{
     override val typeName: String = "image"
 
-    override def convert(content: ContentBrowser): (String, Seq[RequiredLibrary], Seq[String]) = {
+    override def convert(content: ContentBrowser, visitedNodes: Seq[String]): (String, Seq[RequiredLibrary], ImportStatus) = {
       val (replacement, errors) = getImage(content)
       logger.info(s"Converting image with nid ${content.get("nid")}")
-      (replacement, List[RequiredLibrary](), errors)
+      (replacement, List[RequiredLibrary](), ImportStatus(errors, visitedNodes))
     }
 
     def getImage(cont: ContentBrowser): (String, Seq[String]) = {

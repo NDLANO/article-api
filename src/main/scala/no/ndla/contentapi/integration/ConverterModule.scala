@@ -5,6 +5,8 @@ import org.jsoup.Jsoup
 import org.jsoup.nodes.Element
 import org.jsoup.nodes.Entities.EscapeMode
 
+import scala.annotation.tailrec
+
 
 trait ConverterModule {
   def stringToJsoupDocument(htmlString: String): Element = {
@@ -28,13 +30,24 @@ trait ConverterModule {
     content.outerHtml()
   }
 
-  def convert(content: LanguageContent): (LanguageContent, ImportStatus)
+  def convert(content: LanguageContent, importStatus: ImportStatus): (LanguageContent, ImportStatus)
 
   def convert(nodeToConvert: NodeToConvert, importStatus: ImportStatus): (NodeToConvert, ImportStatus) = {
-    val (convertedContent, importStatuses) = nodeToConvert.contents.map(x => convert(x)).unzip
-    val finalImportStatuses = ImportStatus(importStatuses.flatMap(is => is.messages) ++ importStatus.messages)  // Slå sammen importStatus
-    (nodeToConvert.copy(contents=convertedContent), finalImportStatuses)
+    @tailrec def convertLoop(contents: Seq[LanguageContent], convertedContents: Seq[LanguageContent], importStatus: ImportStatus): (Seq[LanguageContent], ImportStatus) = {
+      if (contents.isEmpty) {
+        return (convertedContents, importStatus)
+      }
+
+      val nodeToConvert = contents.head
+      val (content, status) = convert(nodeToConvert, importStatus)
+
+      convertLoop(contents.tail, convertedContents :+ content, status)
+    }
+
+    val (convertedContent, finalImportStatus) = convertLoop(nodeToConvert.contents, Seq(), importStatus)
+    (nodeToConvert.copy(contents=convertedContent), finalImportStatus)
   }
+
 }
 
 case class LanguageContent(nid: String, tnid: String, content: String, language: Option[String], requiredLibraries: Seq[RequiredLibrary] = List[RequiredLibrary](),

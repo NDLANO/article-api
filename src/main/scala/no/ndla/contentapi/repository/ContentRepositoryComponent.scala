@@ -46,6 +46,9 @@ trait ContentRepositoryComponent {
       contentId
     }
 
+    def getIdFromExternalId(externalId: String)(implicit session: DBSession = AutoSession): Option[Long] =
+      sql"select id from contentdata where external_id=${externalId}".map(rs => rs.long("id")).single.apply()
+
     def minMaxId: (Long, Long) = {
       DB readOnly { implicit session =>
         sql"select min(id) as mi, max(id) as ma from contentdata;".map(rs => {
@@ -86,6 +89,9 @@ trait ContentRepositoryComponent {
         }
       }
     }
+
+    def withExternalId(externalId: String)(implicit session: DBSession = AutoSession): Option[ContentSummary] =
+        sql"select id, document from contentdata where external_id=$externalId".map(rs => asContentSummary(rs.long("id"), rs.string("document"))).single.apply()
 
     def exists(externalId: String): Boolean = {
       DB readOnly { implicit session =>

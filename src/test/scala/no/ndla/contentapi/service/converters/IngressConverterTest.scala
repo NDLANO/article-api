@@ -2,7 +2,7 @@ package no.ndla.contentapi.service.converters
 
 import no.ndla.contentapi.{TestEnvironment, UnitSuite}
 import no.ndla.contentapi.integration.{LanguageContent, NodeIngress}
-import no.ndla.contentapi.model.{Author, Copyright, License}
+import no.ndla.contentapi.model.{Author, Copyright, ImportStatus, License}
 import no.ndla.contentapi.service._
 import org.mockito.Mockito._
 
@@ -20,7 +20,7 @@ class IngressConverterTest extends UnitSuite with TestEnvironment {
     val ingressNode = NodeIngress(nodeId, "<p>Introduksjon til banankake</p>", None, 1)
 
     when(extractService.getNodeIngress(nodeId)).thenReturn(Some(ingressNode))
-    val (result, status) = ingressConverter.convert(node)
+    val (result, status) = ingressConverter.convert(node, ImportStatus())
     val strippedResult = " +".r.replaceAllIn(result.content.replace("\n", ""), " ")
 
     strippedResult should equal(expectedContent)
@@ -39,7 +39,7 @@ class IngressConverterTest extends UnitSuite with TestEnvironment {
 
     when(extractService.getNodeIngress(nodeId)).thenReturn(Some(ingressNode))
     when(imageApiService.importOrGetMetaByExternId(imageNid)).thenReturn(Some(image))
-    val (result, status) = ingressConverter.convert(node)
+    val (result, status) = ingressConverter.convert(node, ImportStatus())
     val strippedResult = " +".r.replaceAllIn(result.content.replace("\n", ""), " ")
 
     strippedResult should equal(expectedContent)
@@ -50,7 +50,7 @@ class IngressConverterTest extends UnitSuite with TestEnvironment {
     val node = LanguageContent(nodeId, nodeId, initialContent, Some("nb"))
 
     when(extractService.getNodeIngress(nodeId)).thenReturn(None)
-    val (result, status) = ingressConverter.convert(node)
+    val (result, status) = ingressConverter.convert(node, ImportStatus())
 
     result.content should equal(initialContent)
   }
@@ -63,7 +63,7 @@ class IngressConverterTest extends UnitSuite with TestEnvironment {
     val ingressNode = NodeIngress(nodeId, "<p>Introduksjon til banankake</p>", None, 0)
 
     when(extractService.getNodeIngress(nodeId)).thenReturn(Some(ingressNode))
-    val (result, status) = ingressConverter.convert(node)
+    val (result, status) = ingressConverter.convert(node, ImportStatus())
 
     result.content should equal(initialContent)
   }

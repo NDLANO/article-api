@@ -1,14 +1,11 @@
 package no.ndla.contentapi.service.converters
 
 import com.typesafe.scalalogging.LazyLogging
-import no.ndla.contentapi.integration.{Biblio, BiblioAuthor, ConverterModule, LanguageContent}
+import no.ndla.contentapi.integration.{ConverterModule, LanguageContent}
 import no.ndla.contentapi.model.{FootNoteItem, ImportStatus}
 import no.ndla.contentapi.service.ExtractServiceComponent
 import org.jsoup.nodes.Element
-
 import scala.collection.JavaConversions._
-import org.jsoup.parser.Tag
-import org.jsoup.select.Elements
 
 import scala.annotation.tailrec
 
@@ -17,16 +14,17 @@ trait BiblioConverter {
   val biblioConverter: BiblioConverter
 
   class BiblioConverter extends ConverterModule with LazyLogging {
-    def convert(content: LanguageContent): (LanguageContent, ImportStatus) = {
+    def convert(content: LanguageContent, importStatus: ImportStatus): (LanguageContent, ImportStatus) = {
       val element = stringToJsoupDocument(content.content)
 
       val references = buildReferences(element)
       val (map, messages) = references.isEmpty match {
-        case true => return (content, ImportStatus())
+        case true => return (content, importStatus)
         case false => buildReferenceMap(references)
       }
 
-      (content.copy(content=jsoupDocumentToString(element), footNotes=content.footNotes ++ map), ImportStatus(messages))
+      val finalImportStatus = ImportStatus(importStatus.messages ++ messages, importStatus.visitedNodes)
+      (content.copy(content=jsoupDocumentToString(element), footNotes=content.footNotes ++ map), finalImportStatus)
     }
 
     def buildReferences(element: Element): Seq[String] = {
@@ -40,7 +38,7 @@ trait BiblioConverter {
         references.head.removeAttr("id")
         references.head.attr("data-resource", "footnote")
         references.head.attr("data-key", s"ref_$index")
-        references.head.html(s"$index")
+        references.head.html(s"<sup>$index</sup>")
 
         buildReferences(references.tail, referenceNodes :+ nodeId, index + 1)
       }

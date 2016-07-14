@@ -8,13 +8,13 @@ import scala.collection.JavaConversions._
 
 object SimpleTagConverter extends ConverterModule {
 
-  def convert(content: LanguageContent): (LanguageContent, ImportStatus) = {
+  def convert(content: LanguageContent, importStatus: ImportStatus): (LanguageContent, ImportStatus) = {
     val element = stringToJsoupDocument(content.content)
     convertBody(element)
     convertDivs(element)
     convertPres(element)
 
-    (content.copy(content=jsoupDocumentToString(element)), ImportStatus())
+    (content.copy(content=jsoupDocumentToString(element)), importStatus)
   }
 
   def convertDivs(el: Element) {

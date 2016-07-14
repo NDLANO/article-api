@@ -10,10 +10,10 @@ class H5PConverterTest extends UnitSuite with TestEnvironment {
 
   test("That contentbrowser strings of type 'h5p_content' returns an iframe") {
     val expectedResult = """<figure data-resource="h5p" data-id="1" data-url="http://ndla.no/h5p/embed/1234"></figure>"""
-    val (result, requiredLibraries, errors) = H5PConverter.convert(content)
+    val (result, requiredLibraries, errors) = H5PConverter.convert(content, Seq())
 
     result should equal(expectedResult)
-    errors.length should equal(0)
+    errors.messages.length should equal(0)
     requiredLibraries.length should be > 0
   }
 }

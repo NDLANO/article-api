@@ -22,10 +22,12 @@ object Error {
 }
 
 case class Error(code:String, description:String, occuredAt:String = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS").format(new Date()))
-case class ImportStatus(messages: Seq[String] = Seq[String]())
 
+case class ImportStatus(messages: Seq[String], visitedNodes: Seq[String] = Seq())
 object ImportStatus {
-  def apply(message: String): ImportStatus = ImportStatus(Seq(message))
+  def apply(): ImportStatus = ImportStatus(Seq(), Seq())
+  def apply(message: String): ImportStatus = ImportStatus(Seq(message), Seq())
+  def apply(message: String, visitedNodes: Seq[String]): ImportStatus = ImportStatus(Seq(message), visitedNodes)
 }
 
 case class NodeNotFoundException(message: String) extends Exception(message)

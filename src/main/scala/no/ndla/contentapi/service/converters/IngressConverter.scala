@@ -10,24 +10,24 @@ trait IngressConverter {
 
   class IngressConverter extends ConverterModule {
 
-    override def convert(content: LanguageContent): (LanguageContent, ImportStatus) = {
+    override def convert(content: LanguageContent, importStatus: ImportStatus): (LanguageContent, ImportStatus) = {
       if (content.containsIngress) {
-        return (content, ImportStatus())
+        return (content, importStatus)
       }
 
       extractService.getNodeIngress(content.nid) match {
         case Some(ingress) => {
           ingress.ingressVisPaaSiden match {
-            case 0 => (content.copy(containsIngress = true), ImportStatus())
+            case 0 => (content.copy(containsIngress = true), importStatus)
             case _ => {
               val element = stringToJsoupDocument(content.content)
               val (ingressContent, status) = createIngress(ingress)
               element.prepend(ingressContent)
-              (content.copy(content = jsoupDocumentToString(element), containsIngress = true), status)
+              (content.copy(content = jsoupDocumentToString(element), containsIngress = true), importStatus.copy(messages = importStatus.messages ++ status.messages))
             }
           }
         }
-        case None => (content.copy(containsIngress = true), ImportStatus())
+        case None => (content.copy(containsIngress = true), importStatus)
       }
     }
 

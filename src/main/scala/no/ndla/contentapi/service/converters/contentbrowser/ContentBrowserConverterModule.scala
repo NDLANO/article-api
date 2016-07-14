@@ -1,12 +1,13 @@
 package no.ndla.contentapi.service.converters.contentbrowser
 
-import no.ndla.contentapi.integration.{AmazonClientComponent, CMDataComponent}
-import no.ndla.contentapi.model.RequiredLibrary
-import no.ndla.contentapi.service.{ExtractServiceComponent, ImageApiServiceComponent, StorageService}
+import no.ndla.contentapi.integration.{AmazonClientComponent, CMDataComponent, DataSourceComponent}
+import no.ndla.contentapi.model.{ImportStatus, RequiredLibrary}
+import no.ndla.contentapi.repository.ContentRepositoryComponent
+import no.ndla.contentapi.service._
 
 
 trait ContentBrowserConverterModule {
-  def convert(content: ContentBrowser): (String, Seq[RequiredLibrary], Seq[String])
+  def convert(content: ContentBrowser, visitedNodes: Seq[String]): (String, Seq[RequiredLibrary], ImportStatus)
   val typeName: String
 }
 
@@ -16,6 +17,11 @@ trait ContentBrowserConverterModules
   with StorageService
   with AmazonClientComponent
   with ImageApiServiceComponent
+  with ConverterModules
+  with ConverterServiceComponent
+  with DataSourceComponent
+  with ContentRepositoryComponent
+  with ExtractConvertStoreContent
   with ImageConverterModule
   with LenkeConverterModule
   with H5PConverterModule

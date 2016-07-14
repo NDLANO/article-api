@@ -4,6 +4,7 @@ import no.ndla.contentapi.integration.ContentFilMeta
 import no.ndla.contentapi.{TestEnvironment, UnitSuite}
 import no.ndla.contentapi.ContentApiProperties.amazonUrlPrefix
 import no.ndla.contentapi.integration.ContentFilMeta._
+import no.ndla.contentapi.model.ImportStatus
 import org.mockito.Mockito._
 
 class AudioConverterTest extends UnitSuite with TestEnvironment {
@@ -19,7 +20,7 @@ class AudioConverterTest extends UnitSuite with TestEnvironment {
     when(extractService.getAudioMeta(nodeId)).thenReturn(Some(audio))
     when(storageService.uploadFileFromUrl(nodeId, audio)).thenReturn(Some(s"$nodeId/goat.mp3"))
 
-    val (result, requiredLibraries, status) = AudioConverter.convert(content)
+    val (result, requiredLibraries, status) = AudioConverter.convert(content, Seq())
     val strippedResult = " +".r.replaceAllIn(result.replace("\n", ""), " ")
 
     strippedResult.replace("\n", "") should equal (expectedResult)
@@ -30,9 +31,9 @@ class AudioConverterTest extends UnitSuite with TestEnvironment {
 
     when(extractService.getAudioMeta(nodeId)).thenReturn(None)
 
-    val (result, requiredLibraries, status) = AudioConverter.convert(content)
+    val (result, requiredLibraries, status) = AudioConverter.convert(content, Seq())
     result.replace("\n", "") should equal (expectedResult)
-    status.nonEmpty should equal (true)
+    status.messages.nonEmpty should equal (true)
     requiredLibraries.isEmpty should equal (true)
   }
 }
