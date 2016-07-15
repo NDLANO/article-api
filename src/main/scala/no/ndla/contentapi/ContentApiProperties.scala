@@ -58,9 +58,10 @@ object ContentApiProperties extends LazyLogging {
   lazy val CMUser = get("CM_USER")
   lazy val CMPassword = get("CM_PASSWORD")
 
-  val mathJaxTags = Set("math", "msqrt", "msub", "mtd", "msup", "mfenced", "mrow", "mn", "mi", "mo") // TODO initialize list with all MathJax tags
+  val mathJaxTags = Set("math", "msqrt", "msub", "mtd", "msup", "mfenced", "mrow", "mn", "mi", "mo", "mtable", "mover", "mtr") // TODO initialize list with all MathJax tags
   val permittedHTMLTags = Set("article", "section", "table", "tr", "td", "li", "a", "button", "div", "p", "pre", "code", "sup",
-    "h1", "h2", "h3", "h4", "h5", "h6", "aside", "strong", "figure", "ul", "br", "ol", "i", "em", "b", "th", "tbody") ++ mathJaxTags
+    "h1", "h2", "h3", "h4", "h5", "h6", "aside", "strong", "figure", "ul", "br", "ol", "i", "em", "b", "th", "tbody", "blockquote",
+    "details", "summary", "table", "thead", "tfoot", "tbody", "caption") ++ mathJaxTags
 
   def verify() = {
     val missingProperties = ContentApiProps.filter(entry => entry._2.isEmpty).toList
