@@ -13,7 +13,7 @@ import scala.collection.mutable
 object ContentApiProperties extends LazyLogging {
   var ContentApiProps: mutable.Map[String, Option[String]] = mutable.HashMap()
 
-  val ApplicationPort = 30002
+  val ApplicationPort = 80
 
   // When converting a content node, the converter may run several times over the content to make sure
   // everything is converted. This value defines a maximum number of times the converter runs on a node

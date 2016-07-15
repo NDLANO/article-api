@@ -3,12 +3,9 @@ package no.ndla.contentapi.service
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.contentapi.ContentApiProperties.maxConvertionRounds
 import no.ndla.contentapi.integration.NodeToConvert
-import no.ndla.contentapi.model.{Content, ContentInformation, ImportStatus}
-import no.ndla.contentapi.ContentApiProperties.permittedHTMLTags
-import org.jsoup.Jsoup
+import no.ndla.contentapi.model.{ContentInformation, ImportStatus}
 
 import scala.annotation.tailrec
-import scala.collection.JavaConversions._
 
 trait ConverterServiceComponent {
   this: ConverterModules =>
