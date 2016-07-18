@@ -58,7 +58,7 @@ trait InternController {
             case false => contentRepository.insert(convertedNode, mainNodeId)
           }
 
-          ImportStatus(importStatus.messages :+ s"Successfully imported nodes $nodesToImport: $newNodeId")
+          ImportStatus(importStatus.messages.distinct :+ s"Successfully imported nodes $nodesToImport: $newNodeId")
         }
         case None => throw new NodeNotFoundException(s"$nodeId is a translation; Could not find main node")
       }

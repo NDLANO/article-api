@@ -73,4 +73,13 @@ class SimpleTagConverterTest extends UnitSuite {
     result.content.replace("\n", "") should equal (expectedResult)
     result.requiredLibraries.length should equal (0)
   }
+
+  test("That SimpleTagConverter unwraps illegal tags") {
+    val initialContent = LanguageContent(nodeId, nodeId, """<article><h1>heading</h1><henriktag>hehe</henriktag></article>""", Some("en"))
+    val expectedResult = "<article> <h1>heading</h1>hehe</article>"
+    val (result, status) = SimpleTagConverter.convert(initialContent)
+
+    result.content.replace("\n", "") should equal (expectedResult)
+    result.requiredLibraries.length should equal (0)
+  }
 }
