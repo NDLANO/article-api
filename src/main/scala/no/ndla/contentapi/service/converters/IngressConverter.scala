@@ -35,13 +35,13 @@ trait IngressConverter {
       val (imageTag, message) = ingress.imageNid match {
         case Some(imageId) => {
           imageApiService.importOrGetMetaByExternId(imageId) match {
-            case Some(image) => (s"""<img src="/images/${image.images.full.get.url}" />""", ImportStatus())
+            case Some(image) => (s"""<img src="/images/${image.images.full.get.url}" />""", ImportStatus(Seq(), Seq()))
             case None => {
-              ("", ImportStatus(s"Image with id $imageId was not found"))
+              ("", ImportStatus(s"Image with id $imageId was not found", Seq()))
             }
           }
         }
-        case None => ("", ImportStatus())
+        case None => ("", ImportStatus(Seq(), Seq()))
       }
       (s"<section>$imageTag ${ingress.content}</section>", message)
     }

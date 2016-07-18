@@ -35,13 +35,13 @@ trait ConverterModule {
   def convert(nodeToConvert: NodeToConvert, importStatus: ImportStatus): (NodeToConvert, ImportStatus) = {
     @tailrec def convertLoop(contents: Seq[LanguageContent], convertedContents: Seq[LanguageContent], importStatus: ImportStatus): (Seq[LanguageContent], ImportStatus) = {
       if (contents.isEmpty) {
-        return (convertedContents, importStatus)
+        (convertedContents, importStatus)
+      } else {
+        val nodeToConvert = contents.head
+        val (content, status) = convert(nodeToConvert, importStatus)
+
+        convertLoop(contents.tail, convertedContents :+ content, status)
       }
-
-      val nodeToConvert = contents.head
-      val (content, status) = convert(nodeToConvert, importStatus)
-
-      convertLoop(contents.tail, convertedContents :+ content, status)
     }
 
     val (convertedContent, finalImportStatus) = convertLoop(nodeToConvert.contents, Seq(), importStatus)

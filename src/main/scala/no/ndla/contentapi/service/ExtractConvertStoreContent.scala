@@ -12,7 +12,7 @@ trait ExtractConvertStoreContent {
   val extractConvertStoreContent: ExtractConvertStoreContent
 
   class ExtractConvertStoreContent extends LazyLogging {
-    def processNode(externalId: String, importStatus: ImportStatus = ImportStatus()): Try[(Long, ImportStatus)] = {
+    def processNode(externalId: String, importStatus: ImportStatus = ImportStatus(Seq(), Seq())): Try[(Long, ImportStatus)] = {
 
       if (importStatus.visitedNodes.contains(externalId))
         return contentRepository.getIdFromExternalId(externalId) match {

@@ -20,7 +20,7 @@ class IngressConverterTest extends UnitSuite with TestEnvironment {
     val ingressNode = NodeIngress(nodeId, "<p>Introduksjon til banankake</p>", None, 1)
 
     when(extractService.getNodeIngress(nodeId)).thenReturn(Some(ingressNode))
-    val (result, status) = ingressConverter.convert(node, ImportStatus())
+    val (result, status) = ingressConverter.convert(node, ImportStatus(Seq(), Seq()))
     val strippedResult = " +".r.replaceAllIn(result.content.replace("\n", ""), " ")
 
     strippedResult should equal(expectedContent)
@@ -39,7 +39,7 @@ class IngressConverterTest extends UnitSuite with TestEnvironment {
 
     when(extractService.getNodeIngress(nodeId)).thenReturn(Some(ingressNode))
     when(imageApiService.importOrGetMetaByExternId(imageNid)).thenReturn(Some(image))
-    val (result, status) = ingressConverter.convert(node, ImportStatus())
+    val (result, status) = ingressConverter.convert(node, ImportStatus(Seq(), Seq()))
     val strippedResult = " +".r.replaceAllIn(result.content.replace("\n", ""), " ")
 
     strippedResult should equal(expectedContent)
@@ -50,7 +50,7 @@ class IngressConverterTest extends UnitSuite with TestEnvironment {
     val node = LanguageContent(nodeId, nodeId, initialContent, Some("nb"))
 
     when(extractService.getNodeIngress(nodeId)).thenReturn(None)
-    val (result, status) = ingressConverter.convert(node, ImportStatus())
+    val (result, status) = ingressConverter.convert(node, ImportStatus(Seq(), Seq()))
 
     result.content should equal(initialContent)
   }
@@ -63,7 +63,7 @@ class IngressConverterTest extends UnitSuite with TestEnvironment {
     val ingressNode = NodeIngress(nodeId, "<p>Introduksjon til banankake</p>", None, 0)
 
     when(extractService.getNodeIngress(nodeId)).thenReturn(Some(ingressNode))
-    val (result, status) = ingressConverter.convert(node, ImportStatus())
+    val (result, status) = ingressConverter.convert(node, ImportStatus(Seq(), Seq()))
 
     result.content should equal(initialContent)
   }

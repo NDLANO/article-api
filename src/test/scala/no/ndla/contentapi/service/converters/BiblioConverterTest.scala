@@ -17,7 +17,7 @@ class BiblioConverterTest extends UnitSuite with TestEnvironment {
 
     when(extractService.getBiblio(nodeId)).thenReturn(Some(sampleBiblio))
     when(extractService.getBiblioAuthors(nodeId)).thenReturn(sampleBiblioAuthors)
-    val (result, status) = biblioConverter.convert(initialContent, ImportStatus())
+    val (result, status) = biblioConverter.convert(initialContent, ImportStatus(Seq(), Seq()))
     val strippedContent = " +".r.replaceAllIn(result.content.replace("\n", ""), " ")
 
     result.copy(content=strippedContent) should equal (expectedResult)

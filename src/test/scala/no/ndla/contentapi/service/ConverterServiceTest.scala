@@ -29,7 +29,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
 
     when(extractService.getNodeIngress(nodeId)).thenReturn(None)
 
-    val (result, status) = service.convertNode(node, ImportStatus())
+    val (result, status) = service.convertNode(node, ImportStatus(Seq(), Seq()))
     val strippedResult = result.content.head.content.replace("\n", "").replace(" ", "")
 
     strippedResult should equal (expedtedResult)
@@ -54,7 +54,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     when(extractService.getNodeType(nodeId2)).thenReturn(Some("oppgave"))
     when(extractService.getNodeGeneralContent(nodeId2)).thenReturn(Seq(sampleOppgave2))
 
-    val (result, status) = service.convertNode(node, ImportStatus())
+    val (result, status) = service.convertNode(node, ImportStatus(Seq(), Seq()))
     result.content.head.content.replace("\n", "") should equal ("<article>  Innhold! Enda mer innhold! </article>")
     status.messages.isEmpty should equal (true)
     result.requiredLibraries.isEmpty should equal (true)
@@ -73,7 +73,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     when(extractService.getNodeIngress(nodeId)).thenReturn(Some(ingressNodeBokmal))
     when(extractService.getNodeIngress(nodeId2)).thenReturn(Some(ingressNodeNynorsk))
 
-    val (result, status) = service.convertNode(node, ImportStatus())
+    val (result, status) = service.convertNode(node, ImportStatus(Seq(), Seq()))
     val bokmalStrippedResult = " +".r.replaceAllIn(result.content.head.content.replace("\n", ""), " ")
     val nynorskStrippedResult = " +".r.replaceAllIn(result.content.last.content.replace("\n", ""), " ")
 
