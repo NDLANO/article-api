@@ -1,9 +1,12 @@
 package no.ndla.contentapi.service.converters.contentbrowser
 
 import no.ndla.contentapi.{TestEnvironment, UnitSuite}
-import no.ndla.contentapi.integration.NodeGeneralContent
-import no.ndla.contentapi.ContentApiProperties.ndlaBaseHost
+import no.ndla.contentapi.integration.{LanguageContent, NodeGeneralContent, NodeToConvert}
+import no.ndla.contentapi.model._
 import org.mockito.Mockito._
+import org.mockito.Matchers._
+
+import scala.util.{Failure, Try}
 
 class GeneralContentConverterTest extends UnitSuite with TestEnvironment {
   val (nodeId, nodeId2) = ("1234", "4321")
@@ -21,10 +24,10 @@ class GeneralContentConverterTest extends UnitSuite with TestEnvironment {
     val content = ContentBrowser(contentString, Some("nb"))
 
     when(extractService.getNodeGeneralContent(nodeId)).thenReturn(Seq(sampleFagstoff1, sampleFagstoff2))
-    val (result, requiredLibraries, status) = generalContentConverter.convert(content)
+    val (result, requiredLibraries, status) = generalContentConverter.convert(content, Seq())
 
     result should equal (sampleFagstoff1.content)
-    status.isEmpty should equal (true)
+    status.messages.isEmpty should equal (true)
     requiredLibraries.isEmpty should equal (true)
   }
 
@@ -32,10 +35,10 @@ class GeneralContentConverterTest extends UnitSuite with TestEnvironment {
     val content = ContentBrowser(contentString, Some("nb"))
 
     when(extractService.getNodeGeneralContent(nodeId)).thenReturn(Seq())
-    val (result, requiredLibraries, status) = generalContentConverter.convert(content)
+    val (result, requiredLibraries, status) = generalContentConverter.convert(content, Seq())
 
     result should equal (s"{Import error: Failed to retrieve '${generalContentConverter.typeName}' with language 'nb' ($nodeId)}")
-    status.nonEmpty should equal (true)
+    status.messages.nonEmpty should equal (true)
     requiredLibraries.isEmpty should equal (true)
   }
 
@@ -45,11 +48,12 @@ class GeneralContentConverterTest extends UnitSuite with TestEnvironment {
     val expectedResult = s"<details><summary>Tittel</summary>${sampleFagstoff1.content}</details>"
 
     when(extractService.getNodeGeneralContent(nodeId)).thenReturn(Seq(sampleFagstoff1, sampleFagstoff2))
-    val (result, requiredLibraries, status) = FagstoffConverter.convert(content)
+    when(contentRepository.withExternalId(nodeId)).thenReturn(Some(ContentSummary("1", "title", "http://url", "publicdomain")))
+    val (result, requiredLibraries, status) = generalContentConverter.convert(content, Seq())
     val strippedResult = " +".r.replaceAllIn(result.replace("\n", ""), " ")
 
     strippedResult should equal (expectedResult)
-    status.isEmpty should equal (true)
+    status.messages.isEmpty should equal (true)
     requiredLibraries.isEmpty should equal (true)
   }
 
@@ -57,42 +61,85 @@ class GeneralContentConverterTest extends UnitSuite with TestEnvironment {
   test("That GeneralContentConverter inserts the content if insertion mode is 'link'") {
     val contentString = s"[contentbrowser ==nid=$nodeId==imagecache=Fullbredde==width===alt=$altText==link===node_link=1==link_type=link_to_content==lightbox_size===remove_fields[76661]=1==remove_fields[76663]=1==remove_fields[76664]=1==remove_fields[76666]=1==insertion=link==link_title_text===link_text=Tittel==text_align===css_class=contentbrowser contentbrowser]"
     val content = ContentBrowser(contentString, Some("nb"))
-    val expectedResult = s"""<a href="$ndlaBaseHost/node/$nodeId">Tittel</a>"""
+    val expectedResult = s"""<figure data-resource="content-link" data-id="1" data-content-id="1" data-link-text="Tittel"></figure>"""
 
     when(extractService.getNodeGeneralContent(nodeId)).thenReturn(Seq(sampleFagstoff1, sampleFagstoff2))
-    val (result, requiredLibraries, status) = FagstoffConverter.convert(content)
+    when(contentRepository.withExternalId(nodeId)).thenReturn(Some(ContentSummary("1", "title", "http://url", "publicdomain")))
+    val (result, requiredLibraries, status) = generalContentConverter.convert(content, Seq())
     val strippedResult = " +".r.replaceAllIn(result.replace("\n", ""), " ")
 
     strippedResult should equal (expectedResult)
-    status.nonEmpty should equal (true)
+    status.messages.isEmpty should equal (true)
     requiredLibraries.isEmpty should equal (true)
   }
 
   test("That GeneralContentConverter inserts the content if insertion mode is 'lightbox_large'") {
     val contentString = s"[contentbrowser ==nid=$nodeId==imagecache=Fullbredde==width===alt=$altText==link===node_link=1==link_type=link_to_content==lightbox_size===remove_fields[76661]=1==remove_fields[76663]=1==remove_fields[76664]=1==remove_fields[76666]=1==insertion=lightbox_large==link_title_text===link_text=Tittel==text_align===css_class=contentbrowser contentbrowser]"
     val content = ContentBrowser(contentString, Some("nb"))
-    val expectedResult = s"""<a href="$ndlaBaseHost/node/$nodeId">Tittel</a>"""
+    val expectedResult = s"""<figure data-resource="content-link" data-id="1" data-content-id="1" data-link-text="Tittel"></figure>"""
 
     when(extractService.getNodeGeneralContent(nodeId)).thenReturn(Seq(sampleFagstoff1, sampleFagstoff2))
-    val (result, requiredLibraries, status) = FagstoffConverter.convert(content)
+    when(contentRepository.withExternalId(nodeId)).thenReturn(Some(ContentSummary("1", "title", "http://url", "publicdomain")))
+    val (result, requiredLibraries, status) = generalContentConverter.convert(content, Seq())
     val strippedResult = " +".r.replaceAllIn(result.replace("\n", ""), " ")
 
     strippedResult should equal (expectedResult)
-    status.nonEmpty should equal (true)
+    status.messages.nonEmpty should equal (true)
     requiredLibraries.isEmpty should equal (true)
   }
 
   test("That GeneralContentConverter defaults to 'link' if the insertion method is unknown") {
     val contentString = s"[contentbrowser ==nid=$nodeId==imagecache=Fullbredde==width===alt=$altText==link===node_link=1==link_type=link_to_content==lightbox_size===remove_fields[76661]=1==remove_fields[76663]=1==remove_fields[76664]=1==remove_fields[76666]=1==insertion=lightbox_large==link_title_text===link_text=Tittel==text_align===css_class=contentbrowser contentbrowser]"
     val content = ContentBrowser(contentString, Some("nb"))
-    val expectedResult = s"""<a href="$ndlaBaseHost/node/$nodeId">Tittel</a>"""
+    val expectedResult = s"""<figure data-resource="content-link" data-id="1" data-content-id="1" data-link-text="Tittel"></figure>"""
 
     when(extractService.getNodeGeneralContent(nodeId)).thenReturn(Seq(sampleFagstoff1, sampleFagstoff2))
-    val (result, requiredLibraries, status) = FagstoffConverter.convert(content)
+    when(contentRepository.withExternalId(nodeId)).thenReturn(Some(ContentSummary("1", "title", "http://url", "publicdomain")))
+
+    val (result, requiredLibraries, status) = generalContentConverter.convert(content, Seq())
     val strippedResult = " +".r.replaceAllIn(result.replace("\n", ""), " ")
 
     strippedResult should equal (expectedResult)
-    status.nonEmpty should equal (true)
+    status.messages.nonEmpty should equal (true)
     requiredLibraries.isEmpty should equal (true)
+  }
+
+  test("That GeneralContentConverter imports nodes from old NDLA which is referenced in a content") {
+    val newNodeid: Long = 1111
+    val contentString = s"[contentbrowser ==nid=$nodeId==imagecache=Fullbredde==width===alt=$altText==link===node_link=1==link_type=link_to_content==lightbox_size===remove_fields[76661]=1==remove_fields[76663]=1==remove_fields[76664]=1==remove_fields[76666]=1==insertion=link==link_title_text===link_text=Tittel==text_align===css_class=contentbrowser contentbrowser]"
+    val content = ContentBrowser(contentString, Some("nb"))
+    val expectedResult = s"""<figure data-resource="content-link" data-id="1" data-content-id="$newNodeid" data-link-text="Tittel"></figure>"""
+
+    when(extractService.getNodeGeneralContent(nodeId)).thenReturn(Seq(sampleFagstoff1, sampleFagstoff2))
+    when(contentRepository.withExternalId(nodeId)).thenReturn(None)
+    when(extractConvertStoreContent.processNode(nodeId, ImportStatus(Seq(), Seq(nodeId2)))).thenReturn(Try((newNodeid, ImportStatus(Seq(), Seq(nodeId2, nodeId)))))
+
+    val languageContent = LanguageContent(nodeId, nodeId, "<div>sample content</div>", Some("en"), Seq(), false, Some(Map()))
+    val nodeToConvert = NodeToConvert(Seq(ContentTitle("title", Some("en"))), Seq(languageContent), Copyright(License("publicdomain", "public", None), "", Seq()), Seq())
+    val (result, requiredLibraries, status) = generalContentConverter.convert(content, Seq(nodeId2))
+    val strippedResult = " +".r.replaceAllIn(result.replace("\n", ""), " ")
+
+    strippedResult should equal(expectedResult)
+    status should equal (ImportStatus(List(), List(nodeId2, nodeId)))
+  }
+
+  test("That GeneralContentConverter links back to old NDLA if node could not be imported") {
+    val contentString = s"[contentbrowser ==nid=$nodeId==imagecache=Fullbredde==width===alt=$altText==link===node_link=1==link_type=link_to_content==lightbox_size===remove_fields[76661]=1==remove_fields[76663]=1==remove_fields[76664]=1==remove_fields[76666]=1==insertion=link==link_title_text===link_text=Tittel==text_align===css_class=contentbrowser contentbrowser]"
+    val content = ContentBrowser(contentString, Some("nb"))
+    val expectedResult = s"""<a href="http://ndla.no//node/$nodeId">Tittel</a>"""
+
+    when(extractService.getNodeGeneralContent(nodeId)).thenReturn(Seq(sampleFagstoff1, sampleFagstoff2))
+    when(contentRepository.withExternalId(nodeId)).thenReturn(None)
+    when(extractConvertStoreContent.processNode(nodeId, ImportStatus(Seq(), Seq(nodeId2)))).thenReturn(Failure(NodeNotFoundException("Node was not found")))
+
+    val languageContent = LanguageContent(nodeId, nodeId2, "<div>sample content</div>", Some("en"), Seq(), false, Some(Map()))
+    val nodeToConvert = NodeToConvert(Seq(ContentTitle("title", Some("en"))), Seq(languageContent), Copyright(License("publicdomain", "public", None), "", Seq()), Seq())
+
+    val (result, requiredLibraries, status) = generalContentConverter.convert(content, Seq(nodeId2))
+    val strippedResult = " +".r.replaceAllIn(result.replace("\n", ""), " ")
+
+    strippedResult should equal(expectedResult)
+    status.visitedNodes should equal (List(nodeId2))
+    status.messages.nonEmpty should equal(true)
   }
 }

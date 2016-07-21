@@ -9,10 +9,10 @@ class NonExistentNodeConverterTest extends UnitSuite with TestEnvironment {
 
   test("That NonExistentNodeConverter returns an empty string and a message") {
     val content = ContentBrowser(contentString, Some("nb"))
-    val (result, requiredLibraries, messages) = NonExistentNodeConverter.convert(content)
+    val (result, requiredLibraries, status) = NonExistentNodeConverter.convert(content, Seq())
 
     result should equal ("")
-    messages.nonEmpty should be (true)
-    messages.head should equal (s"Found nonexistant node with id ${content.get("nid")}")
+    status.messages.nonEmpty should be (true)
+    status.messages.head should equal (s"Found nonexistant node with id ${content.get("nid")}")
   }
 }

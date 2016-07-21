@@ -15,16 +15,17 @@ trait BiblioConverter {
   val biblioConverter: BiblioConverter
 
   class BiblioConverter extends ConverterModule with LazyLogging {
-    def convert(content: LanguageContent): (LanguageContent, ImportStatus) = {
+    def convert(content: LanguageContent, importStatus: ImportStatus): (LanguageContent, ImportStatus) = {
       val element = stringToJsoupDocument(content.content)
 
       val references = buildReferences(element)
       val (map, messages) = references.isEmpty match {
-        case true => return (content, ImportStatus())
+        case true => return (content, importStatus)
         case false => buildReferenceMap(references)
       }
 
-      (content.copy(content=jsoupDocumentToString(element), footNotes=Some(content.footNotes.getOrElse(map))), ImportStatus(messages))
+      val finalImportStatus = ImportStatus(importStatus.messages ++ messages, importStatus.visitedNodes)
+      (content.copy(content=jsoupDocumentToString(element), footNotes=Some(content.footNotes.getOrElse(map))), finalImportStatus)
     }
 
     def buildReferences(element: Element): Seq[String] = {
@@ -38,7 +39,7 @@ trait BiblioConverter {
         references.head.removeAttr("id")
         references.head.attr("data-resource", "footnote")
         references.head.attr("data-key", s"ref_$index")
-        references.head.html(s"$index")
+        references.head.html(s"<sup>$index</sup>")
 
         buildReferences(references.tail, referenceNodes :+ nodeId, index + 1)
       }
@@ -67,5 +68,4 @@ trait BiblioConverter {
       extractService.getBiblio(nodeId).map(biblio => FootNoteItem(biblio, extractService.getBiblioAuthors(nodeId)))
   }
 }
-
 

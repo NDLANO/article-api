@@ -8,7 +8,7 @@ import scala.collection.JavaConversions._
 
 object SimpleTagConverter extends ConverterModule {
 
-  def convert(content: LanguageContent): (LanguageContent, ImportStatus) = {
+  def convert(content: LanguageContent, importStatus: ImportStatus): (LanguageContent, ImportStatus) = {
     val element = stringToJsoupDocument(content.content)
     convertBody(element)
     convertDivs(element)
@@ -16,7 +16,7 @@ object SimpleTagConverter extends ConverterModule {
 
     val illegalTags = unwrapIllegalTags(element).map(x => s"Illegal tag removed: $x")
 
-    (content.copy(content=jsoupDocumentToString(element)), ImportStatus(illegalTags))
+    (content.copy(content=jsoupDocumentToString(element)), ImportStatus(importStatus.messages ++ illegalTags, importStatus.visitedNodes))
   }
 
   def convertDivs(el: Element) {

@@ -3,7 +3,7 @@ package no.ndla.contentapi.service.converters.contentbrowser
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.contentapi.service.{ExtractServiceComponent, StorageService}
 import no.ndla.contentapi.ContentApiProperties.amazonUrlPrefix
-import no.ndla.contentapi.model.RequiredLibrary
+import no.ndla.contentapi.model.{ImportStatus, RequiredLibrary}
 
 trait AudioConverterModule  {
   this: ExtractServiceComponent with StorageService =>
@@ -11,7 +11,7 @@ trait AudioConverterModule  {
   object AudioConverter extends ContentBrowserConverterModule with LazyLogging {
     override val typeName: String = "audio"
 
-    override def convert(content: ContentBrowser): (String, List[RequiredLibrary], List[String]) = {
+    override def convert(content: ContentBrowser, visitedNodes: Seq[String]): (String, Seq[RequiredLibrary], ImportStatus) = {
       val requiredLibraries = List[RequiredLibrary]()
       val nodeId = content.get("nid")
       val audioMeta = extractService.getAudioMeta(nodeId)
@@ -37,14 +37,15 @@ trait AudioConverterModule  {
               </audio>
             </figure>
           """.stripMargin
-          (player, requiredLibraries, uploadError)
+          (player, requiredLibraries, ImportStatus(uploadError, visitedNodes))
         }
         case None => {
           val msg = s"""Failed to retrieve audio metadata for node $nodeId"""
           logger.warn(msg)
-          (s"{Error: $msg}", requiredLibraries, List(msg))
+          (s"{Error: $msg}", requiredLibraries, ImportStatus(List(msg), visitedNodes))
         }
       }
     }
+
   }
 }

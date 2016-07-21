@@ -26,7 +26,7 @@ trait ContentBrowserConverter {
       VeiledningConverter.typeName -> VeiledningConverter,
       BiblioConverter.typeName -> BiblioConverter)
 
-    def convert(languageContent: LanguageContent): (LanguageContent, ImportStatus) = {
+    def convert(languageContent: LanguageContent, importStatus: ImportStatus): (LanguageContent, ImportStatus) = {
       @tailrec def convert(element: Element, languageContent: LanguageContent, importStatus: ImportStatus, contentBrowserIndex: Int): (LanguageContent, ImportStatus) = {
         val text = element.html()
         val cont = ContentBrowser(text, languageContent.language, contentBrowserIndex)
@@ -36,12 +36,12 @@ trait ContentBrowserConverter {
 
         val nodeType = extractService.getNodeType(cont.get("nid")).getOrElse(NonExistentNodeConverter.typeName)
 
-        val (newContent, reqLibs, messages) = contentBrowserModules.get(nodeType) match {
-          case Some(module) => module.convert(cont)
+        val (newContent, reqLibs, status) = contentBrowserModules.get(nodeType) match {
+          case Some(module) => module.convert(cont, importStatus.visitedNodes)
           case None => {
             val errorString = s"{Unsupported content $nodeType: ${cont.get("nid")}}"
             logger.warn(errorString)
-            (errorString, List[RequiredLibrary](), List(errorString))
+            (errorString, List(), ImportStatus(List(errorString), importStatus.visitedNodes))
           }
         }
 
@@ -49,13 +49,13 @@ trait ContentBrowserConverter {
         element.html(text.substring(0, start) + newContent + text.substring(end))
 
         val updatedRequiredLibraries = languageContent.requiredLibraries ++ reqLibs
-
-        convert(element, languageContent.copy(requiredLibraries=updatedRequiredLibraries), ImportStatus(importStatus.messages ++ messages), contentBrowserIndex + 1)
+        val updatedImportStatusMessages = importStatus.messages ++ status.messages
+        convert(element, languageContent.copy(requiredLibraries=updatedRequiredLibraries), status.copy(messages=updatedImportStatusMessages), contentBrowserIndex + 1)
       }
 
       val element = stringToJsoupDocument(languageContent.content)
-      val (updatedLanguageContent, importStatus) = convert(element, languageContent, ImportStatus(), 1)
-      (updatedLanguageContent.copy(content=jsoupDocumentToString(element)), importStatus)
+      val (updatedLanguageContent, updatedImportStatus) = convert(element, languageContent, importStatus, 1)
+      (updatedLanguageContent.copy(content=jsoupDocumentToString(element)), updatedImportStatus)
     }
   }
 }

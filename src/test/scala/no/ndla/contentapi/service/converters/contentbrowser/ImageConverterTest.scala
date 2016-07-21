@@ -22,9 +22,9 @@ class ImageConverterTest extends UnitSuite with TestEnvironment {
 
     when(imageApiService.getMetaByExternId(nodeId)).thenReturn(Some(image))
 
-    val (result, requiredLibraries, errors) = ImageConverter.convert(content)
+    val (result, requiredLibraries, errors) = ImageConverter.convert(content, Seq())
     result should equal (expectedResult)
-    errors.length should equal(0)
+    errors.messages.length should equal(0)
     requiredLibraries.length should equal(0)
   }
 
@@ -37,9 +37,9 @@ class ImageConverterTest extends UnitSuite with TestEnvironment {
     when(imageApiService.getMetaByExternId(nodeId)).thenReturn(None)
     when(imageApiService.importImage(nodeId)).thenReturn(Some(image))
 
-    val (result, requiredLibraries, errors) = ImageConverter.convert(content)
+    val (result, requiredLibraries, errors) = ImageConverter.convert(content, Seq())
     result should equal (expectedResult)
-    errors.length should equal(0)
+    errors.messages.length should equal(0)
     requiredLibraries.length should equal(0)
   }
 
@@ -49,10 +49,10 @@ class ImageConverterTest extends UnitSuite with TestEnvironment {
     when(imageApiService.getMetaByExternId(nodeId)).thenReturn(None)
     when(imageApiService.importImage(nodeId)).thenReturn(None)
 
-    val (result, requiredLibraries, errors) = ImageConverter.convert(content)
+    val (result, requiredLibraries, errors) = ImageConverter.convert(content, Seq())
 
     result should equal (expectedResult)
-    errors.length should be > 0
+    errors.messages.length should be > 0
     requiredLibraries.length should equal(0)
   }
 }

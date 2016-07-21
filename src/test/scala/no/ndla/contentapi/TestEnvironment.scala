@@ -35,6 +35,7 @@ trait TestEnvironment
   with AmazonClientComponent
   with StorageService
   with HtmlTagsUsage
+  with ExtractConvertStoreContent
 {
   val elasticClient = mock[ElasticClient]
   val elasticContentSearch = mock[ElasticContentSearch]
@@ -48,9 +49,11 @@ trait TestEnvironment
   val amazonClient = mock[AmazonS3Client]
   val storageName = "testStorageName"
 
+  val extractConvertStoreContent = mock[ExtractConvertStoreContent]
+
   val cmData = mock[CMData]
   val extractService = mock[ExtractService]
-  val converterService = mock[ConverterService]
+  val converterService = new ConverterService
   val contentBrowserConverter = new ContentBrowserConverter
   val ingressConverter = new IngressConverter
   val biblioConverter = new BiblioConverter

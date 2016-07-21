@@ -7,12 +7,13 @@ import org.scalatra.{Ok, ScalatraServlet}
 import no.ndla.contentapi.business.SearchIndexer
 import no.ndla.contentapi.model.{Error, ImportStatus, NodeNotFoundException}
 import no.ndla.contentapi.repository.ContentRepositoryComponent
-import no.ndla.contentapi.service.{ConverterServiceComponent, ExtractServiceComponent, HtmlTagsUsage}
+import no.ndla.contentapi.service.{ConverterServiceComponent, ExtractConvertStoreContent, ExtractServiceComponent, HtmlTagsUsage}
 import no.ndla.logging.LoggerContext
 import no.ndla.network.ApplicationUrl
+import scala.util.{Failure, Success}
 
 trait InternController {
-  this: ExtractServiceComponent with ConverterServiceComponent with ContentRepositoryComponent with HtmlTagsUsage =>
+  this: ExtractServiceComponent with ConverterServiceComponent with ContentRepositoryComponent with HtmlTagsUsage with ExtractConvertStoreContent =>
   val internController: InternController
 
   class InternController extends ScalatraServlet with NativeJsonSupport with LazyLogging {
@@ -42,25 +43,11 @@ trait InternController {
     }
 
     post("/import/:external_id") {
-      val nodeId = params("external_id")
+      val externalId = params("external_id")
 
-      val node = extractService.getNodeData(nodeId)
-      val nodesToImport = node.contents.map(_.nid).mkString(",")
-
-      logger.info("Converting nodes {}", nodesToImport)
-      node.contents.find(_.isMainNode) match {
-        case Some(mainNode) => {
-          val mainNodeId = mainNode.nid
-          val (convertedNode, importStatus) = converterService.convertNode(node)
-
-          val newNodeId = contentRepository.exists(mainNodeId) match {
-            case true => contentRepository.update(convertedNode, mainNodeId)
-            case false => contentRepository.insert(convertedNode, mainNodeId)
-          }
-
-          ImportStatus(importStatus.messages.distinct :+ s"Successfully imported nodes $nodesToImport: $newNodeId")
-        }
-        case None => throw new NodeNotFoundException(s"$nodeId is a translation; Could not find main node")
+      extractConvertStoreContent.processNode(externalId) match {
+        case Success((newId, status)) => ImportStatus(status.messages :+ s"Successfully imported node $externalId: $newId", status.visitedNodes)
+        case Failure(exc) => throw exc
       }
     }
 

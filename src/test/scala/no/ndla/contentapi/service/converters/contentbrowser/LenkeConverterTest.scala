@@ -17,10 +17,10 @@ class LenkeConverterTest extends UnitSuite with TestEnvironment {
 
     when(extractService.getNodeEmbedData(nodeId)).thenReturn(Some(linkUrl))
 
-    val (result, requiredLibraries, errors) = LenkeConverter.convert(content)
+    val (result, requiredLibraries, errors) = LenkeConverter.convert(content, Seq())
     result should equal(linkEmbedCode)
     requiredLibraries.length should equal(0)
-    errors.length should equal(0)
+    errors.messages.length should equal(0)
   }
 
   test("That LenkeConverter returns an a-tag if insertion method is 'link'") {
@@ -30,10 +30,10 @@ class LenkeConverterTest extends UnitSuite with TestEnvironment {
     val expectedResult = "<a href=\"https://www.youtube.com/watch?v=1qN72LEQnaU\" title=\" \"> </a>"
 
     when(extractService.getNodeEmbedData(nodeId)).thenReturn(Some(linkUrl))
-    val (result, requiredLibraries, errors) = LenkeConverter.convert(content)
+    val (result, requiredLibraries, errors) = LenkeConverter.convert(content, Seq())
     result should equal(expectedResult)
     requiredLibraries.length should equal(0)
-    errors.length should equal(0)
+    errors.messages.length should equal(0)
   }
 
   test("That LenkeConverter returns an a-tag if insertion method is 'lightbox_large'") {
@@ -43,10 +43,10 @@ class LenkeConverterTest extends UnitSuite with TestEnvironment {
     val expectedResult = "<a href=\"https://www.youtube.com/watch?v=1qN72LEQnaU\" title=\" \"> </a>"
 
     when(extractService.getNodeEmbedData(nodeId)).thenReturn(Some(linkUrl))
-    val (result, requiredLibraries, errors) = LenkeConverter.convert(content)
+    val (result, requiredLibraries, errors) = LenkeConverter.convert(content, Seq())
     result should equal(expectedResult)
     requiredLibraries.length should equal(0)
-    errors.length should equal(0)
+    errors.messages.length should equal(0)
   }
 
   test("That LenkeConverter returns a collapsed embed code if insertion method is 'collapsed_body'") {
@@ -56,10 +56,10 @@ class LenkeConverterTest extends UnitSuite with TestEnvironment {
     val expectedResult = s"<details><summary>${content.get("link_text")}</summary>$linkEmbedCode</details>"
 
     when(extractService.getNodeEmbedData(nodeId)).thenReturn(Some(linkUrl))
-    val (result, requiredLibraries, errors) = LenkeConverter.convert(content)
+    val (result, requiredLibraries, errors) = LenkeConverter.convert(content, Seq())
 
     result should equal(expectedResult)
     requiredLibraries.length should equal(0)
-    errors.length should equal(0)
+    errors.messages.length should equal(0)
   }
 }

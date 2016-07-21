@@ -1,6 +1,6 @@
 package no.ndla.contentapi.service.converters.contentbrowser
 import com.typesafe.scalalogging.LazyLogging
-import no.ndla.contentapi.model.RequiredLibrary
+import no.ndla.contentapi.model.{ImportStatus, RequiredLibrary}
 import no.ndla.contentapi.service.{ExtractServiceComponent, StorageService}
 
 trait FilConverterModule {
@@ -9,7 +9,7 @@ trait FilConverterModule {
   object FilConverter extends ContentBrowserConverterModule with LazyLogging {
     override val typeName: String = "fil"
 
-    override def convert(content: ContentBrowser): (String, Seq[RequiredLibrary], Seq[String]) = {
+    override def convert(content: ContentBrowser, visitedNodes: Seq[String]): (String, Seq[RequiredLibrary], ImportStatus) = {
       val nodeId = content.get("nid")
 
       extractService.getNodeFilMeta(nodeId) match {
@@ -22,14 +22,15 @@ trait FilConverterModule {
               ("", List(msg))
             }
           }
-          (s"""<a href="$filePath">${fileMeta.fileName}</a>""", List[RequiredLibrary](), uploadError)
+          (s"""<a href="$filePath">${fileMeta.fileName}</a>""", List[RequiredLibrary](), ImportStatus(uploadError, visitedNodes))
         }
         case None => {
           val message = s"File with node ID $nodeId was not found"
           logger.warn(message)
-          ("", List[RequiredLibrary](), List(message))
+          ("", List[RequiredLibrary](), ImportStatus(List(message), visitedNodes))
         }
       }
     }
+
   }
 }

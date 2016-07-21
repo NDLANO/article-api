@@ -18,7 +18,7 @@ class FilConverterTest extends UnitSuite with TestEnvironment {
 
     when(extractService.getNodeFilMeta(nodeId)).thenReturn(Some(fileMeta))
     when(storageService.uploadFileFromUrl(nodeId, fileMeta)).thenReturn(Some(filePath))
-    val (result, requiredLibraries, messages) = FilConverter.convert(content)
+    val (result, requiredLibraries, messages) = FilConverter.convert(content, Seq())
 
     result should equal(expectedResult)
     verify(extractService, times(1)).getNodeFilMeta(nodeId)
