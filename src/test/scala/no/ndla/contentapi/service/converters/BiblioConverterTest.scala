@@ -1,6 +1,6 @@
 package no.ndla.contentapi.service.converters
 
-import no.ndla.contentapi.integration.{Biblio, BiblioAuthor, LanguageContent}
+import no.ndla.contentapi.integration._
 import no.ndla.contentapi.model.{FootNoteItem, ImportStatus}
 import no.ndla.contentapi.{TestEnvironment, UnitSuite}
 import org.mockito.Mockito._

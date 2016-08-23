@@ -1,9 +1,10 @@
 package no.ndla.contentapi.service.converters.contentbrowser
 
-import no.ndla.contentapi.integration.{AmazonClientComponent, CMDataComponent, DataSourceComponent}
+import no.ndla.contentapi.integration.{AmazonClientComponent, DataSourceComponent, MigrationApiClient}
 import no.ndla.contentapi.model.{ImportStatus, RequiredLibrary}
 import no.ndla.contentapi.repository.ContentRepositoryComponent
 import no.ndla.contentapi.service._
+import no.ndla.network.NdlaClient
 
 
 trait ContentBrowserConverterModule {
@@ -13,7 +14,8 @@ trait ContentBrowserConverterModule {
 
 trait ContentBrowserConverterModules
   extends ExtractServiceComponent
-  with CMDataComponent
+  with MigrationApiClient
+  with NdlaClient
   with StorageService
   with AmazonClientComponent
   with ImageApiServiceComponent

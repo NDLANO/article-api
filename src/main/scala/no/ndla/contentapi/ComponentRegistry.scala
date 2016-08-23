@@ -5,12 +5,13 @@ import com.amazonaws.regions.{Region, Regions}
 import com.amazonaws.services.s3.AmazonS3Client
 import com.sksamuel.elastic4s.{ElasticClient, ElasticsearchClientUri}
 import no.ndla.contentapi.controller.{ContentController, InternController}
-import no.ndla.contentapi.integration.{AmazonClientComponent, CMDataComponent, DataSourceComponent, ElasticClientComponent}
+import no.ndla.contentapi.integration.{MigrationApiClient, _}
 import no.ndla.contentapi.repository.ContentRepositoryComponent
 import no.ndla.contentapi.service._
-import no.ndla.contentapi.service.converters.{DivTableConverter, IngressConverter, SimpleTagConverter, BiblioConverter}
+import no.ndla.contentapi.service.converters.{BiblioConverter, DivTableConverter, IngressConverter, SimpleTagConverter}
 import org.elasticsearch.common.settings.Settings
 import no.ndla.contentapi.service.converters.contentbrowser._
+import no.ndla.network.NdlaClient
 import org.postgresql.ds.PGPoolingDataSource
 
 object ComponentRegistry
@@ -22,9 +23,10 @@ object ComponentRegistry
   with ElasticContentSearchComponent
   with ElasticContentIndexComponent
   with ExtractServiceComponent
+  with MigrationApiClient
+  with NdlaClient
   with ConverterModules
   with ConverterServiceComponent
-  with CMDataComponent
   with ImageApiServiceComponent
   with ContentBrowserConverterModules
   with ContentBrowserConverter
@@ -73,7 +75,8 @@ object ComponentRegistry
   lazy val CMPassword = ContentApiProperties.CMPassword
   lazy val imageApiBaseUrl = ContentApiProperties.imageApiBaseUrl
 
-  lazy val cmData = new CMData(CMHost, CMPort, CMDatabase, CMUser, CMPassword)
+  lazy val migrationApiClient = new MigrationApiClient
+  lazy val ndlaClient = new NdlaClient
   lazy val extractService = new ExtractService
   lazy val converterService = new ConverterService
   lazy val imageApiService = new ImageApiService

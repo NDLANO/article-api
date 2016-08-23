@@ -58,6 +58,10 @@ object ContentApiProperties extends LazyLogging {
   lazy val CMUser = get("CM_USER")
   lazy val CMPassword = get("CM_PASSWORD")
 
+  lazy val MigrationHost = get("MIGRATION_HOST")
+  lazy val MigrationUser = get("MIGRATION_USER")
+  lazy val MigrationPassword = get("MIGRATION_PASSWORD")
+
   // MathML element reference list: https://developer.mozilla.org/en/docs/Web/MathML/Element
   val mathJaxTags = Set("math", "maction", "maligngroup", "malignmark", "menclose", "merror", "mfenced", "mfrac", "mglyph", "mi",
     "mlabeledtr", "mlongdiv", "mmultiscripts", "mn", "mo", "mover", "mpadded", "mphantom", "mroot", "mrow", "ms", "mscarries",

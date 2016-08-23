@@ -5,11 +5,12 @@ import javax.sql.DataSource
 import com.amazonaws.services.s3.AmazonS3Client
 import com.sksamuel.elastic4s.ElasticClient
 import no.ndla.contentapi.controller.{ContentController, InternController}
-import no.ndla.contentapi.integration.{AmazonClientComponent, CMDataComponent, DataSourceComponent, ElasticClientComponent}
+import no.ndla.contentapi.integration._
 import no.ndla.contentapi.repository.ContentRepositoryComponent
-import no.ndla.contentapi.service.converters.{DivTableConverter, SimpleTagConverter, IngressConverter, BiblioConverter}
+import no.ndla.contentapi.service.converters.{BiblioConverter, DivTableConverter, IngressConverter, SimpleTagConverter}
 import no.ndla.contentapi.service._
 import no.ndla.contentapi.service.converters.contentbrowser._
+import no.ndla.network.NdlaClient
 import org.scalatest.mock.MockitoSugar
 
 
@@ -22,7 +23,8 @@ trait TestEnvironment
   with DataSourceComponent
   with ContentRepositoryComponent
   with MockitoSugar
-  with CMDataComponent
+  with MigrationApiClient
+  with NdlaClient
   with ExtractServiceComponent
   with ConverterModules
   with ConverterServiceComponent
@@ -51,7 +53,8 @@ trait TestEnvironment
 
   val extractConvertStoreContent = mock[ExtractConvertStoreContent]
 
-  val cmData = mock[CMData]
+  val migrationApiClient = mock[MigrationApiClient]
+  val ndlaClient = mock[NdlaClient]
   val extractService = mock[ExtractService]
   val converterService = new ConverterService
   val contentBrowserConverter = new ContentBrowserConverter
