@@ -1,6 +1,5 @@
 package no.ndla.contentapi.model
 
-import no.ndla.contentapi.integration.{Biblio, BiblioAuthor}
 import org.scalatra.swagger.annotations._
 import org.scalatra.swagger.runtime.annotations.ApiModelProperty
 

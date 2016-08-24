@@ -1,11 +1,10 @@
 package no.ndla.contentapi.service
 
-import java.net.URL
-
 import com.amazonaws.{AmazonClientException, AmazonServiceException}
 import com.amazonaws.services.s3.model._
 import com.typesafe.scalalogging.LazyLogging
-import no.ndla.contentapi.integration.{AmazonClientComponent, ContentFilMeta}
+import no.ndla.contentapi.integration.AmazonClientComponent
+import no.ndla.contentapi.model.ContentFilMeta
 
 trait StorageService {
   this: AmazonClientComponent =>

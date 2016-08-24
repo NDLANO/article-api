@@ -5,7 +5,7 @@ import org.json4s.{DefaultFormats, Formats}
 import org.scalatra.json.NativeJsonSupport
 import org.scalatra.{Ok, ScalatraServlet}
 import no.ndla.contentapi.business.SearchIndexer
-import no.ndla.contentapi.model.{Error, ImportStatus, NodeNotFoundException}
+import no.ndla.contentapi.model.{Error, ImportStatus}
 import no.ndla.contentapi.repository.ContentRepositoryComponent
 import no.ndla.contentapi.service.{ConverterServiceComponent, ExtractConvertStoreContent, ExtractServiceComponent, HtmlTagsUsage}
 import no.ndla.logging.LoggerContext

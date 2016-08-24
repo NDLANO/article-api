@@ -1,7 +1,7 @@
 package no.ndla.contentapi.service
 
 import no.ndla.contentapi.TestEnvironment
-import no.ndla.contentapi.integration.{LanguageContent, NodeGeneralContent, NodeIngress, NodeToConvert}
+import no.ndla.contentapi.integration.LanguageContent
 import no.ndla.contentapi.model._
 import no.ndla.contentapi.UnitSuite
 import org.mockito.Mockito._

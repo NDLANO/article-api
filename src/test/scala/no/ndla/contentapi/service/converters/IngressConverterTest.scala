@@ -1,8 +1,8 @@
 package no.ndla.contentapi.service.converters
 
 import no.ndla.contentapi.{TestEnvironment, UnitSuite}
-import no.ndla.contentapi.integration.{LanguageContent, NodeIngress}
-import no.ndla.contentapi.model.{Author, Copyright, ImportStatus, License}
+import no.ndla.contentapi.integration.{LanguageContent}
+import no.ndla.contentapi.model._
 import no.ndla.contentapi.service._
 import org.mockito.Mockito._
 

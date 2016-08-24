@@ -65,7 +65,8 @@ trait BiblioConverter {
     }
 
     def buildReferenceItem(nodeId: String): Option[FootNoteItem] =
-      extractService.getBiblio(nodeId).map(biblio => FootNoteItem(biblio, extractService.getBiblioAuthors(nodeId)))
+      extractService.getBiblioMeta(nodeId).map(biblioMeta => FootNoteItem(biblioMeta.biblio, biblioMeta.authors))
+
   }
 }
 

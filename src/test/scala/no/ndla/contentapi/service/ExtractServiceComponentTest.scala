@@ -1,7 +1,7 @@
 package no.ndla.contentapi.service
 
 import no.ndla.contentapi.{TestEnvironment, UnitSuite}
-import no.ndla.contentapi.integration.{MigrationNodeGeneralContent, NodeGeneralContent}
+import no.ndla.contentapi.integration.MigrationNodeGeneralContent
 import org.mockito.Mockito._
 
 import scala.util.{Success, Try}

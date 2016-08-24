@@ -1,6 +1,6 @@
 package no.ndla.contentapi.controller
 
-import no.ndla.contentapi.integration.{LanguageContent, NodeToConvert}
+import no.ndla.contentapi.integration.{LanguageContent}
 import no.ndla.contentapi.model._
 import no.ndla.contentapi.{TestEnvironment, UnitSuite}
 import org.json4s.native.Serialization._

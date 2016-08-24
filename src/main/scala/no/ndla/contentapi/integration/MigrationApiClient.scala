@@ -11,7 +11,7 @@ package no.ndla.contentapi.integration
 import java.net.URL
 
 import no.ndla.contentapi.ContentApiProperties
-import no.ndla.contentapi.model.{Author, ContentTitle, Copyright, License}
+import no.ndla.contentapi.model._
 import no.ndla.contentapi.service.Tags
 import no.ndla.network.NdlaClient
 
@@ -34,7 +34,6 @@ trait MigrationApiClient {
     private val ContentGeneralEndpoint = s"$ContentMigrationBaseEndpoint/generalcontent/:node_id"
     private val ContentBiblioMetaEndpoint = s"$ContentMigrationBaseEndpoint/bibliometa/:node_id"
 
-    // TODO: Memoize!
     def getContentNodeData(nodeId: String): Try[MigrationMainNodeImport] =
       get[MigrationMainNodeImport](ContentDataEndpoint, nodeId)
 
@@ -58,7 +57,7 @@ trait MigrationApiClient {
 
     private def get[A](endpointUrl: String, nodeId: String)(implicit mf: Manifest[A]): Try[A] = {
       ndlaClient.fetch[A](
-        Http(ContentDataEndpoint.replace(":node_id", nodeId)),
+        Http(endpointUrl.replace(":node_id", nodeId)),
         Some(ContentApiProperties.MigrationUser), Some(ContentApiProperties.MigrationPassword))
     }
 
@@ -96,7 +95,9 @@ case class MigrationContent(nid: String, tnid: String, content: String, language
 
 case class MigrationNodeType(nodeType: String)
 
-case class MigrationContentBiblioMeta(biblio: MigrationBiblio, authors: Seq[MigrationBiblioAuthor])
+case class MigrationContentBiblioMeta(biblio: MigrationBiblio, authors: Seq[MigrationBiblioAuthor]) {
+  def asBiblioMeta: BiblioMeta = BiblioMeta(biblio.asBiblio, authors.map(x => x.asBiblioAuthor))
+}
 case class MigrationBiblio(title: String, bibType: String, year: String, edition: String, publisher: String) {
   def asBiblio: Biblio = Biblio(title, bibType, year, edition, publisher)
 }

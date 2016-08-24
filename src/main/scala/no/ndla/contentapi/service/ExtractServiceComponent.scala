@@ -1,6 +1,7 @@
 package no.ndla.contentapi.service
 
 import no.ndla.contentapi.integration._
+import no.ndla.contentapi.model._
 
 import scala.util.{Failure, Success}
 
@@ -48,13 +49,7 @@ trait ExtractServiceComponent {
         case Failure(ex) => None
       }
 
-    def getBiblio(nodeId: String): Option[Biblio] =
-      migrationApiClient.getBiblioMeta(nodeId).map(x => x.biblio.asBiblio).toOption
-
-    def getBiblioAuthors(nodeId: String): Seq[BiblioAuthor] =
-      migrationApiClient.getBiblioMeta(nodeId) match {
-        case Success(data) => data.authors.map(x => x.asBiblioAuthor)
-        case Failure(ex) => Seq()
-      }
+    def getBiblioMeta(nodeId: String): Option[BiblioMeta] =
+      migrationApiClient.getBiblioMeta(nodeId).map(x => x.asBiblioMeta).toOption
   }
 }

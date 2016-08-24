@@ -1,9 +1,9 @@
 package no.ndla.contentapi.service.converters.contentbrowser
 
-import no.ndla.contentapi.integration.ContentFilMeta
+import no.ndla.contentapi.model.ContentFilMeta
 import no.ndla.contentapi.{TestEnvironment, UnitSuite}
 import org.mockito.Mockito._
-import no.ndla.contentapi.integration.ContentFilMeta._
+import no.ndla.contentapi.model.ContentFilMeta._
 
 class FilConverterTest extends UnitSuite with TestEnvironment {
   val nodeId = "1234"

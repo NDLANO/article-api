@@ -1,10 +1,9 @@
 package no.ndla.contentapi.service.converters.contentbrowser
 
 import no.ndla.contentapi.{TestEnvironment, UnitSuite}
-import no.ndla.contentapi.integration.{LanguageContent, NodeGeneralContent, NodeToConvert}
+import no.ndla.contentapi.integration.LanguageContent
 import no.ndla.contentapi.model._
 import org.mockito.Mockito._
-import org.mockito.Matchers._
 
 import scala.util.{Failure, Try}
 

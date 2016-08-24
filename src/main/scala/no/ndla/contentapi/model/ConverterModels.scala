@@ -1,9 +1,16 @@
-package no.ndla.contentapi.integration
+/*
+ * Part of NDLA content_api.
+ * Copyright (C) 2016 NDLA
+ *
+ * See LICENSE
+ *
+ */
+
+package no.ndla.contentapi.model
 
 import java.net.URL
-
-import no.ndla.contentapi.model.{ContentInformation, ContentTag, ContentTitle, Copyright}
 import com.netaporter.uri.dsl._
+import no.ndla.contentapi.integration.LanguageContent
 
 case class NodeGeneralContent(nid: String, tnid: String, title: String, content: String, language: String) {
   def isMainNode = (nid == tnid || tnid == "0")
@@ -27,6 +34,6 @@ object ContentFilMeta {
 
 case class NodeIngress(nid: String, content: String, imageNid: Option[String], ingressVisPaaSiden: Int)
 
+case class BiblioMeta(biblio: Biblio, authors: Seq[BiblioAuthor])
 case class Biblio(title: String, bibType: String, year: String, edition: String, publisher: String)
-
 case class BiblioAuthor(name: String, lastname: String, firstname: String)

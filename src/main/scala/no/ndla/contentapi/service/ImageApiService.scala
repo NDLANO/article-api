@@ -34,7 +34,7 @@ trait ImageApiServiceComponent {
 
     def importImage(externId: String): Option[ImageMetaInformation] = {
       val second = 1000
-      val request: HttpRequest = Http(s"""$imageApiBaseUrl/$imageApiImportImageURL/${externId}""").timeout(10 * second, 10 * second).postForm
+      val request: HttpRequest = Http(s"""$imageApiBaseUrl/$imageApiImportImageURL/${externId}""").timeout(15 * second, 15 * second).postForm
       val response = request.asString
 
       response.isError match {
