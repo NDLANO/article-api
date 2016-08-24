@@ -43,12 +43,6 @@ trait ExtractServiceComponent {
       }
     }
 
-    def getNodeIngress(nodeId: String): Option[NodeIngress] =
-      migrationApiClient.getContentNodeData(nodeId) match {
-        case Success(data) => data.ingresses.find(x => x.nid == nodeId).map(x => x.asNodeIngress)
-        case Failure(ex) => None
-      }
-
     def getBiblioMeta(nodeId: String): Option[BiblioMeta] =
       migrationApiClient.getBiblioMeta(nodeId).map(x => x.asBiblioMeta).toOption
   }

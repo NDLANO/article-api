@@ -15,7 +15,7 @@ trait IngressConverter {
         return (content, importStatus)
       }
 
-      extractService.getNodeIngress(content.nid) match {
+      content.ingress match {
         case Some(ingress) => {
           ingress.ingressVisPaaSiden match {
             case 0 => (content.copy(containsIngress = true), importStatus)

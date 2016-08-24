@@ -14,8 +14,8 @@ class InternControllerTest extends UnitSuite with TestEnvironment with ScalatraF
 
   val (nodeId, nodeId2) = ("1234", "4321")
   val sampleTitle = ContentTitle("title", Some("en"))
-  val sampleContent = LanguageContent(nodeId, nodeId, "content", Some("en"))
-  val sampleContent2 = LanguageContent(nodeId, nodeId2, "content", Some("en"))
+  val sampleContent = LanguageContent(nodeId, nodeId, "content", Some("en"), None)
+  val sampleContent2 = LanguageContent(nodeId, nodeId2, "content", Some("en"), None)
   val license = License("licence", "description", Some("http://"))
   val author = Author("forfatter", "Henrik")
   val copyright = Copyright(license, "", List(author))

@@ -68,9 +68,20 @@ case class MigrationMainNodeImport(titles: Seq[MigrationContentTitle], ingresses
                                    authors: Seq[MigrationContentAuthor], license: Option[String], nodeType: Option[String]) {
   def asNodeToConvert(nodeId: String): NodeToConvert = NodeToConvert(
     titles.map(x => x.asContentTitle),
-    contents.map(x => x.asLanguageContent),
+    asLanguageContents,
     Copyright(License(license.getOrElse(""), "", None), "", authors.map(x => x.asAuthor)),
     Tags.forContent(nodeId))
+
+  def asLanguageContents: Seq[LanguageContent] = {
+    contents.map(content => {
+      LanguageContent(
+        content.nid,
+        content.tnid,
+        content.content,
+        content.language,
+        ingresses.find(i => i.nid == content.nid).map(i => i.asNodeIngress))
+    })
+  }
 }
 
 case class MigrationNodeGeneralContent(nid: String, tnid: String, title: String, content: String, language: String) {
@@ -86,12 +97,10 @@ case class MigrationContentTitle(title: String, language: Option[String]) {
 }
 
 case class MigrationIngress(nid: String, content: String, imageNid: Option[String], ingressVisPaaSiden: Int) {
-  def asNodeIngress: NodeIngress = NodeIngress(nid, content, imageNid, ingressVisPaaSiden)
+  def asNodeIngress: NodeIngress = NodeIngress(content, imageNid, ingressVisPaaSiden)
 }
 
-case class MigrationContent(nid: String, tnid: String, content: String, language: Option[String]) {
-  def asLanguageContent: LanguageContent = LanguageContent(nid, tnid, content, language)
-}
+case class MigrationContent(nid: String, tnid: String, content: String, language: Option[String])
 
 case class MigrationNodeType(nodeType: String)
 

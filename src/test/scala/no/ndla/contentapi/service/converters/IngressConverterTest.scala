@@ -16,10 +16,9 @@ class IngressConverterTest extends UnitSuite with TestEnvironment {
     val initialContent = """<article><div>Banankake</div></article>"""
     val ingressText = "<p>Introduksjon til banankake</p>"
     val expectedContent = s"<article> <section> $ingressText </section> <div> Banankake </div></article>"
-    val node = LanguageContent(nodeId, nodeId, initialContent, Some("nb"))
-    val ingressNode = NodeIngress(nodeId, "<p>Introduksjon til banankake</p>", None, 1)
+    val ingressNode = NodeIngress("<p>Introduksjon til banankake</p>", None, 1)
+    val node = LanguageContent(nodeId, nodeId, initialContent, Some("nb"), Some(ingressNode))
 
-    when(extractService.getNodeIngress(nodeId)).thenReturn(Some(ingressNode))
     val (result, status) = ingressConverter.convert(node, ImportStatus(Seq(), Seq()))
     val strippedResult = " +".r.replaceAllIn(result.content.replace("\n", ""), " ")
 
@@ -34,10 +33,9 @@ class IngressConverterTest extends UnitSuite with TestEnvironment {
     val initialContent = """<article><div>Banankake</div></article>"""
     val ingressText = "<p>Introduksjon til banankake</p>"
     val expectedContent = s"""<article> <section> <img src="/images/full.jpg" /> $ingressText </section> <div> Banankake </div></article>"""
-    val node = LanguageContent(nodeId, nodeId, initialContent, Some("nb"))
-    val ingressNode = NodeIngress(nodeId, "<p>Introduksjon til banankake</p>", Some(imageNid), 1)
+    val ingressNode = NodeIngress("<p>Introduksjon til banankake</p>", Some(imageNid), 1)
+    val node = LanguageContent(nodeId, nodeId, initialContent, Some("nb"), Some(ingressNode))
 
-    when(extractService.getNodeIngress(nodeId)).thenReturn(Some(ingressNode))
     when(imageApiService.importOrGetMetaByExternId(imageNid)).thenReturn(Some(image))
     val (result, status) = ingressConverter.convert(node, ImportStatus(Seq(), Seq()))
     val strippedResult = " +".r.replaceAllIn(result.content.replace("\n", ""), " ")
@@ -47,9 +45,8 @@ class IngressConverterTest extends UnitSuite with TestEnvironment {
 
   test("That the content remains unchanged if the node does not contain an ingress field") {
     val initialContent = """<article><div>Banankake</div></article>"""
-    val node = LanguageContent(nodeId, nodeId, initialContent, Some("nb"))
+    val node = LanguageContent(nodeId, nodeId, initialContent, Some("nb"), None)
 
-    when(extractService.getNodeIngress(nodeId)).thenReturn(None)
     val (result, status) = ingressConverter.convert(node, ImportStatus(Seq(), Seq()))
 
     result.content should equal(initialContent)
@@ -59,10 +56,9 @@ class IngressConverterTest extends UnitSuite with TestEnvironment {
     val initialContent = """<article><div>Banankake</div></article>"""
     val ingressText = "<p>Introduksjon til banankake</p>"
     val expectedContent = s"<article> <section> $ingressText </section> <div> Banankake </div></article>"
-    val node = LanguageContent(nodeId, nodeId, initialContent, Some("nb"))
-    val ingressNode = NodeIngress(nodeId, "<p>Introduksjon til banankake</p>", None, 0)
+    val ingressNode = NodeIngress("<p>Introduksjon til banankake</p>", None, 0)
+    val node = LanguageContent(nodeId, nodeId, initialContent, Some("nb"), Some(ingressNode))
 
-    when(extractService.getNodeIngress(nodeId)).thenReturn(Some(ingressNode))
     val (result, status) = ingressConverter.convert(node, ImportStatus(Seq(), Seq()))
 
     result.content should equal(initialContent)

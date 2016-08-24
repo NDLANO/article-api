@@ -23,11 +23,9 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
   test("That the document is wrapped in an article tag") {
     val nodeId = "1"
     val initialContent = "<h1>Heading</h1>"
-    val contentNode = LanguageContent(nodeId, nodeId, initialContent, Some("nb"))
+    val contentNode = LanguageContent(nodeId, nodeId, initialContent, Some("nb"), None)
     val node = NodeToConvert(List(contentTitle), List(contentNode), copyright, List(tag))
     val expedtedResult = "<article>" + initialContent + "</article>"
-
-    when(extractService.getNodeIngress(nodeId)).thenReturn(None)
 
     val (result, status) = service.convertNode(node, ImportStatus(Seq(), Seq()))
     val strippedResult = result.content.head.content.replace("\n", "").replace(" ", "")
@@ -43,14 +41,12 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     val sampleOppgave1 = NodeGeneralContent(nodeId, nodeId, "Tittel", s"Innhold! $contentString2", "nb")
     val sampleOppgave2 = NodeGeneralContent(nodeId, nodeId2, "Tittel", "Enda mer innhold!", "nb")
     val initialContent = s"$contentString"
-    val contentNode = LanguageContent(nodeId, nodeId, initialContent, Some("nb"))
+    val contentNode = LanguageContent(nodeId, nodeId, initialContent, Some("nb"), None)
     val node = NodeToConvert(List(contentTitle), List(contentNode), copyright, List(tag))
 
-    when(extractService.getNodeIngress(nodeId)).thenReturn(None)
     when(extractService.getNodeType(nodeId)).thenReturn(Some("oppgave"))
     when(extractService.getNodeGeneralContent(nodeId)).thenReturn(Seq(sampleOppgave1))
 
-    when(extractService.getNodeIngress(nodeId2)).thenReturn(None)
     when(extractService.getNodeType(nodeId2)).thenReturn(Some("oppgave"))
     when(extractService.getNodeGeneralContent(nodeId2)).thenReturn(Seq(sampleOppgave2))
 
@@ -62,16 +58,15 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
 
   test("That the correct language ingress is added to the content") {
     val (nodeId, nodeId2) = ("1234", "4321")
-    val contentNodeBokmal = LanguageContent(nodeId, nodeId, "<article>Nordavinden og sola kranglet en gang om hvem av dem som var den sterkeste</article>", Some("nb"))
-    val contentNodeNynorsk = LanguageContent(nodeId2, nodeId, "<article>Nordavinden og sola krangla ein gong om kven av dei som var den sterkaste</article>", Some("nn"))
+    val ingressNodeBokmal = NodeIngress("Hvem er sterkest?", None, 1)
+    val contentNodeBokmal = LanguageContent(nodeId, nodeId, "<article>Nordavinden og sola kranglet en gang om hvem av dem som var den sterkeste</article>", Some("nb"), Some(ingressNodeBokmal))
+
+    val ingressNodeNynorsk = NodeIngress("Kven er sterkast?", None, 1)
+    val contentNodeNynorsk = LanguageContent(nodeId2, nodeId, "<article>Nordavinden og sola krangla ein gong om kven av dei som var den sterkaste</article>", Some("nn"), Some(ingressNodeNynorsk))
+
     val node = NodeToConvert(List(contentTitle), List(contentNodeBokmal, contentNodeNynorsk), copyright, List(tag))
-    val ingressNodeBokmal = NodeIngress(nodeId, "Hvem er sterkest?", None, 1)
-    val ingressNodeNynorsk = NodeIngress(nodeId2, "Kven er sterkast?", None, 1)
     val bokmalExpectedResult = "<article> <section> Hvem er sterkest? </section>Nordavinden og sola kranglet en gang om hvem av dem som var den sterkeste </article>"
     val nynorskExpectedResult = "<article> <section> Kven er sterkast? </section>Nordavinden og sola krangla ein gong om kven av dei som var den sterkaste </article>"
-
-    when(extractService.getNodeIngress(nodeId)).thenReturn(Some(ingressNodeBokmal))
-    when(extractService.getNodeIngress(nodeId2)).thenReturn(Some(ingressNodeNynorsk))
 
     val (result, status) = service.convertNode(node, ImportStatus(Seq(), Seq()))
     val bokmalStrippedResult = " +".r.replaceAllIn(result.content.head.content.replace("\n", ""), " ")

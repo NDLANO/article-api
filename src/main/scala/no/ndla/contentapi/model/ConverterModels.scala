@@ -17,7 +17,6 @@ case class NodeGeneralContent(nid: String, tnid: String, title: String, content:
   def isTranslation = !isMainNode
 
   def asContentTitle = ContentTitle(title, Some(language))
-  def asLanguageContent = LanguageContent(nid, tnid, content, Some(language))
 }
 
 case class NodeToConvert(titles: Seq[ContentTitle], contents: Seq[LanguageContent], copyright: Copyright, tags: Seq[ContentTag]) {
@@ -32,7 +31,7 @@ object ContentFilMeta {
   implicit def stringToUrl(s: String): URL = new URL(s.uri)
 }
 
-case class NodeIngress(nid: String, content: String, imageNid: Option[String], ingressVisPaaSiden: Int)
+case class NodeIngress(content: String, imageNid: Option[String], ingressVisPaaSiden: Int)
 
 case class BiblioMeta(biblio: Biblio, authors: Seq[BiblioAuthor])
 case class Biblio(title: String, bibType: String, year: String, edition: String, publisher: String)

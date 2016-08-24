@@ -12,7 +12,7 @@ class BiblioConverterTest extends UnitSuite with TestEnvironment {
   val sampleBiblioMeta = BiblioMeta(sampleBiblio, sampleBiblioAuthors)
 
   test("That BiblioConverter initializes and builds a map of footnote items") {
-    val initialContent = LanguageContent(nodeId, nodeId, s"""<article><a id="biblio-$nodeId"></a><h1>CONTENT</h1>more content</article>""", Some("en"))
+    val initialContent = LanguageContent(nodeId, nodeId, s"""<article><a id="biblio-$nodeId"></a><h1>CONTENT</h1>more content</article>""", Some("en"), None)
     val expectedFootNotes = Map("ref_1" -> FootNoteItem(sampleBiblio, sampleBiblioAuthors))
     val expectedResult = initialContent.copy(content=s"""<article> <a data-resource="footnote" data-key="ref_1"><sup>1</sup></a> <h1>CONTENT</h1>more content</article>""", footNotes=Some(expectedFootNotes))
 
