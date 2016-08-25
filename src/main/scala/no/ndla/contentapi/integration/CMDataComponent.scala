@@ -4,7 +4,7 @@ import java.net.URL
 
 import com.mysql.jdbc.jdbc2.optional.MysqlConnectionPoolDataSource
 import no.ndla.contentapi.model._
-import no.ndla.contentapi.service.Tags
+import no.ndla.contentapi.service.TagsService
 import no.ndla.contentapi.ContentApiProperties.ndlaBaseHost
 import scalikejdbc.{ConnectionPool, DataSourceConnectionPool, NamedDB, _}
 import ContentFilMeta._
@@ -35,6 +35,7 @@ import com.netaporter.uri.dsl._
   */
 
 trait CMDataComponent {
+  this: TagsService =>
   val cmData: CMData
 
   class CMData(host: String, port: String, database: String, user: String, password: String) {
@@ -53,7 +54,7 @@ trait CMDataComponent {
       val license = License(license=getNodeCopyrightLicence(nodeId).getOrElse(""), "", Some(""))
       val copyright = Copyright(license, "", authors)
 
-      NodeToConvert(titles, contents, copyright, Tags.forContent(nodeId))
+      NodeToConvert(titles, contents, copyright, tagsService.forContent(nodeId))
     }
 
     def getNodeGeneralContent(nodeId: String): Seq[NodeGeneralContent] = {

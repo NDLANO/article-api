@@ -5,12 +5,13 @@ import com.amazonaws.regions.{Region, Regions}
 import com.amazonaws.services.s3.AmazonS3Client
 import com.sksamuel.elastic4s.{ElasticClient, ElasticsearchClientUri}
 import no.ndla.contentapi.controller.{ContentController, InternController}
-import no.ndla.contentapi.integration.{AmazonClientComponent, CMDataComponent, DataSourceComponent, ElasticClientComponent}
+import no.ndla.contentapi.integration._
 import no.ndla.contentapi.repository.ContentRepositoryComponent
 import no.ndla.contentapi.service._
-import no.ndla.contentapi.service.converters.{DivTableConverter, IngressConverter, SimpleTagConverter, BiblioConverter}
+import no.ndla.contentapi.service.converters.{BiblioConverter, DivTableConverter, IngressConverter, SimpleTagConverter}
 import org.elasticsearch.common.settings.Settings
 import no.ndla.contentapi.service.converters.contentbrowser._
+import no.ndla.network.NdlaClient
 import org.postgresql.ds.PGPoolingDataSource
 
 object ComponentRegistry
@@ -35,6 +36,9 @@ object ComponentRegistry
   with IngressConverter
   with HtmlTagsUsage
   with ExtractConvertStoreContent
+  with NdlaClient
+  with MappingApiClient
+  with TagsService
 {
   implicit val swagger = new ContentSwagger
 
@@ -82,4 +86,7 @@ object ComponentRegistry
   lazy val ingressConverter = new IngressConverter
   lazy val biblioConverter = new BiblioConverter
   lazy val converterModules = List(ingressConverter, contentBrowserConverter, biblioConverter, DivTableConverter, SimpleTagConverter)
+  lazy val ndlaClient = new NdlaClient
+  lazy val mappingApiClient = new MappingApiClient
+  lazy val tagsService = new TagsService
 }

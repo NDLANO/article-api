@@ -107,7 +107,7 @@ trait ContentRepositoryComponent {
       implicit val formats = org.json4s.DefaultFormats
 
       val meta = read[ContentInformation](json)
-      ContentSummary(contentId.toString, meta.titles.head.title, ApplicationUrl.get() + contentId, meta.copyright.license.license)
+      ContentSummary(contentId.toString, meta.titles.head.title, ApplicationUrl.get + contentId, meta.copyright.license.license)
     }
 
     def asContentInformation(contentId: String, json: String): ContentInformation = {

@@ -3,9 +3,11 @@ import java.util.Properties
 
 import sbtdocker.Instructions
 
-val Scalaversion = "2.11.6"
+val Scalaversion = "2.11.8"
 val Scalatraversion = "2.3.1"
 val SwaggerUIVersion = "2.0.24"
+val ScalaLoggingVersion = "3.1.0"
+val Log4JVersion = "2.6"
 val Jettyversion = "9.2.10.v20150310"
 val AwsSdkversion = "1.10.26"
 val ScalaTestVersion = "2.2.4"
@@ -33,10 +35,7 @@ lazy val content_api = (project in file(".")).
     javacOptions ++= Seq("-source", "1.7", "-target", "1.7"),
     scalacOptions := Seq("-target:jvm-1.7"),
     libraryDependencies ++= Seq(
-      "ndla" %% "logging" % "0.1-SNAPSHOT",
-      "ndla" %% "logging" % "0.1-SNAPSHOT" % "test" classifier "tests",
-      "ndla" %% "mapping" % "0.1-SNAPSHOT",
-      "ndla" %% "network" % "0.1-SNAPSHOT",
+      "ndla" %% "network" % "0.4",
       "joda-time" % "joda-time" % "2.8.2",
       "org.scalatra" %% "scalatra" % Scalatraversion,
       "org.eclipse.jetty" % "jetty-webapp" % Jettyversion % "container;compile",
@@ -44,8 +43,12 @@ lazy val content_api = (project in file(".")).
       "javax.servlet" % "javax.servlet-api" % "3.1.0" % "container;provided;test",
       "org.scalatra" %% "scalatra-json" % Scalatraversion,
       "org.scalatra" %% "scalatra-scalatest" % Scalatraversion % "test",
-      "org.json4s"   %% "json4s-native" % "3.2.11",
+      "org.json4s"   %% "json4s-native" % "3.3.0",
       "org.scalatra" %% "scalatra-swagger"  % Scalatraversion,
+      "com.typesafe.scala-logging" %% "scala-logging" % ScalaLoggingVersion,
+      "org.apache.logging.log4j" % "log4j-api" % Log4JVersion,
+      "org.apache.logging.log4j" % "log4j-core" % Log4JVersion,
+      "org.apache.logging.log4j" % "log4j-slf4j-impl" % Log4JVersion,
       "org.webjars" % "swagger-ui" % SwaggerUIVersion,
       "org.scalikejdbc" %% "scalikejdbc" % "2.2.8",
       "org.postgresql" % "postgresql" % "9.4-1201-jdbc4",
