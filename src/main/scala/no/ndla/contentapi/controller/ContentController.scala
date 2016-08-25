@@ -1,15 +1,9 @@
 package no.ndla.contentapi.controller
 
-import com.typesafe.scalalogging.LazyLogging
+import no.ndla.contentapi.ComponentRegistry.{contentRepository, elasticContentSearch}
 import no.ndla.contentapi.model.Error._
 import no.ndla.contentapi.model.{ContentInformation, ContentSummary, Error}
-import no.ndla.contentapi.ComponentRegistry.{contentRepository, elasticContentSearch}
-import no.ndla.logging.LoggerContext
-import no.ndla.network.ApplicationUrl
-import org.elasticsearch.index.IndexNotFoundException
 import org.json4s.{DefaultFormats, Formats}
-import org.scalatra.ScalatraServlet
-import org.scalatra.json.NativeJsonSupport
 import org.scalatra.swagger.{Swagger, SwaggerSupport}
 
 import scala.util.Try
@@ -17,7 +11,7 @@ import scala.util.Try
 trait ContentController {
   val contentController: ContentController
 
-  class ContentController(implicit val swagger: Swagger) extends ScalatraServlet with NativeJsonSupport with SwaggerSupport with LazyLogging {
+  class ContentController(implicit val swagger: Swagger) extends NdlaController with SwaggerSupport {
 
     protected implicit override val jsonFormats: Formats = DefaultFormats
 
@@ -46,25 +40,6 @@ trait ContentController {
         headerParam[Option[String]]("app-key").description("Your app-key. May be omitted to access api anonymously, but rate limiting applies on anonymous access."),
         pathParam[String]("content_id").description("Id of the content that is to be returned")
         ))
-
-    before() {
-      contentType = formats("json")
-      LoggerContext.setCorrelationID(Option(request.getHeader("X-Correlation-ID")))
-      ApplicationUrl.set(request)
-    }
-
-    after() {
-      LoggerContext.clearCorrelationID()
-      ApplicationUrl.clear()
-    }
-
-    error {
-      case e: IndexNotFoundException =>
-        halt(status = 500, body = Error.IndexMissingError)
-      case t: Throwable =>
-        logger.error(Error.GenericError.toString, t)
-        halt(status = 500, body = Error.GenericError)
-    }
 
     get("/", operation(getAllContent)) {
       val query = params.get("query")

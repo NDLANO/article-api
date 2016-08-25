@@ -38,6 +38,9 @@ trait TestEnvironment
   with StorageService
   with HtmlTagsUsage
   with ExtractConvertStoreContent
+  with NdlaClient
+  with MappingApiClient
+  with TagsService
 {
   val elasticClient = mock[ElasticClient]
   val elasticContentSearch = mock[ElasticContentSearch]
@@ -63,4 +66,7 @@ trait TestEnvironment
   val converterModules = List(ingressConverter, SimpleTagConverter, biblioConverter, DivTableConverter, contentBrowserConverter)
   val imageApiService = mock[ImageApiService]
   val storageService = mock[AmazonStorageService]
+  val ndlaClient = mock[NdlaClient]
+  val mappingApiClient = mock[MappingApiClient]
+  val tagsService = mock[TagsService]
 }

@@ -5,7 +5,7 @@ import com.amazonaws.regions.{Region, Regions}
 import com.amazonaws.services.s3.AmazonS3Client
 import com.sksamuel.elastic4s.{ElasticClient, ElasticsearchClientUri}
 import no.ndla.contentapi.controller.{ContentController, InternController}
-import no.ndla.contentapi.integration.{MigrationApiClient, _}
+import no.ndla.contentapi.integration._
 import no.ndla.contentapi.repository.ContentRepositoryComponent
 import no.ndla.contentapi.service._
 import no.ndla.contentapi.service.converters.{BiblioConverter, DivTableConverter, IngressConverter, SimpleTagConverter}
@@ -23,8 +23,6 @@ object ComponentRegistry
   with ElasticContentSearchComponent
   with ElasticContentIndexComponent
   with ExtractServiceComponent
-  with MigrationApiClient
-  with NdlaClient
   with ConverterModules
   with ConverterServiceComponent
   with ImageApiServiceComponent
@@ -37,6 +35,10 @@ object ComponentRegistry
   with IngressConverter
   with HtmlTagsUsage
   with ExtractConvertStoreContent
+  with NdlaClient
+  with MappingApiClient
+  with TagsService
+  with MigrationApiClient
 {
   implicit val swagger = new ContentSwagger
 
@@ -76,7 +78,6 @@ object ComponentRegistry
   lazy val imageApiBaseUrl = ContentApiProperties.imageApiBaseUrl
 
   lazy val migrationApiClient = new MigrationApiClient
-  lazy val ndlaClient = new NdlaClient
   lazy val extractService = new ExtractService
   lazy val converterService = new ConverterService
   lazy val imageApiService = new ImageApiService
@@ -85,4 +86,7 @@ object ComponentRegistry
   lazy val ingressConverter = new IngressConverter
   lazy val biblioConverter = new BiblioConverter
   lazy val converterModules = List(ingressConverter, contentBrowserConverter, biblioConverter, DivTableConverter, SimpleTagConverter)
+  lazy val ndlaClient = new NdlaClient
+  lazy val mappingApiClient = new MappingApiClient
+  lazy val tagsService = new TagsService
 }

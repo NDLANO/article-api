@@ -19,6 +19,9 @@ object ContentApiProperties extends LazyLogging {
   // everything is converted. This value defines a maximum number of times the converter runs on a node
   val maxConvertionRounds = 5
 
+  val CorrelationIdHeader = "X-Correlation-ID"
+  val CorrelationIdKey = "correlationID"
+
   lazy val NDLABrightcoveAccountId = get("NDLA_BRIGHTCOVE_ACCOUNT_ID")
   lazy val NDLABrightcovePlayerId = get("NDLA_BRIGHTCOVE_PLAYER_ID")
 
@@ -57,6 +60,10 @@ object ContentApiProperties extends LazyLogging {
   lazy val CMDatabase = get("CM_DATABASE")
   lazy val CMUser = get("CM_USER")
   lazy val CMPassword = get("CM_PASSWORD")
+
+  val MappingHost = "mapping-api"
+  val IsoMappingCacheAgeInMs = 1000 * 60 * 60 // 1 hour caching
+  val TopicAPIUrl = "http://api.topic.ndla.no/rest/v1/keywords/?filter[node]=ndlanode_"
 
   lazy val MigrationHost = get("MIGRATION_HOST")
   lazy val MigrationUser = get("MIGRATION_USER")
