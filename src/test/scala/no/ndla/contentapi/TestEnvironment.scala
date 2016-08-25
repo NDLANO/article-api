@@ -24,7 +24,6 @@ trait TestEnvironment
   with ContentRepositoryComponent
   with MockitoSugar
   with MigrationApiClient
-  with NdlaClient
   with ExtractServiceComponent
   with ConverterModules
   with ConverterServiceComponent
@@ -57,7 +56,6 @@ trait TestEnvironment
   val extractConvertStoreContent = mock[ExtractConvertStoreContent]
 
   val migrationApiClient = mock[MigrationApiClient]
-  val ndlaClient = mock[NdlaClient]
   val extractService = mock[ExtractService]
   val converterService = new ConverterService
   val contentBrowserConverter = new ContentBrowserConverter

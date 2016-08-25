@@ -12,14 +12,14 @@ import java.net.URL
 
 import no.ndla.contentapi.ContentApiProperties
 import no.ndla.contentapi.model._
-import no.ndla.contentapi.service.Tags
+import no.ndla.contentapi.service.TagsService
 import no.ndla.network.NdlaClient
 
 import scala.util.Try
 import scalaj.http.Http
 
 trait MigrationApiClient {
-  this: NdlaClient =>
+  this: NdlaClient with TagsService =>
 
   val migrationApiClient: MigrationApiClient
 
@@ -66,11 +66,11 @@ trait MigrationApiClient {
 
 case class MigrationMainNodeImport(titles: Seq[MigrationContentTitle], ingresses: Seq[MigrationIngress], contents: Seq[MigrationContent],
                                    authors: Seq[MigrationContentAuthor], license: Option[String], nodeType: Option[String]) {
-  def asNodeToConvert(nodeId: String): NodeToConvert = NodeToConvert(
+  def asNodeToConvert(nodeId: String, tags: List[ContentTag]): NodeToConvert = NodeToConvert(
     titles.map(x => x.asContentTitle),
     asLanguageContents,
     Copyright(License(license.getOrElse(""), "", None), "", authors.map(x => x.asAuthor)),
-    Tags.forContent(nodeId))
+    tags)
 
   def asLanguageContents: Seq[LanguageContent] = {
     contents.map(content => {

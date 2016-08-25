@@ -6,14 +6,14 @@ import no.ndla.contentapi.model._
 import scala.util.{Failure, Success}
 
 trait ExtractServiceComponent {
-  this: MigrationApiClient =>
+  this: MigrationApiClient with TagsService =>
 
   val extractService: ExtractService
 
   class ExtractService {
     def getNodeData(nodeId: String): NodeToConvert = {
       migrationApiClient.getContentNodeData(nodeId) match {
-        case Success(data) => data.asNodeToConvert(nodeId)
+        case Success(data) => data.asNodeToConvert(nodeId, tagsService.forContent(nodeId))
         case Failure(ex) => throw ex
       }
     }
