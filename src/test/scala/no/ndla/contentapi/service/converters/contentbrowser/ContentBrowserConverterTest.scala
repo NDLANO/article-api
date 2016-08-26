@@ -2,8 +2,8 @@ package no.ndla.contentapi.service.converters.contentbrowser
 
 import no.ndla.contentapi.ContentApiProperties._
 import no.ndla.contentapi.TestEnvironment
-import no.ndla.contentapi.model.{Copyright, ImportStatus, License}
-import no.ndla.contentapi.integration.{LanguageContent, NodeGeneralContent}
+import no.ndla.contentapi.model.{Copyright, ImportStatus, License, NodeGeneralContent}
+import no.ndla.contentapi.integration.LanguageContent
 import no.ndla.contentapi.service.{Image, ImageMetaInformation, ImageVariants}
 import no.ndla.contentapi.UnitSuite
 import org.mockito.Mockito._
@@ -14,7 +14,7 @@ class ContentBrowserConverterTest extends UnitSuite with TestEnvironment {
   val sampleContentString = s"[contentbrowser ==nid=${nodeId}==imagecache=Fullbredde==width===alt=$sampleAlt==link===node_link=1==link_type=link_to_content==lightbox_size===remove_fields[76661]=1==remove_fields[76663]=1==remove_fields[76664]=1==remove_fields[76666]=1==insertion=inline==link_title_text= ==link_text= ==text_align===css_class=contentbrowser contentbrowser]"
 
   test("That content-browser strings are replaced") {
-    val initialContent = LanguageContent(nodeId, nodeId, s"<article><p>$sampleContentString</p></article>", Some("en"))
+    val initialContent = LanguageContent(nodeId, nodeId, s"<article><p>$sampleContentString</p></article>", Some("en"), None)
     val expectedResult = s"<article> <p>{Unsupported content unsupported type: ${nodeId}}</p></article>"
 
     when(extractService.getNodeType(nodeId)).thenReturn(Some("unsupported type"))
@@ -26,7 +26,7 @@ class ContentBrowserConverterTest extends UnitSuite with TestEnvironment {
 
   test("That content-browser strings of type h5p_content are converted correctly") {
     val nodeId = "1234"
-    val initialContent = LanguageContent(nodeId, nodeId, s"<article>$sampleContentString</article>", Some("en"))
+    val initialContent = LanguageContent(nodeId, nodeId, s"<article>$sampleContentString</article>", Some("en"), None)
     val expectedResult = s"""<article> <figure data-resource="h5p" data-id="1" data-url="http://ndla.no/h5p/embed/${nodeId}"></figure></article>"""
 
     when(extractService.getNodeType(nodeId)).thenReturn(Some("h5p_content"))
@@ -38,7 +38,7 @@ class ContentBrowserConverterTest extends UnitSuite with TestEnvironment {
 
   test("That Content-browser strings of type image are converted into HTML img tags") {
     val (nodeId, imageUrl, alt) = ("1234", "full.jpeg", "Fotografi")
-    val initialContent = LanguageContent(nodeId, nodeId, s"<article>$sampleContentString</article>", Some("en"))
+    val initialContent = LanguageContent(nodeId, nodeId, s"<article>$sampleContentString</article>", Some("en"), None)
     val imageMeta = ImageMetaInformation("1", List(), List(), ImageVariants(Some(Image("small.jpeg", 128, "")), Some(Image(imageUrl, 256, ""))), Copyright(License("", "", Some("")), "", List()), List())
     val expectedResult =
       s"""<article>
@@ -54,7 +54,7 @@ class ContentBrowserConverterTest extends UnitSuite with TestEnvironment {
   }
 
   test("That Content-browser strings of type oppgave are converted into content") {
-    val initialContent = LanguageContent(nodeId, nodeId, s"<article>$sampleContentString</article>", Some("no"))
+    val initialContent = LanguageContent(nodeId, nodeId, s"<article>$sampleContentString</article>", Some("no"), None)
     val contentTitle = "Oppgave title"
     val content = """<div class="paragraph">   Very important oppgave text  </div>"""
     val oppgave = NodeGeneralContent(nodeId, nodeId, contentTitle, content, "no")
@@ -69,7 +69,7 @@ class ContentBrowserConverterTest extends UnitSuite with TestEnvironment {
 
 
   test("That Content-browser strings of type fagstoff are converted into content") {
-    val initialContent = LanguageContent(nodeId, nodeId, s"<article>$sampleContentString</article>", Some("no"))
+    val initialContent = LanguageContent(nodeId, nodeId, s"<article>$sampleContentString</article>", Some("no"), None)
     val contentTitle = "Fasgtoff title"
     val content = """<div class="paragraph">   Very important fagstoff text  </div>"""
     val oppgave = NodeGeneralContent(nodeId, nodeId, contentTitle, content, "no")
@@ -83,7 +83,7 @@ class ContentBrowserConverterTest extends UnitSuite with TestEnvironment {
   }
 
   test("That Content-browser strings of type aktualitet are converted into content") {
-    val initialContent = LanguageContent(nodeId, nodeId, s"<article>$sampleContentString</article>", Some("no"))
+    val initialContent = LanguageContent(nodeId, nodeId, s"<article>$sampleContentString</article>", Some("no"), None)
     val contentTitle = "Aktualitet title"
     val content = """<div class="paragraph">   Very important aktualitet text  </div>"""
     val oppgave = NodeGeneralContent(nodeId, nodeId, contentTitle, content, "no")
@@ -97,7 +97,7 @@ class ContentBrowserConverterTest extends UnitSuite with TestEnvironment {
   }
 
   test("That Content-browser strings of type veiledning are converted into content") {
-    val initialContent = LanguageContent(nodeId, nodeId, s"<article>$sampleContentString</article>", Some("no"))
+    val initialContent = LanguageContent(nodeId, nodeId, s"<article>$sampleContentString</article>", Some("no"), None)
     val contentTitle = "Veiledning title"
     val content = """<div class="paragraph">   Very important veiledning text  </div>"""
     val oppgave = NodeGeneralContent(nodeId, nodeId, contentTitle, content, "no")
@@ -111,7 +111,7 @@ class ContentBrowserConverterTest extends UnitSuite with TestEnvironment {
   }
 
   test("That Content-browser strings of type video are converted into HTML img tags") {
-    val initialContent = LanguageContent(nodeId, nodeId, s"<article>$sampleContentString</article>", Some("en"))
+    val initialContent = LanguageContent(nodeId, nodeId, s"<article>$sampleContentString</article>", Some("en"), None)
     val expectedResult = s"""<article> <figure data-resource="brightcove" data-id="1" data-videoid="ref:$nodeId" data-account="$NDLABrightcoveAccountId" data-player="$NDLABrightcovePlayerId"></figure></article>"""
 
     when(extractService.getNodeType(nodeId)).thenReturn((Some("video")))
@@ -123,7 +123,7 @@ class ContentBrowserConverterTest extends UnitSuite with TestEnvironment {
   }
 
   test("That content-browser strings of type biblio are converted into content") {
-    val initialContent = LanguageContent(nodeId, nodeId, s"""<article>$sampleContentString</a><h1>CONTENT</h1>more content</article>""", Some("en"))
+    val initialContent = LanguageContent(nodeId, nodeId, s"""<article>$sampleContentString</a><h1>CONTENT</h1>more content</article>""", Some("en"), None)
     val expectedResult = s"""<article> <a id="biblio-$nodeId"></a> <h1>CONTENT</h1>more content</article>"""
 
     when(extractService.getNodeType(nodeId)).thenReturn(Some("biblio"))

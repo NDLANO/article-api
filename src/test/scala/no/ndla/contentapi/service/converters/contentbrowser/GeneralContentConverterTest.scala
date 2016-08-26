@@ -1,10 +1,9 @@
 package no.ndla.contentapi.service.converters.contentbrowser
 
 import no.ndla.contentapi.{TestEnvironment, UnitSuite}
-import no.ndla.contentapi.integration.{LanguageContent, NodeGeneralContent, NodeToConvert}
+import no.ndla.contentapi.integration.LanguageContent
 import no.ndla.contentapi.model._
 import org.mockito.Mockito._
-import org.mockito.Matchers._
 
 import scala.util.{Failure, Try}
 
@@ -114,7 +113,7 @@ class GeneralContentConverterTest extends UnitSuite with TestEnvironment {
     when(contentRepository.withExternalId(nodeId)).thenReturn(None)
     when(extractConvertStoreContent.processNode(nodeId, ImportStatus(Seq(), Seq(nodeId2)))).thenReturn(Try((newNodeid, ImportStatus(Seq(), Seq(nodeId2, nodeId)))))
 
-    val languageContent = LanguageContent(nodeId, nodeId, "<div>sample content</div>", Some("en"), Seq(), false, Some(Map()))
+    val languageContent = LanguageContent(nodeId, nodeId, "<div>sample content</div>", Some("en"), None, Seq(), false, Some(Map()))
     val nodeToConvert = NodeToConvert(Seq(ContentTitle("title", Some("en"))), Seq(languageContent), Copyright(License("publicdomain", "public", None), "", Seq()), Seq())
     val (result, requiredLibraries, status) = generalContentConverter.convert(content, Seq(nodeId2))
     val strippedResult = " +".r.replaceAllIn(result.replace("\n", ""), " ")
@@ -132,7 +131,7 @@ class GeneralContentConverterTest extends UnitSuite with TestEnvironment {
     when(contentRepository.withExternalId(nodeId)).thenReturn(None)
     when(extractConvertStoreContent.processNode(nodeId, ImportStatus(Seq(), Seq(nodeId2)))).thenReturn(Failure(NodeNotFoundException("Node was not found")))
 
-    val languageContent = LanguageContent(nodeId, nodeId2, "<div>sample content</div>", Some("en"), Seq(), false, Some(Map()))
+    val languageContent = LanguageContent(nodeId, nodeId2, "<div>sample content</div>", Some("en"), None, Seq(), false, Some(Map()))
     val nodeToConvert = NodeToConvert(Seq(ContentTitle("title", Some("en"))), Seq(languageContent), Copyright(License("publicdomain", "public", None), "", Seq()), Seq())
 
     val (result, requiredLibraries, status) = generalContentConverter.convert(content, Seq(nodeId2))

@@ -25,7 +25,6 @@ object ComponentRegistry
   with ExtractServiceComponent
   with ConverterModules
   with ConverterServiceComponent
-  with CMDataComponent
   with ImageApiServiceComponent
   with ContentBrowserConverterModules
   with ContentBrowserConverter
@@ -39,6 +38,7 @@ object ComponentRegistry
   with NdlaClient
   with MappingApiClient
   with TagsService
+  with MigrationApiClient
 {
   implicit val swagger = new ContentSwagger
 
@@ -77,7 +77,7 @@ object ComponentRegistry
   lazy val CMPassword = ContentApiProperties.CMPassword
   lazy val imageApiBaseUrl = ContentApiProperties.imageApiBaseUrl
 
-  lazy val cmData = new CMData(CMHost, CMPort, CMDatabase, CMUser, CMPassword)
+  lazy val migrationApiClient = new MigrationApiClient
   lazy val extractService = new ExtractService
   lazy val converterService = new ConverterService
   lazy val imageApiService = new ImageApiService

@@ -1,6 +1,6 @@
 package no.ndla.contentapi.controller
 
-import no.ndla.contentapi.integration.{LanguageContent, NodeToConvert}
+import no.ndla.contentapi.integration.{LanguageContent}
 import no.ndla.contentapi.model._
 import no.ndla.contentapi.{TestEnvironment, UnitSuite}
 import org.json4s.native.Serialization._
@@ -14,8 +14,8 @@ class InternControllerTest extends UnitSuite with TestEnvironment with ScalatraF
 
   val (nodeId, nodeId2) = ("1234", "4321")
   val sampleTitle = ContentTitle("title", Some("en"))
-  val sampleContent = LanguageContent(nodeId, nodeId, "content", Some("en"))
-  val sampleContent2 = LanguageContent(nodeId, nodeId2, "content", Some("en"))
+  val sampleContent = LanguageContent(nodeId, nodeId, "content", Some("en"), None)
+  val sampleContent2 = LanguageContent(nodeId, nodeId2, "content", Some("en"), None)
   val license = License("licence", "description", Some("http://"))
   val author = Author("forfatter", "Henrik")
   val copyright = Copyright(license, "", List(author))

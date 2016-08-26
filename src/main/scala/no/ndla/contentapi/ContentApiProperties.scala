@@ -65,6 +65,10 @@ object ContentApiProperties extends LazyLogging {
   val IsoMappingCacheAgeInMs = 1000 * 60 * 60 // 1 hour caching
   val TopicAPIUrl = "http://api.topic.ndla.no/rest/v1/keywords/?filter[node]=ndlanode_"
 
+  lazy val MigrationHost = get("MIGRATION_HOST")
+  lazy val MigrationUser = get("MIGRATION_USER")
+  lazy val MigrationPassword = get("MIGRATION_PASSWORD")
+
   // MathML element reference list: https://developer.mozilla.org/en/docs/Web/MathML/Element
   val mathJaxTags = Set("math", "maction", "maligngroup", "malignmark", "menclose", "merror", "mfenced", "mfrac", "mglyph", "mi",
     "mlabeledtr", "mlongdiv", "mmultiscripts", "mn", "mo", "mover", "mpadded", "mphantom", "mroot", "mrow", "ms", "mscarries",

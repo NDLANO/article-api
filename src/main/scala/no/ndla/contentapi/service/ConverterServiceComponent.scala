@@ -2,8 +2,7 @@ package no.ndla.contentapi.service
 
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.contentapi.ContentApiProperties.maxConvertionRounds
-import no.ndla.contentapi.integration.NodeToConvert
-import no.ndla.contentapi.model.{ContentInformation, ImportStatus}
+import no.ndla.contentapi.model.{ContentInformation, ImportStatus, NodeToConvert}
 
 import scala.annotation.tailrec
 

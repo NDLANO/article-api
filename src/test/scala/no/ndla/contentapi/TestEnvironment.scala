@@ -23,7 +23,7 @@ trait TestEnvironment
   with DataSourceComponent
   with ContentRepositoryComponent
   with MockitoSugar
-  with CMDataComponent
+  with MigrationApiClient
   with ExtractServiceComponent
   with ConverterModules
   with ConverterServiceComponent
@@ -55,7 +55,7 @@ trait TestEnvironment
 
   val extractConvertStoreContent = mock[ExtractConvertStoreContent]
 
-  val cmData = mock[CMData]
+  val migrationApiClient = mock[MigrationApiClient]
   val extractService = mock[ExtractService]
   val converterService = new ConverterService
   val contentBrowserConverter = new ContentBrowserConverter
