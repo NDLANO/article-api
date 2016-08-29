@@ -1,10 +1,7 @@
-import java.io.FileInputStream
 import java.util.Properties
 
-import sbtdocker.Instructions
-
 val Scalaversion = "2.11.8"
-val Scalatraversion = "2.3.1"
+val Scalatraversion = "2.4.1"
 val SwaggerUIVersion = "2.0.24"
 val ScalaLoggingVersion = "3.1.0"
 val Log4JVersion = "2.6"
