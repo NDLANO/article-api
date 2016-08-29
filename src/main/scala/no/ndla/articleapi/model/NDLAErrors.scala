@@ -1,9 +1,12 @@
 /*
- * Part of NDLA Content-API. API for searching and downloading content from NDLA.
- * Copyright (C) 2015 NDLA
+ * Part of NDLA article_api.
+ * Copyright (C) 2016 NDLA
  *
  * See LICENSE
+ *
  */
+
+
 package no.ndla.articleapi.model
 
 import java.text.SimpleDateFormat

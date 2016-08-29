@@ -1,3 +1,12 @@
+/*
+ * Part of NDLA article_api.
+ * Copyright (C) 2016 NDLA
+ *
+ * See LICENSE
+ *
+ */
+
+
 package no.ndla.articleapi
 
 import org.scalatest._
@@ -9,7 +18,7 @@ abstract class UnitSuite extends FunSuite with Matchers with OptionValues with I
   val MAX_PAGE_SIZE = 548
 
   ContentApiProperties.setProperties(Map(
-    "CONTACT_EMAIL" -> Some("ndla@knowit.no"),
+    "CONTACT_EMAIL" -> Some("someone@somewhere.earth"),
     "HOST_ADDR" -> Some("localhost"),
     "DOMAINS" -> Some("localhost"),
 
@@ -22,8 +31,8 @@ abstract class UnitSuite extends FunSuite with Matchers with OptionValues with I
 
     "SEARCH_ENGINE_ENV_TCP_PORT" -> Some("9300"),
     "SEARCH_ENGINE_ENV_CLUSTER_NAME" -> Some("search-engine"),
-    "SEARCH_INDEX" -> Some("learningpaths"),
-    "SEARCH_DOCUMENT" -> Some("learningpath"),
+    "SEARCH_INDEX" -> Some("articles"),
+    "SEARCH_DOCUMENT" -> Some("article"),
     "SEARCH_DEFAULT_PAGE_SIZE" -> Some(s"$DEFAULT_PAGE_SIZE"),
     "SEARCH_MAX_PAGE_SIZE" -> Some(s"$MAX_PAGE_SIZE"),
     "INDEX_BULK_SIZE" -> Some("500"),

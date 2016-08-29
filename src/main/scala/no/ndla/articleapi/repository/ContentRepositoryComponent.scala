@@ -1,3 +1,12 @@
+/*
+ * Part of NDLA article_api.
+ * Copyright (C) 2016 NDLA
+ *
+ * See LICENSE
+ *
+ */
+
+
 package no.ndla.articleapi.repository
 
 import com.typesafe.scalalogging.LazyLogging

@@ -1,9 +1,12 @@
 /*
- * Part of NDLA Content-API. API for searching and downloading content from NDLA.
- * Copyright (C) 2015 NDLA
+ * Part of NDLA article_api.
+ * Copyright (C) 2016 NDLA
  *
  * See LICENSE
+ *
  */
+
+
 package no.ndla.articleapi
 
 import com.typesafe.scalalogging.LazyLogging
@@ -105,7 +108,7 @@ object ContentApiProperties extends LazyLogging {
 }
 
 object PropertiesLoader {
-  val EnvironmentFile = "/content-api.env"
+  val EnvironmentFile = "/article-api.env"
 
   def readPropertyFile(): Map[String,Option[String]] = {
     val keys = io.Source.fromInputStream(getClass.getResourceAsStream(EnvironmentFile)).getLines().withFilter(line => line.matches("^\\w+$"))

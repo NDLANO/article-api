@@ -1,3 +1,12 @@
+/*
+ * Part of NDLA article_api.
+ * Copyright (C) 2016 NDLA
+ *
+ * See LICENSE
+ *
+ */
+
+
 package no.ndla.articleapi
 
 import com.amazonaws.auth.BasicAWSCredentials
@@ -40,7 +49,7 @@ object ComponentRegistry
   with TagsService
   with MigrationApiClient
 {
-  implicit val swagger = new ContentSwagger
+  implicit val swagger = new ArticleSwagger
 
   lazy val dataSource = new PGPoolingDataSource()
   dataSource.setUser(ContentApiProperties.get("META_USER_NAME"))

@@ -1,3 +1,12 @@
+/*
+ * Part of NDLA article_api.
+ * Copyright (C) 2016 NDLA
+ *
+ * See LICENSE
+ *
+ */
+
+
 package db.migration
 
 import java.sql.Connection
