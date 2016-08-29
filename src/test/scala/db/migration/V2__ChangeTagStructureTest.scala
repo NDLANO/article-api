@@ -1,6 +1,6 @@
 package db.migration
 
-import no.ndla.contentapi.{TestEnvironment, UnitSuite}
+import no.ndla.articleapi.{TestEnvironment, UnitSuite}
 
 class V2__ChangeTagStructureTest extends UnitSuite with TestEnvironment {
   val migrator = new V2__ChangeTagStructure()
