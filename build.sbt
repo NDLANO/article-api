@@ -28,10 +28,10 @@ lazy val commonSettings = Seq(
   scalaVersion := Scalaversion
 )
 
-lazy val content_api = (project in file(".")).
+lazy val article_api = (project in file(".")).
   settings(commonSettings: _*).
   settings(
-    name := "content-api",
+    name := "article-api",
     javacOptions ++= Seq("-source", "1.7", "-target", "1.7"),
     scalacOptions := Seq("-target:jvm-1.7"),
     libraryDependencies ++= Seq(
@@ -67,8 +67,8 @@ lazy val content_api = (project in file(".")).
 
 unmanagedResourceDirectories in Compile <+= (baseDirectory) {_ / "src/main/webapp"}
 
-assemblyJarName in assembly := "content-api.jar"
-mainClass in assembly := Some("no.ndla.contentapi.JettyLauncher")
+assemblyJarName in assembly := "article-api.jar"
+mainClass in assembly := Some("no.ndla.articleapi.JettyLauncher")
 assemblyMergeStrategy in assembly := {
   case "mime.types" => MergeStrategy.filterDistinctLines
   case PathList("org", "joda", "convert", "ToString.class")  => MergeStrategy.first

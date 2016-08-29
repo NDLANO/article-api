@@ -1,5 +1,5 @@
 
-NDLA Content-API. API for searching and downloading content from NDLA.
+NDLA Article-API. API for searching and downloading articles from NDLA.
 Copyright (C) 2015 NDLA
 
 This program is free software: you can redistribute it and/or modify

@@ -1,5 +1,5 @@
-# CONTENT API 
-API for accessing content from NDLA
+# ARTICLE API
+API for accessing articles from NDLA
 
 # Building and distribution
 
@@ -9,12 +9,5 @@ API for accessing content from NDLA
 ## Run tests
     sbt test
 
-## Publish to nexus
-    sbt publish
-
 ## Create Docker Image
     sbt docker
-
-## Deploy Docker Image 
-    See Deployment-project
-

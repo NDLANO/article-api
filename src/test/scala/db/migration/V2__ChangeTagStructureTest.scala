@@ -1,6 +1,15 @@
+/*
+ * Part of NDLA article_api.
+ * Copyright (C) 2016 NDLA
+ *
+ * See LICENSE
+ *
+ */
+
+
 package db.migration
 
-import no.ndla.contentapi.{TestEnvironment, UnitSuite}
+import no.ndla.articleapi.{TestEnvironment, UnitSuite}
 
 class V2__ChangeTagStructureTest extends UnitSuite with TestEnvironment {
   val migrator = new V2__ChangeTagStructure()

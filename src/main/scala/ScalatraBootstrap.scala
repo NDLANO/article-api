@@ -1,18 +1,21 @@
 /*
- * Part of NDLA Content-API. API for searching and downloading content from NDLA.
- * Copyright (C) 2015 NDLA
+ * Part of NDLA article_api.
+ * Copyright (C) 2016 NDLA
  *
  * See LICENSE
+ *
  */
+
+
 import javax.servlet.ServletContext
 
-import no.ndla.contentapi.ComponentRegistry.{internController, contentController, resourcesApp}
-import no.ndla.contentapi.ContentSwagger
+import no.ndla.articleapi.ComponentRegistry.{internController, contentController, resourcesApp}
+import no.ndla.articleapi.ArticleSwagger
 import org.scalatra.LifeCycle
 
 class ScalatraBootstrap extends LifeCycle {
 
-  implicit val swagger = new ContentSwagger
+  implicit val swagger = new ArticleSwagger
 
   override def init(context: ServletContext) {
     context.mount(contentController, "/content", "content")
