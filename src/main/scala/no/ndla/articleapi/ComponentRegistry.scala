@@ -20,6 +20,7 @@ import no.ndla.articleapi.service._
 import no.ndla.articleapi.service.converters.{BiblioConverter, DivTableConverter, IngressConverter, SimpleTagConverter}
 import org.elasticsearch.common.settings.Settings
 import no.ndla.articleapi.service.converters.contentbrowser._
+import no.ndla.articleapi.service.search.{ElasticContentIndexComponent, ElasticContentSearchComponent, SearchIndexServiceComponent}
 import no.ndla.network.NdlaClient
 import org.postgresql.ds.PGPoolingDataSource
 
@@ -31,6 +32,7 @@ object ComponentRegistry
   with ElasticClientComponent
   with ElasticContentSearchComponent
   with ElasticContentIndexComponent
+  with SearchIndexServiceComponent
   with ExtractServiceComponent
   with ConverterModules
   with ConverterServiceComponent
@@ -73,6 +75,7 @@ object ComponentRegistry
   lazy val contentRepository = new ContentRepository
   lazy val elasticContentSearch = new ElasticContentSearch
   lazy val elasticContentIndex = new ElasticContentIndex
+  lazy val searchIndexService = new SearchIndexService
 
   val amazonClient = new AmazonS3Client(new BasicAWSCredentials(ContentApiProperties.StorageAccessKey, ContentApiProperties.StorageSecretKey))
   amazonClient.setRegion(Region.getRegion(Regions.EU_CENTRAL_1))

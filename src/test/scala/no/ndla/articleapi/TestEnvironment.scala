@@ -19,6 +19,7 @@ import no.ndla.articleapi.repository.ContentRepositoryComponent
 import no.ndla.articleapi.service.converters.{BiblioConverter, DivTableConverter, IngressConverter, SimpleTagConverter}
 import no.ndla.articleapi.service._
 import no.ndla.articleapi.service.converters.contentbrowser._
+import no.ndla.articleapi.service.search.{ElasticContentIndexComponent, ElasticContentSearchComponent, SearchIndexServiceComponent}
 import no.ndla.network.NdlaClient
 import org.scalatest.mock.MockitoSugar
 
@@ -27,6 +28,7 @@ trait TestEnvironment
   extends ElasticClientComponent
   with ElasticContentSearchComponent
   with ElasticContentIndexComponent
+  with SearchIndexServiceComponent
   with ContentController
   with InternController
   with DataSourceComponent
@@ -53,6 +55,7 @@ trait TestEnvironment
   val elasticClient = mock[ElasticClient]
   val elasticContentSearch = mock[ElasticContentSearch]
   val elasticContentIndex = mock[ElasticContentIndex]
+  val searchIndexService = mock[SearchIndexService]
 
   val internController = mock[InternController]
   val contentController = mock[ContentController]

@@ -7,7 +7,7 @@
  */
 
 
-package no.ndla.articleapi.service
+package no.ndla.articleapi.service.search
 
 import java.text.SimpleDateFormat
 import java.util.Calendar

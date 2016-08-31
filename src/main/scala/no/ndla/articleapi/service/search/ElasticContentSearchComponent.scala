@@ -7,13 +7,12 @@
  */
 
 
-package no.ndla.articleapi.service
+package no.ndla.articleapi.service.search
 
 import com.sksamuel.elastic4s.ElasticDsl._
 import com.sksamuel.elastic4s._
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.articleapi.ContentApiProperties
-import no.ndla.articleapi.business.SearchIndexer
 import no.ndla.articleapi.integration.ElasticClientComponent
 import no.ndla.articleapi.model.ContentSummary
 import no.ndla.network.ApplicationUrl
@@ -26,7 +25,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
 trait ElasticContentSearchComponent {
-  this: ElasticClientComponent =>
+  this: ElasticClientComponent with SearchIndexServiceComponent =>
   val elasticContentSearch: ElasticContentSearch
 
   class ElasticContentSearch extends LazyLogging {
@@ -125,7 +124,7 @@ trait ElasticContentSearchComponent {
 
     def scheduleIndexDocuments() = {
       val f = Future {
-        SearchIndexer.indexDocuments()
+        searchIndexService.indexDocuments()
       }
       f onFailure { case t => logger.error("Unable to create index: " + t.getMessage) }
     }

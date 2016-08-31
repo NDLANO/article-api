@@ -9,9 +9,9 @@
 
 package no.ndla.articleapi.controller
 
-import no.ndla.articleapi.business.SearchIndexer
 import no.ndla.articleapi.model.ImportStatus
 import no.ndla.articleapi.repository.ContentRepositoryComponent
+import no.ndla.articleapi.service.search.SearchIndexServiceComponent
 import no.ndla.articleapi.service.{ConverterServiceComponent, ExtractConvertStoreContent, ExtractServiceComponent, HtmlTagsUsage}
 import org.json4s.{DefaultFormats, Formats}
 import org.scalatra.Ok
@@ -19,7 +19,7 @@ import org.scalatra.Ok
 import scala.util.{Failure, Success}
 
 trait InternController {
-  this: ExtractServiceComponent with ConverterServiceComponent with ContentRepositoryComponent with HtmlTagsUsage with ExtractConvertStoreContent =>
+  this: ExtractServiceComponent with ConverterServiceComponent with ContentRepositoryComponent with HtmlTagsUsage with ExtractConvertStoreContent with SearchIndexServiceComponent =>
   val internController: InternController
 
   class InternController extends NdlaController {
@@ -27,7 +27,7 @@ trait InternController {
     protected implicit override val jsonFormats: Formats = DefaultFormats
 
     post("/index") {
-      Ok(SearchIndexer.indexDocuments())
+      Ok(searchIndexService.indexDocuments())
     }
 
     post("/import/:external_id") {
