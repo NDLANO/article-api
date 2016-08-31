@@ -10,7 +10,7 @@
 package no.ndla.articleapi.controller
 
 import com.typesafe.scalalogging.LazyLogging
-import no.ndla.articleapi.ContentApiProperties.{CorrelationIdHeader, CorrelationIdKey}
+import no.ndla.articleapi.ArticleApiProperties.{CorrelationIdHeader, CorrelationIdKey}
 import no.ndla.articleapi.model.Error
 import no.ndla.network.{ApplicationUrl, CorrelationID}
 import org.apache.logging.log4j.ThreadContext

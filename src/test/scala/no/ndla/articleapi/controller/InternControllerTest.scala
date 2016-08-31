@@ -22,13 +22,13 @@ class InternControllerTest extends UnitSuite with TestEnvironment with ScalatraF
   implicit val formats = org.json4s.DefaultFormats
 
   val (nodeId, nodeId2) = ("1234", "4321")
-  val sampleTitle = ContentTitle("title", Some("en"))
+  val sampleTitle = ArticleTitle("title", Some("en"))
   val sampleContent = LanguageContent(nodeId, nodeId, "content", Some("en"), None)
   val sampleContent2 = LanguageContent(nodeId, nodeId2, "content", Some("en"), None)
   val license = License("licence", "description", Some("http://"))
   val author = Author("forfatter", "Henrik")
   val copyright = Copyright(license, "", List(author))
-  val sampleNode = NodeToConvert(List(sampleTitle), List(sampleContent), copyright, List(ContentTag(List("tag"), Some("en"))))
+  val sampleNode = NodeToConvert(List(sampleTitle), List(sampleContent), copyright, List(ArticleTag(List("tag"), Some("en"))))
   val sampleNode2 = sampleNode.copy(contents=List(sampleContent2))
 
   lazy val controller = new InternController

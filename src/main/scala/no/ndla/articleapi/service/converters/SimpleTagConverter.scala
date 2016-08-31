@@ -11,7 +11,7 @@ package no.ndla.articleapi.service.converters
 
 import no.ndla.articleapi.integration.{ConverterModule, LanguageContent}
 import no.ndla.articleapi.model.ImportStatus
-import no.ndla.articleapi.ContentApiProperties.permittedHTMLTags
+import no.ndla.articleapi.ArticleApiProperties.permittedHTMLTags
 import org.jsoup.nodes.Element
 import scala.collection.JavaConversions._
 

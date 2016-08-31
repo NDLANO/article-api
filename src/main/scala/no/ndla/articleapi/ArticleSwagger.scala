@@ -18,7 +18,7 @@ object ArticleApiInfo {
     "Article API",
     "Documentation for the Article API of NDLA.no",
     "http://ndla.no",
-    ContentApiProperties.ContactEmail,
+    ArticleApiProperties.ContactEmail,
     "GPL v3.0",
     "http://www.gnu.org/licenses/gpl-3.0.en.html")
 }

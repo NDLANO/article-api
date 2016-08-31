@@ -13,9 +13,9 @@ import javax.sql.DataSource
 
 import com.amazonaws.services.s3.AmazonS3Client
 import com.sksamuel.elastic4s.ElasticClient
-import no.ndla.articleapi.controller.{ContentController, InternController}
+import no.ndla.articleapi.controller.{ArticleController, InternController}
 import no.ndla.articleapi.integration._
-import no.ndla.articleapi.repository.ContentRepositoryComponent
+import no.ndla.articleapi.repository.ArticleRepositoryComponent
 import no.ndla.articleapi.service.converters.{BiblioConverter, DivTableConverter, IngressConverter, SimpleTagConverter}
 import no.ndla.articleapi.service._
 import no.ndla.articleapi.service.converters.contentbrowser._
@@ -29,10 +29,10 @@ trait TestEnvironment
   with ElasticContentSearchComponent
   with ElasticContentIndexComponent
   with SearchIndexServiceComponent
-  with ContentController
+  with ArticleController
   with InternController
   with DataSourceComponent
-  with ContentRepositoryComponent
+  with ArticleRepositoryComponent
   with MockitoSugar
   with MigrationApiClient
   with ExtractServiceComponent
@@ -58,10 +58,10 @@ trait TestEnvironment
   val searchIndexService = mock[SearchIndexService]
 
   val internController = mock[InternController]
-  val contentController = mock[ContentController]
+  val articleController = mock[ArticleController]
 
   val dataSource = mock[DataSource]
-  val contentRepository = mock[ContentRepository]
+  val articleRepository = mock[ArticleRepository]
   val amazonClient = mock[AmazonS3Client]
   val storageName = "testStorageName"
 

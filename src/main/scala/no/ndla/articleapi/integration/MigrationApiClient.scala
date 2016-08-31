@@ -11,7 +11,7 @@ package no.ndla.articleapi.integration
 
 import java.net.URL
 
-import no.ndla.articleapi.ContentApiProperties
+import no.ndla.articleapi.ArticleApiProperties
 import no.ndla.articleapi.model._
 import no.ndla.articleapi.service.TagsService
 import no.ndla.network.NdlaClient
@@ -26,7 +26,7 @@ trait MigrationApiClient {
 
   class MigrationApiClient {
 
-    private val ContentMigrationBaseEndpoint = s"${ContentApiProperties.MigrationHost}/contents"
+    private val ContentMigrationBaseEndpoint = s"${ArticleApiProperties.MigrationHost}/contents"
     private val ContentDataEndpoint = s"$ContentMigrationBaseEndpoint/:node_id"
     private val ContentTypeEndpoint = s"$ContentMigrationBaseEndpoint/type/:node_id"
     private val ContentEmbedEndpoint = s"$ContentMigrationBaseEndpoint/embedmeta/:node_id"
@@ -59,7 +59,7 @@ trait MigrationApiClient {
     private def get[A](endpointUrl: String, nodeId: String)(implicit mf: Manifest[A]): Try[A] = {
       ndlaClient.fetch[A](
         Http(endpointUrl.replace(":node_id", nodeId)),
-        Some(ContentApiProperties.MigrationUser), Some(ContentApiProperties.MigrationPassword))
+        Some(ArticleApiProperties.MigrationUser), Some(ArticleApiProperties.MigrationPassword))
     }
 
   }
@@ -67,7 +67,7 @@ trait MigrationApiClient {
 
 case class MigrationMainNodeImport(titles: Seq[MigrationContentTitle], ingresses: Seq[MigrationIngress], contents: Seq[MigrationContent],
                                    authors: Seq[MigrationContentAuthor], license: Option[String], nodeType: Option[String]) {
-  def asNodeToConvert(nodeId: String, tags: List[ContentTag]): NodeToConvert = NodeToConvert(
+  def asNodeToConvert(nodeId: String, tags: List[ArticleTag]): NodeToConvert = NodeToConvert(
     titles.map(x => x.asContentTitle),
     asLanguageContents,
     Copyright(License(license.getOrElse(""), "", None), "", authors.map(x => x.asAuthor)),
@@ -94,7 +94,7 @@ case class MigrationContentAuthor(`type`: String, name: String) {
 }
 
 case class MigrationContentTitle(title: String, language: Option[String]) {
-  def asContentTitle: ContentTitle = ContentTitle(title, language)
+  def asContentTitle: ArticleTitle = ArticleTitle(title, language)
 }
 
 case class MigrationIngress(nid: String, content: String, imageNid: Option[String], ingressVisPaaSiden: Int) {

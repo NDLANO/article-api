@@ -17,7 +17,7 @@ trait SearchIndexServiceComponent {
 
   class SearchIndexService extends LazyLogging {
 
-    val contentData = ComponentRegistry.contentRepository
+    val contentData = ComponentRegistry.articleRepository
     val contentIndex = ComponentRegistry.elasticContentIndex
 
     def indexDocuments() = {

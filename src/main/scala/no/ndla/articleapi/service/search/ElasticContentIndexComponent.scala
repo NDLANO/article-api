@@ -16,9 +16,9 @@ import com.sksamuel.elastic4s.ElasticDsl._
 import com.sksamuel.elastic4s.analyzers._
 import com.sksamuel.elastic4s.mappings.FieldType.{IntegerType, NestedType, StringType}
 import com.typesafe.scalalogging.LazyLogging
-import no.ndla.articleapi.ContentApiProperties
+import no.ndla.articleapi.ArticleApiProperties
 import no.ndla.articleapi.integration.ElasticClientComponent
-import no.ndla.articleapi.model.ContentInformation
+import no.ndla.articleapi.model.ArticleInformation
 import org.json4s.native.Serialization.write
 
 trait ElasticContentIndexComponent {
@@ -27,21 +27,21 @@ trait ElasticContentIndexComponent {
 
   class ElasticContentIndex extends LazyLogging {
 
-    def indexDocuments(contentData: List[ContentInformation], indexName: String): Int = {
+    def indexDocuments(articleData: List[ArticleInformation], indexName: String): Int = {
       implicit val formats = org.json4s.DefaultFormats
 
       elasticClient.execute {
-        bulk(contentData.map(content => {
-          index into indexName -> ContentApiProperties.SearchDocument source write(content) id content.id
+        bulk(articleData.map(content => {
+          index into indexName -> ArticleApiProperties.SearchDocument source write(content) id content.id
         }))
       }.await
 
-      logger.info(s"Indexed ${contentData.size} documents")
-      contentData.size
+      logger.info(s"Indexed ${articleData.size} documents")
+      articleData.size
     }
 
     def create(): String = {
-      val indexName = ContentApiProperties.SearchIndex + "_" + getTimestamp
+      val indexName = ArticleApiProperties.SearchIndex + "_" + getTimestamp
 
       val existsDefinition = elasticClient.execute {
         index exists indexName.toString
@@ -57,14 +57,14 @@ trait ElasticContentIndexComponent {
     private def createElasticIndex(indexName: String) = {
       elasticClient.execute {
         createIndex(indexName) mappings (
-          ContentApiProperties.SearchDocument as(
+          ArticleApiProperties.SearchDocument as(
             "id" typed IntegerType,
             "titles" typed NestedType as(
               "title" typed StringType,
               "language" typed StringType index "not_analyzed"
               ),
-            "content" typed NestedType as(
-              "content" typed StringType analyzer "HtmlAnalyzer",
+            "article" typed NestedType as(
+              "article" typed StringType analyzer "HtmlAnalyzer",
               "language" typed StringType index "not_analyzed"
               ),
             "copyright" typed NestedType as(
@@ -95,7 +95,7 @@ trait ElasticContentIndexComponent {
 
     def aliasTarget: Option[String] = {
       val res = elasticClient.execute {
-        get alias ContentApiProperties.SearchIndex
+        get alias ArticleApiProperties.SearchIndex
       }.await
       val aliases = res.getAliases.keysIt()
       aliases.hasNext match {
@@ -112,10 +112,10 @@ trait ElasticContentIndexComponent {
       if (existsDefinition.isExists) {
         elasticClient.execute {
           oldIndexName.foreach(oldIndexName => {
-            remove alias ContentApiProperties.SearchIndex on oldIndexName
+            remove alias ArticleApiProperties.SearchIndex on oldIndexName
 
           })
-          add alias ContentApiProperties.SearchIndex on newIndexName
+          add alias ArticleApiProperties.SearchIndex on newIndexName
         }.await
       } else {
         throw new IllegalArgumentException(s"No such index: $newIndexName")

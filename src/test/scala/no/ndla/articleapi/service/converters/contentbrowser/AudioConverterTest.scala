@@ -10,7 +10,7 @@
 package no.ndla.articleapi.service.converters.contentbrowser
 
 import no.ndla.articleapi.{TestEnvironment, UnitSuite}
-import no.ndla.articleapi.ContentApiProperties.amazonUrlPrefix
+import no.ndla.articleapi.ArticleApiProperties.amazonUrlPrefix
 import no.ndla.articleapi.model.ContentFilMeta._
 import no.ndla.articleapi.model.ContentFilMeta
 import org.mockito.Mockito._

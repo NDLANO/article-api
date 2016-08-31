@@ -12,9 +12,9 @@ package no.ndla.articleapi.service.search
 import com.sksamuel.elastic4s.ElasticDsl._
 import com.sksamuel.elastic4s._
 import com.typesafe.scalalogging.LazyLogging
-import no.ndla.articleapi.ContentApiProperties
+import no.ndla.articleapi.ArticleApiProperties
 import no.ndla.articleapi.integration.ElasticClientComponent
-import no.ndla.articleapi.model.ContentSummary
+import no.ndla.articleapi.model.ArticleSummary
 import no.ndla.network.ApplicationUrl
 import org.elasticsearch.index.IndexNotFoundException
 import org.elasticsearch.index.query.MatchQueryBuilder
@@ -32,10 +32,10 @@ trait ElasticContentSearchComponent {
 
     val noCopyrightFilter = not(nestedQuery("copyright.license").query(termQuery("copyright.license.license", "copyrighted")))
 
-    implicit object ContentHitAs extends HitAs[ContentSummary] {
-      override def as(hit: RichSearchHit): ContentSummary = {
+    implicit object ContentHitAs extends HitAs[ArticleSummary] {
+      override def as(hit: RichSearchHit): ArticleSummary = {
         val sourceMap = hit.sourceAsMap
-        ContentSummary(
+        ArticleSummary(
           sourceMap("id").toString,
           sourceMap("titles").asInstanceOf[java.util.ArrayList[AnyRef]].get(0).asInstanceOf[java.util.HashMap[String, String]].get("title"),
           ApplicationUrl.get + sourceMap("id").toString,
@@ -43,25 +43,25 @@ trait ElasticContentSearchComponent {
       }
     }
 
-    def all(license: Option[String], page: Option[Int], pageSize: Option[Int]): Iterable[ContentSummary] = {
+    def all(license: Option[String], page: Option[Int], pageSize: Option[Int]): Iterable[ArticleSummary] = {
       val filterList = new ListBuffer[QueryDefinition]()
       license.foreach(license => filterList += nestedQuery("copyright.license").query(termQuery("copyright.license.license", license)))
       filterList += noCopyrightFilter
 
-      val theSearch = search in ContentApiProperties.SearchIndex -> ContentApiProperties.SearchDocument query filter(filterList)
+      val theSearch = search in ArticleApiProperties.SearchIndex -> ArticleApiProperties.SearchDocument query filter(filterList)
       theSearch.sort(field sort "id")
 
       executeSearch(theSearch, page, pageSize)
     }
 
-    def matchingQuery(query: Iterable[String], language: Option[String], license: Option[String], page: Option[Int], pageSize: Option[Int]): Iterable[ContentSummary] = {
+    def matchingQuery(query: Iterable[String], language: Option[String], license: Option[String], page: Option[Int], pageSize: Option[Int]): Iterable[ArticleSummary] = {
       val titleSearch = new ListBuffer[QueryDefinition]
       titleSearch += matchQuery("titles.title", query.mkString(" ")).operator(MatchQueryBuilder.Operator.AND)
       language.foreach(lang => titleSearch += termQuery("titles.language", lang))
 
-      val contentSearch = new ListBuffer[QueryDefinition]
-      contentSearch += matchQuery("content.content", query.mkString(" ")).operator(MatchQueryBuilder.Operator.AND)
-      language.foreach(lang => contentSearch += termQuery("content.language", lang))
+      val articleSearch = new ListBuffer[QueryDefinition]
+      articleSearch += matchQuery("article.article", query.mkString(" ")).operator(MatchQueryBuilder.Operator.AND)
+      language.foreach(lang => articleSearch += termQuery("article.language", lang))
 
       val tagSearch = new ListBuffer[QueryDefinition]
       tagSearch += matchQuery("tags.tags", query.mkString(" ")).operator(MatchQueryBuilder.Operator.AND)
@@ -71,12 +71,12 @@ trait ElasticContentSearchComponent {
       license.foreach(license => filterList += nestedQuery("copyright.license").query(termQuery("copyright.license.license", license)))
       filterList += noCopyrightFilter
 
-      val theSearch = search in ContentApiProperties.SearchIndex -> ContentApiProperties.SearchDocument query {
+      val theSearch = search in ArticleApiProperties.SearchIndex -> ArticleApiProperties.SearchDocument query {
         bool {
           must(
             should(
               nestedQuery("titles").query {bool {must(titleSearch.toList)}},
-              nestedQuery("content").query {bool {must(contentSearch.toList)}},
+              nestedQuery("article").query {bool {must(articleSearch.toList)}},
               nestedQuery("tags").query {bool {must(tagSearch.toList)}}
             ),
             filter (filterList)
@@ -91,7 +91,7 @@ trait ElasticContentSearchComponent {
       try {
         elasticClient.execute {
           search start startAt limit numResults
-        }.await.as[ContentSummary]
+        }.await.as[ArticleSummary]
       } catch {
         case e: RemoteTransportException => errorHandler(e.getCause)
       }
@@ -100,8 +100,8 @@ trait ElasticContentSearchComponent {
     def getStartAtAndNumResults(page: Option[Int], pageSize: Option[Int]): (Int, Int) = {
       val numResults = pageSize match {
         case Some(num) =>
-          if (num > 0) num.min(ContentApiProperties.MaxPageSize) else ContentApiProperties.DefaultPageSize
-        case None => ContentApiProperties.DefaultPageSize
+          if (num > 0) num.min(ArticleApiProperties.MaxPageSize) else ArticleApiProperties.DefaultPageSize
+        case None => ArticleApiProperties.DefaultPageSize
       }
 
       val startAt = page match {

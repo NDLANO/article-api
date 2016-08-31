@@ -11,7 +11,7 @@ package no.ndla.articleapi.service.converters.contentbrowser
 
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.articleapi.model.{ImportStatus, RequiredLibrary}
-import no.ndla.articleapi.ContentApiProperties.{NDLABrightcoveAccountId, NDLABrightcovePlayerId}
+import no.ndla.articleapi.ArticleApiProperties.{NDLABrightcoveAccountId, NDLABrightcovePlayerId}
 
 trait VideoConverterModule {
 
