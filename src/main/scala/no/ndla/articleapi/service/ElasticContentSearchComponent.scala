@@ -13,7 +13,7 @@ import com.sksamuel.elastic4s.ElasticDsl._
 import com.sksamuel.elastic4s._
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.articleapi.ContentApiProperties
-import no.ndla.articleapi.business.{ContentSearch, SearchIndexer}
+import no.ndla.articleapi.business.SearchIndexer
 import no.ndla.articleapi.integration.ElasticClientComponent
 import no.ndla.articleapi.model.ContentSummary
 import no.ndla.network.ApplicationUrl
@@ -29,7 +29,7 @@ trait ElasticContentSearchComponent {
   this: ElasticClientComponent =>
   val elasticContentSearch: ElasticContentSearch
 
-  class ElasticContentSearch extends ContentSearch with LazyLogging {
+  class ElasticContentSearch extends LazyLogging {
 
     val noCopyrightFilter = not(nestedQuery("copyright.license").query(termQuery("copyright.license.license", "copyrighted")))
 
@@ -44,7 +44,7 @@ trait ElasticContentSearchComponent {
       }
     }
 
-    override def all(license: Option[String], page: Option[Int], pageSize: Option[Int]): Iterable[ContentSummary] = {
+    def all(license: Option[String], page: Option[Int], pageSize: Option[Int]): Iterable[ContentSummary] = {
       val filterList = new ListBuffer[QueryDefinition]()
       license.foreach(license => filterList += nestedQuery("copyright.license").query(termQuery("copyright.license.license", license)))
       filterList += noCopyrightFilter
@@ -55,7 +55,7 @@ trait ElasticContentSearchComponent {
       executeSearch(theSearch, page, pageSize)
     }
 
-    override def matchingQuery(query: Iterable[String], language: Option[String], license: Option[String], page: Option[Int], pageSize: Option[Int]): Iterable[ContentSummary] = {
+    def matchingQuery(query: Iterable[String], language: Option[String], license: Option[String], page: Option[Int], pageSize: Option[Int]): Iterable[ContentSummary] = {
       val titleSearch = new ListBuffer[QueryDefinition]
       titleSearch += matchQuery("titles.title", query.mkString(" ")).operator(MatchQueryBuilder.Operator.AND)
       language.foreach(lang => titleSearch += termQuery("titles.language", lang))

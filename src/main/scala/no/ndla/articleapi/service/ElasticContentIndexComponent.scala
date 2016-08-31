@@ -13,12 +13,10 @@ import java.text.SimpleDateFormat
 import java.util.Calendar
 
 import com.sksamuel.elastic4s.ElasticDsl._
-import com.sksamuel.elastic4s._
 import com.sksamuel.elastic4s.analyzers._
 import com.sksamuel.elastic4s.mappings.FieldType.{IntegerType, NestedType, StringType}
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.articleapi.ContentApiProperties
-import no.ndla.articleapi.business.ContentIndex
 import no.ndla.articleapi.integration.ElasticClientComponent
 import no.ndla.articleapi.model.ContentInformation
 import org.json4s.native.Serialization.write
@@ -27,9 +25,9 @@ trait ElasticContentIndexComponent {
   this: ElasticClientComponent =>
   val elasticContentIndex: ElasticContentIndex
 
-  class ElasticContentIndex extends ContentIndex with LazyLogging {
+  class ElasticContentIndex extends LazyLogging {
 
-    override def indexDocuments(contentData: List[ContentInformation], indexName: String): Int = {
+    def indexDocuments(contentData: List[ContentInformation], indexName: String): Int = {
       implicit val formats = org.json4s.DefaultFormats
 
       elasticClient.execute {
@@ -42,7 +40,7 @@ trait ElasticContentIndexComponent {
       contentData.size
     }
 
-    override def create(): String = {
+    def create(): String = {
       val indexName = ContentApiProperties.SearchIndex + "_" + getTimestamp
 
       val existsDefinition = elasticClient.execute {
@@ -95,7 +93,7 @@ trait ElasticContentIndexComponent {
       }.await
     }
 
-    override def aliasTarget: Option[String] = {
+    def aliasTarget: Option[String] = {
       val res = elasticClient.execute {
         get alias ContentApiProperties.SearchIndex
       }.await
@@ -106,7 +104,7 @@ trait ElasticContentIndexComponent {
       }
     }
 
-    override def updateAliasTarget(oldIndexName: Option[String], newIndexName: String): Unit = {
+    def updateAliasTarget(oldIndexName: Option[String], newIndexName: String): Unit = {
       val existsDefinition = elasticClient.execute {
         index exists newIndexName
       }.await
@@ -124,7 +122,7 @@ trait ElasticContentIndexComponent {
       }
     }
 
-    override def delete(indexName: String): Unit = {
+    def delete(indexName: String): Unit = {
       val existsDefinition = elasticClient.execute {
         index exists indexName
       }.await
