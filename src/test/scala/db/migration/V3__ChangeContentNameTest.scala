@@ -27,7 +27,6 @@ class V3__ChangeContentNameTest extends UnitSuite with TestEnvironment {
 
     val optConverted = migrator.convertDocumentToNewFormat(content)
 
-    println(optConverted.get.document)
     optConverted.isDefined should be(true)
     optConverted.get.document should equal(expectedAfter)
   }
