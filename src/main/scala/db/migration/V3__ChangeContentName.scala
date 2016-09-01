@@ -3,7 +3,7 @@ package db.migration
 import java.sql.Connection
 
 import org.flywaydb.core.api.migration.jdbc.JdbcMigration
-import org.json4s.JsonAST.{JArray, JObject}
+import org.json4s.JsonAST.JArray
 import org.json4s.native.JsonMethods._
 import org.json4s.native.Serialization._
 import org.postgresql.util.PGobject
@@ -52,8 +52,8 @@ class V3__ChangeContentName extends JdbcMigration {
     sql"update contentdata set document = $dataObject where id = ${content.id}".update().apply
   }
 
-  case class V3_DBContent(id: Long, document: String)
-  case class V3_OldContent(content: String, footNotes: Option[Map[String, V3_FootNoteItem]], language: Option[String])
-  case class V3_Article(article: String, footNotes: Option[Map[String, V3_FootNoteItem]], language: Option[String])
-  case class V3_FootNoteItem(title: String, `type`: String, year: String, edition: String, publisher: String, authors: Seq[String])
 }
+case class V3_FootNoteItem(title: String, `type`: String, year: String, edition: String, publisher: String, authors: Seq[String])
+case class V3_DBContent(id: Long, document: String)
+case class V3_OldContent(content: String, footNotes: Option[Map[String, V3_FootNoteItem]], language: Option[String])
+case class V3_Article(article: String, footNotes: Option[Map[String, V3_FootNoteItem]], language: Option[String])
