@@ -12,7 +12,7 @@ package no.ndla.articleapi.service.converters.contentbrowser
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.articleapi.model.{ImportStatus, RequiredLibrary}
 import no.ndla.articleapi.service.ImageApiServiceComponent
-import no.ndla.articleapi.ContentApiProperties.imageApiUrl
+import no.ndla.articleapi.ArticleApiProperties.imageApiUrl
 
 trait ImageConverterModule {
   this: ImageApiServiceComponent =>

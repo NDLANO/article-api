@@ -11,7 +11,7 @@ package no.ndla.articleapi.service.converters.contentbrowser
 
 import no.ndla.articleapi.TestEnvironment
 import no.ndla.articleapi.UnitSuite
-import no.ndla.articleapi.ContentApiProperties.{NDLABrightcoveAccountId, NDLABrightcovePlayerId}
+import no.ndla.articleapi.ArticleApiProperties.{NDLABrightcoveAccountId, NDLABrightcovePlayerId}
 
 class VideoConverterTest extends UnitSuite with TestEnvironment {
   val nodeId = "1234"

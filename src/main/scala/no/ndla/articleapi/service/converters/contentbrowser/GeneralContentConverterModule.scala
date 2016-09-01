@@ -10,14 +10,14 @@
 package no.ndla.articleapi.service.converters.contentbrowser
 
 import com.typesafe.scalalogging.LazyLogging
-import no.ndla.articleapi.ContentApiProperties._
+import no.ndla.articleapi.ArticleApiProperties._
 import no.ndla.articleapi.model.{ImportStatus, RequiredLibrary}
-import no.ndla.articleapi.repository.ContentRepositoryComponent
+import no.ndla.articleapi.repository.ArticleRepositoryComponent
 import no.ndla.articleapi.service.{ExtractConvertStoreContent, ExtractServiceComponent}
 import scala.util.{Failure, Success}
 
 trait GeneralContentConverterModule {
-  this: ExtractServiceComponent with ContentRepositoryComponent with ExtractConvertStoreContent =>
+  this: ExtractServiceComponent with ArticleRepositoryComponent with ExtractConvertStoreContent =>
 
   abstract class GeneralContentConverter extends ContentBrowserConverterModule with LazyLogging {
     override def convert(contentBrowser: ContentBrowser, visitedNodes: Seq[String]): (String, Seq[RequiredLibrary], ImportStatus) = {
@@ -70,7 +70,7 @@ trait GeneralContentConverterModule {
     }
 
     def getContentId(externalId: String, visitedNodes: Seq[String]): (Option[String], ImportStatus) = {
-      contentRepository.withExternalId(externalId) match {
+      articleRepository.withExternalId(externalId) match {
         case Some(content) => (Some(content.id), ImportStatus(Seq(), (visitedNodes :+ externalId).distinct))
         case None => {
           extractConvertStoreContent.processNode(externalId, ImportStatus(Seq(), visitedNodes)) match {

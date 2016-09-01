@@ -9,9 +9,9 @@
 
 package no.ndla.articleapi.service
 
-import no.ndla.articleapi.ContentApiProperties.TopicAPIUrl
+import no.ndla.articleapi.ArticleApiProperties.TopicAPIUrl
 import no.ndla.articleapi.integration.MappingApiClient
-import no.ndla.articleapi.model.ContentTag
+import no.ndla.articleapi.model.ArticleTag
 
 import scala.io.Source
 import scala.util.matching.Regex
@@ -23,7 +23,7 @@ trait TagsService {
   val pattern = new Regex("http:\\/\\/psi\\..*\\/#(.+)")
 
   class TagsService {
-    def forContent(nid: String): List[ContentTag] = {
+    def forContent(nid: String): List[ArticleTag] = {
       import org.json4s.native.JsonMethods._
       import org.json4s.native.Serialization.read
       implicit val formats = org.json4s.DefaultFormats
@@ -38,7 +38,7 @@ trait TagsService {
         .flatMap(_.toIterable)
         .map(t => (getISO639(t._1), t._2.trim.toLowerCase))
         .groupBy(_._1).map(entry => (entry._1, entry._2.map(_._2)))
-        .map(t => ContentTag(t._2, t._1)).toList
+        .map(t => ArticleTag(t._2, t._1)).toList
     }
 
     def getISO639(languageUrl:String): Option[String] = {

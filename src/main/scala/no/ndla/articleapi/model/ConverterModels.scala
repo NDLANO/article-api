@@ -17,13 +17,13 @@ case class NodeGeneralContent(nid: String, tnid: String, title: String, content:
   def isMainNode = (nid == tnid || tnid == "0")
   def isTranslation = !isMainNode
 
-  def asContentTitle = ContentTitle(title, Some(language))
+  def asContentTitle = ArticleTitle(title, Some(language))
 }
 
-case class NodeToConvert(titles: Seq[ContentTitle], contents: Seq[LanguageContent], copyright: Copyright, tags: Seq[ContentTag]) {
-  def asContentInformation: ContentInformation = {
+case class NodeToConvert(titles: Seq[ArticleTitle], contents: Seq[LanguageContent], copyright: Copyright, tags: Seq[ArticleTag]) {
+  def asArticleInformation: ArticleInformation = {
     val requiredLibraries = contents.flatMap(_.requiredLibraries).distinct
-    ContentInformation("0", titles, contents.map(_.asContent), copyright, tags, requiredLibraries)
+    ArticleInformation("0", titles, contents.map(_.asContent), copyright, tags, requiredLibraries)
   }
 }
 

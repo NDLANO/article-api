@@ -17,7 +17,7 @@ abstract class UnitSuite extends FunSuite with Matchers with OptionValues with I
   val DEFAULT_PAGE_SIZE = 12
   val MAX_PAGE_SIZE = 548
 
-  ContentApiProperties.setProperties(Map(
+  ArticleApiProperties.setProperties(Map(
     "CONTACT_EMAIL" -> Some("someone@somewhere.earth"),
     "HOST_ADDR" -> Some("localhost"),
     "DOMAINS" -> Some("localhost"),

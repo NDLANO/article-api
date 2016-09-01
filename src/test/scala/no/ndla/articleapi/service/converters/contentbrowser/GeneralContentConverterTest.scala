@@ -56,7 +56,7 @@ class GeneralContentConverterTest extends UnitSuite with TestEnvironment {
     val expectedResult = s"<details><summary>Tittel</summary>${sampleFagstoff1.content}</details>"
 
     when(extractService.getNodeGeneralContent(nodeId)).thenReturn(Seq(sampleFagstoff1, sampleFagstoff2))
-    when(contentRepository.withExternalId(nodeId)).thenReturn(Some(ContentSummary("1", "title", "http://url", "publicdomain")))
+    when(articleRepository.withExternalId(nodeId)).thenReturn(Some(ArticleSummary("1", "title", "http://url", "publicdomain")))
     val (result, requiredLibraries, status) = generalContentConverter.convert(content, Seq())
     val strippedResult = " +".r.replaceAllIn(result.replace("\n", ""), " ")
 
@@ -72,7 +72,7 @@ class GeneralContentConverterTest extends UnitSuite with TestEnvironment {
     val expectedResult = s"""<figure data-resource="content-link" data-id="1" data-content-id="1" data-link-text="Tittel"></figure>"""
 
     when(extractService.getNodeGeneralContent(nodeId)).thenReturn(Seq(sampleFagstoff1, sampleFagstoff2))
-    when(contentRepository.withExternalId(nodeId)).thenReturn(Some(ContentSummary("1", "title", "http://url", "publicdomain")))
+    when(articleRepository.withExternalId(nodeId)).thenReturn(Some(ArticleSummary("1", "title", "http://url", "publicdomain")))
     val (result, requiredLibraries, status) = generalContentConverter.convert(content, Seq())
     val strippedResult = " +".r.replaceAllIn(result.replace("\n", ""), " ")
 
@@ -87,7 +87,7 @@ class GeneralContentConverterTest extends UnitSuite with TestEnvironment {
     val expectedResult = s"""<figure data-resource="content-link" data-id="1" data-content-id="1" data-link-text="Tittel"></figure>"""
 
     when(extractService.getNodeGeneralContent(nodeId)).thenReturn(Seq(sampleFagstoff1, sampleFagstoff2))
-    when(contentRepository.withExternalId(nodeId)).thenReturn(Some(ContentSummary("1", "title", "http://url", "publicdomain")))
+    when(articleRepository.withExternalId(nodeId)).thenReturn(Some(ArticleSummary("1", "title", "http://url", "publicdomain")))
     val (result, requiredLibraries, status) = generalContentConverter.convert(content, Seq())
     val strippedResult = " +".r.replaceAllIn(result.replace("\n", ""), " ")
 
@@ -102,7 +102,7 @@ class GeneralContentConverterTest extends UnitSuite with TestEnvironment {
     val expectedResult = s"""<figure data-resource="content-link" data-id="1" data-content-id="1" data-link-text="Tittel"></figure>"""
 
     when(extractService.getNodeGeneralContent(nodeId)).thenReturn(Seq(sampleFagstoff1, sampleFagstoff2))
-    when(contentRepository.withExternalId(nodeId)).thenReturn(Some(ContentSummary("1", "title", "http://url", "publicdomain")))
+    when(articleRepository.withExternalId(nodeId)).thenReturn(Some(ArticleSummary("1", "title", "http://url", "publicdomain")))
 
     val (result, requiredLibraries, status) = generalContentConverter.convert(content, Seq())
     val strippedResult = " +".r.replaceAllIn(result.replace("\n", ""), " ")
@@ -119,11 +119,11 @@ class GeneralContentConverterTest extends UnitSuite with TestEnvironment {
     val expectedResult = s"""<figure data-resource="content-link" data-id="1" data-content-id="$newNodeid" data-link-text="Tittel"></figure>"""
 
     when(extractService.getNodeGeneralContent(nodeId)).thenReturn(Seq(sampleFagstoff1, sampleFagstoff2))
-    when(contentRepository.withExternalId(nodeId)).thenReturn(None)
+    when(articleRepository.withExternalId(nodeId)).thenReturn(None)
     when(extractConvertStoreContent.processNode(nodeId, ImportStatus(Seq(), Seq(nodeId2)))).thenReturn(Try((newNodeid, ImportStatus(Seq(), Seq(nodeId2, nodeId)))))
 
     val languageContent = LanguageContent(nodeId, nodeId, "<div>sample content</div>", Some("en"), None, Seq(), false, Some(Map()))
-    val nodeToConvert = NodeToConvert(Seq(ContentTitle("title", Some("en"))), Seq(languageContent), Copyright(License("publicdomain", "public", None), "", Seq()), Seq())
+    val nodeToConvert = NodeToConvert(Seq(ArticleTitle("title", Some("en"))), Seq(languageContent), Copyright(License("publicdomain", "public", None), "", Seq()), Seq())
     val (result, requiredLibraries, status) = generalContentConverter.convert(content, Seq(nodeId2))
     val strippedResult = " +".r.replaceAllIn(result.replace("\n", ""), " ")
 
@@ -137,11 +137,11 @@ class GeneralContentConverterTest extends UnitSuite with TestEnvironment {
     val expectedResult = s"""<a href="http://ndla.no//node/$nodeId">Tittel</a>"""
 
     when(extractService.getNodeGeneralContent(nodeId)).thenReturn(Seq(sampleFagstoff1, sampleFagstoff2))
-    when(contentRepository.withExternalId(nodeId)).thenReturn(None)
+    when(articleRepository.withExternalId(nodeId)).thenReturn(None)
     when(extractConvertStoreContent.processNode(nodeId, ImportStatus(Seq(), Seq(nodeId2)))).thenReturn(Failure(NodeNotFoundException("Node was not found")))
 
     val languageContent = LanguageContent(nodeId, nodeId2, "<div>sample content</div>", Some("en"), None, Seq(), false, Some(Map()))
-    val nodeToConvert = NodeToConvert(Seq(ContentTitle("title", Some("en"))), Seq(languageContent), Copyright(License("publicdomain", "public", None), "", Seq()), Seq())
+    val nodeToConvert = NodeToConvert(Seq(ArticleTitle("title", Some("en"))), Seq(languageContent), Copyright(License("publicdomain", "public", None), "", Seq()), Seq())
 
     val (result, requiredLibraries, status) = generalContentConverter.convert(content, Seq(nodeId2))
     val strippedResult = " +".r.replaceAllIn(result.replace("\n", ""), " ")

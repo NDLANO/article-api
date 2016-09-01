@@ -10,8 +10,8 @@
 package no.ndla.articleapi.service
 
 import com.typesafe.scalalogging.LazyLogging
-import no.ndla.articleapi.ContentApiProperties.maxConvertionRounds
-import no.ndla.articleapi.model.{ContentInformation, ImportStatus, NodeToConvert}
+import no.ndla.articleapi.ArticleApiProperties.maxConvertionRounds
+import no.ndla.articleapi.model.{ArticleInformation, ImportStatus, NodeToConvert}
 
 import scala.annotation.tailrec
 
@@ -20,12 +20,12 @@ trait ConverterServiceComponent {
   val converterService: ConverterService
 
   class ConverterService extends LazyLogging {
-    def convertNode(nodeToConvert: NodeToConvert, importStatus: ImportStatus): (ContentInformation, ImportStatus) = {
-      @tailrec def convertNode(nodeToConvert: NodeToConvert, maxRoundsLeft: Int, importStatus: ImportStatus): (ContentInformation, ImportStatus) = {
+    def convertNode(nodeToConvert: NodeToConvert, importStatus: ImportStatus): (ArticleInformation, ImportStatus) = {
+      @tailrec def convertNode(nodeToConvert: NodeToConvert, maxRoundsLeft: Int, importStatus: ImportStatus): (ArticleInformation, ImportStatus) = {
         if (maxRoundsLeft == 0) {
           val message = "Maximum number of converter rounds reached; Some content might not be converted"
           logger.warn(message)
-          return (nodeToConvert.asContentInformation, importStatus.copy(messages=importStatus.messages :+ message))
+          return (nodeToConvert.asArticleInformation, importStatus.copy(messages=importStatus.messages :+ message))
         }
 
         val (updatedContent, updatedStatus) = convert(nodeToConvert, importStatus)
@@ -33,7 +33,7 @@ trait ConverterServiceComponent {
         // If this converting round did not yield any changes to the content, this node is finished (case true)
         // If changes were made during this convertion, we run the converters again (case false)
         updatedContent == nodeToConvert match {
-          case true => (updatedContent.asContentInformation, updatedStatus)
+          case true => (updatedContent.asArticleInformation, updatedStatus)
           case false => convertNode(updatedContent, maxRoundsLeft - 1, updatedStatus)
         }
       }

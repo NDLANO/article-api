@@ -9,7 +9,7 @@
 
 package no.ndla.articleapi.service.converters.contentbrowser
 
-import no.ndla.articleapi.ContentApiProperties._
+import no.ndla.articleapi.ArticleApiProperties._
 import no.ndla.articleapi.TestEnvironment
 import no.ndla.articleapi.model.{Copyright, ImportStatus, License, NodeGeneralContent}
 import no.ndla.articleapi.integration.LanguageContent

@@ -7,11 +7,10 @@
  */
 
 
-package no.ndla.articleapi.service
+package no.ndla.articleapi.service.search
 
 import com.sksamuel.elastic4s.testkit.ElasticSugar
-import no.ndla.articleapi.TestEnvironment
-import no.ndla.articleapi.UnitSuite
+import no.ndla.articleapi.{TestEnvironment, UnitSuite}
 import no.ndla.articleapi.model._
 
 
@@ -24,14 +23,14 @@ class ElasticContentSearchTest extends UnitSuite with TestEnvironment with Elast
   val byNcSa = Copyright(License("by-nc-sa", "Attribution-NonCommercial-ShareAlike", None), "Gotham City", List(Author("Forfatter", "DC Comics")))
   val publicDomain = Copyright(License("publicdomain", "Public Domain", None), "Metropolis", List(Author("Forfatter", "Bruce Wayne")))
 
-  val content1 = ContentInformation("1", List(ContentTitle("Batmen er på vift med en bil", Some("nb"))), List(Content("Bilde av en <strong>bil</strong> flaggermusmann som vifter med vingene <em>bil</em>.", None, Some("nb"))), byNcSa, List(ContentTag(List("fugl"), Some("nb"))), List())
-  val content2 = ContentInformation("2", List(ContentTitle("Pingvinen er ute og går", Some("nb"))), List(Content("<p>Bilde av en</p><p> en <em>pingvin</em> som vagger borover en gate</p>", None, Some("nb"))), publicDomain, List(ContentTag(List("fugl"), Some("nb"))), List())
-  val content3 = ContentInformation("3", List(ContentTitle("Donald Duck kjører bil", Some("nb"))), List(Content("<p>Bilde av en en and</p><p> som <strong>kjører</strong> en rød bil.</p>", None, Some("nb"))), publicDomain, List(ContentTag(List("and"), Some("nb"))), List())
+  val article1 = ArticleInformation("1", List(ArticleTitle("Batmen er på vift med en bil", Some("nb"))), List(Article("Bilde av en <strong>bil</strong> flaggermusmann som vifter med vingene <em>bil</em>.", None, Some("nb"))), byNcSa, List(ArticleTag(List("fugl"), Some("nb"))), List())
+  val article2 = ArticleInformation("2", List(ArticleTitle("Pingvinen er ute og går", Some("nb"))), List(Article("<p>Bilde av en</p><p> en <em>pingvin</em> som vagger borover en gate</p>", None, Some("nb"))), publicDomain, List(ArticleTag(List("fugl"), Some("nb"))), List())
+  val article3 = ArticleInformation("3", List(ArticleTitle("Donald Duck kjører bil", Some("nb"))), List(Article("<p>Bilde av en en and</p><p> som <strong>kjører</strong> en rød bil.</p>", None, Some("nb"))), publicDomain, List(ArticleTag(List("and"), Some("nb"))), List())
 
   override def beforeAll = {
     val indexName = elasticContentIndex.create()
     elasticContentIndex.updateAliasTarget(None, indexName)
-    elasticContentIndex.indexDocuments(List(content1, content2, content3), indexName)
+    elasticContentIndex.indexDocuments(List(article1, article2, article3), indexName)
 
     blockUntilCount(3, indexName)
   }

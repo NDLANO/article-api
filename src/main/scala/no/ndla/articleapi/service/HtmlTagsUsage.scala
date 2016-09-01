@@ -9,8 +9,8 @@
 
 package no.ndla.articleapi.service
 
-import no.ndla.articleapi.model.ContentInformation
-import no.ndla.articleapi.repository.ContentRepositoryComponent
+import no.ndla.articleapi.model.{ArticleInformation, ArticleSummary}
+import no.ndla.articleapi.repository.ArticleRepositoryComponent
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Element
 
@@ -18,25 +18,25 @@ import scala.collection.JavaConversions._
 import scala.annotation.tailrec
 
 trait HtmlTagsUsage {
-  this: ContentRepositoryComponent =>
+  this: ArticleRepositoryComponent =>
 
   object HtmlTagsUsage {
     def getHtmlTagsMap: Map[String, Seq[String]] = {
-      @tailrec def getHtmlTagsMap(nodes: Seq[ContentInformation], tagsMap: Map[String, List[String]]): Map[String, List[String]] = {
+      @tailrec def getHtmlTagsMap(nodes: Seq[ArticleInformation], tagsMap: Map[String, List[String]]): Map[String, List[String]] = {
         if (nodes.isEmpty)
           return tagsMap
 
         val node = nodes.head
 
-        val tagMaps = node.content.map(content => {
-          val elements = Jsoup.parseBodyFragment(content.content).select("article").select("*").toList
+        val tagMaps = node.article.map(article => {
+          val elements = Jsoup.parseBodyFragment(article.article).select("article").select("*").toList
           buildMap(node.id, elements)
-        }).foldLeft(tagsMap)((map, contentMap) => addOrUpdateMap(map, contentMap))
+        }).foldLeft(tagsMap)((map, articleMap) => addOrUpdateMap(map, articleMap))
 
         getHtmlTagsMap(nodes.tail, tagMaps)
       }
 
-      getHtmlTagsMap(contentRepository.all, Map())
+      getHtmlTagsMap(articleRepository.all, Map())
     }
 
     private def buildMap(id: String, elements: List[Element]): Map[String, List[String]] =

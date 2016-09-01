@@ -18,11 +18,11 @@ import org.mockito.Mockito._
 class ConverterServiceTest extends UnitSuite with TestEnvironment {
 
   val service = new ConverterService
-  val contentTitle = ContentTitle("", Some(""))
+  val contentTitle = ArticleTitle("", Some(""))
   val license = License("licence", "description", Some("http://"))
   val author = Author("forfatter", "Henrik")
   val copyright = Copyright(license, "", List(author))
-  val tag = ContentTag(List("asdf"), Some("nb"))
+  val tag = ArticleTag(List("asdf"), Some("nb"))
   val requiredLibrary = RequiredLibrary("", "", "")
   val nodeId = "1234"
   val sampleAlt = "Fotografi"
@@ -37,7 +37,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     val expedtedResult = "<article>" + initialContent + "</article>"
 
     val (result, status) = service.convertNode(node, ImportStatus(Seq(), Seq()))
-    val strippedResult = result.content.head.content.replace("\n", "").replace(" ", "")
+    val strippedResult = result.article.head.article.replace("\n", "").replace(" ", "")
 
     strippedResult should equal (expedtedResult)
   }
@@ -60,7 +60,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     when(extractService.getNodeGeneralContent(nodeId2)).thenReturn(Seq(sampleOppgave2))
 
     val (result, status) = service.convertNode(node, ImportStatus(Seq(), Seq()))
-    result.content.head.content.replace("\n", "") should equal ("<article>  Innhold! Enda mer innhold! </article>")
+    result.article.head.article.replace("\n", "") should equal ("<article>  Innhold! Enda mer innhold! </article>")
     status.messages.isEmpty should equal (true)
     result.requiredLibraries.isEmpty should equal (true)
   }
@@ -78,8 +78,8 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     val nynorskExpectedResult = "<article> <section> Kven er sterkast? </section>Nordavinden og sola krangla ein gong om kven av dei som var den sterkaste </article>"
 
     val (result, status) = service.convertNode(node, ImportStatus(Seq(), Seq()))
-    val bokmalStrippedResult = " +".r.replaceAllIn(result.content.head.content.replace("\n", ""), " ")
-    val nynorskStrippedResult = " +".r.replaceAllIn(result.content.last.content.replace("\n", ""), " ")
+    val bokmalStrippedResult = " +".r.replaceAllIn(result.article.head.article.replace("\n", ""), " ")
+    val nynorskStrippedResult = " +".r.replaceAllIn(result.article.last.article.replace("\n", ""), " ")
 
     bokmalStrippedResult should equal (bokmalExpectedResult)
     nynorskStrippedResult should equal (nynorskExpectedResult)

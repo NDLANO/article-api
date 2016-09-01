@@ -13,7 +13,7 @@ import com.typesafe.scalalogging.LazyLogging
 
 import scala.collection.mutable
 
-object ContentApiProperties extends LazyLogging {
+object ArticleApiProperties extends LazyLogging {
   var ContentApiProps: mutable.Map[String, Option[String]] = mutable.HashMap()
 
   val ApplicationPort = 80
@@ -116,7 +116,7 @@ object PropertiesLoader {
   }
 
   def load() = {
-    ContentApiProperties.setProperties(readPropertyFile())
-    ContentApiProperties.verify()
+    ArticleApiProperties.setProperties(readPropertyFile())
+    ArticleApiProperties.verify()
   }
 }
