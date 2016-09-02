@@ -14,7 +14,7 @@ import com.sksamuel.elastic4s._
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.articleapi.ArticleApiProperties
 import no.ndla.articleapi.integration.ElasticClientComponent
-import no.ndla.articleapi.model.ArticleSummary
+import no.ndla.articleapi.model.{ArticleSummary, SearchResult}
 import no.ndla.network.ApplicationUrl
 import org.elasticsearch.index.IndexNotFoundException
 import org.elasticsearch.index.query.MatchQueryBuilder
@@ -43,7 +43,7 @@ trait ElasticContentSearchComponent {
       }
     }
 
-    def all(license: Option[String], page: Option[Int], pageSize: Option[Int]): Iterable[ArticleSummary] = {
+    def all(license: Option[String], page: Option[Int], pageSize: Option[Int]): SearchResult = {
       val filterList = new ListBuffer[QueryDefinition]()
       license.foreach(license => filterList += nestedQuery("copyright.license").query(termQuery("copyright.license.license", license)))
       filterList += noCopyrightFilter
@@ -54,7 +54,7 @@ trait ElasticContentSearchComponent {
       executeSearch(theSearch, page, pageSize)
     }
 
-    def matchingQuery(query: Iterable[String], language: Option[String], license: Option[String], page: Option[Int], pageSize: Option[Int]): Iterable[ArticleSummary] = {
+    def matchingQuery(query: Iterable[String], language: Option[String], license: Option[String], page: Option[Int], pageSize: Option[Int]): SearchResult = {
       val titleSearch = new ListBuffer[QueryDefinition]
       titleSearch += matchQuery("titles.title", query.mkString(" ")).operator(MatchQueryBuilder.Operator.AND)
       language.foreach(lang => titleSearch += termQuery("titles.language", lang))
@@ -86,12 +86,14 @@ trait ElasticContentSearchComponent {
       executeSearch(theSearch, page, pageSize)
     }
 
-    def executeSearch(search: SearchDefinition, page: Option[Int], pageSize: Option[Int]) = {
+    def executeSearch(search: SearchDefinition, page: Option[Int], pageSize: Option[Int]): SearchResult = {
       val (startAt, numResults) = getStartAtAndNumResults(page, pageSize)
       try {
-        elasticClient.execute {
+        val response = elasticClient.execute {
           search start startAt limit numResults
-        }.await.as[ArticleSummary]
+        }.await
+
+        SearchResult(response.getHits.getTotalHits, page.getOrElse(1), numResults, response.as[ArticleSummary])
       } catch {
         case e: RemoteTransportException => errorHandler(e.getCause)
       }

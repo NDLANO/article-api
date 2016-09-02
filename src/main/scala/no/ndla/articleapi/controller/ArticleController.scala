@@ -11,7 +11,7 @@ package no.ndla.articleapi.controller
 
 import no.ndla.articleapi.ComponentRegistry.{articleRepository, elasticContentSearch}
 import no.ndla.articleapi.model.Error._
-import no.ndla.articleapi.model.{ArticleInformation, ArticleSummary, Error}
+import no.ndla.articleapi.model._
 import org.json4s.{DefaultFormats, Formats}
 import org.scalatra.swagger.{Swagger, SwaggerSupport}
 
@@ -27,7 +27,7 @@ trait ArticleController {
     protected val applicationDescription = "API for accessing images from ndla.no."
 
     val getAllArticles =
-      (apiOperation[List[ArticleSummary]]("getAllArticles")
+      (apiOperation[List[SearchResult]]("getAllArticles")
         summary "Show all articles"
         notes "Shows all articles. You can search it too."
         parameters(

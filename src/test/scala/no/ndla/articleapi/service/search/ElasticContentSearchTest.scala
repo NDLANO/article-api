@@ -58,44 +58,48 @@ class ElasticContentSearchTest extends UnitSuite with TestEnvironment with Elast
 
   test("That all returns all documents ordered by id ascending") {
     val results = elasticContentSearch.all(None, None, None)
-    results.size should be (3)
-    results.head.id should be ("1")
-    results.last.id should be ("3")
+    results.totalCount should be (3)
+    results.results.head.id should be ("1")
+    results.results.last.id should be ("3")
   }
 
   test("That all filtering on license only returns documents with given license") {
     val results = elasticContentSearch.all(Some("publicdomain"), None, None)
-    results.size should be (2)
-    results.head.id should be ("2")
-    results.last.id should be ("3")
+    results.totalCount should be (2)
+    results.results.head.id should be ("2")
+    results.results.last.id should be ("3")
   }
 
   test("That paging returns only hits on current page and not more than page-size") {
     val page1 = elasticContentSearch.all(None, Some(1), Some(2))
     val page2 = elasticContentSearch.all(None, Some(2), Some(2))
-    page1.size should be (2)
-    page1.head.id should be ("1")
-    page1.last.id should be ("2")
-    page2.size should be (1)
-    page2.head.id should be ("3")
+    page1.totalCount should be (3)
+    page1.page should be (1)
+    page1.results.size should be (2)
+    page1.results.head.id should be ("1")
+    page1.results.last.id should be ("2")
+    page2.totalCount should be (3)
+    page2.page should be (2)
+    page2.results.size should be (1)
+    page2.results.head.id should be ("3")
   }
 
   test("That search matches title and html-content ordered by relevance") {
     val results = elasticContentSearch.matchingQuery(Seq("bil"), Some("nb"), None, None, None)
-    results.size should be (2)
-    results.head.id should be ("1")
-    results.last.id should be ("3")
+    results.totalCount should be (2)
+    results.results.head.id should be ("1")
+    results.results.last.id should be ("3")
   }
 
   test("That search matches title") {
     val results = elasticContentSearch.matchingQuery(Seq("Pingvinen"), Some("nb"), None, None, None)
-    results.size should be (1)
-    results.head.id should be ("2")
+    results.totalCount should be (1)
+    results.results.head.id should be ("2")
   }
 
   test("That search matches tags") {
     val results = elasticContentSearch.matchingQuery(Seq("and"), Some("nb"), None, None, None)
-    results.size should be (1)
-    results.head.id should be ("3")
+    results.totalCount should be (1)
+    results.results.head.id should be ("3")
   }
 }
