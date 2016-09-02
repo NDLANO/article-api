@@ -33,7 +33,7 @@ trait ArticleController {
         parameters(
         headerParam[Option[String]]("X-Correlation-ID").description("User supplied correlation-id. May be omitted."),
         headerParam[Option[String]]("app-key").description("Your app-key. May be omitted to access api anonymously, but rate limiting applies on anonymous access."),
-        queryParam[Option[String]]("tags").description("Return only the articles with the submitted tag. Multiple tags may be entered comma separated, and will give results matching either one of them."),
+        queryParam[Option[String]]("query").description("Return only articles with content matching the specified query."),
         queryParam[Option[String]]("language").description("The ISO 639-1 language code describing language used in query-params."),
         queryParam[Option[String]]("license").description("Return only articles with provided license."),
         queryParam[Option[Int]]("page").description("The page number of the search hits to display."),
