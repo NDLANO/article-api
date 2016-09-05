@@ -87,6 +87,12 @@ case class FootNoteItem(
   @(ApiModelProperty @field)(description = "Name of the publisher") publisher: String,
   @(ApiModelProperty @field)(description = "Names of the authors") authors: Seq[String])
 
+@ApiModel(description = "Information about search-results")
+case class SearchResult(@(ApiModelProperty@field)(description = "The total number of articles matching this query") totalCount: Long,
+                        @(ApiModelProperty@field)(description = "For which page results are shown from") page: Int,
+                        @(ApiModelProperty@field)(description = "The number of results per page") pageSize: Int,
+                        @(ApiModelProperty@field)(description = "The search results") results: Seq[ArticleSummary])
+
 object FootNoteItem {
   def apply(biblio: Biblio, authors: Seq[BiblioAuthor]): FootNoteItem =
     FootNoteItem(biblio.title, biblio.bibType, biblio.year, biblio.edition, biblio.publisher, authors.map(x => x.name))
