@@ -123,7 +123,7 @@ class GeneralContentConverterTest extends UnitSuite with TestEnvironment {
     when(extractConvertStoreContent.processNode(nodeId, ImportStatus(Seq(), Seq(nodeId2)))).thenReturn(Try((newNodeid, ImportStatus(Seq(), Seq(nodeId2, nodeId)))))
 
     val languageContent = LanguageContent(nodeId, nodeId, "<div>sample content</div>", Some("en"), None, Seq(), false, Some(Map()))
-    val nodeToConvert = NodeToConvert(Seq(ArticleTitle("title", Some("en"))), Seq(languageContent), Copyright(License("publicdomain", "public", None), "", Seq()), Seq())
+    val nodeToConvert = NodeToConvert(Seq(ArticleTitle("title", Some("en"))), Seq(languageContent), Copyright(License("publicdomain", "public", None), "", Seq()), Seq(), Seq(), Seq(), Seq())
     val (result, requiredLibraries, status) = generalContentConverter.convert(content, Seq(nodeId2))
     val strippedResult = " +".r.replaceAllIn(result.replace("\n", ""), " ")
 
@@ -141,7 +141,7 @@ class GeneralContentConverterTest extends UnitSuite with TestEnvironment {
     when(extractConvertStoreContent.processNode(nodeId, ImportStatus(Seq(), Seq(nodeId2)))).thenReturn(Failure(NodeNotFoundException("Node was not found")))
 
     val languageContent = LanguageContent(nodeId, nodeId2, "<div>sample content</div>", Some("en"), None, Seq(), false, Some(Map()))
-    val nodeToConvert = NodeToConvert(Seq(ArticleTitle("title", Some("en"))), Seq(languageContent), Copyright(License("publicdomain", "public", None), "", Seq()), Seq())
+    val nodeToConvert = NodeToConvert(Seq(ArticleTitle("title", Some("en"))), Seq(languageContent), Copyright(License("publicdomain", "public", None), "", Seq()), Seq(), Seq(), Seq(), Seq())
 
     val (result, requiredLibraries, status) = generalContentConverter.convert(content, Seq(nodeId2))
     val strippedResult = " +".r.replaceAllIn(result.replace("\n", ""), " ")

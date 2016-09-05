@@ -11,6 +11,7 @@ package no.ndla.articleapi.integration
 
 import java.net.URL
 
+import com.typesafe.scalalogging.LazyLogging
 import no.ndla.articleapi.ArticleApiProperties
 import no.ndla.articleapi.model._
 import no.ndla.articleapi.service.TagsService
@@ -66,12 +67,18 @@ trait MigrationApiClient {
 }
 
 case class MigrationMainNodeImport(titles: Seq[MigrationContentTitle], ingresses: Seq[MigrationIngress], contents: Seq[MigrationContent],
-                                   authors: Seq[MigrationContentAuthor], license: Option[String], nodeType: Option[String]) {
+                          authors: Seq[MigrationContentAuthor], license: Option[String], nodeType: Option[String],
+                          pageTitles: Seq[MigrationPageTitle], visualElements: Seq[MigrationVisualElement], relatedContents: Seq[MigrationRelatedContents])
+ {
+
   def asNodeToConvert(nodeId: String, tags: List[ArticleTag]): NodeToConvert = NodeToConvert(
     titles.map(x => x.asContentTitle),
     asLanguageContents,
     Copyright(License(license.getOrElse(""), "", None), "", authors.map(x => x.asAuthor)),
-    tags)
+    tags,
+    pageTitles.map(_.asPageTitle),
+    visualElements.map(_.asVisualElement),
+    relatedContents)
 
   def asLanguageContents: Seq[LanguageContent] = {
     contents.map(content => {
@@ -97,8 +104,8 @@ case class MigrationContentTitle(title: String, language: Option[String]) {
   def asContentTitle: ArticleTitle = ArticleTitle(title, language)
 }
 
-case class MigrationIngress(nid: String, content: String, imageNid: Option[String], ingressVisPaaSiden: Int) {
-  def asNodeIngress: NodeIngress = NodeIngress(content, imageNid, ingressVisPaaSiden)
+case class MigrationIngress(nid: String, content: String, imageNid: Option[String], ingressVisPaaSiden: Int, language: Option[String]) {
+  def asNodeIngress: NodeIngress = NodeIngress(content, imageNid, ingressVisPaaSiden, language)
 }
 
 case class MigrationContent(nid: String, tnid: String, content: String, language: Option[String])
@@ -108,9 +115,11 @@ case class MigrationNodeType(nodeType: String)
 case class MigrationContentBiblioMeta(biblio: MigrationBiblio, authors: Seq[MigrationBiblioAuthor]) {
   def asBiblioMeta: BiblioMeta = BiblioMeta(biblio.asBiblio, authors.map(x => x.asBiblioAuthor))
 }
+
 case class MigrationBiblio(title: String, bibType: String, year: String, edition: String, publisher: String) {
   def asBiblio: Biblio = Biblio(title, bibType, year, edition, publisher)
 }
+
 case class MigrationBiblioAuthor(name: String, lastname: String, firstname: String) {
   def asBiblioAuthor: BiblioAuthor = BiblioAuthor(name, lastname, firstname)
 }
@@ -121,3 +130,14 @@ case class MigrationContentFileMeta(nid: String, tnid: String, title: String, fi
 
 case class MigrationEmbedMeta(embed: String)
 
+case class MigrationPageTitle(title: String, `type`: String, language: Option[String]) {
+  def asPageTitle: PageTitle = PageTitle(title, `type`, language)
+}
+
+case class MigrationVisualElement(element: String, `type`: String, language: Option[String]) {
+  def asVisualElement: VisualElement = VisualElement(element, `type`: String, language)
+}
+
+case class MigrationRelatedContents(related: Seq[MigrationRelatedContent], language: Option[String])
+
+case class MigrationRelatedContent(nid: String, title: String, uri: String, fagligRelation: Int)

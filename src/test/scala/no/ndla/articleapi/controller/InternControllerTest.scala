@@ -9,7 +9,7 @@
 
 package no.ndla.articleapi.controller
 
-import no.ndla.articleapi.integration.{LanguageContent}
+import no.ndla.articleapi.integration.{LanguageContent, MigrationRelatedContent, MigrationRelatedContents}
 import no.ndla.articleapi.model._
 import no.ndla.articleapi.{TestEnvironment, UnitSuite}
 import org.json4s.native.Serialization._
@@ -28,7 +28,10 @@ class InternControllerTest extends UnitSuite with TestEnvironment with ScalatraF
   val license = License("licence", "description", Some("http://"))
   val author = Author("forfatter", "Henrik")
   val copyright = Copyright(license, "", List(author))
-  val sampleNode = NodeToConvert(List(sampleTitle), List(sampleContent), copyright, List(ArticleTag(List("tag"), Some("en"))))
+  val pageTitle = PageTitle("Fanetittel", "type", Some("nb"))
+  val visualElement = VisualElement("http://image-api/1", "image", Some("nb"))
+  val relatedContents = MigrationRelatedContents(Seq(MigrationRelatedContent("1234", "Programmering", ".../#fordypning", 1)), Some("nb"))
+  val sampleNode = NodeToConvert(List(sampleTitle), List(sampleContent), copyright, List(ArticleTag(List("tag"), Some("en"))), Seq(pageTitle), Seq(visualElement), Seq(relatedContents))
   val sampleNode2 = sampleNode.copy(contents=List(sampleContent2))
 
   lazy val controller = new InternController

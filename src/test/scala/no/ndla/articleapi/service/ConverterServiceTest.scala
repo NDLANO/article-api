@@ -10,10 +10,13 @@
 package no.ndla.articleapi.service
 
 import no.ndla.articleapi.TestEnvironment
-import no.ndla.articleapi.integration.LanguageContent
+import no.ndla.articleapi.integration.{LanguageContent, MigrationRelatedContent, MigrationRelatedContents}
 import no.ndla.articleapi.model._
 import no.ndla.articleapi.UnitSuite
 import org.mockito.Mockito._
+import org.mockito.Matchers._
+
+import scala.util.{Success, Try}
 
 class ConverterServiceTest extends UnitSuite with TestEnvironment {
 
@@ -23,6 +26,9 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
   val author = Author("forfatter", "Henrik")
   val copyright = Copyright(license, "", List(author))
   val tag = ArticleTag(List("asdf"), Some("nb"))
+  val pageTitle = PageTitle("Fanetittel", "type", Some("nb"))
+  val visualElement = VisualElement("http://image-api/1", "image", Some("nb"))
+  val relatedContents = MigrationRelatedContents(Seq(MigrationRelatedContent("4321", "Programmering", ".../#fordypning", 1)), Some("nb"))
   val requiredLibrary = RequiredLibrary("", "", "")
   val nodeId = "1234"
   val sampleAlt = "Fotografi"
@@ -33,8 +39,10 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     val nodeId = "1"
     val initialContent = "<h1>Heading</h1>"
     val contentNode = LanguageContent(nodeId, nodeId, initialContent, Some("nb"), None)
-    val node = NodeToConvert(List(contentTitle), List(contentNode), copyright, List(tag))
+    val node = NodeToConvert(List(contentTitle), List(contentNode), copyright, List(tag), Seq(pageTitle), Seq(visualElement), Seq(relatedContents))
     val expedtedResult = "<article>" + initialContent + "</article>"
+
+    when(extractConvertStoreContent.processNode("4321")).thenReturn(Try(1: Long, ImportStatus(Seq(), Seq())))
 
     val (result, status) = service.convertNode(node, ImportStatus(Seq(), Seq()))
     val strippedResult = result.article.head.article.replace("\n", "").replace(" ", "")
@@ -51,7 +59,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     val sampleOppgave2 = NodeGeneralContent(nodeId, nodeId2, "Tittel", "Enda mer innhold!", "nb")
     val initialContent = s"$contentString"
     val contentNode = LanguageContent(nodeId, nodeId, initialContent, Some("nb"), None)
-    val node = NodeToConvert(List(contentTitle), List(contentNode), copyright, List(tag))
+    val node = NodeToConvert(List(contentTitle), List(contentNode), copyright, List(tag), Seq(pageTitle), Seq(visualElement), Seq(relatedContents))
 
     when(extractService.getNodeType(nodeId)).thenReturn(Some("oppgave"))
     when(extractService.getNodeGeneralContent(nodeId)).thenReturn(Seq(sampleOppgave1))
@@ -67,13 +75,13 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
 
   test("That the correct language ingress is added to the content") {
     val (nodeId, nodeId2) = ("1234", "4321")
-    val ingressNodeBokmal = NodeIngress("Hvem er sterkest?", None, 1)
+    val ingressNodeBokmal = NodeIngress("Hvem er sterkest?", None, 1, Some("nn"))
     val contentNodeBokmal = LanguageContent(nodeId, nodeId, "<article>Nordavinden og sola kranglet en gang om hvem av dem som var den sterkeste</article>", Some("nb"), Some(ingressNodeBokmal))
 
-    val ingressNodeNynorsk = NodeIngress("Kven er sterkast?", None, 1)
+    val ingressNodeNynorsk = NodeIngress("Kven er sterkast?", None, 1, Some("nn"))
     val contentNodeNynorsk = LanguageContent(nodeId2, nodeId, "<article>Nordavinden og sola krangla ein gong om kven av dei som var den sterkaste</article>", Some("nn"), Some(ingressNodeNynorsk))
 
-    val node = NodeToConvert(List(contentTitle), List(contentNodeBokmal, contentNodeNynorsk), copyright, List(tag))
+    val node = NodeToConvert(List(contentTitle), List(contentNodeBokmal, contentNodeNynorsk), copyright, List(tag), Seq(pageTitle), Seq(visualElement), Seq(relatedContents))
     val bokmalExpectedResult = "<article> <section> Hvem er sterkest? </section>Nordavinden og sola kranglet en gang om hvem av dem som var den sterkeste </article>"
     val nynorskExpectedResult = "<article> <section> Kven er sterkast? </section>Nordavinden og sola krangla ein gong om kven av dei som var den sterkaste </article>"
 

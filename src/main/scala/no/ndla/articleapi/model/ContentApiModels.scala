@@ -26,10 +26,18 @@ case class ArticleSummary(
 case class ArticleInformation(
   @(ApiModelProperty @field)(description = "The unique id of the article") id: String,
   @(ApiModelProperty @field)(description = "Available titles for the article") titles: Seq[ArticleTitle],
+
   @(ApiModelProperty @field)(description = "The article in available languages") article: Seq[Article],
   @(ApiModelProperty @field)(description = "Describes the copyright information for the article") copyright: Copyright,
   @(ApiModelProperty @field)(description = "Searchable tags for the article") tags: Seq[ArticleTag],
-  @(ApiModelProperty @field)(description = "Required libraries in order to render the article") requiredLibraries: Seq[RequiredLibrary]
+  @(ApiModelProperty @field)(description = "Required libraries in order to render the article") requiredLibraries: Seq[RequiredLibrary],
+
+  // TODO: add Swagger doc
+  pageTitle: Seq[PageTitle],
+  visualElement: Seq[VisualElement],
+  metaImage: Seq[MetaImage],
+  ingress: Seq[ArticleIngress],
+  relatedContent: Seq[RelatedContents]
 )
 
 @ApiModel(description = "The article in the specified language")
@@ -91,3 +99,10 @@ object FootNoteItem {
   def apply(biblio: Biblio, authors: Seq[BiblioAuthor]): FootNoteItem =
     FootNoteItem(biblio.title, biblio.bibType, biblio.year, biblio.edition, biblio.publisher, authors.map(x => x.name))
 }
+
+
+case class VisualElement(resource: String, `type`: String, language: Option[String])
+case class PageTitle(title: String, `type`: String, language: Option[String])
+case class RelatedContents(related: Seq[RelatedContent], language: Option[String])
+case class RelatedContent(id: Long, title: String, uri: String, fagligRelation: Int)
+case class ArticleIngress(text: String, image: Option[String], displayIngress: Boolean, language: Option[String])
