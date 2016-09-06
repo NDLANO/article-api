@@ -39,7 +39,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     val nodeId = "1"
     val initialContent = "<h1>Heading</h1>"
     val contentNode = LanguageContent(nodeId, nodeId, initialContent, Some("nb"), None)
-    val node = NodeToConvert(List(contentTitle), List(contentNode), copyright, List(tag), Seq(pageTitle), Seq(visualElement), Seq(relatedContents))
+    val node = NodeToConvert(List(contentTitle), List(contentNode), copyright, List(tag), Seq(pageTitle), Seq(visualElement), Seq(relatedContents), 0, 1)
     val expedtedResult = "<article>" + initialContent + "</article>"
 
     when(extractConvertStoreContent.processNode("4321")).thenReturn(Try(1: Long, ImportStatus(Seq(), Seq())))
@@ -59,7 +59,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     val sampleOppgave2 = NodeGeneralContent(nodeId, nodeId2, "Tittel", "Enda mer innhold!", "nb")
     val initialContent = s"$contentString"
     val contentNode = LanguageContent(nodeId, nodeId, initialContent, Some("nb"), None)
-    val node = NodeToConvert(List(contentTitle), List(contentNode), copyright, List(tag), Seq(pageTitle), Seq(visualElement), Seq(relatedContents))
+    val node = NodeToConvert(List(contentTitle), List(contentNode), copyright, List(tag), Seq(pageTitle), Seq(visualElement), Seq(relatedContents), 0, 1)
 
     when(extractService.getNodeType(nodeId)).thenReturn(Some("oppgave"))
     when(extractService.getNodeGeneralContent(nodeId)).thenReturn(Seq(sampleOppgave1))
@@ -81,7 +81,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     val ingressNodeNynorsk = NodeIngress("Kven er sterkast?", None, 1, Some("nn"))
     val contentNodeNynorsk = LanguageContent(nodeId2, nodeId, "<article>Nordavinden og sola krangla ein gong om kven av dei som var den sterkaste</article>", Some("nn"), Some(ingressNodeNynorsk))
 
-    val node = NodeToConvert(List(contentTitle), List(contentNodeBokmal, contentNodeNynorsk), copyright, List(tag), Seq(pageTitle), Seq(visualElement), Seq(relatedContents))
+    val node = NodeToConvert(List(contentTitle), List(contentNodeBokmal, contentNodeNynorsk), copyright, List(tag), Seq(pageTitle), Seq(visualElement), Seq(relatedContents), 0, 1)
     val bokmalExpectedResult = "<article> <section> Hvem er sterkest? </section>Nordavinden og sola kranglet en gang om hvem av dem som var den sterkeste </article>"
     val nynorskExpectedResult = "<article> <section> Kven er sterkast? </section>Nordavinden og sola krangla ein gong om kven av dei som var den sterkaste </article>"
 

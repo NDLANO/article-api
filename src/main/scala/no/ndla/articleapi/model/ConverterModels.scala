@@ -22,7 +22,7 @@ case class NodeGeneralContent(nid: String, tnid: String, title: String, content:
 }
 
 case class NodeToConvert(titles: Seq[ArticleTitle], contents: Seq[LanguageContent], copyright: Copyright, tags: Seq[ArticleTag],
-                         pageTitles: Seq[PageTitle], visualElements: Seq[VisualElement], relatedContents: Seq[MigrationRelatedContents])
+                         pageTitles: Seq[PageTitle], visualElements: Seq[VisualElement], relatedContents: Seq[MigrationRelatedContents], created: Int, updated: Int)
 
 case class ContentFilMeta(nid: String, tnid: String, title: String, fileName: String, url: URL, mimeType: String, fileSize: String)
 object ContentFilMeta {
@@ -30,7 +30,7 @@ object ContentFilMeta {
 }
 
 case class NodeIngress(content: String, imageNid: Option[String], ingressVisPaaSiden: Int, language: Option[String]) {
-  def asArticleIngress: ArticleIngress = ArticleIngress(content, imageNid, ingressVisPaaSiden == 1, language)
+  def asArticleIngress: ArticleIntroduction = ArticleIntroduction(content, imageNid, ingressVisPaaSiden == 1, language)
 }
 case class MetaImage(image: Option[String], language: Option[String])
 

@@ -56,7 +56,7 @@ trait ConverterServiceComponent {
     def toRelatedContents(migrationRelatedContents: MigrationRelatedContents): (Option[RelatedContents], ImportStatus) = {
       def toRelatedContent(related: MigrationRelatedContent): (Option[RelatedContent], ImportStatus) = {
         extractConvertStoreContent.processNode(related.nid) match {
-          case Success((id, importStatus)) => (Some(RelatedContent(id, related.title, related.uri, related.fagligRelation)), importStatus)
+          case Success((id, importStatus)) => (Some(RelatedContent(id, related.title, related.uri)), importStatus)
           case Failure(ex) => {
             val message = s"Failed to import related content with id ${related.nid}"
             logger.warn(message)
@@ -72,9 +72,9 @@ trait ConverterServiceComponent {
       }
     }
 
-    def toArticleIngress(nodeIngress: NodeIngress): ArticleIngress = {
+    def toArticleIngress(nodeIngress: NodeIngress): ArticleIntroduction = {
       val id = nodeIngress.imageNid.flatMap(imageApiService.importOrGetMetaByExternId).map(_.id)
-      ArticleIngress(nodeIngress.content, id, nodeIngress.ingressVisPaaSiden == 1, nodeIngress.language)
+      ArticleIntroduction(nodeIngress.content, id, nodeIngress.ingressVisPaaSiden == 1, nodeIngress.language)
     }
 
     def toArticleInformation(nodeToConvert: NodeToConvert): (ArticleInformation, ImportStatus) = {
@@ -92,7 +92,9 @@ trait ConverterServiceComponent {
         nodeToConvert.visualElements,
         ingresses.map(x => MetaImage(x.image, x.language)).filter(_.image.isDefined),
         ingresses,
-        relatedContents.flatten), ImportStatus(importStatuses))
+        relatedContents.flatten,
+        nodeToConvert.created,
+        nodeToConvert.updated), ImportStatus(importStatuses))
     }
 
   }

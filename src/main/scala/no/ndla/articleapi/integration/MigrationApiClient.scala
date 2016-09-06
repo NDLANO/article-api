@@ -78,7 +78,9 @@ case class MigrationMainNodeImport(titles: Seq[MigrationContentTitle], ingresses
     tags,
     pageTitles.map(_.asPageTitle),
     visualElements.map(_.asVisualElement),
-    relatedContents)
+    relatedContents,
+    contents.minBy(_.created).created,
+    contents.maxBy(_.changed).changed)
 
   def asLanguageContents: Seq[LanguageContent] = {
     contents.map(content => {
@@ -108,7 +110,7 @@ case class MigrationIngress(nid: String, content: String, imageNid: Option[Strin
   def asNodeIngress: NodeIngress = NodeIngress(content, imageNid, ingressVisPaaSiden, language)
 }
 
-case class MigrationContent(nid: String, tnid: String, content: String, language: Option[String])
+case class MigrationContent(nid: String, tnid: String, content: String, language: Option[String], created: Int, changed: Int)
 
 case class MigrationNodeType(nodeType: String)
 

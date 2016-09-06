@@ -134,8 +134,10 @@ trait ArticleRepositoryComponent {
         meta.pageTitle,
         meta.visualElement,
         meta.metaImage,
-        meta.ingress,
-        meta.relatedContent)
+        meta.introduction,
+        meta.relatedContent,
+        meta.created,
+        meta.updated)
     }
   }
 }
