@@ -41,13 +41,13 @@ object SimpleTagConverter extends ConverterModule {
     }
   }
 
-  def convertPres(el: Element) {
+  private def convertPres(el: Element) {
     for (el <- el.select("pre")) {
       el.html("<code>" + el.html() + "</code")
     }
   }
 
-  def convertBody(el: Element) = el.select("body").tagName("article")
+  private def convertBody(el: Element) = el.select("body").tagName("article")
 
   private def replaceTag(el: Element, replacementTag: String) {
     el.tagName(replacementTag)

@@ -34,7 +34,7 @@ trait ExtractConvertStoreContent {
       node.contents.find(_.isMainNode) match {
         case Some(mainNode) => {
           val mainNodeId = mainNode.nid
-          val (convertedNode, updatedImportStatus) = converterService.convertNode(node, importStatus)
+          val (convertedNode, updatedImportStatus) = converterService.toArticleInformation(node, importStatus)
 
           val newId = articleRepository.exists(mainNodeId) match {
             case true => articleRepository.update(convertedNode, mainNodeId)

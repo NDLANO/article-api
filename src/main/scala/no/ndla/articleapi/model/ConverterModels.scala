@@ -22,15 +22,18 @@ case class NodeGeneralContent(nid: String, tnid: String, title: String, content:
 }
 
 case class NodeToConvert(titles: Seq[ArticleTitle], contents: Seq[LanguageContent], copyright: Copyright, tags: Seq[ArticleTag],
-                         pageTitles: Seq[PageTitle], visualElements: Seq[VisualElement], relatedContents: Seq[MigrationRelatedContents], created: Int, updated: Int)
+                         pageTitles: Seq[PageTitle], visualElements: Seq[VisualElement], relatedContents: Seq[MigrationRelatedContents],
+                         ingress: Seq[NodeIngress], created: Int, updated: Int)
 
 case class ContentFilMeta(nid: String, tnid: String, title: String, fileName: String, url: URL, mimeType: String, fileSize: String)
 object ContentFilMeta {
   implicit def stringToUrl(s: String): URL = new URL(s.uri)
 }
 
-case class NodeIngress(content: String, imageNid: Option[String], ingressVisPaaSiden: Int, language: Option[String]) {
+case class NodeIngress(nid: String, tnid: String, content: String, imageNid: Option[String], ingressVisPaaSiden: Int, language: Option[String]) {
   def asArticleIngress: ArticleIntroduction = ArticleIntroduction(content, imageNid, ingressVisPaaSiden == 1, language)
+
+  def asLanguageContent: LanguageContent = LanguageContent(nid, tnid, content, language)
 }
 case class MetaImage(image: Option[String], language: Option[String])
 

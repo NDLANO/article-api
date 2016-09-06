@@ -79,6 +79,7 @@ case class MigrationMainNodeImport(titles: Seq[MigrationContentTitle], ingresses
     pageTitles.map(_.asPageTitle),
     visualElements.map(_.asVisualElement),
     relatedContents,
+    ingresses.map(_.asNodeIngress),
     contents.minBy(_.created).created,
     contents.maxBy(_.changed).changed)
 
@@ -88,8 +89,7 @@ case class MigrationMainNodeImport(titles: Seq[MigrationContentTitle], ingresses
         content.nid,
         content.tnid,
         content.content,
-        content.language,
-        ingresses.find(i => i.nid == content.nid).map(i => i.asNodeIngress))
+        content.language)
     })
   }
 }
@@ -107,7 +107,7 @@ case class MigrationContentTitle(title: String, language: Option[String]) {
 }
 
 case class MigrationIngress(nid: String, content: String, imageNid: Option[String], ingressVisPaaSiden: Int, language: Option[String]) {
-  def asNodeIngress: NodeIngress = NodeIngress(content, imageNid, ingressVisPaaSiden, language)
+  def asNodeIngress: NodeIngress = NodeIngress(nid, nid, content, imageNid, ingressVisPaaSiden, language)
 }
 
 case class MigrationContent(nid: String, tnid: String, content: String, language: Option[String], created: Int, changed: Int)

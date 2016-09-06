@@ -23,15 +23,15 @@ class InternControllerTest extends UnitSuite with TestEnvironment with ScalatraF
 
   val (nodeId, nodeId2) = ("1234", "4321")
   val sampleTitle = ArticleTitle("title", Some("en"))
-  val sampleContent = LanguageContent(nodeId, nodeId, "content", Some("en"), None)
-  val sampleContent2 = LanguageContent(nodeId, nodeId2, "content", Some("en"), None)
+  val sampleContent = LanguageContent(nodeId, nodeId, "content", Some("en"))
+  val sampleContent2 = LanguageContent(nodeId, nodeId2, "content", Some("en"))
   val license = License("licence", "description", Some("http://"))
   val author = Author("forfatter", "Henrik")
   val copyright = Copyright(license, "", List(author))
   val pageTitle = PageTitle("Fanetittel", "type", Some("nb"))
   val visualElement = VisualElement("http://image-api/1", "image", Some("nb"))
   val relatedContents = MigrationRelatedContents(Seq(MigrationRelatedContent("1234", "Programmering", ".../#fordypning", 1)), Some("nb"))
-  val sampleNode = NodeToConvert(List(sampleTitle), List(sampleContent), copyright, List(ArticleTag(List("tag"), Some("en"))), Seq(pageTitle), Seq(visualElement), Seq(relatedContents), 0, 1)
+  val sampleNode = NodeToConvert(List(sampleTitle), List(sampleContent), copyright, List(ArticleTag(List("tag"), Some("en"))), Seq(pageTitle), Seq(visualElement), Seq(relatedContents), Seq(), 0, 1)
   val sampleNode2 = sampleNode.copy(contents=List(sampleContent2))
 
   lazy val controller = new InternController

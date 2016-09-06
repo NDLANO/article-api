@@ -22,7 +22,7 @@ trait ConverterServiceComponent {
   val converterService: ConverterService
 
   class ConverterService extends LazyLogging {
-    def convertNode(nodeToConvert: NodeToConvert, importStatus: ImportStatus): (ArticleInformation, ImportStatus) = {
+    def toArticleInformation(nodeToConvert: NodeToConvert, importStatus: ImportStatus): (ArticleInformation, ImportStatus) = {
       @tailrec def convertNode(nodeToConvert: NodeToConvert, maxRoundsLeft: Int, importStatus: ImportStatus): (NodeToConvert, ImportStatus) = {
         if (maxRoundsLeft == 0) {
           val message = "Maximum number of converter rounds reached; Some content might not be converted"
@@ -53,7 +53,7 @@ trait ConverterServiceComponent {
         converter.convert(updatedNodeToConvert, importStatus)
       })
 
-    def toRelatedContents(migrationRelatedContents: MigrationRelatedContents): (Option[RelatedContents], ImportStatus) = {
+    private def toRelatedContents(migrationRelatedContents: MigrationRelatedContents): (Option[RelatedContents], ImportStatus) = {
       def toRelatedContent(related: MigrationRelatedContent): (Option[RelatedContent], ImportStatus) = {
         extractConvertStoreContent.processNode(related.nid) match {
           case Success((id, importStatus)) => (Some(RelatedContent(id, related.title, related.uri)), importStatus)
@@ -72,14 +72,14 @@ trait ConverterServiceComponent {
       }
     }
 
-    def toArticleIngress(nodeIngress: NodeIngress): ArticleIntroduction = {
+    private def toArticleIngress(nodeIngress: NodeIngress): ArticleIntroduction = {
       val id = nodeIngress.imageNid.flatMap(imageApiService.importOrGetMetaByExternId).map(_.id)
       ArticleIntroduction(nodeIngress.content, id, nodeIngress.ingressVisPaaSiden == 1, nodeIngress.language)
     }
 
-    def toArticleInformation(nodeToConvert: NodeToConvert): (ArticleInformation, ImportStatus) = {
+    private def toArticleInformation(nodeToConvert: NodeToConvert): (ArticleInformation, ImportStatus) = {
       val requiredLibraries = nodeToConvert.contents.flatMap(_.requiredLibraries).distinct
-      val ingresses = nodeToConvert.contents.flatMap(_.ingress).map(toArticleIngress)
+      val ingresses = nodeToConvert.ingress.map(toArticleIngress)
       val (relatedContents, importStatuses) = nodeToConvert.relatedContents.map(toRelatedContents).unzip
 
       (ArticleInformation("0",
