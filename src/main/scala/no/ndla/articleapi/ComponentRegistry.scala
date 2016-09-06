@@ -17,7 +17,7 @@ import no.ndla.articleapi.controller.{ArticleController, InternController}
 import no.ndla.articleapi.integration._
 import no.ndla.articleapi.repository.ArticleRepositoryComponent
 import no.ndla.articleapi.service._
-import no.ndla.articleapi.service.converters.{BiblioConverter, DivTableConverter, IngressConverter, SimpleTagConverter}
+import no.ndla.articleapi.service.converters.{BiblioConverter, DivTableConverter, SimpleTagConverter}
 import org.elasticsearch.common.settings.Settings
 import no.ndla.articleapi.service.converters.contentbrowser._
 import no.ndla.articleapi.service.search.{ElasticContentIndexComponent, ElasticContentSearchComponent, SearchIndexServiceComponent}
@@ -43,7 +43,6 @@ object ComponentRegistry
   with BiblioConverter
   with AmazonClientComponent
   with StorageService
-  with IngressConverter
   with HtmlTagsUsage
   with ExtractConvertStoreContent
   with NdlaClient
@@ -95,9 +94,8 @@ object ComponentRegistry
   lazy val imageApiService = new ImageApiService
 
   lazy val contentBrowserConverter = new ContentBrowserConverter
-  lazy val ingressConverter = new IngressConverter
   lazy val biblioConverter = new BiblioConverter
-  lazy val converterModules = List(ingressConverter, contentBrowserConverter, biblioConverter, DivTableConverter, SimpleTagConverter)
+  lazy val converterModules = List(contentBrowserConverter, biblioConverter, DivTableConverter, SimpleTagConverter)
   lazy val ndlaClient = new NdlaClient
   lazy val mappingApiClient = new MappingApiClient
   lazy val tagsService = new TagsService

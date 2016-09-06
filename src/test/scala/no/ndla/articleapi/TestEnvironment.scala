@@ -16,7 +16,7 @@ import com.sksamuel.elastic4s.ElasticClient
 import no.ndla.articleapi.controller.{ArticleController, InternController}
 import no.ndla.articleapi.integration._
 import no.ndla.articleapi.repository.ArticleRepositoryComponent
-import no.ndla.articleapi.service.converters.{BiblioConverter, DivTableConverter, IngressConverter, SimpleTagConverter}
+import no.ndla.articleapi.service.converters.{BiblioConverter, DivTableConverter, SimpleTagConverter}
 import no.ndla.articleapi.service._
 import no.ndla.articleapi.service.converters.contentbrowser._
 import no.ndla.articleapi.service.search.{ElasticContentIndexComponent, ElasticContentSearchComponent, SearchIndexServiceComponent}
@@ -40,7 +40,6 @@ trait TestEnvironment
   with ConverterServiceComponent
   with ContentBrowserConverterModules
   with ContentBrowserConverter
-  with IngressConverter
   with BiblioConverterModule
   with BiblioConverter
   with ImageApiServiceComponent
@@ -71,7 +70,6 @@ trait TestEnvironment
   val extractService = mock[ExtractService]
   val converterService = new ConverterService
   val contentBrowserConverter = new ContentBrowserConverter
-  val ingressConverter = new IngressConverter
   val biblioConverter = new BiblioConverter
   val converterModules = List(ingressConverter, SimpleTagConverter, biblioConverter, DivTableConverter, contentBrowserConverter)
   val imageApiService = mock[ImageApiService]
