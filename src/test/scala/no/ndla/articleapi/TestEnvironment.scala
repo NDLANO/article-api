@@ -71,7 +71,7 @@ trait TestEnvironment
   val converterService = new ConverterService
   val contentBrowserConverter = new ContentBrowserConverter
   val biblioConverter = new BiblioConverter
-  val converterModules = List(ingressConverter, SimpleTagConverter, biblioConverter, DivTableConverter, contentBrowserConverter)
+  val converterModules = List(SimpleTagConverter, biblioConverter, DivTableConverter, contentBrowserConverter)
   val imageApiService = mock[ImageApiService]
   val storageService = mock[AmazonStorageService]
   val ndlaClient = mock[NdlaClient]

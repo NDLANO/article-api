@@ -73,7 +73,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     result.requiredLibraries.isEmpty should equal (true)
   }
 
-  test("That the correct language ingress is added to the content") {
+  test("That the ingress is not added to the content") {
     val (nodeId, nodeId2) = ("1234", "4321")
     val ingressNodeBokmal = NodeIngress("Hvem er sterkest?", None, 1, Some("nn"))
     val contentNodeBokmal = LanguageContent(nodeId, nodeId, "<article>Nordavinden og sola kranglet en gang om hvem av dem som var den sterkeste</article>", Some("nb"), Some(ingressNodeBokmal))
@@ -81,9 +81,9 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     val ingressNodeNynorsk = NodeIngress("Kven er sterkast?", None, 1, Some("nn"))
     val contentNodeNynorsk = LanguageContent(nodeId2, nodeId, "<article>Nordavinden og sola krangla ein gong om kven av dei som var den sterkaste</article>", Some("nn"), Some(ingressNodeNynorsk))
 
-    val node = NodeToConvert(List(contentTitle), List(contentNodeBokmal, contentNodeNynorsk), copyright, List(tag), Seq(pageTitle), Seq(visualElement), Seq(relatedContents), 0, 1)
-    val bokmalExpectedResult = "<article> <section> Hvem er sterkest? </section>Nordavinden og sola kranglet en gang om hvem av dem som var den sterkeste </article>"
-    val nynorskExpectedResult = "<article> <section> Kven er sterkast? </section>Nordavinden og sola krangla ein gong om kven av dei som var den sterkaste </article>"
+    val node = NodeToConvert(List(contentTitle), List(contentNodeBokmal, contentNodeNynorsk), copyright, List(tag), Seq(pageTitle), Seq(visualElement), Seq(), 0, 1)
+    val bokmalExpectedResult = "<article> Nordavinden og sola kranglet en gang om hvem av dem som var den sterkeste </article>"
+    val nynorskExpectedResult = "<article> Nordavinden og sola krangla ein gong om kven av dei som var den sterkaste </article>"
 
     val (result, status) = service.convertNode(node, ImportStatus(Seq(), Seq()))
     val bokmalStrippedResult = " +".r.replaceAllIn(result.article.head.article.replace("\n", ""), " ")
