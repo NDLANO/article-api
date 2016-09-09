@@ -10,6 +10,7 @@
 package no.ndla.articleapi
 
 import com.typesafe.scalalogging.LazyLogging
+import no.ndla.articleapi.model.Language
 
 import scala.collection.mutable
 
@@ -24,6 +25,8 @@ object ArticleApiProperties extends LazyLogging {
 
   val CorrelationIdHeader = "X-Correlation-ID"
   val CorrelationIdKey = "correlationID"
+
+  val DefaultLanguage = Language.NORWEGIAN_BOKMAL
 
   lazy val NDLABrightcoveAccountId = get("NDLA_BRIGHTCOVE_ACCOUNT_ID")
   lazy val NDLABrightcovePlayerId = get("NDLA_BRIGHTCOVE_PLAYER_ID")
