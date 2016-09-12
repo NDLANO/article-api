@@ -42,7 +42,8 @@ class SearchConverterServiceTest extends UnitSuite with TestEnvironment {
   test("That asSearchableTitles converts language to correct place") {
     val searchableTitles = searchConverterService.asSearchableTitles(List(
       ArticleTitle("Tittel", Some("nb")),
-      ArticleTitle("Title", Some("en"))))
+      ArticleTitle("Title", Some("en")),
+      ArticleTitle("Ukjent", None)))
 
     searchableTitles.nb should equal(Some("Tittel"))
     searchableTitles.en should equal(Some("Title"))
@@ -52,7 +53,7 @@ class SearchConverterServiceTest extends UnitSuite with TestEnvironment {
     searchableTitles.zh should be (None)
     searchableTitles.fr should be (None)
     searchableTitles.se should be (None)
-    searchableTitles.unknown should be (None)
+    searchableTitles.unknown should be (Some("Ukjent"))
   }
 
   test("That asSearchableArticle converts language to correct place") {

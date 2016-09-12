@@ -130,32 +130,13 @@ trait ElasticContentIndexComponent {
     }
 
     private def languageSupportedField(fieldName: String, keepRaw: Boolean = false) = {
-      if (keepRaw) {
-        new NestedFieldDefinition(fieldName).as(
-          NORWEGIAN_BOKMAL typed StringType analyzer langToAnalyzer(NORWEGIAN_BOKMAL) fields ("raw" typed StringType index "not_analyzed"),
-          NORWEGIAN_NYNORSK typed StringType analyzer langToAnalyzer(NORWEGIAN_NYNORSK) fields ("raw" typed StringType index "not_analyzed"),
-          ENGLISH typed StringType analyzer langToAnalyzer(ENGLISH) fields ("raw" typed StringType index "not_analyzed"),
-          FRENCH typed StringType analyzer langToAnalyzer(FRENCH) fields ("raw" typed StringType index "not_analyzed"),
-          GERMAN typed StringType analyzer langToAnalyzer(GERMAN) fields ("raw" typed StringType index "not_analyzed"),
-          SPANISH typed StringType analyzer langToAnalyzer(SPANISH) fields ("raw" typed StringType index "not_analyzed"),
-          SAMI typed StringType analyzer langToAnalyzer(SAMI) fields ("raw" typed StringType index "not_analyzed"),
-          CHINESE typed StringType analyzer langToAnalyzer(CHINESE) fields ("raw" typed StringType index "not_analyzed"),
-          UNKNOWN typed StringType analyzer langToAnalyzer(UNKNOWN) fields ("raw" typed StringType index "not_analyzed")
-        )
-      } else {
-        new NestedFieldDefinition(fieldName).as(
-          NORWEGIAN_BOKMAL typed StringType analyzer langToAnalyzer(NORWEGIAN_BOKMAL),
-          NORWEGIAN_NYNORSK typed StringType analyzer langToAnalyzer(NORWEGIAN_NYNORSK),
-          ENGLISH typed StringType analyzer langToAnalyzer(ENGLISH),
-          FRENCH typed StringType analyzer langToAnalyzer(FRENCH),
-          GERMAN typed StringType analyzer langToAnalyzer(GERMAN),
-          SPANISH typed StringType analyzer langToAnalyzer(SPANISH),
-          SAMI typed StringType analyzer langToAnalyzer(SAMI),
-          CHINESE typed StringType analyzer langToAnalyzer(CHINESE),
-          UNKNOWN typed StringType analyzer langToAnalyzer(UNKNOWN)
-        )
+      val languageSupportedField = new NestedFieldDefinition(fieldName)
+      languageSupportedField._fields = keepRaw match {
+        case true => langToAnalyzer.map(langAnalyzer => langAnalyzer._1 typed StringType analyzer langAnalyzer._2 fields ("raw" typed StringType index "not_analyzed")).toSeq
+        case false => langToAnalyzer.map(langAnalyzer => langAnalyzer._1 typed StringType analyzer langAnalyzer._2).toSeq
       }
+
+      languageSupportedField
     }
   }
-
 }

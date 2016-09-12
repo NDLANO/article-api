@@ -30,42 +30,48 @@ trait SearchConverterService {
     }
 
     def asSearchableTitles(titles: Seq[ArticleTitle]): SearchableTitles = {
+      def find(lang: String = null) = titles.find(_.language == Option(lang)).map(_.title)
+
       SearchableTitles(
-        nb = titles.find(_.language.contains(Language.NORWEGIAN_BOKMAL)).map(_.title),
-        nn = titles.find(_.language.contains(Language.NORWEGIAN_NYNORSK)).map(_.title),
-        en = titles.find(_.language.contains(Language.ENGLISH)).map(_.title),
-        fr = titles.find(_.language.contains(Language.FRENCH)).map(_.title),
-        de = titles.find(_.language.contains(Language.GERMAN)).map(_.title),
-        es = titles.find(_.language.contains(Language.SPANISH)).map(_.title),
-        se = titles.find(_.language.contains(Language.SAMI)).map(_.title),
-        zh = titles.find(_.language.contains(Language.CHINESE)).map(_.title),
-        unknown = titles.find(_.language.isEmpty).map(_.title))
+        nb = find(Language.NORWEGIAN_BOKMAL),
+        nn = find(Language.NORWEGIAN_NYNORSK),
+        en = find(Language.ENGLISH),
+        fr = find(Language.FRENCH),
+        de = find(Language.GERMAN),
+        es = find(Language.SPANISH),
+        se = find(Language.SAMI),
+        zh = find(Language.CHINESE),
+        unknown = find())
     }
 
     def asSearchableArticle(articles: Seq[Article]): SearchableArticle = {
+      def find(lang: String = null) = articles.find(_.language == Option(lang)).map(article => Jsoup.parseBodyFragment(article.article).text())
+
       SearchableArticle(
-        nb = articles.find(_.language.contains(Language.NORWEGIAN_BOKMAL)).map(article => Jsoup.parseBodyFragment(article.article).text()),
-        nn = articles.find(_.language.contains(Language.NORWEGIAN_NYNORSK)).map(article => Jsoup.parseBodyFragment(article.article).text()),
-        en = articles.find(_.language.contains(Language.ENGLISH)).map(article => Jsoup.parseBodyFragment(article.article).text()),
-        fr = articles.find(_.language.contains(Language.FRENCH)).map(article => Jsoup.parseBodyFragment(article.article).text()),
-        de = articles.find(_.language.contains(Language.GERMAN)).map(article => Jsoup.parseBodyFragment(article.article).text()),
-        es = articles.find(_.language.contains(Language.SPANISH)).map(article => Jsoup.parseBodyFragment(article.article).text()),
-        se = articles.find(_.language.contains(Language.SAMI)).map(article => Jsoup.parseBodyFragment(article.article).text()),
-        zh = articles.find(_.language.contains(Language.CHINESE)).map(article => Jsoup.parseBodyFragment(article.article).text()),
-        unknown = articles.find(_.language.isEmpty).map(article => Jsoup.parseBodyFragment(article.article).text()))
+        nb = find(Language.NORWEGIAN_BOKMAL),
+        nn = find(Language.NORWEGIAN_NYNORSK),
+        en = find(Language.ENGLISH),
+        fr = find(Language.FRENCH),
+        de = find(Language.GERMAN),
+        es = find(Language.SPANISH),
+        se = find(Language.SAMI),
+        zh = find(Language.CHINESE),
+        unknown = find())
     }
 
     def asSearchableTags(tags: Seq[ArticleTag]): SearchableTags = {
+      def find(lang: String = null) = tags.find(_.language == Option(lang)).map(_.tags).getOrElse(Seq())
+
       SearchableTags(
-        nb = tags.find(_.language.contains("nb")).map(_.tags).getOrElse(Seq()),
-        nn = tags.find(_.language.contains("nn")).map(_.tags).getOrElse(Seq()),
-        en = tags.find(_.language.contains("en")).map(_.tags).getOrElse(Seq()),
-        fr = tags.find(_.language.contains("fr")).map(_.tags).getOrElse(Seq()),
-        de = tags.find(_.language.contains("de")).map(_.tags).getOrElse(Seq()),
-        es = tags.find(_.language.contains("es")).map(_.tags).getOrElse(Seq()),
-        se = tags.find(_.language.contains("se")).map(_.tags).getOrElse(Seq()),
-        zh = tags.find(_.language.contains("zh")).map(_.tags).getOrElse(Seq()),
-        unknown = tags.find(_.language.isEmpty).map(_.tags).getOrElse(Seq()))
+        nb = find(Language.NORWEGIAN_BOKMAL),
+        nn = find(Language.NORWEGIAN_NYNORSK),
+        en = find(Language.ENGLISH),
+        fr = find(Language.FRENCH),
+        de = find(Language.GERMAN),
+        es = find(Language.SPANISH),
+        se = find(Language.SAMI),
+        zh = find(Language.CHINESE),
+        unknown = find())
     }
 
     def asArticleSummary(searchableArticleInformation: SearchableArticleInformation): ArticleSummary = {
