@@ -78,7 +78,6 @@ case class MigrationMainNodeImport(titles: Seq[MigrationContentTitle], ingresses
     tags,
     pageTitles.map(_.asPageTitle),
     visualElements.map(_.asVisualElement),
-    relatedContents,
     ingresses.map(_.asNodeIngress),
     contents.minBy(_.created).created,
     contents.maxBy(_.changed).changed)

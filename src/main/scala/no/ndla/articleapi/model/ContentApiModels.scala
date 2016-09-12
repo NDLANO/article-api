@@ -33,7 +33,6 @@ case class ArticleInformation(
                                @(ApiModelProperty@field)(description = "A visual element article") visualElement: Seq[VisualElement],
                                @(ApiModelProperty@field)(description = "An image suitable for displaying on google") metaImage: Seq[MetaImage],
                                @(ApiModelProperty@field)(description = "An introduction for the article") introduction: Seq[ArticleIntroduction],
-                               @(ApiModelProperty@field)(description = "Content related to this article") relatedContent: Seq[RelatedContents],
                                @(ApiModelProperty@field)(description = "When the article was created") created: Int,
                                @(ApiModelProperty@field)(description = "When the article was last updated") updated: Int)
 
@@ -97,17 +96,6 @@ case class PageTitle(
                       @(ApiModelProperty@field)(description = "The page title of the article") title: String,
                       @(ApiModelProperty@field)(description = "The page title type") `type`: String,
                       @(ApiModelProperty@field)(description = "ISO 639-1 code that represents the language used in the page title") language: Option[String])
-
-@ApiModel(description = "Description of related content for the article in the given language")
-case class RelatedContents(
-                            @(ApiModelProperty@field)(description = "An array of related content") related: Seq[RelatedContent],
-                            @(ApiModelProperty@field)(description = "ISO 639-1 code that represents the language for these related resources") language: Option[String])
-
-@ApiModel(description = "Description of a related resource")
-case class RelatedContent(
-                           @(ApiModelProperty@field)(description = "The id of the resource") id: Long,
-                           @(ApiModelProperty@field)(description = "The title of the resource") title: String,
-                           @(ApiModelProperty@field)(description = "An uri describing in what way this resource is related (specialization or current material)") uri: String)
 
 @ApiModel(description = "Description of the article introduction")
 case class ArticleIntroduction(

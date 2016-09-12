@@ -135,7 +135,6 @@ trait ArticleRepositoryComponent {
         meta.visualElement,
         meta.metaImage,
         meta.introduction,
-        meta.relatedContent,
         meta.created,
         meta.updated)
     }

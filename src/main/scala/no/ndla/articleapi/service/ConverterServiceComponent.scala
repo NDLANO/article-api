@@ -53,34 +53,20 @@ trait ConverterServiceComponent {
         converter.convert(updatedNodeToConvert, importStatus)
       })
 
-    private def toRelatedContents(migrationRelatedContents: MigrationRelatedContents): (Option[RelatedContents], ImportStatus) = {
-      def toRelatedContent(related: MigrationRelatedContent): (Option[RelatedContent], ImportStatus) = {
-        extractConvertStoreContent.processNode(related.nid) match {
-          case Success((id, importStatus)) => (Some(RelatedContent(id, related.title, related.uri)), importStatus)
-          case Failure(ex) => {
-            val message = s"Failed to import related content with id ${related.nid}"
-            logger.warn(message)
-            (None, ImportStatus(message, Seq()))
-          }
-        }
+    private def toArticleIngress(nodeIngress: NodeIngress): (ArticleIntroduction, ImportStatus) = {
+      val newImageId = nodeIngress.imageNid.flatMap(imageApiService.importOrGetMetaByExternId).map(_.id)
+
+      val importStatus = (nodeIngress.imageNid, newImageId) match {
+        case (Some(imageNid), None) => ImportStatus(s"Failed to import ingress image with external id $imageNid", Seq())
+        case (_, _) => ImportStatus(Seq(), Seq())
       }
 
-      val (relatedContent, importStatuses) = migrationRelatedContents.related.map(toRelatedContent(_)).unzip
-      relatedContent.flatten.nonEmpty match {
-        case true => (Some(RelatedContents(relatedContent.flatten, migrationRelatedContents.language)), ImportStatus(importStatuses))
-        case false => (None, ImportStatus(importStatuses))
-      }
-    }
-
-    private def toArticleIngress(nodeIngress: NodeIngress): ArticleIntroduction = {
-      val id = nodeIngress.imageNid.flatMap(imageApiService.importOrGetMetaByExternId).map(_.id)
-      ArticleIntroduction(nodeIngress.content, id, nodeIngress.ingressVisPaaSiden == 1, nodeIngress.language)
+      (ArticleIntroduction(nodeIngress.content, newImageId, nodeIngress.ingressVisPaaSiden == 1, nodeIngress.language), importStatus)
     }
 
     private def toArticleInformation(nodeToConvert: NodeToConvert): (ArticleInformation, ImportStatus) = {
       val requiredLibraries = nodeToConvert.contents.flatMap(_.requiredLibraries).distinct
-      val ingresses = nodeToConvert.ingress.map(toArticleIngress)
-      val (relatedContents, importStatuses) = nodeToConvert.relatedContents.map(toRelatedContents).unzip
+      val (ingresses, importStatuses) = nodeToConvert.ingress.map(toArticleIngress).unzip
 
       (ArticleInformation("0",
         nodeToConvert.titles,
@@ -92,7 +78,6 @@ trait ConverterServiceComponent {
         nodeToConvert.visualElements,
         ingresses.map(x => MetaImage(x.image, x.language)).filter(_.image.isDefined),
         ingresses,
-        relatedContents.flatten,
         nodeToConvert.created,
         nodeToConvert.updated), ImportStatus(importStatuses))
     }

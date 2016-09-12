@@ -29,9 +29,8 @@ class ExtractConvertStoreContentTest extends UnitSuite with TestEnvironment {
   val copyright = Copyright(license, "", List(author))
   val pageTitle = PageTitle("Fanetittel", "type", Some("nb"))
   val visualElement = VisualElement("http://image-api/1", "image", Some("nb"))
-  val relatedContents = MigrationRelatedContents(Seq(MigrationRelatedContent("9876", "Programmering", ".../#fordypning", 1)), Some("nb"))
 
-  val sampleNode = NodeToConvert(List(sampleTitle), List(sampleContent), copyright, List(ArticleTag(List("tag"), Some("en"))), Seq(pageTitle), Seq(visualElement), Seq(relatedContents), Seq(), 0, 1)
+  val sampleNode = NodeToConvert(List(sampleTitle), List(sampleContent), copyright, List(ArticleTag(List("tag"), Some("en"))), Seq(pageTitle), Seq(visualElement), Seq(), 0, 1)
 
   val eCSService = new ExtractConvertStoreContent
 
