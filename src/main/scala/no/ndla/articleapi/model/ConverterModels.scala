@@ -34,7 +34,6 @@ case class NodeIngress(nid: String, tnid: String, content: String, imageNid: Opt
 
   def asLanguageContent: LanguageContent = LanguageContent(nid, tnid, content, language)
 }
-case class MetaImage(image: Option[String], language: Option[String])
 
 case class BiblioMeta(biblio: Biblio, authors: Seq[BiblioAuthor])
 case class Biblio(title: String, bibType: String, year: String, edition: String, publisher: String)
