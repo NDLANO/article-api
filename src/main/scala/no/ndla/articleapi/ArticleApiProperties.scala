@@ -26,8 +26,6 @@ object ArticleApiProperties extends LazyLogging {
   val CorrelationIdHeader = "X-Correlation-ID"
   val CorrelationIdKey = "correlationID"
 
-  val DefaultLanguage = Language.NORWEGIAN_BOKMAL
-
   lazy val NDLABrightcoveAccountId = get("NDLA_BRIGHTCOVE_ACCOUNT_ID")
   lazy val NDLABrightcovePlayerId = get("NDLA_BRIGHTCOVE_PLAYER_ID")
 

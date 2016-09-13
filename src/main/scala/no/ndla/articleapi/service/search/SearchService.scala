@@ -14,18 +14,17 @@ import com.sksamuel.elastic4s._
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.articleapi.ArticleApiProperties
 import no.ndla.articleapi.integration.ElasticClientComponent
-import no.ndla.articleapi.model.search.{SearchableArticle, SearchableArticleInformation}
-import no.ndla.articleapi.model.{ArticleSummary, SearchResult, Sort}
-import no.ndla.network.ApplicationUrl
+import no.ndla.articleapi.model.search.{SearchableArticleInformation, SearchableLanguageFormats}
+import no.ndla.articleapi.model.{ArticleSummary, Language, SearchResult, Sort}
 import org.elasticsearch.index.IndexNotFoundException
 import org.elasticsearch.index.query.MatchQueryBuilder
 import org.elasticsearch.search.sort.SortOrder
 import org.elasticsearch.transport.RemoteTransportException
+import org.json4s.native.Serialization.read
 
 import scala.collection.mutable.ListBuffer
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
-import org.json4s.native.Serialization.read
 
 trait SearchService {
   this: ElasticClientComponent with SearchIndexServiceComponent with SearchConverterService =>
@@ -37,13 +36,13 @@ trait SearchService {
 
     implicit object ContentHitAs extends HitAs[ArticleSummary] {
       override def as(hit: RichSearchHit): ArticleSummary = {
-        implicit val formats = org.json4s.DefaultFormats
+        implicit val formats = SearchableLanguageFormats.JSonFormats
         searchConverterService.asArticleSummary(read[SearchableArticleInformation](hit.sourceAsString))
       }
     }
 
     def all(language: Option[String], license: Option[String], page: Option[Int], pageSize: Option[Int], sort: Sort.Value): SearchResult = {
-      val searchLanguage = language.getOrElse(ArticleApiProperties.DefaultLanguage)
+      val searchLanguage = language.getOrElse(Language.DefaultLanguage)
       val filterList = new ListBuffer[QueryDefinition]()
       license.foreach(license => filterList += termQuery("license", license))
       filterList += noCopyrightFilter
@@ -54,7 +53,7 @@ trait SearchService {
     }
 
     def matchingQuery(query: Iterable[String], language: Option[String], license: Option[String], page: Option[Int], pageSize: Option[Int], sort: Sort.Value): SearchResult = {
-      val searchLanguage = language.getOrElse(ArticleApiProperties.DefaultLanguage)
+      val searchLanguage = language.getOrElse(Language.DefaultLanguage)
 
       val titleSearch = matchQuery(s"titles.$searchLanguage", query.mkString(" ")).operator(MatchQueryBuilder.Operator.AND)
       val articleSearch = matchQuery(s"article.$searchLanguage", query.mkString(" ")).operator(MatchQueryBuilder.Operator.AND)
