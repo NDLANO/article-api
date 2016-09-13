@@ -34,7 +34,8 @@ case class ArticleInformation(
                                @(ApiModelProperty@field)(description = "An image suitable for displaying on google") metaImage: Seq[MetaImage],
                                @(ApiModelProperty@field)(description = "An introduction for the article") introduction: Seq[ArticleIntroduction],
                                @(ApiModelProperty@field)(description = "When the article was created") created: Int,
-                               @(ApiModelProperty@field)(description = "When the article was last updated") updated: Int)
+                               @(ApiModelProperty@field)(description = "When the article was last updated") updated: Int,
+                               @(ApiModelProperty@field)(description = "The type of learning resource") contentType: String)
 
 @ApiModel(description = "The article in the specified language")
 case class Article(

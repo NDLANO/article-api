@@ -79,7 +79,8 @@ trait ConverterServiceComponent {
         ingresses.map(x => MetaImage(x.image, x.language)).filter(_.image.isDefined),
         ingresses,
         nodeToConvert.created,
-        nodeToConvert.updated), ImportStatus(importStatuses))
+        nodeToConvert.updated,
+        nodeToConvert.contentType), ImportStatus(importStatuses))
     }
 
   }

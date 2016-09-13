@@ -68,7 +68,10 @@ trait MigrationApiClient {
 
 case class MigrationMainNodeImport(titles: Seq[MigrationContentTitle], ingresses: Seq[MigrationIngress], contents: Seq[MigrationContent],
                           authors: Seq[MigrationContentAuthor], license: Option[String], nodeType: Option[String],
-                          pageTitles: Seq[MigrationPageTitle], visualElements: Seq[MigrationVisualElement], relatedContents: Seq[MigrationRelatedContents])
+                          pageTitles: Seq[MigrationPageTitle], visualElements: Seq[MigrationVisualElement], relatedContents: Seq[MigrationRelatedContents],
+                          editorialKeywords: Seq[MigrationEditorialKeywords], learningResourceType: Seq[MigrationLearningResourceType],
+                          difficulty: Seq[MigrationDifficulty], contentType: Seq[MigrationContentType], innholdAndFag: Seq[MigrationInnholdsKategoriAndFag],
+                          fagressurs: Seq[MigrationFagressurs])
  {
 
   def asNodeToConvert(nodeId: String, tags: List[ArticleTag]): NodeToConvert = NodeToConvert(
@@ -79,6 +82,7 @@ case class MigrationMainNodeImport(titles: Seq[MigrationContentTitle], ingresses
     pageTitles.map(_.asPageTitle),
     visualElements.map(_.asVisualElement),
     ingresses.map(_.asNodeIngress),
+    contentType.head.`type`,
     contents.minBy(_.created).created,
     contents.maxBy(_.changed).changed)
 
@@ -140,5 +144,10 @@ case class MigrationVisualElement(element: String, `type`: String, language: Opt
 }
 
 case class MigrationRelatedContents(related: Seq[MigrationRelatedContent], language: Option[String])
-
 case class MigrationRelatedContent(nid: String, title: String, uri: String, fagligRelation: Int)
+case class MigrationEditorialKeywords(keywords: Seq[String], language: Option[String])
+case class MigrationLearningResourceType(resourceType: String, language: Option[String])
+case class MigrationDifficulty(difficulty: String, language: Option[String])
+case class MigrationContentType(`type`: String, language: Option[String])
+case class MigrationInnholdsKategoriAndFag(innhold: String, fag: String, language: Option[String])
+case class MigrationFagressurs(fagressursType: String, velgFagressurs: String, language: Option[String])
