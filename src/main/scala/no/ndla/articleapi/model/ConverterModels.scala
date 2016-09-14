@@ -10,6 +10,7 @@
 package no.ndla.articleapi.model
 
 import java.net.URL
+import java.util.Date
 
 import com.netaporter.uri.dsl._
 import no.ndla.articleapi.integration.{LanguageContent, MigrationRelatedContents}
@@ -22,7 +23,7 @@ case class NodeGeneralContent(nid: String, tnid: String, title: String, content:
 }
 
 case class NodeToConvert(titles: Seq[ArticleTitle], contents: Seq[LanguageContent], copyright: Copyright, tags: Seq[ArticleTag],
-                         visualElements: Seq[VisualElement], ingress: Seq[NodeIngress], contentType: String, created: Int, updated: Int)
+                         visualElements: Seq[VisualElement], ingress: Seq[NodeIngress], contentType: String, created: Date, updated: Date)
 
 case class ContentFilMeta(nid: String, tnid: String, title: String, fileName: String, url: URL, mimeType: String, fileSize: String)
 object ContentFilMeta {

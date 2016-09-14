@@ -9,6 +9,8 @@
 
 package no.ndla.articleapi.service
 
+import java.util.Date
+
 import no.ndla.articleapi.TestEnvironment
 import no.ndla.articleapi.integration.{LanguageContent, MigrationRelatedContent, MigrationRelatedContents}
 import no.ndla.articleapi.model._
@@ -37,7 +39,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     val nodeId = "1"
     val initialContent = "<h1>Heading</h1>"
     val contentNode = LanguageContent(nodeId, nodeId, initialContent, Some("nb"))
-    val node = NodeToConvert(List(contentTitle), List(contentNode), copyright, List(tag), Seq(visualElement), Seq(), "fagstoff", 0, 1)
+    val node = NodeToConvert(List(contentTitle), List(contentNode), copyright, List(tag), Seq(visualElement), Seq(), "fagstoff", new Date(0), new Date(1))
     val expedtedResult = "<article>" + initialContent + "</article>"
 
     when(extractConvertStoreContent.processNode("4321")).thenReturn(Try(1: Long, ImportStatus(Seq(), Seq())))
@@ -57,7 +59,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     val sampleOppgave2 = NodeGeneralContent(nodeId, nodeId2, "Tittel", "Enda mer innhold!", "nb")
     val initialContent = s"$contentString"
     val contentNode = LanguageContent(nodeId, nodeId, initialContent, Some("nb"))
-    val node = NodeToConvert(List(contentTitle), List(contentNode), copyright, List(tag), Seq(visualElement), Seq(), "fagstoff", 0, 1)
+    val node = NodeToConvert(List(contentTitle), List(contentNode), copyright, List(tag), Seq(visualElement), Seq(), "fagstoff", new Date(0), new Date(1))
 
     when(extractService.getNodeType(nodeId)).thenReturn(Some("oppgave"))
     when(extractService.getNodeGeneralContent(nodeId)).thenReturn(Seq(sampleOppgave1))
@@ -79,7 +81,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     val ingressNodeNynorsk = NodeIngress("2", "2", "Kven er sterkast?", None, 1, Some("nn"))
     val contentNodeNynorsk = LanguageContent(nodeId2, nodeId, "<article>Nordavinden og sola krangla ein gong om kven av dei som var den sterkaste</article>", Some("nn"))
 
-    val node = NodeToConvert(List(contentTitle), List(contentNodeBokmal, contentNodeNynorsk), copyright, List(tag), Seq(visualElement), Seq(), "fagstoff", 0, 1)
+    val node = NodeToConvert(List(contentTitle), List(contentNodeBokmal, contentNodeNynorsk), copyright, List(tag), Seq(visualElement), Seq(), "fagstoff", new Date(0), new Date(1))
     val bokmalExpectedResult = "<article> Nordavinden og sola kranglet en gang om hvem av dem som var den sterkeste </article>"
     val nynorskExpectedResult = "<article> Nordavinden og sola krangla ein gong om kven av dei som var den sterkaste </article>"
 

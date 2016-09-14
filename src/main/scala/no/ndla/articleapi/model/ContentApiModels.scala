@@ -9,6 +9,8 @@
 
 package no.ndla.articleapi.model
 
+import java.util.Date
+
 import org.scalatra.swagger.annotations._
 import org.scalatra.swagger.runtime.annotations.ApiModelProperty
 
@@ -31,8 +33,8 @@ case class ArticleInformation(@(ApiModelProperty@field)(description = "The uniqu
                               @(ApiModelProperty@field)(description = "Required libraries in order to render the article") requiredLibraries: Seq[RequiredLibrary],
                               @(ApiModelProperty@field)(description = "A visual element article") visualElement: Seq[VisualElement],
                               @(ApiModelProperty@field)(description = "An introduction for the article") introduction: Seq[ArticleIntroduction],
-                              @(ApiModelProperty@field)(description = "When the article was created") created: Int,
-                              @(ApiModelProperty@field)(description = "When the article was last updated") updated: Int,
+                              @(ApiModelProperty@field)(description = "When the article was created") created: Date,
+                              @(ApiModelProperty@field)(description = "When the article was last updated") updated: Date,
                               @(ApiModelProperty@field)(description = "The type of learning resource") contentType: String)
 
 @ApiModel(description = "The article in the specified language")

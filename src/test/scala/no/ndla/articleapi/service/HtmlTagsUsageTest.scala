@@ -9,6 +9,8 @@
 
 package no.ndla.articleapi.service
 
+import java.util.Date
+
 import no.ndla.articleapi.model._
 import no.ndla.articleapi.{TestEnvironment, UnitSuite}
 import org.mockito.Mockito._
@@ -16,9 +18,9 @@ import org.mockito.Mockito._
 class HtmlTagsUsageTest extends UnitSuite with TestEnvironment {
 
   val copyright = Copyright(License("publicdomain", "", None), "", List())
-  val article1 = ArticleInformation("1", Seq(ArticleTitle("test", Some("en"))), Seq(Article("<article><div>test</div></article>", None, Some("en"))), copyright, Seq(), Seq(), Seq(), Seq(), 0, 1, "fagstoff")
-  val article2 = ArticleInformation("2", Seq(ArticleTitle("test", Some("en"))), Seq(Article("<article><div>test</div><p>paragraph</p></article>", None, Some("en"))), copyright, Seq(), Seq(), Seq(), Seq(), 0, 1, "fagstoff")
-  val article3 = ArticleInformation("3", Seq(ArticleTitle("test", Some("en"))), Seq(Article("<article><img></img></article>", None, Some("en"))), copyright, Seq(), Seq(), Seq(), Seq(), 0, 1, "fagstoff")
+  val article1 = ArticleInformation("1", Seq(ArticleTitle("test", Some("en"))), Seq(Article("<article><div>test</div></article>", None, Some("en"))), copyright, Seq(), Seq(), Seq(), Seq(), new Date(0), new Date(1), "fagstoff")
+  val article2 = ArticleInformation("2", Seq(ArticleTitle("test", Some("en"))), Seq(Article("<article><div>test</div><p>paragraph</p></article>", None, Some("en"))), copyright, Seq(), Seq(), Seq(), Seq(), new Date(0), new Date(1), "fagstoff")
+  val article3 = ArticleInformation("3", Seq(ArticleTitle("test", Some("en"))), Seq(Article("<article><img></img></article>", None, Some("en"))), copyright, Seq(), Seq(), Seq(), Seq(), new Date(0), new Date(1), "fagstoff")
 
   test("That getHtmlTagsMap counts html elements correctly") {
     val expectedResult = Map("article" -> List("1", "2", "3"), "div" -> List("1", "2"), "p" -> List("2"), "img" -> List("3"))

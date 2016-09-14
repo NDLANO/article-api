@@ -58,7 +58,7 @@ trait ConverterServiceComponent {
 
       val importStatus = (nodeIngress.imageNid, newImageId) match {
         case (Some(imageNid), None) => ImportStatus(s"Failed to import ingress image with external id $imageNid", Seq())
-        case (_, _) => ImportStatus(Seq(), Seq())
+        case _ => ImportStatus(Seq(), Seq())
       }
 
       (ArticleIntroduction(nodeIngress.content, newImageId, nodeIngress.ingressVisPaaSiden == 1, nodeIngress.language), importStatus)

@@ -10,6 +10,7 @@
 package no.ndla.articleapi.integration
 
 import java.net.URL
+import java.util.Date
 
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.articleapi.ArticleApiProperties
@@ -112,7 +113,7 @@ case class MigrationIngress(nid: String, content: String, imageNid: Option[Strin
   def asNodeIngress: NodeIngress = NodeIngress(nid, nid, content, imageNid, ingressVisPaaSiden, language)
 }
 
-case class MigrationContent(nid: String, tnid: String, content: String, language: Option[String], created: Int, changed: Int)
+case class MigrationContent(nid: String, tnid: String, content: String, language: Option[String], created: Date, changed: Date)
 
 case class MigrationNodeType(nodeType: String)
 

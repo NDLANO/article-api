@@ -9,6 +9,8 @@
 
 package no.ndla.articleapi.service
 
+import java.util.Date
+
 import no.ndla.articleapi.integration.{LanguageContent, MigrationRelatedContent, MigrationRelatedContents}
 import no.ndla.articleapi.model._
 import no.ndla.articleapi.{TestEnvironment, UnitSuite}
@@ -29,7 +31,7 @@ class ExtractConvertStoreContentTest extends UnitSuite with TestEnvironment {
   val copyright = Copyright(license, "", List(author))
   val visualElement = VisualElement("http://image-api/1", "image", Some("nb"))
 
-  val sampleNode = NodeToConvert(List(sampleTitle), List(sampleContent), copyright, List(ArticleTag(List("tag"), Some("en"))), Seq(visualElement), Seq(), "fagstoff", 0, 1)
+  val sampleNode = NodeToConvert(List(sampleTitle), List(sampleContent), copyright, List(ArticleTag(List("tag"), Some("en"))), Seq(visualElement), Seq(), "fagstoff", new Date(0), new Date(1))
 
   val eCSService = new ExtractConvertStoreContent
 
