@@ -10,6 +10,7 @@
 package no.ndla.articleapi
 
 import com.typesafe.scalalogging.LazyLogging
+import no.ndla.articleapi.model.Language
 
 import scala.collection.mutable
 

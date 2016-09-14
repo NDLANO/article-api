@@ -20,7 +20,7 @@ import no.ndla.articleapi.service._
 import no.ndla.articleapi.service.converters.{BiblioConverter, DivTableConverter, IngressConverter, SimpleTagConverter}
 import org.elasticsearch.common.settings.Settings
 import no.ndla.articleapi.service.converters.contentbrowser._
-import no.ndla.articleapi.service.search.{ElasticContentIndexComponent, ElasticContentSearchComponent, SearchIndexServiceComponent}
+import no.ndla.articleapi.service.search.{ElasticContentIndexComponent, SearchService, SearchConverterService, SearchIndexServiceComponent}
 import no.ndla.network.NdlaClient
 import org.postgresql.ds.PGPoolingDataSource
 
@@ -30,7 +30,7 @@ object ComponentRegistry
   with ArticleController
   with ArticleRepositoryComponent
   with ElasticClientComponent
-  with ElasticContentSearchComponent
+  with SearchService
   with ElasticContentIndexComponent
   with SearchIndexServiceComponent
   with ExtractServiceComponent
@@ -50,6 +50,7 @@ object ComponentRegistry
   with MappingApiClient
   with TagsService
   with MigrationApiClient
+  with SearchConverterService
 {
   implicit val swagger = new ArticleSwagger
 
@@ -73,7 +74,7 @@ object ComponentRegistry
     ElasticsearchClientUri(s"elasticsearch://${ArticleApiProperties.SearchHost}:${ArticleApiProperties.SearchPort}"))
 
   lazy val articleRepository = new ArticleRepository
-  lazy val elasticContentSearch = new ElasticContentSearch
+  lazy val searchService = new SearchService
   lazy val elasticContentIndex = new ElasticContentIndex
   lazy val searchIndexService = new SearchIndexService
 
@@ -101,4 +102,5 @@ object ComponentRegistry
   lazy val ndlaClient = new NdlaClient
   lazy val mappingApiClient = new MappingApiClient
   lazy val tagsService = new TagsService
+  lazy val searchConverterService = new SearchConverterService
 }

@@ -9,6 +9,8 @@
 
 package no.ndla.articleapi.controller
 
+import javax.servlet.http.HttpServletRequest
+
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.articleapi.ArticleApiProperties.{CorrelationIdHeader, CorrelationIdKey}
 import no.ndla.articleapi.model.Error
@@ -42,6 +44,10 @@ abstract class NdlaController extends ScalatraServlet with NativeJsonSupport wit
       logger.error(Error.GenericError.toString, t)
       halt(status = 500, body = Error.GenericError)
     }
+  }
+
+  def paramOrNone(paramName: String)(implicit request: HttpServletRequest): Option[String] = {
+    params.get(paramName).map(_.trim).filterNot(_.isEmpty())
   }
 }
 
