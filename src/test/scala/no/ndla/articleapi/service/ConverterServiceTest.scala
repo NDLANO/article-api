@@ -9,11 +9,16 @@
 
 package no.ndla.articleapi.service
 
+import java.util.Date
+
 import no.ndla.articleapi.TestEnvironment
-import no.ndla.articleapi.integration.LanguageContent
+import no.ndla.articleapi.integration.{LanguageContent, MigrationRelatedContent, MigrationRelatedContents}
 import no.ndla.articleapi.model._
 import no.ndla.articleapi.UnitSuite
 import org.mockito.Mockito._
+import org.mockito.Matchers._
+
+import scala.util.Try
 
 class ConverterServiceTest extends UnitSuite with TestEnvironment {
 
@@ -23,6 +28,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
   val author = Author("forfatter", "Henrik")
   val copyright = Copyright(license, "", List(author))
   val tag = ArticleTag(List("asdf"), Some("nb"))
+  val visualElement = VisualElement("http://image-api/1", "image", Some("nb"))
   val requiredLibrary = RequiredLibrary("", "", "")
   val nodeId = "1234"
   val sampleAlt = "Fotografi"
@@ -32,11 +38,13 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
   test("That the document is wrapped in an article tag") {
     val nodeId = "1"
     val initialContent = "<h1>Heading</h1>"
-    val contentNode = LanguageContent(nodeId, nodeId, initialContent, Some("nb"), None)
-    val node = NodeToConvert(List(contentTitle), List(contentNode), copyright, List(tag))
+    val contentNode = LanguageContent(nodeId, nodeId, initialContent, Some("nb"))
+    val node = NodeToConvert(List(contentTitle), List(contentNode), copyright, List(tag), Seq(visualElement), Seq(), "fagstoff", new Date(0), new Date(1))
     val expedtedResult = "<article>" + initialContent + "</article>"
 
-    val (result, status) = service.convertNode(node, ImportStatus(Seq(), Seq()))
+    when(extractConvertStoreContent.processNode("4321")).thenReturn(Try(1: Long, ImportStatus(Seq(), Seq())))
+
+    val (result, status) = service.toArticleInformation(node, ImportStatus(Seq(), Seq()))
     val strippedResult = result.article.head.article.replace("\n", "").replace(" ", "")
 
     strippedResult should equal (expedtedResult)
@@ -50,8 +58,8 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     val sampleOppgave1 = NodeGeneralContent(nodeId, nodeId, "Tittel", s"Innhold! $contentString2", "nb")
     val sampleOppgave2 = NodeGeneralContent(nodeId, nodeId2, "Tittel", "Enda mer innhold!", "nb")
     val initialContent = s"$contentString"
-    val contentNode = LanguageContent(nodeId, nodeId, initialContent, Some("nb"), None)
-    val node = NodeToConvert(List(contentTitle), List(contentNode), copyright, List(tag))
+    val contentNode = LanguageContent(nodeId, nodeId, initialContent, Some("nb"))
+    val node = NodeToConvert(List(contentTitle), List(contentNode), copyright, List(tag), Seq(visualElement), Seq(), "fagstoff", new Date(0), new Date(1))
 
     when(extractService.getNodeType(nodeId)).thenReturn(Some("oppgave"))
     when(extractService.getNodeGeneralContent(nodeId)).thenReturn(Seq(sampleOppgave1))
@@ -59,25 +67,25 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     when(extractService.getNodeType(nodeId2)).thenReturn(Some("oppgave"))
     when(extractService.getNodeGeneralContent(nodeId2)).thenReturn(Seq(sampleOppgave2))
 
-    val (result, status) = service.convertNode(node, ImportStatus(Seq(), Seq()))
+    val (result, status) = service.toArticleInformation(node, ImportStatus(Seq(), Seq()))
     result.article.head.article.replace("\n", "") should equal ("<article>  Innhold! Enda mer innhold! </article>")
     status.messages.isEmpty should equal (true)
     result.requiredLibraries.isEmpty should equal (true)
   }
 
-  test("That the correct language ingress is added to the content") {
+  test("That the ingress is not added to the content") {
     val (nodeId, nodeId2) = ("1234", "4321")
-    val ingressNodeBokmal = NodeIngress("Hvem er sterkest?", None, 1)
-    val contentNodeBokmal = LanguageContent(nodeId, nodeId, "<article>Nordavinden og sola kranglet en gang om hvem av dem som var den sterkeste</article>", Some("nb"), Some(ingressNodeBokmal))
+    val ingressNodeBokmal = NodeIngress("1", "1", "Hvem er sterkest?", None, 1, Some("nn"))
+    val contentNodeBokmal = LanguageContent(nodeId, nodeId, "<article>Nordavinden og sola kranglet en gang om hvem av dem som var den sterkeste</article>", Some("nb"))
 
-    val ingressNodeNynorsk = NodeIngress("Kven er sterkast?", None, 1)
-    val contentNodeNynorsk = LanguageContent(nodeId2, nodeId, "<article>Nordavinden og sola krangla ein gong om kven av dei som var den sterkaste</article>", Some("nn"), Some(ingressNodeNynorsk))
+    val ingressNodeNynorsk = NodeIngress("2", "2", "Kven er sterkast?", None, 1, Some("nn"))
+    val contentNodeNynorsk = LanguageContent(nodeId2, nodeId, "<article>Nordavinden og sola krangla ein gong om kven av dei som var den sterkaste</article>", Some("nn"))
 
-    val node = NodeToConvert(List(contentTitle), List(contentNodeBokmal, contentNodeNynorsk), copyright, List(tag))
-    val bokmalExpectedResult = "<article> <section> Hvem er sterkest? </section>Nordavinden og sola kranglet en gang om hvem av dem som var den sterkeste </article>"
-    val nynorskExpectedResult = "<article> <section> Kven er sterkast? </section>Nordavinden og sola krangla ein gong om kven av dei som var den sterkaste </article>"
+    val node = NodeToConvert(List(contentTitle), List(contentNodeBokmal, contentNodeNynorsk), copyright, List(tag), Seq(visualElement), Seq(), "fagstoff", new Date(0), new Date(1))
+    val bokmalExpectedResult = "<article> Nordavinden og sola kranglet en gang om hvem av dem som var den sterkeste </article>"
+    val nynorskExpectedResult = "<article> Nordavinden og sola krangla ein gong om kven av dei som var den sterkaste </article>"
 
-    val (result, status) = service.convertNode(node, ImportStatus(Seq(), Seq()))
+    val (result, status) = service.toArticleInformation(node, ImportStatus(Seq(), Seq()))
     val bokmalStrippedResult = " +".r.replaceAllIn(result.article.head.article.replace("\n", ""), " ")
     val nynorskStrippedResult = " +".r.replaceAllIn(result.article.last.article.replace("\n", ""), " ")
 

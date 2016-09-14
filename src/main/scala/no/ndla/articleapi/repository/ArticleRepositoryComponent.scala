@@ -130,7 +130,12 @@ trait ArticleRepositoryComponent {
         meta.article,
         meta.copyright,
         meta.tags,
-        meta.requiredLibraries)
+        meta.requiredLibraries,
+        meta.visualElement,
+        meta.introduction,
+        meta.created,
+        meta.updated,
+        meta.contentType)
     }
   }
 }

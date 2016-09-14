@@ -53,14 +53,18 @@ trait ConverterModule {
       }
     }
 
-    val (convertedContent, finalImportStatus) = convertLoop(nodeToConvert.contents, Seq(), importStatus)
-    (nodeToConvert.copy(contents=convertedContent), finalImportStatus)
-  }
+    val (convertedContent, contentImportStatus) = convertLoop(nodeToConvert.contents, Seq(), importStatus)
 
+    val (convertedIngress, finalImportStatus) = convertLoop(nodeToConvert.ingress.map(_.asLanguageContent), Seq(), contentImportStatus)
+    val finalIngress = nodeToConvert.ingress.map(x => x.copy(content=convertedIngress.find(_.nid == x.nid).get.content))
+
+    (nodeToConvert.copy(contents=convertedContent, ingress=finalIngress), finalImportStatus)
+  }
 }
 
-case class LanguageContent(nid: String, tnid: String, content: String, language: Option[String], ingress: Option[NodeIngress], requiredLibraries: Seq[RequiredLibrary] = List[RequiredLibrary](),
-                           containsIngress: Boolean = false, footNotes: Option[Map[String, FootNoteItem]] = None) {
+case class LanguageContent(nid: String, tnid: String, content: String, language: Option[String],
+                           requiredLibraries: Seq[RequiredLibrary] = List[RequiredLibrary](),
+                           footNotes: Option[Map[String, FootNoteItem]] = None) {
   def isMainNode = nid == tnid || tnid == "0"
   def isTranslation = !isMainNode
 

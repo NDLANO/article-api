@@ -34,20 +34,18 @@ trait ExtractConvertStoreContent {
       node.contents.find(_.isMainNode) match {
         case Some(mainNode) => {
           val mainNodeId = mainNode.nid
-          val (convertedNode, updatedImportStatus) = converterService.convertNode(node, importStatus)
+          val (convertedNode, updatedImportStatus) = converterService.toArticleInformation(node, importStatus)
 
-          val newNodeId = articleRepository.exists(mainNodeId) match {
+          val newId = articleRepository.exists(mainNodeId) match {
             case true => articleRepository.update(convertedNode, mainNodeId)
-            case false => {
-              articleRepository.insert(convertedNode, mainNodeId)
-            }
+            case false => articleRepository.insert(convertedNode, mainNodeId)
           }
 
-          Success((newNodeId, updatedImportStatus))
+          Success((newId, updatedImportStatus))
         }
         case None => Failure(NodeNotFoundException(s"$externalId is a translation; Could not find main node"))
       }
     }
-  }
 
+  }
 }

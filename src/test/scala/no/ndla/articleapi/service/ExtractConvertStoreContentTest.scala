@@ -9,7 +9,9 @@
 
 package no.ndla.articleapi.service
 
-import no.ndla.articleapi.integration.LanguageContent
+import java.util.Date
+
+import no.ndla.articleapi.integration.{LanguageContent, MigrationRelatedContent, MigrationRelatedContents}
 import no.ndla.articleapi.model._
 import no.ndla.articleapi.{TestEnvironment, UnitSuite}
 import org.mockito.Mockito._
@@ -21,14 +23,15 @@ import scala.util.{Success, Try}
 class ExtractConvertStoreContentTest extends UnitSuite with TestEnvironment {
   val (nodeId, nodeId2) = ("1234", "4321")
   val sampleTitle = ArticleTitle("title", Some("en"))
-  val sampleIngress =  NodeIngress("ingress here", None, 0)
+  val sampleIngress =  NodeIngress("1", "1", "ingress here", None, 0, Some("nb"))
   val contentString = s"[contentbrowser ==nid=$nodeId2==imagecache=Fullbredde==width===alt=alttext==link===node_link=1==link_type=link_to_content==lightbox_size===remove_fields[76661]=1==remove_fields[76663]=1==remove_fields[76664]=1==remove_fields[76666]=1==insertion=link==link_title_text===link_text=Tittel==text_align===css_class=contentbrowser contentbrowser]"
-  val sampleContent = LanguageContent(nodeId, nodeId, contentString, Some("en"), Some(sampleIngress))
+  val sampleContent = LanguageContent(nodeId, nodeId, contentString, Some("en"))
   val license = License("licence", "description", Some("http://"))
   val author = Author("forfatter", "Henrik")
   val copyright = Copyright(license, "", List(author))
+  val visualElement = VisualElement("http://image-api/1", "image", Some("nb"))
 
-  val sampleNode = NodeToConvert(List(sampleTitle), List(sampleContent), copyright, List(ArticleTag(List("tag"), Some("en"))))
+  val sampleNode = NodeToConvert(List(sampleTitle), List(sampleContent), copyright, List(ArticleTag(List("tag"), Some("en"))), Seq(visualElement), Seq(), "fagstoff", new Date(0), new Date(1))
 
   val eCSService = new ExtractConvertStoreContent
 
@@ -43,6 +46,7 @@ class ExtractConvertStoreContentTest extends UnitSuite with TestEnvironment {
 
     when(articleRepository.exists(sampleNode.contents.head.nid)).thenReturn(false)
     when(articleRepository.insert(any[ArticleInformation], any[String])(any[DBSession])).thenReturn(newNodeid)
+    when(extractConvertStoreContent.processNode("9876")).thenReturn(Try(1: Long, ImportStatus(Seq(), Seq())))
 
     eCSService.processNode(nodeId) should equal(Success(newNodeid, ImportStatus(List(), List(nodeId, nodeId2))))
   }
@@ -58,6 +62,7 @@ class ExtractConvertStoreContentTest extends UnitSuite with TestEnvironment {
 
     when(articleRepository.exists(sampleNode.contents.head.nid)).thenReturn(false)
     when(articleRepository.insert(any[ArticleInformation], any[String])(any[DBSession])).thenReturn(newNodeid)
+    when(extractConvertStoreContent.processNode("9876")).thenReturn(Try(1: Long, ImportStatus(Seq(), Seq())))
 
     val result = eCSService.processNode(nodeId, ImportStatus(Seq(), Seq("9876")))
     result should equal(Success(newNodeid, ImportStatus(List(), List("9876", nodeId, nodeId2))))
