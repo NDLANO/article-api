@@ -116,7 +116,7 @@ trait ArticleRepositoryComponent {
       implicit val formats = org.json4s.DefaultFormats
 
       val meta = read[ArticleInformation](json)
-      ArticleSummary(articleId.toString, meta.titles.head.title, ApplicationUrl.get + articleId, meta.copyright.license.license)
+      ArticleSummary(articleId.toString, meta.titles, ApplicationUrl.get + articleId, meta.copyright.license.license)
     }
 
     def asArticleInformation(articleId: String, json: String): ArticleInformation = {

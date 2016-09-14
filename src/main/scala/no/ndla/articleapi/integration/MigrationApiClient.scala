@@ -79,7 +79,6 @@ case class MigrationMainNodeImport(titles: Seq[MigrationContentTitle], ingresses
     asLanguageContents,
     Copyright(License(license.getOrElse(""), "", None), "", authors.map(x => x.asAuthor)),
     tags,
-    pageTitles.map(_.asPageTitle),
     visualElements.map(_.asVisualElement),
     ingresses.map(_.asNodeIngress),
     contentType.head.`type`,
@@ -135,9 +134,7 @@ case class MigrationContentFileMeta(nid: String, tnid: String, title: String, fi
 
 case class MigrationEmbedMeta(embed: String)
 
-case class MigrationPageTitle(title: String, `type`: String, language: Option[String]) {
-  def asPageTitle: PageTitle = PageTitle(title, `type`, language)
-}
+case class MigrationPageTitle(title: String, `type`: String, language: Option[String])
 
 case class MigrationVisualElement(element: String, `type`: String, language: Option[String]) {
   def asVisualElement: VisualElement = VisualElement(element, `type`: String, language)

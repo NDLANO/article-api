@@ -9,9 +9,9 @@
 
 package no.ndla.articleapi.controller
 
-import no.ndla.articleapi.ComponentRegistry.{articleRepository, elasticContentSearch}
+import no.ndla.articleapi.ComponentRegistry.{articleRepository, searchService}
 import no.ndla.articleapi.model.Error._
-import no.ndla.articleapi.model.{ArticleInformation, ArticleSummary, Error}
+import no.ndla.articleapi.model._
 import org.json4s.{DefaultFormats, Formats}
 import org.scalatra.swagger.{Swagger, SwaggerSupport}
 
@@ -27,7 +27,7 @@ trait ArticleController {
     protected val applicationDescription = "API for accessing images from ndla.no."
 
     val getAllArticles =
-      (apiOperation[List[ArticleSummary]]("getAllArticles")
+      (apiOperation[List[SearchResult]]("getAllArticles")
         summary "Show all articles"
         notes "Shows all articles. You can search it too."
         parameters(
@@ -37,7 +37,12 @@ trait ArticleController {
         queryParam[Option[String]]("language").description("The ISO 639-1 language code describing language used in query-params."),
         queryParam[Option[String]]("license").description("Return only articles with provided license."),
         queryParam[Option[Int]]("page").description("The page number of the search hits to display."),
-        queryParam[Option[Int]]("page-size").description("The number of search hits to display for each page.")
+        queryParam[Option[Int]]("page-size").description("The number of search hits to display for each page."),
+        queryParam[Option[String]]("sort").description(
+          """The sorting used on results.
+           Default is by -relevance (desc) when querying.
+           When browsing, the default is title (asc).
+           The following are supported: relevance, -relevance, title, -title""".stripMargin)
         ))
 
     val getArticleById =
@@ -51,22 +56,29 @@ trait ArticleController {
         ))
 
     get("/", operation(getAllArticles)) {
-      val query = params.get("query")
-      val language = params.get("language")
-      val license = params.get("license")
-      val pageSize = params.get("page-size").flatMap(ps => Try(ps.toInt).toOption)
-      val page = params.get("page").flatMap(idx => Try(idx.toInt).toOption)
+      val query = paramOrNone("query")
+      val language = paramOrNone("language")
+      val license = paramOrNone("license")
+      val sort = paramOrNone("sort")
+      val pageSize = paramOrNone("page-size").flatMap(ps => Try(ps.toInt).toOption)
+      val page = paramOrNone("page").flatMap(idx => Try(idx.toInt).toOption)
       logger.info("GET / with params query='{}', language={}, license={}, page={}, page-size={}", query, language, license, page, pageSize)
 
       query match {
-        case Some(query) => elasticContentSearch.matchingQuery(
-          query = query.toLowerCase().split(" ").map(_.trim),
+        case Some(q) => searchService.matchingQuery(
+          query = q.toLowerCase().split(" ").map(_.trim),
           language = language,
           license = license,
           page = page,
-          pageSize = pageSize)
+          pageSize = pageSize,
+          sort = Sort.valueOf(sort).getOrElse(Sort.ByRelevanceDesc))
 
-        case None => elasticContentSearch.all(license = license, page = page, pageSize = pageSize)
+        case None => searchService.all(
+          language = language,
+          license = license,
+          page = page,
+          pageSize = pageSize,
+          sort = Sort.valueOf(sort).getOrElse(Sort.ByTitleAsc))
       }
     }
 

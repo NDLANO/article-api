@@ -22,7 +22,7 @@ case class NodeGeneralContent(nid: String, tnid: String, title: String, content:
 }
 
 case class NodeToConvert(titles: Seq[ArticleTitle], contents: Seq[LanguageContent], copyright: Copyright, tags: Seq[ArticleTag],
-                         pageTitles: Seq[PageTitle], visualElements: Seq[VisualElement], ingress: Seq[NodeIngress], contentType: String, created: Int, updated: Int)
+                         visualElements: Seq[VisualElement], ingress: Seq[NodeIngress], contentType: String, created: Int, updated: Int)
 
 case class ContentFilMeta(nid: String, tnid: String, title: String, fileName: String, url: URL, mimeType: String, fileSize: String)
 object ContentFilMeta {
