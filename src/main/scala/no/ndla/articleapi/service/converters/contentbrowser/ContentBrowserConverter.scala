@@ -27,8 +27,6 @@ trait ContentBrowserConverter {
       LenkeConverter.typeName -> LenkeConverter,
       OppgaveConverter.typeName -> OppgaveConverter,
       FagstoffConverter.typeName -> FagstoffConverter,
-      AudioConverter.typeName -> AudioConverter,
-      FilConverter.typeName -> FilConverter,
       AktualitetConverter.typeName -> AktualitetConverter,
       NonExistentNodeConverter.typeName -> NonExistentNodeConverter,
       VideoConverter.typeName -> VideoConverter,
