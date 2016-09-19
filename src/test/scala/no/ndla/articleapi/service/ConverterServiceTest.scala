@@ -94,4 +94,18 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     status.messages.isEmpty should equal (true)
     result.requiredLibraries.isEmpty should equal (true)
   }
+
+  test("That html attributes are removed from the article") {
+    val contentNodeBokmal = LanguageContent(nodeId, nodeId, """<article><table class="testclass" data-resource="test"></table></article>""", Some("nb"))
+    val node = NodeToConvert(List(contentTitle), List(contentNodeBokmal), copyright, List(tag), Seq(visualElement), Seq(), "fagstoff", new Date(0), new Date(1))
+    val bokmalExpectedResult = """<article> <table data-resource="test"></table> </article>"""
+
+    val (result, status) = service.toArticleInformation(node, ImportStatus(Seq(), Seq()))
+    val bokmalStrippedResult = " +".r.replaceAllIn(result.article.head.article.replace("\n", ""), " ")
+
+    bokmalStrippedResult should equal (bokmalExpectedResult)
+    status.messages.nonEmpty should equal (true)
+    result.requiredLibraries.isEmpty should equal (true)
+  }
+
 }

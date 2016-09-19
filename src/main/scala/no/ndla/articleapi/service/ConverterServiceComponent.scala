@@ -11,11 +11,8 @@ package no.ndla.articleapi.service
 
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.articleapi.ArticleApiProperties.maxConvertionRounds
-import no.ndla.articleapi.integration.{MigrationRelatedContent, MigrationRelatedContents}
 import no.ndla.articleapi.model._
-
 import scala.annotation.tailrec
-import scala.util.{Failure, Success}
 
 trait ConverterServiceComponent {
   this: ConverterModules with ExtractConvertStoreContent with ImageApiServiceComponent =>
@@ -23,35 +20,33 @@ trait ConverterServiceComponent {
 
   class ConverterService extends LazyLogging {
     def toArticleInformation(nodeToConvert: NodeToConvert, importStatus: ImportStatus): (ArticleInformation, ImportStatus) = {
-      @tailrec def convertNode(nodeToConvert: NodeToConvert, maxRoundsLeft: Int, importStatus: ImportStatus): (NodeToConvert, ImportStatus) = {
-        if (maxRoundsLeft == 0) {
-          val message = "Maximum number of converter rounds reached; Some content might not be converted"
-          logger.warn(message)
-          return (nodeToConvert, importStatus.copy(messages=importStatus.messages :+ message))
-        }
-
-        val (updatedContent, updatedStatus) = convert(nodeToConvert, importStatus)
-
-        // If this converting round did not yield any changes to the content, this node is finished (case true)
-        // If changes were made during this convertion, we run the converters again (case false)
-        updatedContent == nodeToConvert match {
-          case true => (updatedContent, updatedStatus)
-          case false => convertNode(updatedContent, maxRoundsLeft - 1, updatedStatus)
-        }
-      }
-
       val updatedVisitedNodes = importStatus.visitedNodes ++ nodeToConvert.contents.map(_.nid)
-      val (convertedContent, converterStatus) = convertNode(nodeToConvert, maxConvertionRounds, importStatus.copy(visitedNodes = updatedVisitedNodes.distinct))
+      val (convertedContent, converterStatus) = convert(nodeToConvert, maxConvertionRounds, importStatus.copy(visitedNodes = updatedVisitedNodes.distinct))
+      val (postProcessed, postProcessStatus) = postProcess(convertedContent, converterStatus)
 
-      val (articleInformation, toArticleStatus) = toArticleInformation(convertedContent)
-      (articleInformation, converterStatus ++ toArticleStatus)
+      val (articleInformation, toArticleStatus) = toArticleInformation(postProcessed)
+      (articleInformation, postProcessStatus ++ toArticleStatus)
     }
 
-    private def convert(nodeToConvert: NodeToConvert, importStatus: ImportStatus): (NodeToConvert, ImportStatus) =
-      converterModules.foldLeft((nodeToConvert, importStatus))((element, converter) => {
-        val (updatedNodeToConvert, importStatus) = element
-        converter.convert(updatedNodeToConvert, importStatus)
-      })
+    @tailrec private def convert(nodeToConvert: NodeToConvert, maxRoundsLeft: Int, importStatus: ImportStatus): (NodeToConvert, ImportStatus) = {
+      if (maxRoundsLeft == 0) {
+        val message = "Maximum number of converter rounds reached; Some content might not be converted"
+        logger.warn(message)
+        return (nodeToConvert, importStatus.copy(messages=importStatus.messages :+ message))
+      }
+
+      val (updatedContent, updatedStatus) = executeConverterModules(nodeToConvert, importStatus)
+
+      // If this converting round did not yield any changes to the content, this node is finished (case true)
+      // If changes were made during this convertion, we run the converters again (case false)
+      updatedContent == nodeToConvert match {
+        case true => (updatedContent, updatedStatus)
+        case false => convert(updatedContent, maxRoundsLeft - 1, updatedStatus)
+      }
+    }
+
+    private def postProcess(nodeToConvert: NodeToConvert, importStatus: ImportStatus): (NodeToConvert, ImportStatus) =
+      executePostprocessorModules(nodeToConvert, importStatus)
 
     private def toArticleIngress(nodeIngress: NodeIngress): (ArticleIntroduction, ImportStatus) = {
       val newImageId = nodeIngress.imageNid.flatMap(imageApiService.importOrGetMetaByExternId).map(_.id)

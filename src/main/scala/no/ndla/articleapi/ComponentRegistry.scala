@@ -17,10 +17,10 @@ import no.ndla.articleapi.controller.{ArticleController, InternController}
 import no.ndla.articleapi.integration._
 import no.ndla.articleapi.repository.ArticleRepositoryComponent
 import no.ndla.articleapi.service._
-import no.ndla.articleapi.service.converters.{BiblioConverter, DivTableConverter, SimpleTagConverter}
+import no.ndla.articleapi.service.converters.{BiblioConverter, DivTableConverter, HTMLCleaner, SimpleTagConverter}
 import org.elasticsearch.common.settings.Settings
 import no.ndla.articleapi.service.converters.contentbrowser._
-import no.ndla.articleapi.service.search.{ElasticContentIndexComponent, SearchService, SearchConverterService, SearchIndexServiceComponent}
+import no.ndla.articleapi.service.search.{ElasticContentIndexComponent, SearchConverterService, SearchIndexServiceComponent, SearchService}
 import no.ndla.network.NdlaClient
 import org.postgresql.ds.PGPoolingDataSource
 
@@ -94,11 +94,13 @@ object ComponentRegistry
   lazy val converterService = new ConverterService
   lazy val imageApiService = new ImageApiService
 
-  lazy val contentBrowserConverter = new ContentBrowserConverter
-  lazy val biblioConverter = new BiblioConverter
-  lazy val converterModules = List(contentBrowserConverter, biblioConverter, DivTableConverter, SimpleTagConverter)
   lazy val ndlaClient = new NdlaClient
   lazy val mappingApiClient = new MappingApiClient
   lazy val tagsService = new TagsService
   lazy val searchConverterService = new SearchConverterService
+
+  lazy val contentBrowserConverter = new ContentBrowserConverter
+  lazy val biblioConverter = new BiblioConverter
+  lazy val converterModules = List(SimpleTagConverter, biblioConverter, DivTableConverter, contentBrowserConverter)
+  lazy val postProcessorModules = List(HTMLCleaner)
 }

@@ -11,8 +11,8 @@ package no.ndla.articleapi.service.converters
 
 import no.ndla.articleapi.integration.{ConverterModule, LanguageContent}
 import no.ndla.articleapi.model.ImportStatus
-import no.ndla.articleapi.ArticleApiProperties.permittedHTMLTags
 import org.jsoup.nodes.Element
+
 import scala.collection.JavaConversions._
 
 object SimpleTagConverter extends ConverterModule {
@@ -22,10 +22,7 @@ object SimpleTagConverter extends ConverterModule {
     convertBody(element)
     convertDivs(element)
     convertPres(element)
-
-    val illegalTags = unwrapIllegalTags(element).map(x => s"Illegal tag removed: $x")
-
-    (content.copy(content=jsoupDocumentToString(element)), ImportStatus(importStatus.messages ++ illegalTags, importStatus.visitedNodes))
+    (content.copy(content=jsoupDocumentToString(element)), importStatus)
   }
 
   def convertDivs(el: Element) {
@@ -62,16 +59,5 @@ object SimpleTagConverter extends ConverterModule {
     val summary = el.text()
     el.html(s"<summary>$summary</summary>")
     el.append(details)
-  }
-
-  private def unwrapIllegalTags(el: Element): Seq[String] = {
-    el.select("article").select("*").toList.
-      filter(x => !permittedHTMLTags.contains(x.tagName))
-      .map(x => {
-        val tagName = x.tagName
-        x.unwrap()
-        tagName
-      })
-      .distinct
   }
 }
