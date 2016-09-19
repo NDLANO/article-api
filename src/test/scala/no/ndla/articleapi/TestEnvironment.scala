@@ -16,10 +16,10 @@ import com.sksamuel.elastic4s.ElasticClient
 import no.ndla.articleapi.controller.{ArticleController, InternController}
 import no.ndla.articleapi.integration._
 import no.ndla.articleapi.repository.ArticleRepositoryComponent
-import no.ndla.articleapi.service.converters.{BiblioConverter, DivTableConverter, SimpleTagConverter}
+import no.ndla.articleapi.service.converters.{BiblioConverter, DivTableConverter, HTMLCleaner, SimpleTagConverter}
 import no.ndla.articleapi.service._
 import no.ndla.articleapi.service.converters.contentbrowser._
-import no.ndla.articleapi.service.search.{ElasticContentIndexComponent, SearchService, SearchConverterService, SearchIndexServiceComponent}
+import no.ndla.articleapi.service.search.{ElasticContentIndexComponent, SearchConverterService, SearchIndexServiceComponent, SearchService}
 import no.ndla.network.NdlaClient
 import org.scalatest.mock.MockitoSugar
 
@@ -73,6 +73,7 @@ trait TestEnvironment
   val contentBrowserConverter = new ContentBrowserConverter
   val biblioConverter = new BiblioConverter
   val converterModules = List(SimpleTagConverter, biblioConverter, DivTableConverter, contentBrowserConverter)
+  val postProcessorModules = List(HTMLCleaner)
   val imageApiService = mock[ImageApiService]
   val storageService = mock[AmazonStorageService]
   val ndlaClient = mock[NdlaClient]

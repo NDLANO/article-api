@@ -48,7 +48,8 @@ class ExtractConvertStoreContentTest extends UnitSuite with TestEnvironment {
     when(articleRepository.insert(any[ArticleInformation], any[String])(any[DBSession])).thenReturn(newNodeid)
     when(extractConvertStoreContent.processNode("9876")).thenReturn(Try(1: Long, ImportStatus(Seq(), Seq())))
 
-    eCSService.processNode(nodeId) should equal(Success(newNodeid, ImportStatus(List(), List(nodeId, nodeId2))))
+    val result = eCSService.processNode(nodeId)
+    result should equal(Success(newNodeid, ImportStatus(List(s"Successfully imported node $nodeId: $newNodeid"), List(nodeId, nodeId2))))
   }
 
   test("That ETL returns a list of visited nodes") {
@@ -65,7 +66,7 @@ class ExtractConvertStoreContentTest extends UnitSuite with TestEnvironment {
     when(extractConvertStoreContent.processNode("9876")).thenReturn(Try(1: Long, ImportStatus(Seq(), Seq())))
 
     val result = eCSService.processNode(nodeId, ImportStatus(Seq(), Seq("9876")))
-    result should equal(Success(newNodeid, ImportStatus(List(), List("9876", nodeId, nodeId2))))
+    result should equal(Success(newNodeid, ImportStatus(List(s"Successfully imported node $nodeId: $newNodeid"), List("9876", nodeId, nodeId2))))
   }
 
 }
