@@ -108,4 +108,17 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     result.requiredLibraries.isEmpty should equal (true)
   }
 
+  test("That html comments are removed") {
+    val contentNodeBokmal = LanguageContent(nodeId, nodeId, """<article><p><!-- this is a comment --></p> <!-- another comment --></article>""", Some("nb"))
+    val node = NodeToConvert(List(contentTitle), List(contentNodeBokmal), copyright, List(tag), Seq(visualElement), Seq(), "fagstoff", new Date(0), new Date(1))
+    val expectedResult = """<article> <p> </p> </article>"""
+
+    val (result, status) = service.toArticleInformation(node, ImportStatus(Seq(), Seq()))
+    val strippedResult = " +".r.replaceAllIn(result.article.head.article.replace("\n", ""), " ")
+
+    strippedResult should equal (expectedResult)
+    status.messages.isEmpty should equal (true)
+    result.requiredLibraries.isEmpty should equal (true)
+  }
+
 }

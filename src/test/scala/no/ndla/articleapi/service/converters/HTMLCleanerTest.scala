@@ -25,4 +25,12 @@ class HTMLCleanerTest extends UnitSuite {
     result.requiredLibraries.length should equal (0)
   }
 
+  test("That HTMLCleaner removes comments") {
+    val initialContent = LanguageContent(nodeId, nodeId, """<article><!-- this is a comment --><h1>heading<!-- comment --></h1></article>""", Some("en"))
+    val expectedResult = "<article> <h1>heading</h1></article>"
+    val (result, status) = HTMLCleaner.convert(initialContent, ImportStatus(Seq(), Seq()))
+
+    result.content.replace("\n", "") should equal (expectedResult)
+    result.requiredLibraries.length should equal (0)
+  }
 }

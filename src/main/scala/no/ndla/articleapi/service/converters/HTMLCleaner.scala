@@ -12,6 +12,7 @@ object HTMLCleaner extends ConverterModule {
 
     val illegalTags = unwrapIllegalTags(element).map(x => s"Illegal tag(s) removed: $x").distinct
     val illegalAttributes = removeAttributes(element).map(x => s"Illegal attribute(s) removed: $x").distinct
+    removeComments(element)
 
     (content.copy(content=jsoupDocumentToString(element)),
       ImportStatus(importStatus.messages ++ illegalTags ++ illegalAttributes, importStatus.visitedNodes))
@@ -39,6 +40,22 @@ object HTMLCleaner extends ConverterModule {
           keyName
       })
     })
+  }
+
+  private def removeComments(node: Node) {
+    var i = 0
+
+    while (i < node.childNodes().size()) {
+      val child = node.childNode(i)
+
+      child.nodeName() == "#comment" match {
+        case true => child.remove()
+        case false => {
+          i+= 1
+          removeComments(child)
+        }
+      }
+    }
   }
 
 }
