@@ -12,13 +12,13 @@ package no.ndla.articleapi
 import javax.sql.DataSource
 
 import com.amazonaws.services.s3.AmazonS3Client
-import com.sksamuel.elastic4s.ElasticClient
+import io.searchbox.client.JestClient
 import no.ndla.articleapi.controller.{ArticleController, InternController}
 import no.ndla.articleapi.integration._
 import no.ndla.articleapi.repository.ArticleRepositoryComponent
-import no.ndla.articleapi.service.converters.{BiblioConverter, DivTableConverter, HTMLCleaner, SimpleTagConverter}
 import no.ndla.articleapi.service._
 import no.ndla.articleapi.service.converters.contentbrowser._
+import no.ndla.articleapi.service.converters.{BiblioConverter, DivTableConverter, HTMLCleaner, SimpleTagConverter}
 import no.ndla.articleapi.service.search.{ElasticContentIndexComponent, SearchConverterService, SearchIndexServiceComponent, SearchService}
 import no.ndla.network.NdlaClient
 import org.scalatest.mock.MockitoSugar
@@ -52,7 +52,7 @@ trait TestEnvironment
   with TagsService
   with SearchConverterService
 {
-  val elasticClient = mock[ElasticClient]
+
   val searchService = mock[SearchService]
   val elasticContentIndex = mock[ElasticContentIndex]
   val searchIndexService = mock[SearchIndexService]
@@ -80,4 +80,5 @@ trait TestEnvironment
   val mappingApiClient = mock[MappingApiClient]
   val tagsService = mock[TagsService]
   val searchConverterService = mock[SearchConverterService]
+  val jestClient = mock[JestClient]
 }

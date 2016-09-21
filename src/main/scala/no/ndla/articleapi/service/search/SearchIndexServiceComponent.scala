@@ -24,7 +24,7 @@ trait SearchIndexServiceComponent {
       synchronized {
         val start = System.currentTimeMillis
 
-        val newIndexName = contentIndex.create()
+        val newIndexName = contentIndex.createIndex()
         val oldIndexName = contentIndex.aliasTarget
 
         oldIndexName match {

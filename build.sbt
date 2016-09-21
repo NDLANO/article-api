@@ -29,8 +29,8 @@ lazy val article_api = (project in file(".")).
   settings(commonSettings: _*).
   settings(
     name := "article-api",
-    javacOptions ++= Seq("-source", "1.7", "-target", "1.7"),
-    scalacOptions := Seq("-target:jvm-1.7"),
+    javacOptions ++= Seq("-source", "1.8", "-target", "1.8"),
+    scalacOptions := Seq("-target:jvm-1.8"),
     libraryDependencies ++= Seq(
       "ndla" %% "network" % "0.4",
       "joda-time" % "joda-time" % "2.8.2",
@@ -52,8 +52,12 @@ lazy val article_api = (project in file(".")).
       "mysql" % "mysql-connector-java" % "5.1.36",
       "com.amazonaws" % "aws-java-sdk-s3" % AwsSdkversion,
       "org.scalaj" %% "scalaj-http" % "1.1.5",
+      "io.searchbox" % "jest" % "2.0.0",
+      "org.elasticsearch" % "elasticsearch" % "2.3.3",
       "com.sksamuel.elastic4s" %% "elastic4s-core" % "2.3.0",
-      "com.sksamuel.elastic4s" %% "elastic4s-testkit" % "2.3.0" % "test",
+      "org.elasticsearch" % "elasticsearch" % "2.3.3" % "test",
+      "org.apache.lucene" % "lucene-test-framework" % "5.5.0" % "test",
+      "vc.inreach.aws" % "aws-signing-request-interceptor" % "0.0.14",
       "org.scalatest" % "scalatest_2.11" % ScalaTestVersion % "test",
       "org.jsoup" % "jsoup" % "1.7.3",
       "org.mockito" % "mockito-all" % MockitoVersion % "test",
