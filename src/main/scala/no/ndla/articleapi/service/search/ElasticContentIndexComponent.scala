@@ -13,15 +13,19 @@ import java.text.SimpleDateFormat
 import java.util.Calendar
 
 import com.sksamuel.elastic4s.ElasticDsl._
-import com.sksamuel.elastic4s.analyzers._
-import com.sksamuel.elastic4s.mappings.FieldType.{IntegerType, NestedType, StringType}
+import com.sksamuel.elastic4s.mappings.FieldType.{IntegerType, StringType}
 import com.sksamuel.elastic4s.mappings.NestedFieldDefinition
 import com.typesafe.scalalogging.LazyLogging
+import io.searchbox.core.{Bulk, Index}
+import io.searchbox.indices.aliases.{AddAliasMapping, GetAliases, ModifyAliases, RemoveAliasMapping}
+import io.searchbox.indices.mapping.PutMapping
+import io.searchbox.indices.{CreateIndex, DeleteIndex, IndicesExists}
 import no.ndla.articleapi.ArticleApiProperties
 import no.ndla.articleapi.integration.ElasticClientComponent
 import no.ndla.articleapi.model.ArticleInformation
 import no.ndla.articleapi.model.Language._
 import no.ndla.articleapi.model.search.SearchableLanguageFormats
+import org.elasticsearch.ElasticsearchException
 import org.json4s.native.Serialization.write
 
 trait ElasticContentIndexComponent {
@@ -29,93 +33,53 @@ trait ElasticContentIndexComponent {
   val elasticContentIndex: ElasticContentIndex
 
   class ElasticContentIndex extends LazyLogging {
+
     def indexDocuments(articleData: List[ArticleInformation], indexName: String): Int = {
       implicit val formats = SearchableLanguageFormats.JSonFormats
-
       val searchableArticles = articleData.map(searchConverterService.asSearchableArticleInformation)
-      elasticClient.execute {
-        bulk(searchableArticles.map(articleInformation => {
-          index into indexName -> ArticleApiProperties.SearchDocument source write(articleInformation) id articleInformation.id
-        }))
-      }.await
 
-      logger.info(s"Indexed ${articleData.size} documents")
-      articleData.size
+      val bulkBuilder = new Bulk.Builder()
+      searchableArticles.foreach(imageMeta => {
+        val source = write(imageMeta)
+        bulkBuilder.addAction(new Index.Builder(source).index(indexName).`type`(ArticleApiProperties.SearchDocument).id(imageMeta.id).build)
+      })
+
+      val response = jestClient.execute(bulkBuilder.build())
+      if (!response.isSucceeded) {
+        throw new ElasticsearchException(s"Unable to index documents to ${ArticleApiProperties.SearchIndex}. ErrorMessage: {}", response.getErrorMessage)
+      }
+      logger.info(s"Indexed ${searchableArticles.size} documents")
+      searchableArticles.size
     }
 
-    def create(): String = {
+    def createIndex(): String = {
       val indexName = ArticleApiProperties.SearchIndex + "_" + getTimestamp
-
-      val existsDefinition = elasticClient.execute {
-        index exists indexName.toString
-      }.await
-
-      if (!existsDefinition.isExists) {
-        createElasticIndex(indexName)
+      if (!indexExists(indexName)) {
+        val createIndexResponse = jestClient.execute(new CreateIndex.Builder(indexName).build())
+        createIndexResponse.isSucceeded match {
+          case false => throw new ElasticsearchException(s"Unable to create index $indexName. ErrorMessage: {}", createIndexResponse.getErrorMessage)
+          case true => createMapping(indexName)
+        }
       }
-
       indexName
     }
 
-    private def createElasticIndex(indexName: String) = {
-      val createIndexTemplate = createIndex(indexName)
-        .mappings(mapping(ArticleApiProperties.SearchDocument).fields(
-          "id" typed IntegerType,
-          languageSupportedField("titles", keepRaw = true),
-          languageSupportedField("article", keepRaw = false),
-          languageSupportedField("tags", keepRaw = false),
-          "license" typed StringType index "not_analyzed",
-          "authors" typed StringType
-        ))
-
-      elasticClient.execute(createIndexTemplate).await
-    }
-
-    def aliasTarget: Option[String] = {
-      val res = elasticClient.execute {
-        get alias ArticleApiProperties.SearchIndex
-      }.await
-      val aliases = res.getAliases.keysIt()
-      aliases.hasNext match {
-        case true => Some(aliases.next())
-        case false => None
+    def createMapping(indexName: String) = {
+      val mappingResponse = jestClient.execute(new PutMapping.Builder(indexName, ArticleApiProperties.SearchDocument, buildMapping()).build())
+      if (!mappingResponse.isSucceeded) {
+        throw new ElasticsearchException(s"Unable to create mapping for index $indexName. ErrorMessage: {}", mappingResponse.getErrorMessage)
       }
     }
 
-    def updateAliasTarget(oldIndexName: Option[String], newIndexName: String): Unit = {
-      val existsDefinition = elasticClient.execute {
-        index exists newIndexName
-      }.await
-
-      if (existsDefinition.isExists) {
-        elasticClient.execute {
-          oldIndexName.foreach(oldIndexName => {
-            remove alias ArticleApiProperties.SearchIndex on oldIndexName
-
-          })
-          add alias ArticleApiProperties.SearchIndex on newIndexName
-        }.await
-      } else {
-        throw new IllegalArgumentException(s"No such index: $newIndexName")
-      }
-    }
-
-    def delete(indexName: String): Unit = {
-      val existsDefinition = elasticClient.execute {
-        index exists indexName
-      }.await
-
-      if (existsDefinition.isExists) {
-        elasticClient.execute {
-          deleteIndex(indexName)
-        }.await
-      } else {
-        throw new IllegalArgumentException(s"No such index: $indexName")
-      }
-    }
-
-    def getTimestamp: String = {
-      new SimpleDateFormat("yyyyMMddHHmmss").format(Calendar.getInstance.getTime)
+    def buildMapping(): String = {
+      mapping(ArticleApiProperties.SearchDocument).fields(
+        "id" typed IntegerType,
+        languageSupportedField("titles", keepRaw = true),
+        languageSupportedField("article", keepRaw = false),
+        languageSupportedField("tags", keepRaw = false),
+        "license" typed StringType index "not_analyzed",
+        "authors" typed StringType
+      ).buildWithName.string()
     }
 
     private def languageSupportedField(fieldName: String, keepRaw: Boolean = false) = {
@@ -126,6 +90,62 @@ trait ElasticContentIndexComponent {
       }
 
       languageSupportedField
+    }
+
+    def aliasTarget: Option[String] = {
+      val getAliasRequest = new GetAliases.Builder().addIndex(s"${ArticleApiProperties.SearchIndex}").build()
+      val result = jestClient.execute(getAliasRequest)
+      result.isSucceeded match {
+        case false => None
+        case true => {
+          val aliasIterator = result.getJsonObject.entrySet().iterator()
+          aliasIterator.hasNext match {
+            case true => Some(aliasIterator.next().getKey)
+            case false => None
+          }
+        }
+      }
+    }
+
+    def updateAliasTarget(oldIndexName: Option[String], newIndexName: String) = {
+      if (indexExists(newIndexName)) {
+        val addAliasDefinition = new AddAliasMapping.Builder(newIndexName, ArticleApiProperties.SearchIndex).build()
+        val modifyAliasRequest = oldIndexName match {
+          case None => new ModifyAliases.Builder(addAliasDefinition).build()
+          case Some(oldIndex) => {
+            new ModifyAliases.Builder(
+              new RemoveAliasMapping.Builder(oldIndex, ArticleApiProperties.SearchIndex).build()
+            ).addAlias(addAliasDefinition).build()
+          }
+        }
+
+        val response = jestClient.execute(modifyAliasRequest)
+        if (!response.isSucceeded) {
+          logger.error(response.getErrorMessage)
+          throw new ElasticsearchException(s"Unable to modify alias ${ArticleApiProperties.SearchIndex} -> $oldIndexName to ${ArticleApiProperties.SearchIndex} -> $newIndexName. ErrorMessage: {}", response.getErrorMessage)
+        }
+      } else {
+        throw new IllegalArgumentException(s"No such index: $newIndexName")
+      }
+    }
+
+    def delete(indexName: String) = {
+      if (indexExists(indexName)) {
+        val response = jestClient.execute(new DeleteIndex.Builder(indexName).build())
+        if (!response.isSucceeded) {
+          throw new ElasticsearchException(s"Unable to delete index $indexName. ErrorMessage: {}", response.getErrorMessage)
+        }
+      } else {
+        throw new IllegalArgumentException(s"No such index: $indexName")
+      }
+    }
+
+    def indexExists(indexName: String): Boolean = {
+      jestClient.execute(new IndicesExists.Builder(indexName).build()).isSucceeded
+    }
+
+    def getTimestamp: String = {
+      new SimpleDateFormat("yyyyMMddHHmmss").format(Calendar.getInstance.getTime)
     }
   }
 }

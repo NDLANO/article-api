@@ -9,20 +9,20 @@
 
 package no.ndla.articleapi.service.search
 
-import com.sksamuel.elastic4s.ElasticDsl._
-import com.sksamuel.elastic4s._
+import com.google.gson.JsonObject
 import com.typesafe.scalalogging.LazyLogging
+import io.searchbox.core.{Count, Search, SearchResult => JestSearchResult}
+import io.searchbox.params.Parameters
 import no.ndla.articleapi.ArticleApiProperties
 import no.ndla.articleapi.integration.ElasticClientComponent
-import no.ndla.articleapi.model.search.{SearchableArticleInformation, SearchableLanguageFormats}
-import no.ndla.articleapi.model.{ArticleSummary, Language, SearchResult, Sort}
+import no.ndla.articleapi.model._
+import no.ndla.network.ApplicationUrl
+import org.elasticsearch.ElasticsearchException
 import org.elasticsearch.index.IndexNotFoundException
-import org.elasticsearch.index.query.MatchQueryBuilder
-import org.elasticsearch.search.sort.SortOrder
-import org.elasticsearch.transport.RemoteTransportException
-import org.json4s.native.Serialization.read
+import org.elasticsearch.index.query.{BoolQueryBuilder, MatchQueryBuilder, QueryBuilders}
+import org.elasticsearch.search.builder.SearchSourceBuilder
+import org.elasticsearch.search.sort.{FieldSortBuilder, SortBuilders, SortOrder}
 
-import scala.collection.mutable.ListBuffer
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
@@ -32,73 +32,93 @@ trait SearchService {
 
   class SearchService extends LazyLogging {
 
-    val noCopyrightFilter = not(termQuery("license", "copyrighted"))
+    val noCopyright = QueryBuilders.boolQuery().mustNot(QueryBuilders.termQuery("license", "copyrighted"))
 
-    implicit object ContentHitAs extends HitAs[ArticleSummary] {
-      override def as(hit: RichSearchHit): ArticleSummary = {
-        implicit val formats = SearchableLanguageFormats.JSonFormats
-        searchConverterService.asArticleSummary(read[SearchableArticleInformation](hit.sourceAsString))
+    def getHits(response: JestSearchResult): Seq[ArticleSummary] = {
+      var resultList = Seq[ArticleSummary]()
+      response.getTotal match {
+        case count: Integer if count > 0 => {
+          val resultArray = response.getJsonObject.get("hits").asInstanceOf[JsonObject].get("hits").getAsJsonArray
+          val iterator = resultArray.iterator()
+          while (iterator.hasNext) {
+            resultList = resultList :+ hitAsArticleSummary(iterator.next().asInstanceOf[JsonObject].get("_source").asInstanceOf[JsonObject])
+          }
+          resultList
+        }
+        case _ => Seq()
       }
     }
 
+    def hitAsArticleSummary(hit: JsonObject): ArticleSummary = {
+      import scala.collection.JavaConversions._
+
+      ArticleSummary(
+        hit.get("id").getAsString,
+        hit.get("titles").getAsJsonObject.entrySet().to[Seq].map(entr => ArticleTitle(entr.getValue.getAsString, Some(entr.getKey))),
+        ApplicationUrl.get + hit.get("id").getAsString,
+        hit.get("license").getAsString)
+    }
+
     def all(language: Option[String], license: Option[String], page: Option[Int], pageSize: Option[Int], sort: Sort.Value): SearchResult = {
-      val searchLanguage = language.getOrElse(Language.DefaultLanguage)
-      val filterList = new ListBuffer[QueryDefinition]()
-      license.foreach(license => filterList += termQuery("license", license))
-      filterList += noCopyrightFilter
-
-      val theSearch = search in ArticleApiProperties.SearchIndex -> ArticleApiProperties.SearchDocument query filter(filterList)
-
-      executeSearch(theSearch, searchLanguage, sort, page, pageSize)
+      executeSearch(
+        language.getOrElse(Language.DefaultLanguage),
+        license,
+        sort,
+        page,
+        pageSize,
+        QueryBuilders.boolQuery())
     }
 
     def matchingQuery(query: Iterable[String], language: Option[String], license: Option[String], page: Option[Int], pageSize: Option[Int], sort: Sort.Value): SearchResult = {
       val searchLanguage = language.getOrElse(Language.DefaultLanguage)
 
-      val titleSearch = matchQuery(s"titles.$searchLanguage", query.mkString(" ")).operator(MatchQueryBuilder.Operator.AND)
-      val articleSearch = matchQuery(s"article.$searchLanguage", query.mkString(" ")).operator(MatchQueryBuilder.Operator.AND)
-      val tagSearch = matchQuery(s"tags.$searchLanguage", query.mkString(" ")).operator(MatchQueryBuilder.Operator.AND)
+      val titleSearch = QueryBuilders.matchQuery(s"titles.$searchLanguage", query.mkString(" ")).operator(MatchQueryBuilder.Operator.AND)
+      val articleSearch = QueryBuilders.matchQuery(s"article.$searchLanguage", query.mkString(" ")).operator(MatchQueryBuilder.Operator.AND)
+      val tagSearch = QueryBuilders.matchQuery(s"tags.$searchLanguage", query.mkString(" ")).operator(MatchQueryBuilder.Operator.AND)
 
-      val filterList = new ListBuffer[QueryDefinition]()
-      license.foreach(license => filterList += termQuery("license", license))
-      filterList += noCopyrightFilter
+      val fullSearch = QueryBuilders.boolQuery()
+        .must(QueryBuilders.boolQuery()
+          .should(QueryBuilders.nestedQuery("titles", titleSearch))
+          .should(QueryBuilders.nestedQuery("article", articleSearch))
+          .should(QueryBuilders.nestedQuery("tags", tagSearch)))
 
-      val theSearch = search in ArticleApiProperties.SearchIndex -> ArticleApiProperties.SearchDocument query {
-        bool {
-          must(
-            should(
-              nestedQuery("titles").query(titleSearch),
-              nestedQuery("article").query(articleSearch),
-              nestedQuery("tags").query(tagSearch)
-            ),
-            filter (filterList)
-          )
-        }
-      }
-      executeSearch(theSearch, searchLanguage, sort, page, pageSize)
+      executeSearch(searchLanguage, license, sort, page, pageSize, fullSearch)
     }
 
-    def getSortDefinition(sort: Sort.Value, language: String): SortDefinition = {
-      sort match {
-        case (Sort.ByTitleAsc) => fieldSort(s"titles.$language.raw").nestedPath("titles").order(SortOrder.ASC).missing("_last")
-        case (Sort.ByTitleDesc) => fieldSort(s"titles.$language.raw").nestedPath("titles").order(SortOrder.DESC).missing("_last")
-        case (Sort.ByRelevanceAsc) => fieldSort("_score").order(SortOrder.ASC)
-        case (Sort.ByRelevanceDesc) => fieldSort("_score").order(SortOrder.DESC)
+    def executeSearch(language: String, license: Option[String], sort: Sort.Value, page: Option[Int], pageSize: Option[Int], queryBuilder: BoolQueryBuilder): SearchResult = {
+      val filteredSearch = license match {
+        case None => queryBuilder.filter(noCopyright)
+        case Some(lic) => queryBuilder.filter(QueryBuilders.termQuery("license", lic))
       }
-    }
 
-    def executeSearch(search: SearchDefinition, language: String, sort: Sort.Value, page: Option[Int], pageSize: Option[Int]): SearchResult = {
+      val searchQuery = new SearchSourceBuilder().query(filteredSearch).sort(getSortDefinition(sort, language))
+
       val (startAt, numResults) = getStartAtAndNumResults(page, pageSize)
-      try {
-        val actualSearch = search.sort(getSortDefinition(sort, language)).start(startAt).limit(numResults)
-        val response = elasticClient.execute {
-          actualSearch
-        }.await
+      val request = new Search.Builder(searchQuery.toString)
+        .addIndex(ArticleApiProperties.SearchIndex)
+        .setParameter(Parameters.SIZE, numResults)
+        .setParameter("from", startAt)
 
-        SearchResult(response.getHits.getTotalHits, page.getOrElse(1), numResults, response.as[ArticleSummary])
-      } catch {
-        case e: RemoteTransportException => errorHandler(e.getCause)
+      val response = jestClient.execute(request.build())
+      response.isSucceeded match {
+        case true => SearchResult(response.getTotal.toLong, page.getOrElse(1), numResults, getHits(response))
+        case false => errorHandler(response)
       }
+    }
+
+    def getSortDefinition(sort: Sort.Value, language: String): FieldSortBuilder = {
+      sort match {
+        case (Sort.ByTitleAsc) => SortBuilders.fieldSort(s"titles.$language.raw").setNestedPath("titles").order(SortOrder.ASC).missing("_last")
+        case (Sort.ByTitleDesc) => SortBuilders.fieldSort(s"titles.$language.raw").setNestedPath("titles").order(SortOrder.DESC).missing("_last")
+        case (Sort.ByRelevanceAsc) => SortBuilders.fieldSort("_score").order(SortOrder.ASC)
+        case (Sort.ByRelevanceDesc) => SortBuilders.fieldSort("_score").order(SortOrder.DESC)
+      }
+    }
+
+    def countDocuments(): Int = {
+      jestClient.execute(
+        new Count.Builder().addIndex(ArticleApiProperties.SearchIndex).build()
+      ).getCount.toInt
     }
 
     def getStartAtAndNumResults(page: Option[Int], pageSize: Option[Int]): (Int, Int) = {
@@ -116,13 +136,17 @@ trait SearchService {
       (startAt, numResults)
     }
 
-    def errorHandler(exception: Throwable) = {
-      exception match {
-        case ex: IndexNotFoundException =>
-          logger.error(ex.getDetailedMessage)
+    private def errorHandler(response: JestSearchResult) = {
+      response.getResponseCode match {
+        case notFound: Int if notFound == 404 => {
+          logger.error(s"Index ${ArticleApiProperties.SearchIndex} not found. Scheduling a reindex.")
           scheduleIndexDocuments()
-          throw ex
-        case _ => throw exception
+          throw new IndexNotFoundException(s"Index ${ArticleApiProperties.SearchIndex} not found. Scheduling a reindex")
+        }
+        case _ => {
+          logger.error(response.getErrorMessage)
+          throw new ElasticsearchException(s"Unable to execute search in ${ArticleApiProperties.SearchIndex}", response.getErrorMessage)
+        }
       }
     }
 

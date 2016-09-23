@@ -10,14 +10,14 @@
 package no.ndla.articleapi
 
 import com.typesafe.scalalogging.LazyLogging
-import no.ndla.articleapi.model.Language
 
 import scala.collection.mutable
+import scala.io.Source
 
 object ArticleApiProperties extends LazyLogging {
   var ContentApiProps: mutable.Map[String, Option[String]] = mutable.HashMap()
 
-  val ApplicationPort = 80
+  lazy val ApplicationPort = getInt("APPLICATION_PORT")
 
   // When converting a content node, the converter may run several times over the content to make sure
   // everything is converted. This value defines a maximum number of times the converter runs on a node
@@ -45,8 +45,9 @@ object ArticleApiProperties extends LazyLogging {
   val ndlaBaseHost = "http://ndla.no/"
 
   val SearchHost = "search-engine"
-  lazy val SearchPort = get("SEARCH_ENGINE_ENV_TCP_PORT")
-  lazy val SearchClusterName = get("SEARCH_ENGINE_ENV_CLUSTER_NAME")
+  lazy val SearchServer = get("SEARCH_SERVER")
+  lazy val SearchRegion = get("SEARCH_REGION")
+  lazy val RunWithSignedSearchRequests = getBoolean("RUN_WITH_SIGNED_SEARCH_REQUESTS")
   lazy val SearchIndex = get("SEARCH_INDEX")
   lazy val SearchDocument = get("SEARCH_DOCUMENT")
   lazy val DefaultPageSize: Int = getInt("SEARCH_DEFAULT_PAGE_SIZE")
@@ -109,13 +110,17 @@ object ArticleApiProperties extends LazyLogging {
   def getInt(envKey: String):Integer = {
     get(envKey).toInt
   }
+
+  private def getBoolean(envKey: String): Boolean = {
+    get(envKey).toBoolean
+  }
 }
 
 object PropertiesLoader {
   val EnvironmentFile = "/article-api.env"
 
   def readPropertyFile(): Map[String,Option[String]] = {
-    val keys = io.Source.fromInputStream(getClass.getResourceAsStream(EnvironmentFile)).getLines().withFilter(line => line.matches("^\\w+$"))
+    val keys = Source.fromInputStream(getClass.getResourceAsStream(EnvironmentFile)).getLines().withFilter(line => line.matches("^\\w+$"))
     keys.map(key => key -> scala.util.Properties.envOrNone(key)).toMap
   }
 

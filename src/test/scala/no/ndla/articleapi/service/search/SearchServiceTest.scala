@@ -11,32 +11,60 @@ package no.ndla.articleapi.service.search
 
 import java.util.Date
 
-import com.sksamuel.elastic4s.testkit.ElasticSugar
-import no.ndla.articleapi.{TestEnvironment, UnitSuite}
+import no.ndla.articleapi.integration.JestClientFactory
 import no.ndla.articleapi.model._
+import no.ndla.articleapi.{TestEnvironment, UnitSuite}
+import org.elasticsearch.common.settings.Settings
+import org.elasticsearch.node.{Node, NodeBuilder}
+
+import scala.reflect.io.Path
 
 
-class SearchServiceTest extends UnitSuite with TestEnvironment with ElasticSugar {
+class SearchServiceTest extends UnitSuite with TestEnvironment {
 
-  override val elasticClient = client
+  val esHttpPort = 29999
+  val esDataDir = "esTestData"
+  var esNode: Node = _
+
+  override val jestClient = JestClientFactory.getClient(searchServer = s"http://localhost:$esHttpPort")
+
   override val searchService = new SearchService
   override val elasticContentIndex = new ElasticContentIndex
   override val searchConverterService = new SearchConverterService
 
   val byNcSa = Copyright(License("by-nc-sa", "Attribution-NonCommercial-ShareAlike", None), "Gotham City", List(Author("Forfatter", "DC Comics")))
   val publicDomain = Copyright(License("publicdomain", "Public Domain", None), "Metropolis", List(Author("Forfatter", "Bruce Wayne")))
+  val copyrighted = Copyright(License("copyrighted", "Copyrighted", None), "New York", List(Author("Forfatter", "Clark Kent")))
 
   val article1 = ArticleInformation("1", List(ArticleTitle("Batmen er på vift med en bil", Some("nb"))), List(Article("Bilde av en <strong>bil</strong> flaggermusmann som vifter med vingene <em>bil</em>.", None, Some("nb"))), byNcSa, List(ArticleTag(List("fugl"), Some("nb"))), List(), Seq(), Seq(), new Date(0), new Date(1), "fagstoff")
   val article2 = ArticleInformation("2", List(ArticleTitle("Pingvinen er ute og går", Some("nb"))), List(Article("<p>Bilde av en</p><p> en <em>pingvin</em> som vagger borover en gate</p>", None, Some("nb"))), publicDomain, List(ArticleTag(List("fugl"), Some("nb"))), List(), Seq(), Seq(), new Date(0), new Date(1), "fagstoff")
   val article3 = ArticleInformation("3", List(ArticleTitle("Donald Duck kjører bil", Some("nb"))), List(Article("<p>Bilde av en en and</p><p> som <strong>kjører</strong> en rød bil.</p>", None, Some("nb"))), publicDomain, List(ArticleTag(List("and"), Some("nb"))), List(), Seq(), Seq(), new Date(0), new Date(1), "fagstoff")
+  val article4 = ArticleInformation("4", List(ArticleTitle("Superman er ute og flyr", Some("nb"))), List(Article("<p>Bilde av en flygende mann</p><p> som <strong>har</strong> superkrefter.</p>", None, Some("nb"))), copyrighted, List(ArticleTag(List("supermann"), Some("nb"))), List(), Seq(), Seq(), new Date(0), new Date(1), "fagstoff")
 
   override def beforeAll = {
-    val indexName = elasticContentIndex.create()
-    elasticContentIndex.updateAliasTarget(None, indexName)
-    elasticContentIndex.indexDocuments(List(article1, article2, article3), indexName)
+    val settings = Settings.settingsBuilder()
+      .put("path.home", esDataDir)
+      .put("index.number_of_shards", "1")
+      .put("index.number_of_replicas", "0")
+      .put("http.port", esHttpPort)
+      .build()
 
-    blockUntilCount(3, indexName)
+    esNode = new NodeBuilder().settings(settings).node()
+    esNode.start()
+
+
+    val indexName = elasticContentIndex.createIndex()
+    elasticContentIndex.updateAliasTarget(None, indexName)
+    elasticContentIndex.indexDocuments(List(article1, article2, article3, article4), indexName)
+
+    blockUntil(() => searchService.countDocuments() == 4)
   }
+
+  override def afterAll() = {
+    esNode.close()
+    Path(esDataDir).deleteRecursively()
+  }
+
 
   test("That getStartAtAndNumResults returns default values for None-input") {
     searchService.getStartAtAndNumResults(None, None) should equal((0, DEFAULT_PAGE_SIZE))
@@ -104,5 +132,33 @@ class SearchServiceTest extends UnitSuite with TestEnvironment with ElasticSugar
     val results = searchService.matchingQuery(Seq("and"), Some("nb"), None, None, None, Sort.ByTitleAsc)
     results.totalCount should be (1)
     results.results.head.id should be ("3")
+  }
+
+  test("That search does not return superman since it has license copyrighted and license is not specified") {
+    val results = searchService.matchingQuery(Seq("supermann"), Some("nb"), None, None, None, Sort.ByTitleAsc)
+    results.totalCount should be (0)
+  }
+
+  test("That search returns superman since license is specified as copyrighted") {
+    val results = searchService.matchingQuery(Seq("supermann"), Some("nb"), Some("copyrighted"), None, None, Sort.ByTitleAsc)
+    results.totalCount should be (1)
+    results.results.head.id should be ("4")
+  }
+
+  def blockUntil(predicate: () => Boolean) = {
+    var backoff = 0
+    var done = false
+
+    while (backoff <= 16 && !done) {
+      if (backoff > 0) Thread.sleep(200 * backoff)
+      backoff = backoff + 1
+      try {
+        done = predicate()
+      } catch {
+        case e: Throwable => println("problem while testing predicate", e)
+      }
+    }
+
+    require(done, s"Failed waiting for predicate")
   }
 }

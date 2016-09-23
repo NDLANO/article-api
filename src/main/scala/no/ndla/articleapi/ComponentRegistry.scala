@@ -13,6 +13,7 @@ import com.amazonaws.auth.BasicAWSCredentials
 import com.amazonaws.regions.{Region, Regions}
 import com.amazonaws.services.s3.AmazonS3Client
 import com.sksamuel.elastic4s.{ElasticClient, ElasticsearchClientUri}
+import io.searchbox.client.JestClient
 import no.ndla.articleapi.controller.{ArticleController, InternController}
 import no.ndla.articleapi.integration._
 import no.ndla.articleapi.repository.ArticleRepositoryComponent
@@ -68,10 +69,6 @@ object ComponentRegistry
   lazy val articleController = new ArticleController
   lazy val resourcesApp = new ResourcesApp
 
-  lazy val elasticClient = ElasticClient.transport(
-    Settings.settingsBuilder().put("cluster.name", ArticleApiProperties.SearchClusterName).build(),
-    ElasticsearchClientUri(s"elasticsearch://${ArticleApiProperties.SearchHost}:${ArticleApiProperties.SearchPort}"))
-
   lazy val articleRepository = new ArticleRepository
   lazy val searchService = new SearchService
   lazy val elasticContentIndex = new ElasticContentIndex
@@ -103,4 +100,5 @@ object ComponentRegistry
   lazy val biblioConverter = new BiblioConverter
   lazy val converterModules = List(SimpleTagConverter, biblioConverter, DivTableConverter, contentBrowserConverter)
   lazy val postProcessorModules = List(HTMLCleaner)
+  lazy val jestClient: JestClient = JestClientFactory.getClient()
 }
