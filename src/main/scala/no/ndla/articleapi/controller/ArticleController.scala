@@ -42,7 +42,7 @@ trait ArticleController {
           """The sorting used on results.
            Default is by -relevance (desc) when querying.
            When browsing, the default is title (asc).
-           The following are supported: relevance, -relevance, title, -title""".stripMargin)
+           The following are supported: relevance, -relevance, title, -title, lastUpdated, -lastUpdated""".stripMargin)
         ))
 
     val getArticleById =

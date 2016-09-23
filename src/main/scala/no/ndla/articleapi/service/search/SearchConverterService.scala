@@ -25,6 +25,7 @@ trait SearchConverterService {
         titles = SearchableLanguageValues(ai.titles.map(title => LanguageValue(title.language, title.title))),
         article = SearchableLanguageValues(ai.article.map(article => LanguageValue(article.language, Jsoup.parseBodyFragment(article.article).text()))),
         tags = SearchableLanguageList(ai.tags.map(tag => LanguageValue(tag.language, tag.tags))),
+        lastUpdated = ai.updated,
         license = ai.copyright.license.license,
         authors = ai.copyright.authors.map(_.name))
     }

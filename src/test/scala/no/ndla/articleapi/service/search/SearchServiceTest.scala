@@ -16,6 +16,7 @@ import no.ndla.articleapi.model._
 import no.ndla.articleapi.{TestEnvironment, UnitSuite}
 import org.elasticsearch.common.settings.Settings
 import org.elasticsearch.node.{Node, NodeBuilder}
+import org.joda.time.DateTime
 
 import scala.reflect.io.Path
 
@@ -36,10 +37,12 @@ class SearchServiceTest extends UnitSuite with TestEnvironment {
   val publicDomain = Copyright(License("publicdomain", "Public Domain", None), "Metropolis", List(Author("Forfatter", "Bruce Wayne")))
   val copyrighted = Copyright(License("copyrighted", "Copyrighted", None), "New York", List(Author("Forfatter", "Clark Kent")))
 
-  val article1 = ArticleInformation("1", List(ArticleTitle("Batmen er på vift med en bil", Some("nb"))), List(Article("Bilde av en <strong>bil</strong> flaggermusmann som vifter med vingene <em>bil</em>.", None, Some("nb"))), byNcSa, List(ArticleTag(List("fugl"), Some("nb"))), List(), Seq(), Seq(), new Date(0), new Date(1), "fagstoff")
-  val article2 = ArticleInformation("2", List(ArticleTitle("Pingvinen er ute og går", Some("nb"))), List(Article("<p>Bilde av en</p><p> en <em>pingvin</em> som vagger borover en gate</p>", None, Some("nb"))), publicDomain, List(ArticleTag(List("fugl"), Some("nb"))), List(), Seq(), Seq(), new Date(0), new Date(1), "fagstoff")
-  val article3 = ArticleInformation("3", List(ArticleTitle("Donald Duck kjører bil", Some("nb"))), List(Article("<p>Bilde av en en and</p><p> som <strong>kjører</strong> en rød bil.</p>", None, Some("nb"))), publicDomain, List(ArticleTag(List("and"), Some("nb"))), List(), Seq(), Seq(), new Date(0), new Date(1), "fagstoff")
-  val article4 = ArticleInformation("4", List(ArticleTitle("Superman er ute og flyr", Some("nb"))), List(Article("<p>Bilde av en flygende mann</p><p> som <strong>har</strong> superkrefter.</p>", None, Some("nb"))), copyrighted, List(ArticleTag(List("supermann"), Some("nb"))), List(), Seq(), Seq(), new Date(0), new Date(1), "fagstoff")
+  val today = DateTime.now()
+
+  val article1 = ArticleInformation("1", List(ArticleTitle("Batmen er på vift med en bil", Some("nb"))), List(Article("Bilde av en <strong>bil</strong> flaggermusmann som vifter med vingene <em>bil</em>.", None, Some("nb"))), byNcSa, List(ArticleTag(List("fugl"), Some("nb"))), List(), Seq(), Seq(), today.minusDays(4).toDate, today.minusDays(3).toDate, "fagstoff")
+  val article2 = ArticleInformation("2", List(ArticleTitle("Pingvinen er ute og går", Some("nb"))), List(Article("<p>Bilde av en</p><p> en <em>pingvin</em> som vagger borover en gate</p>", None, Some("nb"))), publicDomain, List(ArticleTag(List("fugl"), Some("nb"))), List(), Seq(), Seq(), today.minusDays(4).toDate, today.minusDays(2).toDate, "fagstoff")
+  val article3 = ArticleInformation("3", List(ArticleTitle("Donald Duck kjører bil", Some("nb"))), List(Article("<p>Bilde av en en and</p><p> som <strong>kjører</strong> en rød bil.</p>", None, Some("nb"))), publicDomain, List(ArticleTag(List("and"), Some("nb"))), List(), Seq(), Seq(), today.minusDays(4).toDate, today.minusDays(1).toDate, "fagstoff")
+  val article4 = ArticleInformation("4", List(ArticleTitle("Superman er ute og flyr", Some("nb"))), List(Article("<p>Bilde av en flygende mann</p><p> som <strong>har</strong> superkrefter.</p>", None, Some("nb"))), copyrighted, List(ArticleTag(List("supermann"), Some("nb"))), List(), Seq(), Seq(), today.minusDays(4).toDate, today.toDate, "fagstoff")
 
   override def beforeAll = {
     val settings = Settings.settingsBuilder()
@@ -92,6 +95,20 @@ class SearchServiceTest extends UnitSuite with TestEnvironment {
     results.totalCount should be (3)
     results.results.head.id should be ("1")
     results.results.last.id should be ("2")
+  }
+
+  test("That all returns all documents ordered by lastUpdated descending") {
+    val results = searchService.all(None, None, None, None, Sort.ByLastUpdatedDesc)
+    results.totalCount should be (3)
+    results.results.head.id should be ("3")
+    results.results.last.id should be ("1")
+  }
+
+  test("That all returns all documents ordered by lastUpdated ascending") {
+    val results = searchService.all(None, None, None, None, Sort.ByLastUpdatedAsc)
+    results.totalCount should be (3)
+    results.results.head.id should be ("1")
+    results.results.last.id should be ("3")
   }
 
   test("That all filtering on license only returns documents with given license") {

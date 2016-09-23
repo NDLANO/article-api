@@ -13,7 +13,7 @@ import java.text.SimpleDateFormat
 import java.util.Calendar
 
 import com.sksamuel.elastic4s.ElasticDsl._
-import com.sksamuel.elastic4s.mappings.FieldType.{IntegerType, StringType}
+import com.sksamuel.elastic4s.mappings.FieldType.{DateType, IntegerType, StringType}
 import com.sksamuel.elastic4s.mappings.NestedFieldDefinition
 import com.typesafe.scalalogging.LazyLogging
 import io.searchbox.core.{Bulk, Index}
@@ -77,6 +77,7 @@ trait ElasticContentIndexComponent {
         languageSupportedField("titles", keepRaw = true),
         languageSupportedField("article", keepRaw = false),
         languageSupportedField("tags", keepRaw = false),
+        "lastUpdated" typed DateType,
         "license" typed StringType index "not_analyzed",
         "authors" typed StringType
       ).buildWithName.string()

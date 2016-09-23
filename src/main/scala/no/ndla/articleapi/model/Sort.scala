@@ -13,6 +13,9 @@ object Sort  extends Enumeration {
   val ByRelevanceAsc = Value("relevance")
   val ByTitleDesc = Value("-title")
   val ByTitleAsc = Value("title")
+  val ByLastUpdatedDesc = Value("-lastUpdated")
+  val ByLastUpdatedAsc = Value("lastUpdated")
+
 
   def valueOf(s:String): Option[Sort.Value] = {
     Sort.values.find(_.toString == s)
