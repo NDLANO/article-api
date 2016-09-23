@@ -33,7 +33,7 @@ trait SearchConverterService {
     def asArticleSummary(searchableArticle: SearchableArticle): ArticleSummary = {
       ArticleSummary(
         id = searchableArticle.id,
-        titles = searchableArticle.title.languageValues.map(lv => ArticleTitle(lv.value, lv.lang)),
+        title = searchableArticle.title.languageValues.map(lv => ArticleTitle(lv.value, lv.lang)),
         url = createUrlToLearningPath(searchableArticle.id),
         license = searchableArticle.license)
     }

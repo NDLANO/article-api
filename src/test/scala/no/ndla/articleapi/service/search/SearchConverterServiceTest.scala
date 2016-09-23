@@ -77,7 +77,7 @@ class SearchConverterServiceTest extends UnitSuite with TestEnvironment {
 
     articleSummary.id should equal (article.id)
     articleSummary.license should equal (article.copyright.license.license)
-    articleSummary.titles should equal (article.title)
+    articleSummary.title should equal (article.title)
   }
 
   private def verifyTitles(searchableArticle: SearchableArticle): Unit = {
