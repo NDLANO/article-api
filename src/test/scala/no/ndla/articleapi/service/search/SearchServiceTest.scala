@@ -9,8 +9,6 @@
 
 package no.ndla.articleapi.service.search
 
-import java.util.Date
-
 import no.ndla.articleapi.integration.JestClientFactory
 import no.ndla.articleapi.model._
 import no.ndla.articleapi.{TestEnvironment, UnitSuite}
@@ -39,12 +37,13 @@ class SearchServiceTest extends UnitSuite with TestEnvironment {
 
   val today = DateTime.now()
 
-  val article1 = ArticleInformation("1", List(ArticleTitle("Batmen er på vift med en bil", Some("nb"))), List(Article("Bilde av en <strong>bil</strong> flaggermusmann som vifter med vingene <em>bil</em>.", None, Some("nb"))), byNcSa, List(ArticleTag(List("fugl"), Some("nb"))), List(), Seq(), Seq(), today.minusDays(4).toDate, today.minusDays(3).toDate, "fagstoff")
-  val article2 = ArticleInformation("2", List(ArticleTitle("Pingvinen er ute og går", Some("nb"))), List(Article("<p>Bilde av en</p><p> en <em>pingvin</em> som vagger borover en gate</p>", None, Some("nb"))), publicDomain, List(ArticleTag(List("fugl"), Some("nb"))), List(), Seq(), Seq(), today.minusDays(4).toDate, today.minusDays(2).toDate, "fagstoff")
-  val article3 = ArticleInformation("3", List(ArticleTitle("Donald Duck kjører bil", Some("nb"))), List(Article("<p>Bilde av en en and</p><p> som <strong>kjører</strong> en rød bil.</p>", None, Some("nb"))), publicDomain, List(ArticleTag(List("and"), Some("nb"))), List(), Seq(), Seq(), today.minusDays(4).toDate, today.minusDays(1).toDate, "fagstoff")
-  val article4 = ArticleInformation("4", List(ArticleTitle("Superman er ute og flyr", Some("nb"))), List(Article("<p>Bilde av en flygende mann</p><p> som <strong>har</strong> superkrefter.</p>", None, Some("nb"))), copyrighted, List(ArticleTag(List("supermann"), Some("nb"))), List(), Seq(), Seq(), today.minusDays(4).toDate, today.toDate, "fagstoff")
+  val article1 = Article("1", List(ArticleTitle("Batmen er på vift med en bil", Some("nb"))), List(ArticleContent("Bilde av en <strong>bil</strong> flaggermusmann som vifter med vingene <em>bil</em>.", None, Some("nb"))), byNcSa, List(ArticleTag(List("fugl"), Some("nb"))), List(), Seq(), Seq(), today.minusDays(4).toDate, today.minusDays(3).toDate, "fagstoff")
+  val article2 = Article("2", List(ArticleTitle("Pingvinen er ute og går", Some("nb"))), List(ArticleContent("<p>Bilde av en</p><p> en <em>pingvin</em> som vagger borover en gate</p>", None, Some("nb"))), publicDomain, List(ArticleTag(List("fugl"), Some("nb"))), List(), Seq(), Seq(), today.minusDays(4).toDate, today.minusDays(2).toDate, "fagstoff")
+  val article3 = Article("3", List(ArticleTitle("Donald Duck kjører bil", Some("nb"))), List(ArticleContent("<p>Bilde av en en and</p><p> som <strong>kjører</strong> en rød bil.</p>", None, Some("nb"))), publicDomain, List(ArticleTag(List("and"), Some("nb"))), List(), Seq(), Seq(), today.minusDays(4).toDate, today.minusDays(1).toDate, "fagstoff")
+  val article4 = Article("4", List(ArticleTitle("Superman er ute og flyr", Some("nb"))), List(ArticleContent("<p>Bilde av en flygende mann</p><p> som <strong>har</strong> superkrefter.</p>", None, Some("nb"))), copyrighted, List(ArticleTag(List("supermann"), Some("nb"))), List(), Seq(), Seq(), today.minusDays(4).toDate, today.toDate, "fagstoff")
 
   override def beforeAll = {
+    Path(esDataDir).deleteRecursively()
     val settings = Settings.settingsBuilder()
       .put("path.home", esDataDir)
       .put("index.number_of_shards", "1")

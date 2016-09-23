@@ -25,22 +25,22 @@ case class ArticleSummary(
 )
 
 @ApiModel(description = "Information about the article")
-case class ArticleInformation(@(ApiModelProperty@field)(description = "The unique id of the article") id: String,
-                              @(ApiModelProperty@field)(description = "Available titles for the article") titles: Seq[ArticleTitle],
-                              @(ApiModelProperty@field)(description = "The article in available languages") article: Seq[Article],
-                              @(ApiModelProperty@field)(description = "Describes the copyright information for the article") copyright: Copyright,
-                              @(ApiModelProperty@field)(description = "Searchable tags for the article") tags: Seq[ArticleTag],
-                              @(ApiModelProperty@field)(description = "Required libraries in order to render the article") requiredLibraries: Seq[RequiredLibrary],
-                              @(ApiModelProperty@field)(description = "A visual element article") visualElement: Seq[VisualElement],
-                              @(ApiModelProperty@field)(description = "An introduction for the article") introduction: Seq[ArticleIntroduction],
-                              @(ApiModelProperty@field)(description = "When the article was created") created: Date,
-                              @(ApiModelProperty@field)(description = "When the article was last updated") updated: Date,
-                              @(ApiModelProperty@field)(description = "The type of learning resource") contentType: String)
+case class Article(@(ApiModelProperty@field)(description = "The unique id of the article") id: String,
+                   @(ApiModelProperty@field)(description = "Available titles for the article") title: Seq[ArticleTitle],
+                   @(ApiModelProperty@field)(description = "The content of the article in available languages") content: Seq[ArticleContent],
+                   @(ApiModelProperty@field)(description = "Describes the copyright information for the article") copyright: Copyright,
+                   @(ApiModelProperty@field)(description = "Searchable tags for the article") tags: Seq[ArticleTag],
+                   @(ApiModelProperty@field)(description = "Required libraries in order to render the article") requiredLibraries: Seq[RequiredLibrary],
+                   @(ApiModelProperty@field)(description = "A visual element article") visualElement: Seq[VisualElement],
+                   @(ApiModelProperty@field)(description = "An introduction for the article") introduction: Seq[ArticleIntroduction],
+                   @(ApiModelProperty@field)(description = "When the article was created") created: Date,
+                   @(ApiModelProperty@field)(description = "When the article was last updated") updated: Date,
+                   @(ApiModelProperty@field)(description = "The type of learning resource") contentType: String)
 
-@ApiModel(description = "The article in the specified language")
-case class Article(@(ApiModelProperty@field)(description = "The html article") article: String,
-                   @(ApiModelProperty@field)(description = "Foot notes referred to within the html article") footNotes: Option[Map[String, FootNoteItem]],
-                   @(ApiModelProperty@field)(description = "ISO 639-1 code that represents the language used in title") language: Option[String])
+@ApiModel(description = "The content of the article in the specified language")
+case class ArticleContent(@(ApiModelProperty@field)(description = "The html content") content: String,
+                          @(ApiModelProperty@field)(description = "Foot notes referred to within the html article") footNotes: Option[Map[String, FootNoteItem]],
+                          @(ApiModelProperty@field)(description = "ISO 639-1 code that represents the language used in title") language: Option[String])
 
 @ApiModel(description = "Description of a title")
 case class ArticleTitle(@(ApiModelProperty@field)(description = "The freetext title of the article") title: String,

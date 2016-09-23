@@ -68,5 +68,5 @@ case class LanguageContent(nid: String, tnid: String, content: String, language:
   def isMainNode = nid == tnid || tnid == "0"
   def isTranslation = !isMainNode
 
-  def asContent: Article = Article(content, footNotes, language)
+  def asContent: ArticleContent = ArticleContent(content, footNotes, language)
 }

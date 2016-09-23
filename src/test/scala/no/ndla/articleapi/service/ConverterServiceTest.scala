@@ -44,8 +44,8 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
 
     when(extractConvertStoreContent.processNode("4321")).thenReturn(Try(1: Long, ImportStatus(Seq(), Seq())))
 
-    val (result, status) = service.toArticleInformation(node, ImportStatus(Seq(), Seq()))
-    val strippedResult = result.article.head.article.replace("\n", "").replace(" ", "")
+    val (result, status) = service.toArticle(node, ImportStatus(Seq(), Seq()))
+    val strippedResult = result.content.head.content.replace("\n", "").replace(" ", "")
 
     strippedResult should equal (expedtedResult)
   }
@@ -67,8 +67,8 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     when(extractService.getNodeType(nodeId2)).thenReturn(Some("oppgave"))
     when(extractService.getNodeGeneralContent(nodeId2)).thenReturn(Seq(sampleOppgave2))
 
-    val (result, status) = service.toArticleInformation(node, ImportStatus(Seq(), Seq()))
-    result.article.head.article.replace("\n", "") should equal ("<article>  Innhold! Enda mer innhold! </article>")
+    val (result, status) = service.toArticle(node, ImportStatus(Seq(), Seq()))
+    result.content.head.content.replace("\n", "") should equal ("<article>  Innhold! Enda mer innhold! </article>")
     status.messages.isEmpty should equal (true)
     result.requiredLibraries.isEmpty should equal (true)
   }
@@ -85,9 +85,9 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     val bokmalExpectedResult = "<article> Nordavinden og sola kranglet en gang om hvem av dem som var den sterkeste </article>"
     val nynorskExpectedResult = "<article> Nordavinden og sola krangla ein gong om kven av dei som var den sterkaste </article>"
 
-    val (result, status) = service.toArticleInformation(node, ImportStatus(Seq(), Seq()))
-    val bokmalStrippedResult = " +".r.replaceAllIn(result.article.head.article.replace("\n", ""), " ")
-    val nynorskStrippedResult = " +".r.replaceAllIn(result.article.last.article.replace("\n", ""), " ")
+    val (result, status) = service.toArticle(node, ImportStatus(Seq(), Seq()))
+    val bokmalStrippedResult = " +".r.replaceAllIn(result.content.head.content.replace("\n", ""), " ")
+    val nynorskStrippedResult = " +".r.replaceAllIn(result.content.last.content.replace("\n", ""), " ")
 
     bokmalStrippedResult should equal (bokmalExpectedResult)
     nynorskStrippedResult should equal (nynorskExpectedResult)
@@ -100,8 +100,8 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     val node = NodeToConvert(List(contentTitle), List(contentNodeBokmal), copyright, List(tag), Seq(visualElement), Seq(), "fagstoff", new Date(0), new Date(1))
     val bokmalExpectedResult = """<article> <table data-resource="test"></table> </article>"""
 
-    val (result, status) = service.toArticleInformation(node, ImportStatus(Seq(), Seq()))
-    val bokmalStrippedResult = " +".r.replaceAllIn(result.article.head.article.replace("\n", ""), " ")
+    val (result, status) = service.toArticle(node, ImportStatus(Seq(), Seq()))
+    val bokmalStrippedResult = " +".r.replaceAllIn(result.content.head.content.replace("\n", ""), " ")
 
     bokmalStrippedResult should equal (bokmalExpectedResult)
     status.messages.nonEmpty should equal (true)
@@ -113,8 +113,8 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     val node = NodeToConvert(List(contentTitle), List(contentNodeBokmal), copyright, List(tag), Seq(visualElement), Seq(), "fagstoff", new Date(0), new Date(1))
     val expectedResult = """<article> <p> </p> </article>"""
 
-    val (result, status) = service.toArticleInformation(node, ImportStatus(Seq(), Seq()))
-    val strippedResult = " +".r.replaceAllIn(result.article.head.article.replace("\n", ""), " ")
+    val (result, status) = service.toArticle(node, ImportStatus(Seq(), Seq()))
+    val strippedResult = " +".r.replaceAllIn(result.content.head.content.replace("\n", ""), " ")
 
     strippedResult should equal (expectedResult)
     status.messages.isEmpty should equal (true)
