@@ -12,14 +12,12 @@ package no.ndla.articleapi
 import com.amazonaws.auth.BasicAWSCredentials
 import com.amazonaws.regions.{Region, Regions}
 import com.amazonaws.services.s3.AmazonS3Client
-import com.sksamuel.elastic4s.{ElasticClient, ElasticsearchClientUri}
 import io.searchbox.client.JestClient
-import no.ndla.articleapi.controller.{ArticleController, InternController}
+import no.ndla.articleapi.controller.{ArticleController, HealthController, InternController}
 import no.ndla.articleapi.integration._
 import no.ndla.articleapi.repository.ArticleRepositoryComponent
 import no.ndla.articleapi.service._
 import no.ndla.articleapi.service.converters.{BiblioConverter, DivTableConverter, HTMLCleaner, SimpleTagConverter}
-import org.elasticsearch.common.settings.Settings
 import no.ndla.articleapi.service.converters.contentbrowser._
 import no.ndla.articleapi.service.search.{ElasticContentIndexComponent, SearchConverterService, SearchIndexServiceComponent, SearchService}
 import no.ndla.network.NdlaClient
@@ -29,6 +27,7 @@ object ComponentRegistry
   extends DataSourceComponent
   with InternController
   with ArticleController
+  with HealthController
   with ArticleRepositoryComponent
   with ElasticClientComponent
   with SearchService
@@ -68,6 +67,7 @@ object ComponentRegistry
   lazy val internController = new InternController
   lazy val articleController = new ArticleController
   lazy val resourcesApp = new ResourcesApp
+  lazy val healthController = new HealthController
 
   lazy val articleRepository = new ArticleRepository
   lazy val searchService = new SearchService
