@@ -24,24 +24,24 @@ class ContentBrowserConverterTest extends UnitSuite with TestEnvironment {
 
   test("That content-browser strings are replaced") {
     val initialContent = LanguageContent(nodeId, nodeId, s"<article><p>$sampleContentString</p></article>", Some("en"))
-    val expectedResult = s"<article> <p>{Unsupported content unsupported type: ${nodeId}}</p></article>"
+    val expectedResult = s"<article><p>{Unsupported content unsupported type: ${nodeId}}</p></article>"
 
     when(extractService.getNodeType(nodeId)).thenReturn(Some("unsupported type"))
     val (result, status) = contentBrowserConverter.convert(initialContent, ImportStatus(Seq(), Seq()))
 
-    result.content.replace("\n", "") should equal (expectedResult)
+    result.content should equal (expectedResult)
     result.requiredLibraries.length should equal (0)
   }
 
   test("That content-browser strings of type h5p_content are converted correctly") {
     val nodeId = "1234"
     val initialContent = LanguageContent(nodeId, nodeId, s"<article>$sampleContentString</article>", Some("en"))
-    val expectedResult = s"""<article> <figure data-resource="h5p" data-id="1" data-url="http://ndla.no/h5p/embed/${nodeId}"></figure></article>"""
+    val expectedResult = s"""<article><figure data-resource="h5p" data-id="1" data-url="http://ndla.no/h5p/embed/${nodeId}"></figure></article>"""
 
     when(extractService.getNodeType(nodeId)).thenReturn(Some("h5p_content"))
     val (result, status) = contentBrowserConverter.convert(initialContent, ImportStatus(Seq(), Seq()))
 
-    result.content.replace("\n", "") should equal (expectedResult)
+    result.content should equal (expectedResult)
     result.requiredLibraries.length should equal (1)
   }
 
@@ -50,15 +50,16 @@ class ContentBrowserConverterTest extends UnitSuite with TestEnvironment {
     val initialContent = LanguageContent(nodeId, nodeId, s"<article>$sampleContentString</article>", Some("en"))
     val imageMeta = ImageMetaInformation("1", List(), List(), ImageVariants(Some(Image("small.jpeg", 128, "")), Some(Image(imageUrl, 256, ""))), Copyright(License("", "", Some("")), "", List()), List())
     val expectedResult =
-      s"""<article>
-        | <figure data-resource="image" data-id="1" data-url="http://localhost/images/${imageMeta.id}" data-size="fullbredde"></figure>
-         |</article>""".stripMargin.replace("\n", "")
+      s"""
+        |<article>
+        |<figure data-resource="image" data-id="1" data-url="http://localhost/images/${imageMeta.id}" data-size="fullbredde"></figure>
+        |</article>""".stripMargin.replace("\n", "")
 
     when(extractService.getNodeType(nodeId)).thenReturn((Some("image")))
     when(imageApiService.getMetaByExternId(nodeId)).thenReturn(Some(imageMeta))
     val (result, status) = contentBrowserConverter.convert(initialContent, ImportStatus(Seq(), Seq()))
 
-    result.content.replace("\n", "") should equal (expectedResult)
+    result.content should equal (expectedResult)
     result.requiredLibraries.length should equal (0)
   }
 
@@ -67,13 +68,13 @@ class ContentBrowserConverterTest extends UnitSuite with TestEnvironment {
     val contentTitle = "Oppgave title"
     val content = """<div class="paragraph">   Very important oppgave text  </div>"""
     val oppgave = NodeGeneralContent(nodeId, nodeId, contentTitle, content, "no")
-    val expectedResult = s"""<article> $content</article>"""
+    val expectedResult = s"""<article>$content</article>"""
 
     when(extractService.getNodeType(nodeId)).thenReturn(Some("oppgave"))
     when(extractService.getNodeGeneralContent(nodeId)).thenReturn(List(oppgave))
     val (result, status) = contentBrowserConverter.convert(initialContent, ImportStatus(Seq(), Seq()))
 
-    result.content.replace("\n", "") should equal (expectedResult)
+    result.content should equal (expectedResult)
   }
 
 
@@ -82,13 +83,13 @@ class ContentBrowserConverterTest extends UnitSuite with TestEnvironment {
     val contentTitle = "Fasgtoff title"
     val content = """<div class="paragraph">   Very important fagstoff text  </div>"""
     val oppgave = NodeGeneralContent(nodeId, nodeId, contentTitle, content, "no")
-    val expectedResult = s"""<article> $content</article>"""
+    val expectedResult = s"""<article>$content</article>"""
 
     when(extractService.getNodeType(nodeId)).thenReturn(Some("fagstoff"))
     when(extractService.getNodeGeneralContent(nodeId)).thenReturn(List(oppgave))
     val (result, status) = contentBrowserConverter.convert(initialContent, ImportStatus(Seq(), Seq()))
 
-    result.content.replace("\n", "") should equal (expectedResult)
+    result.content should equal (expectedResult)
   }
 
   test("That Content-browser strings of type aktualitet are converted into content") {
@@ -96,13 +97,13 @@ class ContentBrowserConverterTest extends UnitSuite with TestEnvironment {
     val contentTitle = "Aktualitet title"
     val content = """<div class="paragraph">   Very important aktualitet text  </div>"""
     val oppgave = NodeGeneralContent(nodeId, nodeId, contentTitle, content, "no")
-    val expectedResult = s"""<article> $content</article>"""
+    val expectedResult = s"""<article>$content</article>"""
 
     when(extractService.getNodeType(nodeId)).thenReturn(Some("aktualitet"))
     when(extractService.getNodeGeneralContent(nodeId)).thenReturn(List(oppgave))
     val (result, status) = contentBrowserConverter.convert(initialContent, ImportStatus(Seq(), Seq()))
 
-    result.content.replace("\n", "") should equal (expectedResult)
+    result.content should equal (expectedResult)
   }
 
   test("That Content-browser strings of type veiledning are converted into content") {
@@ -110,34 +111,34 @@ class ContentBrowserConverterTest extends UnitSuite with TestEnvironment {
     val contentTitle = "Veiledning title"
     val content = """<div class="paragraph">   Very important veiledning text  </div>"""
     val oppgave = NodeGeneralContent(nodeId, nodeId, contentTitle, content, "no")
-    val expectedResult = s"""<article> $content</article>"""
+    val expectedResult = s"""<article>$content</article>"""
 
     when(extractService.getNodeType(nodeId)).thenReturn(Some("veiledning"))
     when(extractService.getNodeGeneralContent(nodeId)).thenReturn(List(oppgave))
     val (result, status) = contentBrowserConverter.convert(initialContent, ImportStatus(Seq(), Seq()))
 
-    result.content.replace("\n", "") should equal (expectedResult)
+    result.content should equal (expectedResult)
   }
 
   test("That Content-browser strings of type video are converted into HTML img tags") {
     val initialContent = LanguageContent(nodeId, nodeId, s"<article>$sampleContentString</article>", Some("en"))
-    val expectedResult = s"""<article> <figure data-resource="brightcove" data-id="1" data-videoid="ref:$nodeId" data-account="$NDLABrightcoveAccountId" data-player="$NDLABrightcovePlayerId"></figure></article>"""
+    val expectedResult = s"""<article><figure data-resource="brightcove" data-id="1" data-videoid="ref:$nodeId" data-account="$NDLABrightcoveAccountId" data-player="$NDLABrightcovePlayerId"></figure></article>"""
 
     when(extractService.getNodeType(nodeId)).thenReturn((Some("video")))
     val (result, status) = contentBrowserConverter.convert(initialContent, ImportStatus(Seq(), Seq()))
     val strippedResult = " +".r.replaceAllIn(result.content.replace("\n", ""), " ")
 
-    strippedResult.replace("\n", "") should equal (expectedResult)
+    strippedResult should equal (expectedResult)
     result.requiredLibraries.length should equal (1)
   }
 
   test("That content-browser strings of type biblio are converted into content") {
     val initialContent = LanguageContent(nodeId, nodeId, s"""<article>$sampleContentString</a><h1>CONTENT</h1>more content</article>""", Some("en"))
-    val expectedResult = s"""<article> <a id="biblio-$nodeId"></a> <h1>CONTENT</h1>more content</article>"""
+    val expectedResult = s"""<article><a id="biblio-$nodeId"></a><h1>CONTENT</h1>more content</article>"""
 
     when(extractService.getNodeType(nodeId)).thenReturn(Some("biblio"))
     val (result, status) = contentBrowserConverter.convert(initialContent, ImportStatus(Seq(), Seq()))
-    val strippedContent = " +".r.replaceAllIn(result.content.replace("\n", ""), " ")
+    val strippedContent = " +".r.replaceAllIn(result.content, " ")
 
     strippedContent should equal (expectedResult)
     status.messages.isEmpty should be (true)
