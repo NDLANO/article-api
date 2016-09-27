@@ -13,6 +13,7 @@ import com.typesafe.scalalogging.LazyLogging
 import no.ndla.articleapi.model.{ImportStatus, RequiredLibrary}
 import no.ndla.articleapi.service.ImageApiServiceComponent
 import no.ndla.articleapi.ArticleApiProperties.imageApiUrl
+import no.ndla.articleapi.service.converters.HtmlFigureGenerator
 
 trait ImageConverterModule {
   this: ImageApiServiceComponent =>
@@ -28,6 +29,7 @@ trait ImageConverterModule {
 
     def getImage(cont: ContentBrowser): (String, Seq[String]) = {
       val figureDataAttributes = Map(
+        "resource" -> "image",
         "size" -> cont.get("imagecache").toLowerCase,
         "alt" -> cont.get("alt"),
         "caption" -> cont.get("link_text"),
@@ -36,16 +38,11 @@ trait ImageConverterModule {
 
       imageApiService.importOrGetMetaByExternId(cont.get("nid")) match {
         case Some(image) =>
-          val dataAttributes = buildDataAttributesString(figureDataAttributes + ("url" -> s"$imageApiUrl/${image.id}"))
-          (s"""<figure data-resource="image" $dataAttributes></figure>""", Seq())
+          HtmlFigureGenerator.buildFigure(figureDataAttributes + ("url" -> s"$imageApiUrl/${image.id}"))
         case None =>
           (s"<img src='stock.jpeg' alt='The image with id ${cont.get("nid")} was not not found' />",
             Seq(s"Image with id ${cont.get("nid")} was not found"))
       }
-    }
-
-    def buildDataAttributesString(figureDataAttributeMap: Map[String, String]): String = {
-      figureDataAttributeMap.toList.map { case (key, value) => s"""data-$key="${value.trim}""""}.mkString(" ")
     }
 
   }

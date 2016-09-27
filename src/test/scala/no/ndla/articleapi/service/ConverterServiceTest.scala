@@ -129,15 +129,12 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     val imageMeta = ImageMetaInformation(newId, List(), List(), ImageVariants(Some(Image("small.jpeg", 128, "")), Some(Image(imageUrl, 256, ""))), Copyright(License("", "", Some("")), "", List()), List())
     val expectedResult =
       s"""|<article>
-          |  <figure data-resource="image" data-size="fullbredde" data-url="http://localhost/images/$newId" data-id="1" data-alt="$alt" data-caption=""></figure>
+          |  <figure data-size="fullbredde" data-url="http://localhost/images/$newId" data-id="1" data-resource="image" data-alt="$sampleAlt" data-caption=""></figure>
           | </article>""".stripMargin.replace("\n", "")
 
     when(extractService.getNodeType(nodeId)).thenReturn(Some("image"))
     when(imageApiService.importOrGetMetaByExternId(nodeId)).thenReturn(Some(imageMeta))
     val (result, status) = service.toArticleInformation(node, ImportStatus(Seq(), Seq()))
-
-    println(result.article.head.article.replace("\n", ""))
-    println(expectedResult)
 
     result.article.head.article.replace("\n", "") should equal (expectedResult)
     result.requiredLibraries.length should equal (0)
