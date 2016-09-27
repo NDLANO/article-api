@@ -27,25 +27,26 @@ trait ImageConverterModule {
     }
 
     def getImage(cont: ContentBrowser): (String, Seq[String]) = {
-      var errors = Seq[String]()
-      val imageSizeHint = cont.get("imagecache").toLowerCase
+      val figureDataAttributes = Map(
+        "size" -> cont.get("imagecache").toLowerCase,
+        "alt" -> cont.get("alt"),
+        "caption" -> cont.get("link_text"),
+        "id" -> s"${cont.id}"
+      )
 
-      val imageTag = imageApiService.getMetaByExternId(cont.get("nid")) match {
+      imageApiService.importOrGetMetaByExternId(cont.get("nid")) match {
         case Some(image) =>
-          s"""<figure data-resource="image" data-id="${cont.id}" data-url="$imageApiUrl/${image.id}" data-size="$imageSizeHint"></figure>"""
-        case None => {
-            imageApiService.importImage(cont.get("nid")) match {
-            case Some(image) =>
-              s"""<figure data-resource="image" data-id="${cont.id}" data-url="$imageApiUrl/${image.id}" data-size="$imageSizeHint"></figure>"""
-            case None => {
-              errors = errors :+ s"Image with id ${cont.get("nid")} was not found"
-              s"<img src='stock.jpeg' alt='The image with id ${cont.get("nid")} was not not found' />"
-
-            }
-          }
-        }
+          val dataAttributes = buildDataAttributesString(figureDataAttributes + ("url" -> s"$imageApiUrl/${image.id}"))
+          (s"""<figure data-resource="image" $dataAttributes></figure>""", Seq())
+        case None =>
+          (s"<img src='stock.jpeg' alt='The image with id ${cont.get("nid")} was not not found' />",
+            Seq(s"Image with id ${cont.get("nid")} was not found"))
       }
-      (imageTag, errors)
     }
+
+    def buildDataAttributesString(figureDataAttributeMap: Map[String, String]): String = {
+      figureDataAttributeMap.toList.map { case (key, value) => s"""data-$key="${value.trim}""""}.mkString(" ")
+    }
+
   }
 }
