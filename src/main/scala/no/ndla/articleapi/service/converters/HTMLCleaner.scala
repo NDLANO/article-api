@@ -13,11 +13,12 @@ object HTMLCleaner extends ConverterModule {
     val illegalTags = unwrapIllegalTags(element).map(x => s"Illegal tag(s) removed: $x").distinct
     val illegalAttributes = removeAttributes(element).map(x => s"Illegal attribute(s) removed: $x").distinct
     removeComments(element)
+    removeNbsp(element)
+    removeEmptyTags(element)
 
     (content.copy(content=jsoupDocumentToString(element)),
       ImportStatus(importStatus.messages ++ illegalTags ++ illegalAttributes, importStatus.visitedNodes))
   }
-
 
   private def unwrapIllegalTags(el: Element): Seq[String] = {
     el.select("*").toList.
@@ -56,6 +57,20 @@ object HTMLCleaner extends ConverterModule {
         }
       }
     }
+  }
+
+  private def removeEmptyTags(element: Element): Element = {
+    for (el <- element.select("p,div")) {
+      if (!el.hasText && el.isBlock) {
+        el.remove()
+      }
+    }
+
+    element
+  }
+
+  private def removeNbsp(el: Element) {
+    el.html(el.html().replace("\u00a0", ""))
   }
 
 }
