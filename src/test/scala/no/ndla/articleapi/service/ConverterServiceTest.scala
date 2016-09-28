@@ -76,10 +76,10 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
   test("That the ingress is not added to the content") {
     val (nodeId, nodeId2) = ("1234", "4321")
     val ingressNodeBokmal = NodeIngress("1", "1", "Hvem er sterkest?", None, 1, Some("nn"))
-    val contentNodeBokmal = LanguageContent(nodeId, nodeId, "<article>Nordavinden og sola kranglet en gang om hvem av dem som var den sterkeste</article>", Some("nb"))
+    val contentNodeBokmal = LanguageContent(nodeId, nodeId, "Nordavinden og sola kranglet en gang om hvem av dem som var den sterkeste", Some("nb"))
 
     val ingressNodeNynorsk = NodeIngress("2", "2", "Kven er sterkast?", None, 1, Some("nn"))
-    val contentNodeNynorsk = LanguageContent(nodeId2, nodeId, "<article>Nordavinden og sola krangla ein gong om kven av dei som var den sterkaste</article>", Some("nn"))
+    val contentNodeNynorsk = LanguageContent(nodeId2, nodeId, "Nordavinden og sola krangla ein gong om kven av dei som var den sterkaste", Some("nn"))
 
     val node = NodeToConvert(List(contentTitle), List(contentNodeBokmal, contentNodeNynorsk), copyright, List(tag), Seq(visualElement), Seq(), "fagstoff", new Date(0), new Date(1))
     val bokmalExpectedResult = "Nordavinden og sola kranglet en gang om hvem av dem som var den sterkeste"
@@ -96,7 +96,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
   }
 
   test("That html attributes are removed from the article") {
-    val contentNodeBokmal = LanguageContent(nodeId, nodeId, """<article><table class="testclass" data-resource="test"></table></article>""", Some("nb"))
+    val contentNodeBokmal = LanguageContent(nodeId, nodeId, """<table class="testclass" data-resource="test"></table>""", Some("nb"))
     val node = NodeToConvert(List(contentTitle), List(contentNodeBokmal), copyright, List(tag), Seq(visualElement), Seq(), "fagstoff", new Date(0), new Date(1))
     val bokmalExpectedResult = """<table data-resource="test"></table>"""
 
@@ -109,7 +109,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
   }
 
   test("That html comments are removed") {
-    val contentNodeBokmal = LanguageContent(nodeId, nodeId, """<article><p><!-- this is a comment --></p> <!-- another comment --></article>""", Some("nb"))
+    val contentNodeBokmal = LanguageContent(nodeId, nodeId, """<p><!-- this is a comment --></p> <!-- another comment -->""", Some("nb"))
     val node = NodeToConvert(List(contentTitle), List(contentNodeBokmal), copyright, List(tag), Seq(visualElement), Seq(), "fagstoff", new Date(0), new Date(1))
     val expectedResult = """<p></p>"""
 

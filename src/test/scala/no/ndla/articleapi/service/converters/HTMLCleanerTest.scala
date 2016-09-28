@@ -9,7 +9,7 @@ class HTMLCleanerTest extends UnitSuite {
 
   test("That HTMLCleaner unwraps illegal attributes") {
     val initialContent = LanguageContent(nodeId, nodeId, """<body><article><h1 class="useless">heading<div style="width='0px'"></div></h1></article></body>""", Some("en"))
-    val expectedResult = "<h1>heading<div></div></h1>"
+    val expectedResult = "<article><h1>heading<div></div></h1></article>"
     val (result, status) = HTMLCleaner.convert(initialContent, ImportStatus(Seq(), Seq()))
 
     result.content.replace("\n", "") should equal (expectedResult)
@@ -18,7 +18,7 @@ class HTMLCleanerTest extends UnitSuite {
 
   test("That HTMLCleaner unwraps illegal tags") {
     val initialContent = LanguageContent(nodeId, nodeId, """<article><h1>heading</h1><henriktag>hehe</henriktag></article>""", Some("en"))
-    val expectedResult = "<h1>heading</h1>hehe"
+    val expectedResult = "<article><h1>heading</h1>hehe</article>"
     val (result, status) = HTMLCleaner.convert(initialContent, ImportStatus(Seq(), Seq()))
 
     result.content.replace("\n", "") should equal (expectedResult)
@@ -27,7 +27,7 @@ class HTMLCleanerTest extends UnitSuite {
 
   test("That HTMLCleaner removes comments") {
     val initialContent = LanguageContent(nodeId, nodeId, """<article><!-- this is a comment --><h1>heading<!-- comment --></h1></article>""", Some("en"))
-    val expectedResult = "<h1>heading</h1>"
+    val expectedResult = "<article><h1>heading</h1></article>"
     val (result, status) = HTMLCleaner.convert(initialContent, ImportStatus(Seq(), Seq()))
 
     result.content.replace("\n", "") should equal (expectedResult)

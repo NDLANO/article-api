@@ -21,33 +21,12 @@ trait ConverterModule {
   def stringToJsoupDocument(htmlString: String): Element = {
     val document = Jsoup.parseBodyFragment(htmlString)
     document.outputSettings().escapeMode(EscapeMode.xhtml).prettyPrint(false)
-    val article = document.select("article")
-    val content = article.isEmpty match {
-      case false => article
-      case true => document.select("body")
-    }
-    content.first()
+    document.select("body").first()
   }
 
   def jsoupDocumentToString(element: Element): String = {
-    val article = element.select("article")
-    val content = article.isEmpty match {
-      case false => article
-      case true => element.select("body")
-    }
-
-    content.outerHtml()
+    element.select("body").html()
   }
-  def jsoupDocumentToStringWithoutBodyOrArticle(element: Element): String = {
-    val article = element.select("article")
-    val content = article.isEmpty match {
-      case false => article
-      case true => element.select("body")
-    }
-
-    content.html()
-  }
-
 
   def convert(content: LanguageContent, importStatus: ImportStatus): (LanguageContent, ImportStatus)
 

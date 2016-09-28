@@ -14,7 +14,7 @@ object HTMLCleaner extends ConverterModule {
     val illegalAttributes = removeAttributes(element).map(x => s"Illegal attribute(s) removed: $x").distinct
     removeComments(element)
 
-    (content.copy(content=jsoupDocumentToStringWithoutBodyOrArticle(element)),
+    (content.copy(content=jsoupDocumentToString(element)),
       ImportStatus(importStatus.messages ++ illegalTags ++ illegalAttributes, importStatus.visitedNodes))
   }
 

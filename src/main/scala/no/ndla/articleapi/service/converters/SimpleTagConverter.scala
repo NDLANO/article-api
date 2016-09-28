@@ -21,7 +21,7 @@ object SimpleTagConverter extends ConverterModule {
     val element = stringToJsoupDocument(content.content)
     convertDivs(element)
     convertPres(element)
-    (content.copy(content=jsoupDocumentToStringWithoutBodyOrArticle(element)), importStatus)
+    (content.copy(content=jsoupDocumentToString(element)), importStatus)
   }
 
   def convertDivs(el: Element) {
