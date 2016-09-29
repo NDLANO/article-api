@@ -13,6 +13,7 @@ import com.typesafe.scalalogging.LazyLogging
 import no.ndla.articleapi.model.{ImportStatus, RequiredLibrary}
 import no.ndla.articleapi.service.ImageApiServiceComponent
 import no.ndla.articleapi.ArticleApiProperties.imageApiUrl
+import no.ndla.articleapi.service.converters.HtmlFigureGenerator
 
 trait ImageConverterModule {
   this: ImageApiServiceComponent =>
@@ -27,25 +28,22 @@ trait ImageConverterModule {
     }
 
     def getImage(cont: ContentBrowser): (String, Seq[String]) = {
-      var errors = Seq[String]()
-      val imageSizeHint = cont.get("imagecache").toLowerCase
+      val figureDataAttributes = Map(
+        "resource" -> "image",
+        "size" -> cont.get("imagecache").toLowerCase,
+        "alt" -> cont.get("alt"),
+        "caption" -> cont.get("link_text"),
+        "id" -> s"${cont.id}"
+      )
 
-      val imageTag = imageApiService.getMetaByExternId(cont.get("nid")) match {
+      imageApiService.importOrGetMetaByExternId(cont.get("nid")) match {
         case Some(image) =>
-          s"""<figure data-resource="image" data-id="${cont.id}" data-url="$imageApiUrl/${image.id}" data-size="$imageSizeHint"></figure>"""
-        case None => {
-            imageApiService.importImage(cont.get("nid")) match {
-            case Some(image) =>
-              s"""<figure data-resource="image" data-id="${cont.id}" data-url="$imageApiUrl/${image.id}" data-size="$imageSizeHint"></figure>"""
-            case None => {
-              errors = errors :+ s"Image with id ${cont.get("nid")} was not found"
-              s"<img src='stock.jpeg' alt='The image with id ${cont.get("nid")} was not not found' />"
-
-            }
-          }
-        }
+          HtmlFigureGenerator.buildFigure(figureDataAttributes + ("url" -> s"$imageApiUrl/${image.id}"))
+        case None =>
+          (s"<img src='stock.jpeg' alt='The image with id ${cont.get("nid")} was not not found' />",
+            Seq(s"Image with id ${cont.get("nid")} was not found"))
       }
-      (imageTag, errors)
     }
+
   }
 }

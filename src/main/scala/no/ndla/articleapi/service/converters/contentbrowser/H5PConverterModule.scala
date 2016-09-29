@@ -12,6 +12,7 @@ package no.ndla.articleapi.service.converters.contentbrowser
 import no.ndla.articleapi.model.{ImportStatus, RequiredLibrary}
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.articleapi.service.ExtractServiceComponent
+import no.ndla.articleapi.service.converters.HtmlFigureGenerator
 
 trait H5PConverterModule {
   this: ExtractServiceComponent =>
@@ -24,9 +25,11 @@ trait H5PConverterModule {
 
       logger.info(s"Converting h5p_content with nid $nodeId")
       val requiredLibraries = List(RequiredLibrary("text/javascript", "H5P-Resizer", "http://ndla.no/sites/all/modules/h5p/library/js/h5p-resizer.js"))
-      val replacement = s"""<figure data-resource="h5p" data-id="${content.id}" data-url="http://ndla.no/h5p/embed/$nodeId"></figure>"""
-
-      (replacement, requiredLibraries, ImportStatus(Seq(), visitedNodes))
+      val (replacement, figureUsageErrors) = HtmlFigureGenerator.buildFigure(Map(
+        "resource" -> "h5p",
+        "id" -> s"${content.id}",
+        "url" -> s"http://ndla.no/h5p/embed/$nodeId"))
+      (replacement, requiredLibraries, ImportStatus(figureUsageErrors, visitedNodes))
     }
   }
 }
