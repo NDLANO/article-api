@@ -17,10 +17,10 @@ import org.jsoup.nodes.Element
 import scala.collection.JavaConversions._
 import scala.annotation.tailrec
 
-trait HtmlTagsUsage {
+trait ArticleContentInformation {
   this: ArticleRepositoryComponent =>
 
-  object HtmlTagsUsage {
+  object ArticleContentInformation {
     def getHtmlTagsMap: Map[String, Seq[String]] = {
       @tailrec def getHtmlTagsMap(nodes: Seq[ArticleInformation], tagsMap: Map[String, List[String]]): Map[String, List[String]] = {
         if (nodes.isEmpty)
@@ -51,6 +51,21 @@ trait HtmlTagsUsage {
 
       a.map { case (k, v) => k -> v.unzip._2.flatten.distinct }
     }
+
+    def getExternalEmbedResources: Map[String, Seq[String]] = {
+      articleRepository.all.flatMap(articleInfo => {
+        val urls = articleInfo.article.flatMap(article => {
+          val elements = Jsoup.parseBodyFragment(article.article).select("""figure[data-resource=external]""")
+          elements.toList.map(el => el.attr("data-url"))
+        })
+
+        urls.isEmpty match {
+          case true => None
+          case false => Some(articleInfo.id -> urls.distinct)
+        }
+      }).toMap
+    }
+
   }
 }
 

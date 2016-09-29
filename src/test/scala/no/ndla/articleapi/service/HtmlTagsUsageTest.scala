@@ -16,20 +16,26 @@ import no.ndla.articleapi.{TestEnvironment, UnitSuite}
 import org.mockito.Mockito._
 
 class HtmlTagsUsageTest extends UnitSuite with TestEnvironment {
-
+  val embedUrl = "http://hello.yes.this.is.dog"
   val copyright = Copyright(License("publicdomain", "", None), "", List())
   val article1 = ArticleInformation("1", Seq(ArticleTitle("test", Some("en"))), Seq(Article("<article><div>test</div></article>", None, Some("en"))), copyright, Seq(), Seq(), Seq(), Seq(), new Date(0), new Date(1), "fagstoff")
   val article2 = ArticleInformation("2", Seq(ArticleTitle("test", Some("en"))), Seq(Article("<article><div>test</div><p>paragraph</p></article>", None, Some("en"))), copyright, Seq(), Seq(), Seq(), Seq(), new Date(0), new Date(1), "fagstoff")
   val article3 = ArticleInformation("3", Seq(ArticleTitle("test", Some("en"))), Seq(Article("<article><img></img></article>", None, Some("en"))), copyright, Seq(), Seq(), Seq(), Seq(), new Date(0), new Date(1), "fagstoff")
+  val article4 = ArticleInformation("4", Seq(ArticleTitle("test", Some("en"))), Seq(Article(s"""<article><figure data-resource="external" data-url="$embedUrl""></figure></article>""", None, Some("en"))), copyright, Seq(), Seq(), Seq(), Seq(), new Date(0), new Date(1), "fagstoff")
 
   test("That getHtmlTagsMap counts html elements correctly") {
     val expectedResult = Map("article" -> List("1", "2", "3"), "div" -> List("1", "2"), "p" -> List("2"), "img" -> List("3"))
     when(articleRepository.all).thenReturn(List(article1, article2, article3))
-    HtmlTagsUsage.getHtmlTagsMap should equal (expectedResult)
+    ArticleContentInformation.getHtmlTagsMap should equal (expectedResult)
   }
 
   test("That getHtmlTagsMap returns an empty map if no articles is available") {
     when(articleRepository.all).thenReturn(List())
-    HtmlTagsUsage.getHtmlTagsMap should equal (Map())
+    ArticleContentInformation.getHtmlTagsMap should equal (Map())
+  }
+
+  test("getExternalEmbedResources returns a map with external embed resources") {
+    when(articleRepository.all).thenReturn(List(article1, article2, article3, article4))
+    ArticleContentInformation.getExternalEmbedResources should equal(Map(article4.id -> Seq(embedUrl)))
   }
 }

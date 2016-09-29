@@ -12,14 +12,14 @@ package no.ndla.articleapi.controller
 import no.ndla.articleapi.model.ImportStatus
 import no.ndla.articleapi.repository.ArticleRepositoryComponent
 import no.ndla.articleapi.service.search.SearchIndexServiceComponent
-import no.ndla.articleapi.service.{ConverterServiceComponent, ExtractConvertStoreContent, ExtractServiceComponent, HtmlTagsUsage}
+import no.ndla.articleapi.service.{ConverterServiceComponent, ExtractConvertStoreContent, ExtractServiceComponent, ArticleContentInformation}
 import org.json4s.{DefaultFormats, Formats}
 import org.scalatra.Ok
 
 import scala.util.{Failure, Success}
 
 trait InternController {
-  this: ExtractServiceComponent with ConverterServiceComponent with ArticleRepositoryComponent with HtmlTagsUsage with ExtractConvertStoreContent with SearchIndexServiceComponent =>
+  this: ExtractServiceComponent with ConverterServiceComponent with ArticleRepositoryComponent with ArticleContentInformation with ExtractConvertStoreContent with SearchIndexServiceComponent =>
   val internController: InternController
 
   class InternController extends NdlaController {
@@ -40,8 +40,11 @@ trait InternController {
     }
 
     get("/tagsinuse") {
-      HtmlTagsUsage.getHtmlTagsMap
+      ArticleContentInformation.getHtmlTagsMap
     }
 
+    get("/embedurls") {
+      ArticleContentInformation.getExternalEmbedResources
+    }
   }
 }
