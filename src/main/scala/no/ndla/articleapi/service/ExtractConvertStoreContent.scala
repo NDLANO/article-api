@@ -10,7 +10,7 @@
 package no.ndla.articleapi.service
 
 import com.typesafe.scalalogging.LazyLogging
-import no.ndla.articleapi.model.{ArticleInformation, ImportStatus, NodeNotFoundException, NodeToConvert}
+import no.ndla.articleapi.model.{Article, ImportStatus, NodeNotFoundException, NodeToConvert}
 import no.ndla.articleapi.repository.ArticleRepositoryComponent
 
 import scala.util.{Failure, Success, Try}
@@ -43,13 +43,13 @@ trait ExtractConvertStoreContent {
       }
     }
 
-    private def convert(nodeToConvert: NodeToConvert, importStatus: ImportStatus): (ArticleInformation, ImportStatus) =
-      converterService.toArticleInformation(nodeToConvert, importStatus)
+    private def convert(nodeToConvert: NodeToConvert, importStatus: ImportStatus): (Article, ImportStatus) =
+      converterService.toArticle(nodeToConvert, importStatus)
 
-    private def store(articleInformation: ArticleInformation, mainNodeNid: String): Long =
+    private def store(article: Article, mainNodeNid: String): Long =
       articleRepository.exists(mainNodeNid) match {
-        case true => articleRepository.update(articleInformation, mainNodeNid)
-        case false => articleRepository.insert(articleInformation, mainNodeNid)
+        case true => articleRepository.update(article, mainNodeNid)
+        case false => articleRepository.insert(article, mainNodeNid)
       }
 
   }

@@ -18,9 +18,9 @@ import org.mockito.Mockito._
 class HtmlTagsUsageTest extends UnitSuite with TestEnvironment {
 
   val copyright = Copyright(License("publicdomain", "", None), "", List())
-  val article1 = ArticleInformation("1", Seq(ArticleTitle("test", Some("en"))), Seq(Article("<article><div>test</div></article>", None, Some("en"))), copyright, Seq(), Seq(), Seq(), Seq(), new Date(0), new Date(1), "fagstoff")
-  val article2 = ArticleInformation("2", Seq(ArticleTitle("test", Some("en"))), Seq(Article("<article><div>test</div><p>paragraph</p></article>", None, Some("en"))), copyright, Seq(), Seq(), Seq(), Seq(), new Date(0), new Date(1), "fagstoff")
-  val article3 = ArticleInformation("3", Seq(ArticleTitle("test", Some("en"))), Seq(Article("<article><img></img></article>", None, Some("en"))), copyright, Seq(), Seq(), Seq(), Seq(), new Date(0), new Date(1), "fagstoff")
+  val article1 = Article("1", Seq(ArticleTitle("test", Some("en"))), Seq(ArticleContent("<article><div>test</div></article>", None, Some("en"))), copyright, Seq(), Seq(), Seq(), Seq(), new Date(0), new Date(1), "fagstoff")
+  val article2 = Article("2", Seq(ArticleTitle("test", Some("en"))), Seq(ArticleContent("<article><div>test</div><p>paragraph</p></article>", None, Some("en"))), copyright, Seq(), Seq(), Seq(), Seq(), new Date(0), new Date(1), "fagstoff")
+  val article3 = Article("3", Seq(ArticleTitle("test", Some("en"))), Seq(ArticleContent("<article><img></img></article>", None, Some("en"))), copyright, Seq(), Seq(), Seq(), Seq(), new Date(0), new Date(1), "fagstoff")
 
   test("That getHtmlTagsMap counts html elements correctly") {
     val expectedResult = Map("article" -> List("1", "2", "3"), "div" -> List("1", "2"), "p" -> List("2"), "img" -> List("3"))

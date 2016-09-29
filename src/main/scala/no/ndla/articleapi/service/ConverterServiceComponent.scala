@@ -19,13 +19,13 @@ trait ConverterServiceComponent {
   val converterService: ConverterService
 
   class ConverterService extends LazyLogging {
-    def toArticleInformation(nodeToConvert: NodeToConvert, importStatus: ImportStatus): (ArticleInformation, ImportStatus) = {
+    def toArticle(nodeToConvert: NodeToConvert, importStatus: ImportStatus): (Article, ImportStatus) = {
       val updatedVisitedNodes = importStatus.visitedNodes ++ nodeToConvert.contents.map(_.nid)
       val (convertedContent, converterStatus) = convert(nodeToConvert, maxConvertionRounds, importStatus.copy(visitedNodes = updatedVisitedNodes.distinct))
       val (postProcessed, postProcessStatus) = postProcess(convertedContent, converterStatus)
 
-      val (articleInformation, toArticleStatus) = toArticleInformation(postProcessed)
-      (articleInformation, postProcessStatus ++ toArticleStatus)
+      val (article, toArticleStatus) = toArticle(postProcessed)
+      (article, postProcessStatus ++ toArticleStatus)
     }
 
     @tailrec private def convert(nodeToConvert: NodeToConvert, maxRoundsLeft: Int, importStatus: ImportStatus): (NodeToConvert, ImportStatus) = {
@@ -59,11 +59,11 @@ trait ConverterServiceComponent {
       (ArticleIntroduction(nodeIngress.content, newImageId, nodeIngress.ingressVisPaaSiden == 1, nodeIngress.language), importStatus)
     }
 
-    private def toArticleInformation(nodeToConvert: NodeToConvert): (ArticleInformation, ImportStatus) = {
+    private def toArticle(nodeToConvert: NodeToConvert): (Article, ImportStatus) = {
       val requiredLibraries = nodeToConvert.contents.flatMap(_.requiredLibraries).distinct
       val (ingresses, importStatuses) = nodeToConvert.ingress.map(toArticleIngress).unzip
 
-      (ArticleInformation("0",
+      (Article("0",
         nodeToConvert.titles,
         nodeToConvert.contents.map(_.asContent),
         nodeToConvert.copyright,
