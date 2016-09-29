@@ -47,15 +47,16 @@ class ContentBrowserConverterTest extends UnitSuite with TestEnvironment {
 
   test("That Content-browser strings of type image are converted into HTML img tags") {
     val (nodeId, imageUrl, alt) = ("1234", "full.jpeg", "Fotografi")
+    val newId = "1"
     val initialContent = LanguageContent(nodeId, nodeId, s"<article>$sampleContentString</article>", Some("en"))
-    val imageMeta = ImageMetaInformation("1", List(), List(), ImageVariants(Some(Image("small.jpeg", 128, "")), Some(Image(imageUrl, 256, ""))), Copyright(License("", "", Some("")), "", List()), List())
+    val imageMeta = ImageMetaInformation(newId, List(), List(), ImageVariants(Some(Image("small.jpeg", 128, "")), Some(Image(imageUrl, 256, ""))), Copyright(License("", "", Some("")), "", List()), List())
     val expectedResult =
-      s"""<article>
-        | <figure data-resource="image" data-id="1" data-url="http://localhost/images/${imageMeta.id}" data-size="fullbredde"></figure>
-         |</article>""".stripMargin.replace("\n", "")
+      s"""|<article>
+         | <figure data-size="fullbredde" data-url="http://localhost/images/$newId" data-id="1" data-resource="image" data-alt="$alt" data-caption=""></figure>
+          |</article>""".stripMargin.replace("\n", "")
 
-    when(extractService.getNodeType(nodeId)).thenReturn((Some("image")))
-    when(imageApiService.getMetaByExternId(nodeId)).thenReturn(Some(imageMeta))
+    when(extractService.getNodeType(nodeId)).thenReturn(Some("image"))
+    when(imageApiService.importOrGetMetaByExternId(nodeId)).thenReturn(Some(imageMeta))
     val (result, status) = contentBrowserConverter.convert(initialContent, ImportStatus(Seq(), Seq()))
 
     result.content.replace("\n", "") should equal (expectedResult)
@@ -121,9 +122,8 @@ class ContentBrowserConverterTest extends UnitSuite with TestEnvironment {
 
   test("That Content-browser strings of type video are converted into HTML img tags") {
     val initialContent = LanguageContent(nodeId, nodeId, s"<article>$sampleContentString</article>", Some("en"))
-    val expectedResult = s"""<article> <figure data-resource="brightcove" data-id="1" data-videoid="ref:$nodeId" data-account="$NDLABrightcoveAccountId" data-player="$NDLABrightcovePlayerId"></figure></article>"""
-
-    when(extractService.getNodeType(nodeId)).thenReturn((Some("video")))
+    val expectedResult = s"""<article> <figure data-videoid="ref:$nodeId" data-id="1" data-player="$NDLABrightcovePlayerId" data-resource="brightcove" data-account="$NDLABrightcoveAccountId"></figure></article>"""
+    when(extractService.getNodeType(nodeId)).thenReturn(Some("video"))
     val (result, status) = contentBrowserConverter.convert(initialContent, ImportStatus(Seq(), Seq()))
     val strippedResult = " +".r.replaceAllIn(result.content.replace("\n", ""), " ")
 

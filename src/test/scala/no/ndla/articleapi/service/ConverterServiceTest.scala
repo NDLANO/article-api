@@ -32,7 +32,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
   val requiredLibrary = RequiredLibrary("", "", "")
   val nodeId = "1234"
   val sampleAlt = "Fotografi"
-  val sampleContentString = s"[contentbrowser ==nid=${nodeId}==imagecache=Fullbredde==width===alt=Foto==link===node_link=1==link_type=link_to_content==lightbox_size===remove_fields[76661]=1==remove_fields[76663]=1==remove_fields[76664]=1==remove_fields[76666]=1==insertion===link_title_text= ==link_text= ==text_align===css_class=contentbrowser contentbrowser]"
+  val sampleContentString = s"[contentbrowser ==nid=${nodeId}==imagecache=Fullbredde==width===alt=$sampleAlt==link===node_link=1==link_type=link_to_content==lightbox_size===remove_fields[76661]=1==remove_fields[76663]=1==remove_fields[76664]=1==remove_fields[76666]=1==insertion===link_title_text= ==link_text= ==text_align===css_class=contentbrowser contentbrowser]"
 
 
   test("That the document is wrapped in an article tag") {
@@ -119,6 +119,25 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     strippedResult should equal (expectedResult)
     status.messages.isEmpty should equal (true)
     result.requiredLibraries.isEmpty should equal (true)
+  }
+
+  test("That images are converted") {
+    val (nodeId, imageUrl, alt) = ("1234", "full.jpeg", "Fotografi")
+    val newId = "1"
+    val contentNode = LanguageContent(nodeId, nodeId, s"<article>$sampleContentString</article>", Some("en"))
+    val node = NodeToConvert(List(contentTitle), List(contentNode), copyright, List(tag), Seq(visualElement), Seq(), "fagstoff", new Date(0), new Date(1))
+    val imageMeta = ImageMetaInformation(newId, List(), List(), ImageVariants(Some(Image("small.jpeg", 128, "")), Some(Image(imageUrl, 256, ""))), Copyright(License("", "", Some("")), "", List()), List())
+    val expectedResult =
+      s"""|<article>
+          |  <figure data-size="fullbredde" data-url="http://localhost/images/$newId" data-id="1" data-resource="image" data-alt="$sampleAlt" data-caption=""></figure>
+          | </article>""".stripMargin.replace("\n", "")
+
+    when(extractService.getNodeType(nodeId)).thenReturn(Some("image"))
+    when(imageApiService.importOrGetMetaByExternId(nodeId)).thenReturn(Some(imageMeta))
+    val (result, status) = service.toArticleInformation(node, ImportStatus(Seq(), Seq()))
+
+    result.article.head.article.replace("\n", "") should equal (expectedResult)
+    result.requiredLibraries.length should equal (0)
   }
 
 }

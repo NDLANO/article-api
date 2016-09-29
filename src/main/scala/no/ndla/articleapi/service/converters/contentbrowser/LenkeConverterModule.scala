@@ -13,6 +13,7 @@ import no.ndla.articleapi.model.{ImportStatus, RequiredLibrary}
 import com.netaporter.uri.dsl._
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.articleapi.service.ExtractServiceComponent
+import no.ndla.articleapi.service.converters.HtmlFigureGenerator
 
 trait LenkeConverterModule {
   this: ExtractServiceComponent =>
@@ -33,15 +34,18 @@ trait LenkeConverterModule {
 
       url.host match {
         case NDLAPattern(_) => {
-          errors = errors :+ s"(Warning) Link to NDLA resource '${url}'"
+          errors = errors :+ s"(Warning) Link to NDLA resource '$url'"
           logger.warn("Link to NDLA resource: '{}'", url)
         }
         case _ =>
       }
 
-      val embedMeta = s"""<figure data-resource="external" data-id="${cont.id}" data-url="$url"></figure>"""
-      val insertionMethod = cont.get("insertion")
 
+      val (embedMeta, figureUsageErrors) = HtmlFigureGenerator.buildFigure(Map(
+        "resource" -> "external", "id" -> s"${cont.id}", "url" -> url))
+      errors = errors ++ figureUsageErrors
+
+      val insertionMethod = cont.get("insertion")
       val converted = insertionMethod match {
         case "inline" => embedMeta
         case "link" | "lightbox_large" => s"""<a href="$url" title="${cont.get("link_title_text")}">${cont.get("link_text")}</a>"""
