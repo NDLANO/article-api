@@ -12,7 +12,7 @@ package no.ndla.articleapi.repository
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.articleapi.ArticleApiProperties
 import no.ndla.articleapi.integration.DataSourceComponent
-import no.ndla.articleapi.model.{ArticleInformation, ArticleSummary}
+import no.ndla.articleapi.model.{Article, ArticleSummary}
 import org.postgresql.util.PGobject
 import scalikejdbc.{ConnectionPool, DB, DataSourceConnectionPool, _}
 import no.ndla.network.ApplicationUrl
@@ -25,11 +25,11 @@ trait ArticleRepositoryComponent {
 
     ConnectionPool.singleton(new DataSourceConnectionPool(dataSource))
 
-    def insert(articleInformation: ArticleInformation, externalId: String)(implicit session: DBSession = AutoSession): Long = {
+    def insert(article: Article, externalId: String)(implicit session: DBSession = AutoSession): Long = {
       import org.json4s.native.Serialization.write
       implicit val formats = org.json4s.DefaultFormats
 
-      val json = write(articleInformation)
+      val json = write(article)
       val dataObject = new PGobject()
       dataObject.setType("jsonb")
       dataObject.setValue(json)
@@ -40,11 +40,11 @@ trait ArticleRepositoryComponent {
       articleId
     }
 
-    def update(articleInformation: ArticleInformation, externalId: String)(implicit session: DBSession = AutoSession): Long = {
+    def update(article: Article, externalId: String)(implicit session: DBSession = AutoSession): Long = {
       import org.json4s.native.Serialization.write
       implicit val formats = org.json4s.DefaultFormats
 
-      val json = write(articleInformation)
+      val json = write(article)
       val dataObject = new PGobject()
       dataObject.setType("jsonb")
       dataObject.setValue(json)
@@ -69,7 +69,7 @@ trait ArticleRepositoryComponent {
       }
     }
 
-    def applyToAll(func: (List[ArticleInformation]) => Unit): Unit = {
+    def applyToAll(func: (List[Article]) => Unit): Unit = {
       val (minId, maxId) = minMaxId
       val groupRanges = Seq.range(minId, maxId + 1).grouped(ArticleApiProperties.IndexBulkSize).map(group => (group.head, group.last))
 
@@ -77,23 +77,23 @@ trait ArticleRepositoryComponent {
         groupRanges.foreach(range => {
           func(
             sql"select id,document from contentdata where id between ${range._1} and ${range._2}".map(rs => {
-              asArticleInformation(rs.long("id").toString, rs.string("document"))
+              asArticle(rs.long("id").toString, rs.string("document"))
             }).toList.apply
           )
         })
       }
     }
 
-    def all: List[ArticleInformation] = {
+    def all: List[Article] = {
       DB readOnly { implicit session =>
-        sql"select id, document from contentdata".map(rs => asArticleInformation(rs.string("id"), rs.string("document"))).list().apply()
+        sql"select id, document from contentdata".map(rs => asArticle(rs.string("id"), rs.string("document"))).list().apply()
       }
     }
 
-    def withId(articleId: String): Option[ArticleInformation] = {
+    def withId(articleId: String): Option[Article] = {
       DB readOnly { implicit session =>
         sql"select document from contentdata where id = ${articleId.toInt}".map(rs => rs.string("document")).single.apply match {
-          case Some(json) => Option(asArticleInformation(articleId, json))
+          case Some(json) => Option(asArticle(articleId, json))
           case None => None
         }
       }
@@ -115,19 +115,19 @@ trait ArticleRepositoryComponent {
       import org.json4s.native.Serialization.read
       implicit val formats = org.json4s.DefaultFormats
 
-      val meta = read[ArticleInformation](json)
-      ArticleSummary(articleId.toString, meta.titles, ApplicationUrl.get + articleId, meta.copyright.license.license)
+      val meta = read[Article](json)
+      ArticleSummary(articleId.toString, meta.title, ApplicationUrl.get + articleId, meta.copyright.license.license)
     }
 
-    def asArticleInformation(articleId: String, json: String): ArticleInformation = {
+    def asArticle(articleId: String, json: String): Article = {
       import org.json4s.native.Serialization.read
       implicit val formats = org.json4s.DefaultFormats
 
-      val meta = read[ArticleInformation](json)
-      ArticleInformation(
+      val meta = read[Article](json)
+      Article(
         articleId,
-        meta.titles,
-        meta.article,
+        meta.title,
+        meta.content,
         meta.copyright,
         meta.tags,
         meta.requiredLibraries,

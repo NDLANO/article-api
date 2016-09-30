@@ -19,23 +19,23 @@ trait SearchConverterService {
 
   class SearchConverterService extends LazyLogging {
 
-    def asSearchableArticleInformation(ai: ArticleInformation): SearchableArticleInformation = {
-      SearchableArticleInformation(
+    def asSearchableArticle(ai: Article): SearchableArticle = {
+      SearchableArticle(
         id = ai.id,
-        titles = SearchableLanguageValues(ai.titles.map(title => LanguageValue(title.language, title.title))),
-        article = SearchableLanguageValues(ai.article.map(article => LanguageValue(article.language, Jsoup.parseBodyFragment(article.article).text()))),
+        title = SearchableLanguageValues(ai.title.map(title => LanguageValue(title.language, title.title))),
+        content = SearchableLanguageValues(ai.content.map(article => LanguageValue(article.language, Jsoup.parseBodyFragment(article.content).text()))),
         tags = SearchableLanguageList(ai.tags.map(tag => LanguageValue(tag.language, tag.tags))),
         lastUpdated = ai.updated,
         license = ai.copyright.license.license,
         authors = ai.copyright.authors.map(_.name))
     }
 
-    def asArticleSummary(searchableArticleInformation: SearchableArticleInformation): ArticleSummary = {
+    def asArticleSummary(searchableArticle: SearchableArticle): ArticleSummary = {
       ArticleSummary(
-        id = searchableArticleInformation.id,
-        titles = searchableArticleInformation.titles.languageValues.map(lv => ArticleTitle(lv.value, lv.lang)),
-        url = createUrlToLearningPath(searchableArticleInformation.id),
-        license = searchableArticleInformation.license)
+        id = searchableArticle.id,
+        title = searchableArticle.title.languageValues.map(lv => ArticleTitle(lv.value, lv.lang)),
+        url = createUrlToLearningPath(searchableArticle.id),
+        license = searchableArticle.license)
     }
 
     def createUrlToLearningPath(id: String): String = {

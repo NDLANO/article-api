@@ -46,7 +46,7 @@ trait ArticleController {
         ))
 
     val getArticleById =
-      (apiOperation[List[ArticleInformation]]("getArticleById")
+      (apiOperation[List[Article]]("getArticleById")
         summary "Show article with a specified Id"
         notes "Shows the article for the specified id."
         parameters(

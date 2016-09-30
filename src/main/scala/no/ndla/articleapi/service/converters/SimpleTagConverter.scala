@@ -19,7 +19,6 @@ object SimpleTagConverter extends ConverterModule {
 
   def convert(content: LanguageContent, importStatus: ImportStatus): (LanguageContent, ImportStatus) = {
     val element = stringToJsoupDocument(content.content)
-    convertBody(element)
     convertDivs(element)
     convertPres(element)
     (content.copy(content=jsoupDocumentToString(element)), importStatus)
@@ -43,8 +42,6 @@ object SimpleTagConverter extends ConverterModule {
       el.html("<code>" + el.html() + "</code")
     }
   }
-
-  private def convertBody(el: Element) = el.select("body").tagName("article")
 
   private def replaceTag(el: Element, replacementTag: String) {
     el.tagName(replacementTag)

@@ -9,7 +9,7 @@
 
 package no.ndla.articleapi.service
 
-import no.ndla.articleapi.model.{ArticleInformation, ArticleSummary}
+import no.ndla.articleapi.model.{Article, ArticleSummary}
 import no.ndla.articleapi.repository.ArticleRepositoryComponent
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Element
@@ -22,14 +22,14 @@ trait ArticleContentInformation {
 
   object ArticleContentInformation {
     def getHtmlTagsMap: Map[String, Seq[String]] = {
-      @tailrec def getHtmlTagsMap(nodes: Seq[ArticleInformation], tagsMap: Map[String, List[String]]): Map[String, List[String]] = {
+      @tailrec def getHtmlTagsMap(nodes: Seq[Article], tagsMap: Map[String, List[String]]): Map[String, List[String]] = {
         if (nodes.isEmpty)
           return tagsMap
 
         val node = nodes.head
 
-        val tagMaps = node.article.map(article => {
-          val elements = Jsoup.parseBodyFragment(article.article).select("article").select("*").toList
+        val tagMaps = node.content.map(article => {
+          val elements = Jsoup.parseBodyFragment(article.content).select("article").select("*").toList
           buildMap(node.id, elements)
         }).foldLeft(tagsMap)((map, articleMap) => addOrUpdateMap(map, articleMap))
 
