@@ -54,6 +54,7 @@ trait ArticleContentInformation {
 
     def getExternalEmbedResources: Map[String, Seq[String]] = {
       articleRepository.all.flatMap(articleInfo => {
+        val externalId = articleRepository.getExternalIdFromId(articleInfo.id.toInt).getOrElse("unknown ID")
         val urls = articleInfo.content.flatMap(content => {
           val elements = Jsoup.parseBodyFragment(content.content).select("""figure[data-resource=external]""")
           elements.toList.map(el => el.attr("data-url"))
@@ -61,7 +62,7 @@ trait ArticleContentInformation {
 
         urls.isEmpty match {
           case true => None
-          case false => Some(articleInfo.id -> urls.distinct)
+          case false => Some(externalId -> urls.distinct)
         }
       }).toMap
     }
