@@ -43,7 +43,7 @@ object ComponentRegistry
   with BiblioConverter
   with AmazonClientComponent
   with StorageService
-  with HtmlTagsUsage
+  with ArticleContentInformation
   with ExtractConvertStoreContent
   with NdlaClient
   with MappingApiClient

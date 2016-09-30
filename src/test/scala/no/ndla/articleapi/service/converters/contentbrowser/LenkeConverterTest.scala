@@ -29,7 +29,7 @@ class LenkeConverterTest extends UnitSuite with TestEnvironment {
     val (result, requiredLibraries, errors) = LenkeConverter.convert(content, Seq())
     result should equal(linkEmbedCode)
     requiredLibraries.length should equal(0)
-    errors.messages.length should equal(0)
+    errors.messages.length should equal(1)
   }
 
   test("That LenkeConverter returns an a-tag if insertion method is 'link'") {

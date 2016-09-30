@@ -47,13 +47,17 @@ trait LenkeConverterModule {
 
       val insertionMethod = cont.get("insertion")
       val converted = insertionMethod match {
-        case "inline" => embedMeta
-        case "link" | "lightbox_large" => s"""<a href="$url" title="${cont.get("link_title_text")}">${cont.get("link_text")}</a>"""
-        case "collapsed_body" => {
-          s"<details><summary>${cont.get("link_text")}</summary>$embedMeta</details>"
+        case "inline" => {
+          val message = s"External resource to be embedded: $url"
+          logger.info(message)
+          errors = errors :+ message
+          embedMeta
         }
+        case "link" | "lightbox_large" => s"""<a href="$url" title="${cont.get("link_title_text")}">${cont.get("link_text")}</a>"""
+        case "collapsed_body" =>
+          s"<details><summary>${cont.get("link_text")}</summary>$embedMeta</details>"
         case _ => {
-          val message = s"""Unhandled fagstoff insertion method '$insertionMethod' on '${cont.get("link_text")}'. Defaulting to link."""
+          val message = s"""Unhandled insertion method '$insertionMethod' on '${cont.get("link_text")}'. Defaulting to link."""
           logger.warn(message)
           errors = errors :+ message
           s"""<a href="$url" title="${cont.get("link_title_text")}">${cont.get("link_text")}</a>"""

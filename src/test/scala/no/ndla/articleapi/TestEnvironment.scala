@@ -46,7 +46,7 @@ trait TestEnvironment
   with ImageApiServiceComponent
   with AmazonClientComponent
   with StorageService
-  with HtmlTagsUsage
+  with ArticleContentInformation
   with ExtractConvertStoreContent
   with NdlaClient
   with MappingApiClient
