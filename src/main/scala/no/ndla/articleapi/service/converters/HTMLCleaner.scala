@@ -70,7 +70,7 @@ object HTMLCleaner extends ConverterModule {
   }
 
   private def removeNbsp(el: Element) {
-    el.html(el.html().replace("\u00a0", ""))
+    el.html(el.html().replace("\u00a0", "")) // \u00a0 is the unicode representation of &nbsp;
   }
 
 }
