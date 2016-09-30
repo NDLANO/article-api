@@ -20,23 +20,12 @@ import scala.annotation.tailrec
 trait ConverterModule {
   def stringToJsoupDocument(htmlString: String): Element = {
     val document = Jsoup.parseBodyFragment(htmlString)
-    document.outputSettings().escapeMode(EscapeMode.xhtml)
-    val article = document.select("article")
-    val content = article.isEmpty match {
-      case false => article
-      case true => document.select("body")
-    }
-    content.first()
+    document.outputSettings().escapeMode(EscapeMode.xhtml).prettyPrint(false)
+    document.select("body").first()
   }
 
   def jsoupDocumentToString(element: Element): String = {
-    val article = element.select("article")
-    val content = article.isEmpty match {
-      case false => article
-      case true => element.select("body")
-    }
-
-    content.outerHtml()
+    element.select("body").html()
   }
 
   def convert(content: LanguageContent, importStatus: ImportStatus): (LanguageContent, ImportStatus)
@@ -68,5 +57,5 @@ case class LanguageContent(nid: String, tnid: String, content: String, language:
   def isMainNode = nid == tnid || tnid == "0"
   def isTranslation = !isMainNode
 
-  def asContent: Article = Article(content, footNotes, language)
+  def asContent: ArticleContent = ArticleContent(content, footNotes, language)
 }

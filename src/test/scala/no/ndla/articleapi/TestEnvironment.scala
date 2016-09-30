@@ -13,7 +13,7 @@ import javax.sql.DataSource
 
 import com.amazonaws.services.s3.AmazonS3Client
 import io.searchbox.client.JestClient
-import no.ndla.articleapi.controller.{ArticleController, InternController}
+import no.ndla.articleapi.controller.{ArticleController, HealthController, InternController}
 import no.ndla.articleapi.integration._
 import no.ndla.articleapi.repository.ArticleRepositoryComponent
 import no.ndla.articleapi.service._
@@ -31,6 +31,7 @@ trait TestEnvironment
   with SearchIndexServiceComponent
   with ArticleController
   with InternController
+  with HealthController
   with DataSourceComponent
   with ArticleRepositoryComponent
   with MockitoSugar
@@ -59,6 +60,7 @@ trait TestEnvironment
 
   val internController = mock[InternController]
   val articleController = mock[ArticleController]
+  val healthController = mock[HealthController]
 
   val dataSource = mock[DataSource]
   val articleRepository = mock[ArticleRepository]

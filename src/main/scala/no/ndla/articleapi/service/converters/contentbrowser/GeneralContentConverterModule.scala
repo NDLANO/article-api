@@ -13,7 +13,9 @@ import com.typesafe.scalalogging.LazyLogging
 import no.ndla.articleapi.ArticleApiProperties._
 import no.ndla.articleapi.model.{ImportStatus, RequiredLibrary}
 import no.ndla.articleapi.repository.ArticleRepositoryComponent
+import no.ndla.articleapi.service.converters.HtmlFigureGenerator
 import no.ndla.articleapi.service.{ExtractConvertStoreContent, ExtractServiceComponent}
+
 import scala.util.{Failure, Success}
 
 trait GeneralContentConverterModule {
@@ -57,8 +59,13 @@ trait GeneralContentConverterModule {
 
       contentId match {
         case Some(id) => {
-          val (figureId, linkText) = (contentBrowser.id, contentBrowser.get("link_text"))
-          (s"""<figure data-resource="content-link" data-id="$figureId" data-content-id="$id" data-link-text="$linkText"></figure>""", importStatus)
+          val (figureElement, figureUsageErrors) = HtmlFigureGenerator.buildFigure(Map(
+            "resource" -> "content-link",
+            "id" -> s"${contentBrowser.id}",
+            "content-id" -> id,
+            "link-text" -> contentBrowser.get("link_text")
+          ))
+          (figureElement, importStatus ++ ImportStatus(figureUsageErrors, Seq()))
         }
         case None => {
           val warnMessage = s"""Link to old ndla.no ($ndlaBaseHost/node/${contentBrowser.get("nid")})"""

@@ -9,7 +9,7 @@
 
 import javax.servlet.ServletContext
 
-import no.ndla.articleapi.ComponentRegistry.{internController, articleController, resourcesApp}
+import no.ndla.articleapi.ComponentRegistry.{internController, articleController, resourcesApp, healthController}
 import no.ndla.articleapi.ArticleSwagger
 import org.scalatra.LifeCycle
 
@@ -21,6 +21,7 @@ class ScalatraBootstrap extends LifeCycle {
     context.mount(articleController, "/articles", "articles")
     context.mount(resourcesApp, "/api-docs")
     context.mount(internController, "/intern")
+    context.mount(healthController, "/health")
   }
 
 }

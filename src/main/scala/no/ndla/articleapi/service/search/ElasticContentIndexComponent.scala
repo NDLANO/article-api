@@ -22,7 +22,7 @@ import io.searchbox.indices.mapping.PutMapping
 import io.searchbox.indices.{CreateIndex, DeleteIndex, IndicesExists}
 import no.ndla.articleapi.ArticleApiProperties
 import no.ndla.articleapi.integration.ElasticClientComponent
-import no.ndla.articleapi.model.ArticleInformation
+import no.ndla.articleapi.model.Article
 import no.ndla.articleapi.model.Language._
 import no.ndla.articleapi.model.search.SearchableLanguageFormats
 import org.elasticsearch.ElasticsearchException
@@ -34,9 +34,9 @@ trait ElasticContentIndexComponent {
 
   class ElasticContentIndex extends LazyLogging {
 
-    def indexDocuments(articleData: List[ArticleInformation], indexName: String): Int = {
+    def indexDocuments(articleData: List[Article], indexName: String): Int = {
       implicit val formats = SearchableLanguageFormats.JSonFormats
-      val searchableArticles = articleData.map(searchConverterService.asSearchableArticleInformation)
+      val searchableArticles = articleData.map(searchConverterService.asSearchableArticle)
 
       val bulkBuilder = new Bulk.Builder()
       searchableArticles.foreach(imageMeta => {
@@ -74,8 +74,8 @@ trait ElasticContentIndexComponent {
     def buildMapping(): String = {
       mapping(ArticleApiProperties.SearchDocument).fields(
         "id" typed IntegerType,
-        languageSupportedField("titles", keepRaw = true),
-        languageSupportedField("article", keepRaw = false),
+        languageSupportedField("title", keepRaw = true),
+        languageSupportedField("content", keepRaw = false),
         languageSupportedField("tags", keepRaw = false),
         "lastUpdated" typed DateType,
         "license" typed StringType index "not_analyzed",

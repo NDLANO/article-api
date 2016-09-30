@@ -54,7 +54,7 @@ trait SearchService {
 
       ArticleSummary(
         hit.get("id").getAsString,
-        hit.get("titles").getAsJsonObject.entrySet().to[Seq].map(entr => ArticleTitle(entr.getValue.getAsString, Some(entr.getKey))),
+        hit.get("title").getAsJsonObject.entrySet().to[Seq].map(entr => ArticleTitle(entr.getValue.getAsString, Some(entr.getKey))),
         ApplicationUrl.get + hit.get("id").getAsString,
         hit.get("license").getAsString)
     }
@@ -72,14 +72,14 @@ trait SearchService {
     def matchingQuery(query: Iterable[String], language: Option[String], license: Option[String], page: Option[Int], pageSize: Option[Int], sort: Sort.Value): SearchResult = {
       val searchLanguage = language.getOrElse(Language.DefaultLanguage)
 
-      val titleSearch = QueryBuilders.matchQuery(s"titles.$searchLanguage", query.mkString(" ")).operator(MatchQueryBuilder.Operator.AND)
-      val articleSearch = QueryBuilders.matchQuery(s"article.$searchLanguage", query.mkString(" ")).operator(MatchQueryBuilder.Operator.AND)
+      val titleSearch = QueryBuilders.matchQuery(s"title.$searchLanguage", query.mkString(" ")).operator(MatchQueryBuilder.Operator.AND)
+      val contentSearch = QueryBuilders.matchQuery(s"content.$searchLanguage", query.mkString(" ")).operator(MatchQueryBuilder.Operator.AND)
       val tagSearch = QueryBuilders.matchQuery(s"tags.$searchLanguage", query.mkString(" ")).operator(MatchQueryBuilder.Operator.AND)
 
       val fullSearch = QueryBuilders.boolQuery()
         .must(QueryBuilders.boolQuery()
-          .should(QueryBuilders.nestedQuery("titles", titleSearch))
-          .should(QueryBuilders.nestedQuery("article", articleSearch))
+          .should(QueryBuilders.nestedQuery("title", titleSearch))
+          .should(QueryBuilders.nestedQuery("content", contentSearch))
           .should(QueryBuilders.nestedQuery("tags", tagSearch)))
 
       executeSearch(searchLanguage, license, sort, page, pageSize, fullSearch)
@@ -108,8 +108,8 @@ trait SearchService {
 
     def getSortDefinition(sort: Sort.Value, language: String): FieldSortBuilder = {
       sort match {
-        case (Sort.ByTitleAsc) => SortBuilders.fieldSort(s"titles.$language.raw").setNestedPath("titles").order(SortOrder.ASC).missing("_last")
-        case (Sort.ByTitleDesc) => SortBuilders.fieldSort(s"titles.$language.raw").setNestedPath("titles").order(SortOrder.DESC).missing("_last")
+        case (Sort.ByTitleAsc) => SortBuilders.fieldSort(s"title.$language.raw").setNestedPath("title").order(SortOrder.ASC).missing("_last")
+        case (Sort.ByTitleDesc) => SortBuilders.fieldSort(s"title.$language.raw").setNestedPath("title").order(SortOrder.DESC).missing("_last")
         case (Sort.ByRelevanceAsc) => SortBuilders.fieldSort("_score").order(SortOrder.ASC)
         case (Sort.ByRelevanceDesc) => SortBuilders.fieldSort("_score").order(SortOrder.DESC)
         case (Sort.ByLastUpdatedAsc) => SortBuilders.fieldSort("lastUpdated").order(SortOrder.ASC).missing("_last")
@@ -147,7 +147,7 @@ trait SearchService {
         }
         case _ => {
           logger.error(response.getErrorMessage)
-          throw new ElasticsearchException(s"Unable to execute search in ${ArticleApiProperties.SearchIndex}", response.getErrorMessage)
+          throw new ElasticsearchException(s"Unable to execute search in ${ArticleApiProperties.SearchIndex}. ErrorMessage: {}", response.getErrorMessage)
         }
       }
     }

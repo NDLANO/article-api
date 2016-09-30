@@ -79,12 +79,12 @@ object ArticleApiProperties extends LazyLogging {
     "mlabeledtr", "mlongdiv", "mmultiscripts", "mn", "mo", "mover", "mpadded", "mphantom", "mroot", "mrow", "ms", "mscarries",
     "mscarry", "msgroup", "msline", "mspace", "msqrt", "msrow", "mstack", "mstyle", "msub", "msup", "msubsup", "mtable", "mtd",
     "mtext", "mtr", "munder", "munderover", "semantics", "annotation", "annotation-xml")
-  val permittedHTMLTags = Set("article", "section", "table", "tr", "td", "li", "a", "button", "div", "p", "pre", "code", "sup",
+  val permittedHTMLTags = Set("body", "article", "section", "table", "tr", "td", "li", "a", "button", "div", "p", "pre", "code", "sup",
     "h1", "h2", "h3", "h4", "h5", "h6", "aside", "strong", "figure", "ul", "br", "ol", "i", "em", "b", "th", "tbody", "blockquote",
     "details", "summary", "table", "thead", "tfoot", "tbody", "caption", "audio", "figcaption") ++ mathJaxTags
 
-  val permittedHTMLAttributes = Set("data-resource", "data-id", "data-content-id", "data-link-text",
-    "data-url", "data-size", "data-videoid", "data-account", "data-player", "data-key", "href", "title")
+  val permittedHTMLAttributes = Set("data-resource", "data-id", "data-content-id", "data-link-text", "data-url",
+    "data-size", "data-videoid", "data-account", "data-player", "data-key", "data-alt", "data-caption", "href", "title")
 
   def verify() = {
     val missingProperties = ContentApiProps.filter(entry => entry._2.isEmpty).toList
