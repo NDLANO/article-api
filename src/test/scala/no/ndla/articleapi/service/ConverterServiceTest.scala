@@ -109,9 +109,9 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
   }
 
   test("That html comments are removed") {
-    val contentNodeBokmal = LanguageContent(nodeId, nodeId, """<p><!-- this is a comment --></p> <!-- another comment -->""", Some("nb"))
+    val contentNodeBokmal = LanguageContent(nodeId, nodeId, """<p><!-- this is a comment -->not a comment</p> <!-- another comment -->""", Some("nb"))
     val node = NodeToConvert(List(contentTitle), List(contentNodeBokmal), copyright, List(tag), Seq(visualElement), Seq(), "fagstoff", new Date(0), new Date(1))
-    val expectedResult = """<p></p>"""
+    val expectedResult = """<p>not a comment</p>"""
 
     val (result, status) = service.toArticle(node, ImportStatus(Seq(), Seq()))
     val strippedResult = " +".r.replaceAllIn(result.content.head.content, " ")
@@ -138,6 +138,32 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
 
     result.content.head.content should equal (expectedResult)
     result.requiredLibraries.length should equal (0)
+  }
+
+  test("&nbsp is removed") {
+    val contentNodeBokmal = LanguageContent(nodeId, nodeId, """<article> <p>hello&nbsp; you</article>""", Some("nb"))
+    val node = NodeToConvert(List(contentTitle), List(contentNodeBokmal), copyright, List(tag), Seq(visualElement), Seq(), "fagstoff", new Date(0), new Date(1))
+    val expectedResult = """<article> <p>hello you</p></article>"""
+
+    val (result, status) = service.toArticle(node, ImportStatus(Seq(), Seq()))
+    val strippedResult = " +".r.replaceAllIn(result.content.head.content.replace("\n", ""), " ")
+
+    strippedResult should equal (expectedResult)
+    status.messages.isEmpty should equal (true)
+    result.requiredLibraries.isEmpty should equal (true)
+  }
+
+  test("That empty html tags are removed") {
+    val contentNodeBokmal = LanguageContent(nodeId, nodeId, """<article> <div></div><p><div></div></p><figure data-id="1"></figure></article>""", Some("nb"))
+    val node = NodeToConvert(List(contentTitle), List(contentNodeBokmal), copyright, List(tag), Seq(visualElement), Seq(), "fagstoff", new Date(0), new Date(1))
+    val expectedResult = """<article> <figure data-id="1"></figure></article>"""
+
+    val (result, status) = service.toArticle(node, ImportStatus(Seq(), Seq()))
+    val strippedResult = " +".r.replaceAllIn(result.content.head.content.replace("\n", ""), " ")
+
+    strippedResult should equal (expectedResult)
+    status.messages.isEmpty should equal (true)
+    result.requiredLibraries.isEmpty should equal (true)
   }
 
 }

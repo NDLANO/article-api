@@ -8,8 +8,8 @@ class HTMLCleanerTest extends UnitSuite {
   val nodeId = "1234"
 
   test("That HTMLCleaner unwraps illegal attributes") {
-    val initialContent = LanguageContent(nodeId, nodeId, """<body><article><h1 class="useless">heading<div style="width='0px'"></div></h1></article></body>""", Some("en"))
-    val expectedResult = "<article><h1>heading<div></div></h1></article>"
+    val initialContent = LanguageContent(nodeId, nodeId, """<body><article><h1 class="useless">heading<div style="width='0px'">hey</div></h1></article></body>""", Some("en"))
+    val expectedResult = "<article><h1>heading<div>hey</div></h1></article>"
     val (result, status) = HTMLCleaner.convert(initialContent, ImportStatus(Seq(), Seq()))
 
     result.content.replace("\n", "") should equal (expectedResult)
