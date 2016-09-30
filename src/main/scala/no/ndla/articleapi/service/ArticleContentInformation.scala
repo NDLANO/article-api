@@ -54,8 +54,8 @@ trait ArticleContentInformation {
 
     def getExternalEmbedResources: Map[String, Seq[String]] = {
       articleRepository.all.flatMap(articleInfo => {
-        val urls = articleInfo.article.flatMap(article => {
-          val elements = Jsoup.parseBodyFragment(article.article).select("""figure[data-resource=external]""")
+        val urls = articleInfo.content.flatMap(content => {
+          val elements = Jsoup.parseBodyFragment(content.content).select("""figure[data-resource=external]""")
           elements.toList.map(el => el.attr("data-url"))
         })
 
