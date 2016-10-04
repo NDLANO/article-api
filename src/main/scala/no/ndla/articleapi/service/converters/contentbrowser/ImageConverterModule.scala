@@ -13,7 +13,7 @@ import com.typesafe.scalalogging.LazyLogging
 import no.ndla.articleapi.model.{ImportStatus, RequiredLibrary}
 import no.ndla.articleapi.service.ImageApiServiceComponent
 import no.ndla.articleapi.ArticleApiProperties.imageApiUrl
-import no.ndla.articleapi.service.converters.HtmlFigureGenerator
+import no.ndla.articleapi.service.converters.HtmlTagGenerator
 
 trait ImageConverterModule {
   this: ImageApiServiceComponent =>
@@ -38,7 +38,7 @@ trait ImageConverterModule {
 
       imageApiService.importOrGetMetaByExternId(cont.get("nid")) match {
         case Some(image) =>
-          HtmlFigureGenerator.buildFigure(figureDataAttributes + ("url" -> s"$imageApiUrl/${image.id}"))
+          HtmlTagGenerator.buildFigure(figureDataAttributes + ("url" -> s"$imageApiUrl/${image.id}"))
         case None =>
           (s"<img src='stock.jpeg' alt='The image with id ${cont.get("nid")} was not not found' />",
             Seq(s"Image with id ${cont.get("nid")} was not found"))

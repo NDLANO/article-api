@@ -13,7 +13,7 @@ import com.typesafe.scalalogging.LazyLogging
 import no.ndla.articleapi.ArticleApiProperties._
 import no.ndla.articleapi.model.{ImportStatus, RequiredLibrary}
 import no.ndla.articleapi.repository.ArticleRepositoryComponent
-import no.ndla.articleapi.service.converters.HtmlFigureGenerator
+import no.ndla.articleapi.service.converters.HtmlTagGenerator
 import no.ndla.articleapi.service.{ExtractConvertStoreContent, ExtractServiceComponent}
 
 import scala.util.{Failure, Success}
@@ -59,7 +59,7 @@ trait GeneralContentConverterModule {
 
       contentId match {
         case Some(id) => {
-          val (figureElement, figureUsageErrors) = HtmlFigureGenerator.buildFigure(Map(
+          val (figureElement, figureUsageErrors) = HtmlTagGenerator.buildFigure(Map(
             "resource" -> "content-link",
             "id" -> s"${contentBrowser.id}",
             "content-id" -> id,

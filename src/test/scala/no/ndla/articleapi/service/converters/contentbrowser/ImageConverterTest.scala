@@ -29,8 +29,7 @@ class ImageConverterTest extends UnitSuite with TestEnvironment {
     val (small, full) = (Image("small.jpg", 1024, ""), Image("full.jpg", 1024, ""))
     val imageVariants = ImageVariants(Some(small), Some(full))
     val image = ImageMetaInformation("1234", List(ImageTitle("", Some("nb"))), List(ImageAltText("", Some("nb"))), imageVariants, copyright, List(ImageTag(List(""), Some(""))))
-    val expectedResult = s"""<figure data-size="fullbredde" data-url="http://localhost/images/$nodeId" data-id="1" data-resource="image" data-alt="$altText" data-caption="$caption"></figure>"""
-
+    val expectedResult = s"""<figure data-alt="$altText" data-caption="$caption" data-id="1" data-resource="image" data-size="fullbredde" data-url="http://localhost/images/$nodeId"></figure>"""
     when(imageApiService.importOrGetMetaByExternId(nodeId)).thenReturn(Some(image))
 
     val (result, requiredLibraries, errors) = ImageConverter.convert(content, Seq())
@@ -43,8 +42,7 @@ class ImageConverterTest extends UnitSuite with TestEnvironment {
     val (small, full) = (Image("small.jpg", 1024, ""), Image("full.jpg", 1024, ""))
     val imageVariants = ImageVariants(Some(small), Some(full))
     val image = ImageMetaInformation("1234", List(ImageTitle("", Some("nb"))), List(ImageAltText("", Some("nb"))), imageVariants, copyright, List(ImageTag(List(""), Some(""))))
-    val expectedResult = s"""<figure data-size="fullbredde" data-url="http://localhost/images/$nodeId" data-id="1" data-resource="image" data-alt="$altText" data-caption=""></figure>"""
-
+    val expectedResult = s"""<figure data-alt="$altText" data-caption="" data-id="1" data-resource="image" data-size="fullbredde" data-url="http://localhost/images/$nodeId"></figure>"""
     when(imageApiService.importOrGetMetaByExternId(nodeId)).thenReturn(Some(image))
 
     val (result, requiredLibraries, errors) = ImageConverter.convert(ContentBrowser(contentStringEmptyCaption, Some("nb"), 1), Seq())

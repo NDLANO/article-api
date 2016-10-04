@@ -84,7 +84,7 @@ object ArticleApiProperties extends LazyLogging {
     "details", "summary", "table", "thead", "tfoot", "tbody", "caption", "audio", "figcaption") ++ mathJaxTags
 
   val permittedHTMLAttributes = Set("data-resource", "data-id", "data-content-id", "data-link-text", "data-url",
-    "data-size", "data-videoid", "data-account", "data-player", "data-key", "data-alt", "data-caption", "href", "title")
+    "data-size", "data-videoid", "data-account", "data-player", "data-key", "data-alt", "data-caption", "data-nrk-video-id", "href", "title")
 
   def verify() = {
     val missingProperties = ContentApiProps.filter(entry => entry._2.isEmpty).toList
