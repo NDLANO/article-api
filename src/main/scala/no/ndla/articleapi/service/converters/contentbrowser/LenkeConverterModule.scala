@@ -29,16 +29,17 @@ trait LenkeConverterModule {
     }
 
     def convertLink(cont: ContentBrowser): (String, Seq[RequiredLibrary], Seq[String]) = {
-      val NDLAPattern = """.*(ndla.no).*""".r
       val url = extractService.getNodeEmbedUrl(cont.get("nid")).get
-      val (htmlTag, requiredLibrary, errors) = Map[String, (String, ContentBrowser) => (String, Option[RequiredLibrary], Seq[String])](
-        "link" -> insertAnchor,
-        "inline" -> insertInline,
-        "lightbox_large" -> insertAnchor,
-        "collapsed_body" -> insertDetailSummary
-      ).getOrElse(cont.get("insertion"), insertUnhandled _)(url, cont)
+      val (htmlTag, requiredLibrary, errors) = cont.get("insertion") match {
+        case "link" => insertAnchor(url, cont)
+        case "inline" => insertInline(url, cont)
+        case "lightbox_large" => insertAnchor(url, cont)
+        case "collapsed_body" => insertDetailSummary(url, cont)
+        case _ => insertUnhandled(url, cont)
+      }
 
-      url.host match {
+      val NDLAPattern = """.*(ndla.no).*""".r
+      url.host.getOrElse("") match {
         case _ => (htmlTag, requiredLibrary.toList, errors)
         case NDLAPattern(_) => {
           logger.warn("Link to NDLA resource: '{}'", url)
