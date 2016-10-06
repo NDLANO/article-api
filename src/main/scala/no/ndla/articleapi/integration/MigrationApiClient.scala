@@ -60,7 +60,7 @@ trait MigrationApiClient {
       get[MigrationContentBiblioMeta](ContentBiblioMetaEndpoint, nodeId)
 
     def getSubjectForNode(nodeId: String): Try[Seq[MigrationSubjectMeta]] =
-      get[Seq[MigrationSubjectMeta]](ContentSubjectMetaEndpoint, nodeId)
+      get[Seq[MigrationSubjectMeta]](ContentSubjectMetaEndpoint, nodeId).map(_.distinct)
 
     private def get[A](endpointUrl: String, nodeId: String)(implicit mf: Manifest[A]): Try[A] = {
       ndlaClient.fetch[A](
