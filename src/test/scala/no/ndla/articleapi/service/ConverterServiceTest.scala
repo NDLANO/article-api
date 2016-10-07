@@ -180,9 +180,9 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     val tableExpectedResult =
       s"""<table>
           |<tbody>
-          |<th>
-          |<td>column</td>
-          |</th>
+          |<tr>
+          |<th>column</th>
+          |</tr>
           |</tbody>
           |</table>""".stripMargin.replace("\n", "")
 

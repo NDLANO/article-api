@@ -14,16 +14,14 @@ import no.ndla.articleapi.model.ImportStatus
 
 class TableConverterTest extends UnitSuite {
   val nodeId = "1234"
-  val tableColumn = """<td>column</td>"""
-  val tableColumnWithParagraph = "<td><p>column</p></td>"
-  val tableColumnWithParagraphs = "<td><p>paragraph</p><p>another paragraph</p></td>"
 
   test("paragraphs are unwrapped if cell contains only one") {
     val table2x3 =
       s"""<table>
           |<tbody>
           |<tr>
-          |$tableColumnWithParagraph
+          |<td><p>column</p></td>
+          |<td><p>column</p><p>hey</p></td>
           |</tr>
           |</tbody>
           |</table>""".stripMargin.replace("\n", "")
@@ -31,9 +29,10 @@ class TableConverterTest extends UnitSuite {
     val table2x3ExpectedResult =
       s"""<table>
           |<tbody>
-          |<th>
-          |<td>column</td>
-          |</th>
+          |<tr>
+          |<th>column</th>
+          |<th><p>column</p><p>hey</p></th>
+          |</tr>
           |</tbody>
           |</table>""".stripMargin.replace("\n", "")
 
@@ -48,9 +47,8 @@ class TableConverterTest extends UnitSuite {
       s"""<table>
           |<tbody>
           |<tr>
-          |$tableColumnWithParagraphs
-          |$tableColumnWithParagraphs
-          |$tableColumnWithParagraphs
+          |<td>col 1</td>
+          |<td>col 2</td>
           |</tr>
           |</tbody>
           |</table>""".stripMargin.replace("\n", "")
@@ -58,11 +56,45 @@ class TableConverterTest extends UnitSuite {
     val table2x3ExpectedResult =
       s"""<table>
           |<tbody>
-          |<th>
-          |$tableColumnWithParagraphs
-          |$tableColumnWithParagraphs
-          |$tableColumnWithParagraphs
-          |</th>
+          |<tr>
+          |<th>col 1</th>
+          |<th>col 2</th>
+          |</tr>
+          |</tbody>
+          |</table>""".stripMargin.replace("\n", "")
+
+    val initialContent = LanguageContent(nodeId, nodeId, table2x3, Some("en"))
+    val (result, importStatus) = TableConverter.convert(initialContent, ImportStatus(Seq(), Seq()))
+
+    result.content should equal(table2x3ExpectedResult)
+  }
+
+  test("Strong tags in table header are unwrapped") {
+    val table2x3 =
+      s"""<table>
+          |<tbody>
+          |<tr>
+          |<th><strong>heading 1</strong></th>
+          |<th><strong>heading 2</strong></th>
+          |</tr>
+          |<tr>
+          |<td>col 1</td>
+          |<td>col 2</td>
+          |</tr>
+          |</tbody>
+          |</table>""".stripMargin.replace("\n", "")
+
+    val table2x3ExpectedResult =
+      s"""<table>
+          |<tbody>
+          |<tr>
+          |<th>heading 1</th>
+          |<th>heading 2</th>
+          |</tr>
+          |<tr>
+          |<td>col 1</td>
+          |<td>col 2</td>
+          |</tr>
           |</tbody>
           |</table>""".stripMargin.replace("\n", "")
 
