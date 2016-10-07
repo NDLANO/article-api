@@ -15,6 +15,7 @@ import no.ndla.articleapi.TestEnvironment
 import no.ndla.articleapi.integration.{LanguageContent, MigrationRelatedContent, MigrationRelatedContents}
 import no.ndla.articleapi.model._
 import no.ndla.articleapi.UnitSuite
+import no.ndla.articleapi.service.converters.TableConverter
 import org.mockito.Mockito._
 import org.mockito.Matchers._
 
@@ -164,6 +165,31 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     strippedResult should equal (expectedResult)
     status.messages.isEmpty should equal (true)
     result.requiredLibraries.isEmpty should equal (true)
+  }
+
+  test("paragraphs are unwrapped if cell contains only one") {
+    val table =
+      s"""<table>
+          |<tbody>
+          |<tr>
+          |<td><p>column</p></td>
+          |</tr>
+          |</tbody>
+          |</table>""".stripMargin.replace("\n", "")
+
+    val tableExpectedResult =
+      s"""<table>
+          |<tbody>
+          |<th>
+          |<td>column</td>
+          |</th>
+          |</tbody>
+          |</table>""".stripMargin.replace("\n", "")
+
+    val initialContent = LanguageContent(nodeId, nodeId, table, Some("en"))
+    val (result, importStatus) = TableConverter.convert(initialContent, ImportStatus(Seq(), Seq()))
+
+    result.content should equal(tableExpectedResult)
   }
 
 }
