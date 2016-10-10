@@ -92,8 +92,6 @@ class HTMLCleanerTest extends UnitSuite {
     val expectedIngressResult = LanguageIngress(Some("<strong>Medievanene er i endring.</strong>"), Some("http://image-api/images/5452"))
     val (result, status) = HTMLCleaner.convert(defaultLanguageContent.copy(content=content), defaultImportStatus)
 
-    println(result.ingress.get)
-    println(result.content)
     result.content should equal(expectedContentResult)
     result.ingress should equal(Some(expectedIngressResult))
   }

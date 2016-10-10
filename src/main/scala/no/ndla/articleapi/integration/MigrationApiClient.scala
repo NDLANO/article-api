@@ -110,7 +110,7 @@ case class MigrationContentTitle(title: String, language: Option[String]) {
 }
 
 case class MigrationIngress(nid: String, content: String, imageNid: Option[String], ingressVisPaaSiden: Int, language: Option[String]) {
-  def asNodeIngress: NodeIngress = NodeIngress(nid, nid, content, imageNid, ingressVisPaaSiden, language)
+  def asNodeIngress: NodeIngressFromSeparateDBTable = NodeIngressFromSeparateDBTable(nid, nid, content, imageNid, ingressVisPaaSiden, language)
 }
 
 case class MigrationContent(nid: String, tnid: String, content: String, language: Option[String], created: Date, changed: Date)
