@@ -17,11 +17,12 @@ import org.elasticsearch.node.{Node, NodeBuilder}
 import org.joda.time.DateTime
 
 import scala.reflect.io.Path
+import scala.util.Random
 
 
 class SearchServiceTest extends UnitSuite with TestEnvironment {
 
-  val esHttpPort = 29999
+  val esHttpPort = new Random(System.currentTimeMillis()).nextInt(30000 - 20000) + 20000
   val esDataDir = "esTestData"
   var esNode: Node = _
 
