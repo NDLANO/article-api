@@ -36,6 +36,7 @@ trait MigrationApiClient {
     private val ContentFileEndpoint =  s"$ContentMigrationBaseEndpoint/filemeta/:node_id"
     private val ContentGeneralEndpoint = s"$ContentMigrationBaseEndpoint/generalcontent/:node_id"
     private val ContentBiblioMetaEndpoint = s"$ContentMigrationBaseEndpoint/bibliometa/:node_id"
+    private val ContentSubjectMetaEndpoint = s"$ContentMigrationBaseEndpoint/subjectfornode/:node_id"
 
     def getContentNodeData(nodeId: String): Try[MigrationMainNodeImport] =
       get[MigrationMainNodeImport](ContentDataEndpoint, nodeId)
@@ -57,6 +58,9 @@ trait MigrationApiClient {
 
     def getBiblioMeta(nodeId: String): Try[MigrationContentBiblioMeta] =
       get[MigrationContentBiblioMeta](ContentBiblioMetaEndpoint, nodeId)
+
+    def getSubjectForNode(nodeId: String): Try[Seq[MigrationSubjectMeta]] =
+      get[Seq[MigrationSubjectMeta]](ContentSubjectMetaEndpoint, nodeId).map(_.distinct)
 
     private def get[A](endpointUrl: String, nodeId: String)(implicit mf: Manifest[A]): Try[A] = {
       ndlaClient.fetch[A](
@@ -133,7 +137,7 @@ case class MigrationContentFileMeta(nid: String, tnid: String, title: String, fi
   def asContentFilMeta: ContentFilMeta = ContentFilMeta(nid, tnid, title, fileName, new URL(url), mimeType, fileSize)
 }
 
-case class MigrationEmbedMeta(url: String)
+case class MigrationEmbedMeta(url: String, embedCode: String)
 
 case class MigrationPageTitle(title: String, `type`: String, language: Option[String])
 
@@ -149,3 +153,4 @@ case class MigrationDifficulty(difficulty: String, language: Option[String])
 case class MigrationContentType(`type`: String, language: Option[String])
 case class MigrationInnholdsKategoriAndFag(innhold: String, fag: String, language: Option[String])
 case class MigrationFagressurs(fagressursType: String, velgFagressurs: String, language: Option[String])
+case class MigrationSubjectMeta(nid: String, title: String)

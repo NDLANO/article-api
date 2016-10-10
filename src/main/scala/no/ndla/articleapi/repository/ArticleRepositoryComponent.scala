@@ -25,7 +25,7 @@ trait ArticleRepositoryComponent {
 
     ConnectionPool.singleton(new DataSourceConnectionPool(dataSource))
 
-    def insert(article: Article, externalId: String)(implicit session: DBSession = AutoSession): Long = {
+    def insert(article: Article, externalId: String, externalSubjectId: Seq[String])(implicit session: DBSession = AutoSession): Long = {
       import org.json4s.native.Serialization.write
       implicit val formats = org.json4s.DefaultFormats
 
@@ -34,7 +34,7 @@ trait ArticleRepositoryComponent {
       dataObject.setType("jsonb")
       dataObject.setValue(json)
 
-      val articleId: Long = sql"insert into contentdata(external_id, document) values(${externalId}, ${dataObject})".updateAndReturnGeneratedKey().apply
+      val articleId: Long = sql"insert into contentdata(external_id, external_subject_id, document) values(${externalId}, ARRAY[${externalSubjectId}], ${dataObject})".updateAndReturnGeneratedKey().apply
 
       logger.info(s"Inserted node ${externalId}: $articleId")
       articleId
@@ -57,6 +57,13 @@ trait ArticleRepositoryComponent {
 
     def getIdFromExternalId(externalId: String)(implicit session: DBSession = AutoSession): Option[Long] =
       sql"select id from contentdata where external_id=${externalId}".map(rs => rs.long("id")).single.apply()
+
+    def getExternalIdFromId(id: Int): Option[String] = {
+      DB readOnly { implicit session =>
+        sql"select external_id from contentdata where id = ${id}"
+        .map(rs => rs.string("external_id")).single.apply()
+      }
+    }
 
     def minMaxId: (Long, Long) = {
       DB readOnly { implicit session =>
@@ -87,6 +94,12 @@ trait ArticleRepositoryComponent {
     def all: List[Article] = {
       DB readOnly { implicit session =>
         sql"select id, document from contentdata".map(rs => asArticle(rs.string("id"), rs.string("document"))).list().apply()
+      }
+    }
+
+    def allWithExternalSubjectId(externalSubjectId: String): List[Article] = {
+      DB readOnly { implicit session =>
+        sql"select id, document from contentdata where ${externalSubjectId} = ANY(external_subject_id)".map(rs => asArticle(rs.string("id"), rs.string("document"))).list().apply()
       }
     }
 

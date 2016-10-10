@@ -15,7 +15,7 @@ import no.ndla.articleapi.TestEnvironment
 import no.ndla.articleapi.integration.{LanguageContent, LanguageIngress, MigrationRelatedContent, MigrationRelatedContents}
 import no.ndla.articleapi.model._
 import no.ndla.articleapi.UnitSuite
-import no.ndla.articleapi.service.converters.HTMLCleaner
+import no.ndla.articleapi.service.converters.TableConverter
 import org.mockito.Mockito._
 import org.mockito.Matchers._
 
@@ -152,7 +152,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     val imageMeta = ImageMetaInformation(newId, List(), List(), ImageVariants(Some(Image("small.jpeg", 128, "")), Some(Image(imageUrl, 256, ""))), Copyright(License("", "", Some("")), "", List()), List())
     val expectedResult =
       s"""|<article>
-          |<figure data-size="fullbredde" data-url="http://localhost/images/$newId" data-align="" data-id="1" data-resource="image" data-alt="$sampleAlt" data-caption=""></figure>
+          |<figure data-align="" data-alt="$sampleAlt" data-caption="" data-id="1" data-resource="image" data-size="fullbredde" data-url="http://localhost/images/$newId"></figure>
           |</article>""".stripMargin.replace("\n", "")
 
     when(extractService.getNodeType(nodeId)).thenReturn(Some("image"))
@@ -187,6 +187,31 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     strippedResult should equal (expectedResult)
     status.messages.isEmpty should equal (true)
     result.requiredLibraries.isEmpty should equal (true)
+  }
+
+  test("paragraphs are unwrapped if cell contains only one") {
+    val table =
+      s"""<table>
+          |<tbody>
+          |<tr>
+          |<td><p>column</p></td>
+          |</tr>
+          |</tbody>
+          |</table>""".stripMargin.replace("\n", "")
+
+    val tableExpectedResult =
+      s"""<table>
+          |<tbody>
+          |<tr>
+          |<th>column</th>
+          |</tr>
+          |</tbody>
+          |</table>""".stripMargin.replace("\n", "")
+
+    val initialContent = LanguageContent(nodeId, nodeId, table, Some("en"))
+    val (result, importStatus) = TableConverter.convert(initialContent, ImportStatus(Seq(), Seq()))
+
+    result.content should equal(tableExpectedResult)
   }
 
 }

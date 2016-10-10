@@ -36,7 +36,9 @@ class HtmlTagsUsageTest extends UnitSuite with TestEnvironment {
   }
 
   test("getExternalEmbedResources returns a map with external embed resources") {
-    when(articleRepository.all).thenReturn(List(article1, article2, article3, article4))
-    ArticleContentInformation.getExternalEmbedResources should equal(Map(article4.id -> Seq(embedUrl)))
+    val (externalId, externalSubjectId) = ("1234", "52")
+    when(articleRepository.allWithExternalSubjectId(externalSubjectId)).thenReturn(List(article4))
+    when(articleRepository.getExternalIdFromId(article4.id.toInt)).thenReturn(Some(externalId))
+    ArticleContentInformation.getExternalEmbedResources(externalSubjectId) should equal(Map(externalId -> Seq(embedUrl)))
   }
 }

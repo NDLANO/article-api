@@ -52,8 +52,9 @@ trait ArticleContentInformation {
       a.map { case (k, v) => k -> v.unzip._2.flatten.distinct }
     }
 
-    def getExternalEmbedResources: Map[String, Seq[String]] = {
-      articleRepository.all.flatMap(articleInfo => {
+    def getExternalEmbedResources(subjectId: String): Map[String, Seq[String]] = {
+      articleRepository.allWithExternalSubjectId(subjectId).flatMap(articleInfo => {
+        val externalId = articleRepository.getExternalIdFromId(articleInfo.id.toInt).getOrElse("unknown ID")
         val urls = articleInfo.content.flatMap(content => {
           val elements = Jsoup.parseBodyFragment(content.content).select("""figure[data-resource=external]""")
           elements.toList.map(el => el.attr("data-url"))
@@ -61,7 +62,7 @@ trait ArticleContentInformation {
 
         urls.isEmpty match {
           case true => None
-          case false => Some(articleInfo.id -> urls.distinct)
+          case false => Some(externalId -> urls.distinct)
         }
       }).toMap
     }
