@@ -1,7 +1,7 @@
 package no.ndla.articleapi.service.converters
 
 import no.ndla.articleapi.ArticleApiProperties._
-import no.ndla.articleapi.integration.{ConverterModule, LanguageContent}
+import no.ndla.articleapi.integration.{ConverterModule, LanguageContent, LanguageIngress}
 import no.ndla.articleapi.model.ImportStatus
 import org.jsoup.nodes.{Element, Node}
 import scala.collection.JavaConversions._
@@ -15,8 +15,9 @@ object HTMLCleaner extends ConverterModule {
     removeComments(element)
     removeNbsp(element)
     removeEmptyTags(element)
+    val ingress = extractIngress(element)
 
-    (content.copy(content=jsoupDocumentToString(element)),
+    (content.copy(content=jsoupDocumentToString(element), ingress=ingress),
       ImportStatus(importStatus.messages ++ illegalTags ++ illegalAttributes, importStatus.visitedNodes))
   }
 
@@ -73,4 +74,32 @@ object HTMLCleaner extends ConverterModule {
     el.html(el.html().replace("\u00a0", "")) // \u00a0 is the unicode representation of &nbsp;
   }
 
+  private def getIngressText(el: Element): Element = {
+    val ingress = el.select("body>section>p>strong")
+    if (ingress.size > 0)
+      ingress.parents.first
+    else
+      el.select("body>section>strong").first
+  }
+
+  private def extractIngress(el: Element): (Option[LanguageIngress]) = {
+    val ingressTextElement = Option(getIngressText(el))
+    val ingressImageElement = Option(el.select("body>section>figure[data-resource=image]"))
+
+    val ingressText = ingressTextElement.flatMap(rs => {
+      rs.remove()
+      stringToOption(rs.outerHtml())
+    })
+    val ingressImage = ingressImageElement.flatMap(rs => {
+      rs.remove()
+      stringToOption(rs.attr("data-url"))
+    })
+
+    (ingressText, ingressImage) match {
+      case (None, None) => None
+      case _ => Some(LanguageIngress(ingressText, ingressImage))
+    }
+  }
+
+  private def stringToOption(str: String): Option[String] = Option(str).filter(_.trim.nonEmpty)
 }

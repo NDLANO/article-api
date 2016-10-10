@@ -53,9 +53,12 @@ trait ConverterModule {
 
 case class LanguageContent(nid: String, tnid: String, content: String, language: Option[String],
                            requiredLibraries: Seq[RequiredLibrary] = List[RequiredLibrary](),
-                           footNotes: Option[Map[String, FootNoteItem]] = None) {
+                           footNotes: Option[Map[String, FootNoteItem]] = None,
+                           ingress: Option[LanguageIngress] = None) {
   def isMainNode = nid == tnid || tnid == "0"
   def isTranslation = !isMainNode
 
   def asContent: ArticleContent = ArticleContent(content, footNotes, language)
 }
+
+case class LanguageIngress(content: Option[String], imageUrl: Option[String])
