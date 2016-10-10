@@ -20,7 +20,7 @@ class VideoConverterTest extends UnitSuite with TestEnvironment {
 
   test("That VideoConverter converts a ContentBrowser to html code") {
     val content = ContentBrowser(contentString, Some("nb"), 1)
-    val expectedResult = s"""<figure data-videoid="ref:${content.get("nid")}" data-id="1" data-player="$NDLABrightcovePlayerId" data-resource="brightcove" data-account="$NDLABrightcoveAccountId"></figure>"""
+    val expectedResult = s"""<figure data-account="$NDLABrightcoveAccountId" data-id="1" data-player="$NDLABrightcovePlayerId" data-resource="brightcove" data-videoid="ref:${content.get("nid")}"></figure>"""
     val (result, requiredLibraries, messages) = VideoConverter.convert(content, Seq())
     val strippedResult = " +".r.replaceAllIn(result, " ")
     strippedResult.replace("\n", "") should equal(expectedResult)
