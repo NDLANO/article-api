@@ -19,15 +19,15 @@ class HtmlFigureGeneratorTest extends UnitSuite {
     )
 
   test("A correctly formatted figure tag is returned") {
-    val (figureString, errorList) = HtmlFigureGenerator.buildFigure(sampleDataAttributes)
-    figureString should equal("""<figure data-resource="image" data-id="1" data-url="http://localhost/1" data-caption="Sample image"></figure>""")
+    val (figureString, errorList) = HtmlTagGenerator.buildFigure(sampleDataAttributes)
+    figureString should equal("""<figure data-caption="Sample image" data-id="1" data-resource="image" data-url="http://localhost/1"></figure>""")
     errorList.isEmpty should be (true)
   }
 
   test("An error message is returned if an illegal attribute is used") {
     val dataAttributes = sampleDataAttributes + ("illegal-attribute" -> "")
-    val (figureString, errorList) = HtmlFigureGenerator.buildFigure(dataAttributes)
-    figureString should equal("""<figure data-url="http://localhost/1" data-id="1" data-resource="image" data-caption="Sample image" data-illegal-attribute=""></figure>""")
+    val (figureString, errorList) = HtmlTagGenerator.buildFigure(dataAttributes)
+    figureString should equal("""<figure data-caption="Sample image" data-id="1" data-illegal-attribute="" data-resource="image" data-url="http://localhost/1"></figure>""")
     errorList.isEmpty should be (false)
     errorList.head.contains("This is a BUG:") should be (true)
   }

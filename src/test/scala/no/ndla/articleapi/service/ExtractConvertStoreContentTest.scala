@@ -11,7 +11,7 @@ package no.ndla.articleapi.service
 
 import java.util.Date
 
-import no.ndla.articleapi.integration.{LanguageContent, MigrationRelatedContent, MigrationRelatedContents}
+import no.ndla.articleapi.integration.{LanguageContent, MigrationRelatedContent, MigrationRelatedContents, MigrationSubjectMeta}
 import no.ndla.articleapi.model._
 import no.ndla.articleapi.{TestEnvironment, UnitSuite}
 import org.mockito.Mockito._
@@ -43,9 +43,10 @@ class ExtractConvertStoreContentTest extends UnitSuite with TestEnvironment {
     when(extractService.getNodeGeneralContent(nodeId2)).thenReturn(Seq(NodeGeneralContent(nodeId2, nodeId2, "title", "content", "en")))
     when(articleRepository.withExternalId(nodeId2)).thenReturn(None)
     when(extractConvertStoreContent.processNode(nodeId2, ImportStatus(Seq(), Seq(nodeId)))).thenReturn(Try((newNodeid, ImportStatus(Seq(), Seq(nodeId, nodeId2)))))
+    when(migrationApiClient.getSubjectForNode(nodeId)).thenReturn(Try(Seq(MigrationSubjectMeta("52", "helsearbeider vg2"))))
 
     when(articleRepository.exists(sampleNode.contents.head.nid)).thenReturn(false)
-    when(articleRepository.insert(any[Article], any[String])(any[DBSession])).thenReturn(newNodeid)
+    when(articleRepository.insert(any[Article], any[String], any[Seq[String]])(any[DBSession])).thenReturn(newNodeid)
     when(extractConvertStoreContent.processNode("9876")).thenReturn(Try(1: Long, ImportStatus(Seq(), Seq())))
 
     val result = eCSService.processNode(nodeId)
@@ -60,9 +61,10 @@ class ExtractConvertStoreContentTest extends UnitSuite with TestEnvironment {
     when(extractService.getNodeGeneralContent(nodeId2)).thenReturn(Seq(NodeGeneralContent(nodeId2, nodeId2, "title", "content", "en")))
     when(articleRepository.withExternalId(nodeId2)).thenReturn(None)
     when(extractConvertStoreContent.processNode(nodeId2, ImportStatus(Seq(), Seq("9876", nodeId)))).thenReturn(Try((newNodeid, ImportStatus(Seq(), Seq("9876", nodeId, nodeId2)))))
+    when(migrationApiClient.getSubjectForNode(nodeId)).thenReturn(Try(Seq(MigrationSubjectMeta("52", "helsearbeider vg2"))))
 
     when(articleRepository.exists(sampleNode.contents.head.nid)).thenReturn(false)
-    when(articleRepository.insert(any[Article], any[String])(any[DBSession])).thenReturn(newNodeid)
+    when(articleRepository.insert(any[Article], any[String], any[Seq[String]])(any[DBSession])).thenReturn(newNodeid)
     when(extractConvertStoreContent.processNode("9876")).thenReturn(Try(1: Long, ImportStatus(Seq(), Seq())))
 
     val result = eCSService.processNode(nodeId, ImportStatus(Seq(), Seq("9876")))

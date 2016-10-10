@@ -71,7 +71,7 @@ class GeneralContentConverterTest extends UnitSuite with TestEnvironment {
   test("That GeneralContentConverter inserts the content if insertion mode is 'link'") {
     val contentString = s"[contentbrowser ==nid=$nodeId==imagecache=Fullbredde==width===alt=$altText==link===node_link=1==link_type=link_to_content==lightbox_size===remove_fields[76661]=1==remove_fields[76663]=1==remove_fields[76664]=1==remove_fields[76666]=1==insertion=link==link_title_text===link_text=Tittel==text_align===css_class=contentbrowser contentbrowser]"
     val content = ContentBrowser(contentString, Some("nb"))
-    val expectedResult = s"""<figure data-resource="content-link" data-id="1" data-content-id="1" data-link-text="Tittel"></figure>"""
+    val expectedResult = s"""<figure data-content-id="1" data-id="1" data-link-text="Tittel" data-resource="content-link"></figure>"""
 
     when(extractService.getNodeGeneralContent(nodeId)).thenReturn(Seq(sampleFagstoff1, sampleFagstoff2))
     when(articleRepository.withExternalId(nodeId)).thenReturn(Some(ArticleSummary("1", Seq(ArticleTitle("title", Some("nb"))), "http://url", "publicdomain")))
@@ -86,7 +86,7 @@ class GeneralContentConverterTest extends UnitSuite with TestEnvironment {
   test("That GeneralContentConverter inserts the content if insertion mode is 'lightbox_large'") {
     val contentString = s"[contentbrowser ==nid=$nodeId==imagecache=Fullbredde==width===alt=$altText==link===node_link=1==link_type=link_to_content==lightbox_size===remove_fields[76661]=1==remove_fields[76663]=1==remove_fields[76664]=1==remove_fields[76666]=1==insertion=lightbox_large==link_title_text===link_text=Tittel==text_align===css_class=contentbrowser contentbrowser]"
     val content = ContentBrowser(contentString, Some("nb"))
-    val expectedResult = s"""<figure data-resource="content-link" data-id="1" data-content-id="1" data-link-text="Tittel"></figure>"""
+    val expectedResult = s"""<figure data-content-id="1" data-id="1" data-link-text="Tittel" data-resource="content-link"></figure>"""
 
     when(extractService.getNodeGeneralContent(nodeId)).thenReturn(Seq(sampleFagstoff1, sampleFagstoff2))
     when(articleRepository.withExternalId(nodeId)).thenReturn(Some(ArticleSummary("1", Seq(ArticleTitle("title", Some("nb"))), "http://url", "publicdomain")))
@@ -101,7 +101,7 @@ class GeneralContentConverterTest extends UnitSuite with TestEnvironment {
   test("That GeneralContentConverter defaults to 'link' if the insertion method is unknown") {
     val contentString = s"[contentbrowser ==nid=$nodeId==imagecache=Fullbredde==width===alt=$altText==link===node_link=1==link_type=link_to_content==lightbox_size===remove_fields[76661]=1==remove_fields[76663]=1==remove_fields[76664]=1==remove_fields[76666]=1==insertion=lightbox_large==link_title_text===link_text=Tittel==text_align===css_class=contentbrowser contentbrowser]"
     val content = ContentBrowser(contentString, Some("nb"))
-    val expectedResult = s"""<figure data-resource="content-link" data-id="1" data-content-id="1" data-link-text="Tittel"></figure>"""
+    val expectedResult = s"""<figure data-content-id="1" data-id="1" data-link-text="Tittel" data-resource="content-link"></figure>"""
 
     when(extractService.getNodeGeneralContent(nodeId)).thenReturn(Seq(sampleFagstoff1, sampleFagstoff2))
     when(articleRepository.withExternalId(nodeId)).thenReturn(Some(ArticleSummary("1", Seq(ArticleTitle("title", Some("nb"))), "http://url", "publicdomain")))
@@ -118,7 +118,7 @@ class GeneralContentConverterTest extends UnitSuite with TestEnvironment {
     val newNodeid: Long = 1111
     val contentString = s"[contentbrowser ==nid=$nodeId==imagecache=Fullbredde==width===alt=$altText==link===node_link=1==link_type=link_to_content==lightbox_size===remove_fields[76661]=1==remove_fields[76663]=1==remove_fields[76664]=1==remove_fields[76666]=1==insertion=link==link_title_text===link_text=Tittel==text_align===css_class=contentbrowser contentbrowser]"
     val content = ContentBrowser(contentString, Some("nb"))
-    val expectedResult = s"""<figure data-resource="content-link" data-id="1" data-content-id="$newNodeid" data-link-text="Tittel"></figure>"""
+    val expectedResult = s"""<figure data-content-id="1111" data-id="1" data-link-text="Tittel" data-resource="content-link"></figure>"""
 
     when(extractService.getNodeGeneralContent(nodeId)).thenReturn(Seq(sampleFagstoff1, sampleFagstoff2))
     when(articleRepository.withExternalId(nodeId)).thenReturn(None)
