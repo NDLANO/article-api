@@ -17,7 +17,7 @@ import no.ndla.articleapi.controller.{ArticleController, HealthController, Inter
 import no.ndla.articleapi.integration._
 import no.ndla.articleapi.repository.ArticleRepositoryComponent
 import no.ndla.articleapi.service._
-import no.ndla.articleapi.service.converters.{BiblioConverter, DivTableConverter, HTMLCleaner, SimpleTagConverter}
+import no.ndla.articleapi.service.converters._
 import no.ndla.articleapi.service.converters.contentbrowser._
 import no.ndla.articleapi.service.search.{ElasticContentIndexComponent, SearchConverterService, SearchIndexServiceComponent, SearchService}
 import no.ndla.network.NdlaClient
@@ -99,6 +99,6 @@ object ComponentRegistry
   lazy val contentBrowserConverter = new ContentBrowserConverter
   lazy val biblioConverter = new BiblioConverter
   lazy val converterModules = List(SimpleTagConverter, biblioConverter, DivTableConverter, contentBrowserConverter)
-  lazy val postProcessorModules = List(HTMLCleaner)
+  lazy val postProcessorModules = List(TableConverter, HTMLCleaner)
   lazy val jestClient: JestClient = JestClientFactory.getClient()
 }
