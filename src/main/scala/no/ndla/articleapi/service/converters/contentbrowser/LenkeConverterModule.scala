@@ -40,11 +40,11 @@ trait LenkeConverterModule {
 
       val NDLAPattern = """.*(ndla.no).*""".r
       url.host.getOrElse("") match {
-        case _ => (htmlTag, requiredLibrary.toList, errors)
         case NDLAPattern(_) => {
           logger.warn("Link to NDLA resource: '{}'", url)
           (htmlTag, requiredLibrary.toList, errors :+ s"(Warning) Link to NDLA resource '$url'")
         }
+        case _ => (htmlTag, requiredLibrary.toList, errors)
       }
     }
 
