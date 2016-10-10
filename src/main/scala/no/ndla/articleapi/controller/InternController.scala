@@ -43,8 +43,8 @@ trait InternController {
       ArticleContentInformation.getHtmlTagsMap
     }
 
-    get("/embedurls") {
-      ArticleContentInformation.getExternalEmbedResources
+    get("/embedurls/:external_subject_id") {
+      ArticleContentInformation.getExternalEmbedResources(params("external_subject_id"))
     }
   }
 }
