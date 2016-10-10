@@ -59,9 +59,9 @@ trait LenkeConverterModule {
     }
 
     private def getExtraAttributes(url: String, cont: ContentBrowser): (Map[String, String], Option[RequiredLibrary]) = {
-      val hostname = url.host
-      hostname match {
-        case Some("nrk.no") => extraNrkAttributes(cont.get("nid"))
+      val NRKUrlPattern = """(.*nrk.no)""".r
+      url.host.getOrElse("") match {
+        case NRKUrlPattern(_) => extraNrkAttributes(cont.get("nid"))
         case _ => (Map(), None)
       }
     }
