@@ -34,13 +34,10 @@ object TableConverter extends ConverterModule {
 
   def convertFirstTrToTh(el: Element) = {
     for (table <- el.select("table")) {
-      Option(table.select("tr").first()) match {
-        case None =>
-        case Some(firstRow) => {
-          firstRow.select("td").tagName("th")
-          firstRow.select("strong").unwrap()
-        }
-      }
+      Option(table.select("tr").first).foreach(firstRow => {
+        firstRow.select("td").tagName("th")
+        firstRow.select("strong").unwrap()
+      })
     }
   }
 
