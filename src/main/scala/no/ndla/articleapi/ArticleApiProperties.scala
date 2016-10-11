@@ -74,17 +74,20 @@ object ArticleApiProperties extends LazyLogging {
   lazy val MigrationUser = get("MIGRATION_USER")
   lazy val MigrationPassword = get("MIGRATION_PASSWORD")
 
+  val resourceHtmlEmbedTag = "embed"
+
   // MathML element reference list: https://developer.mozilla.org/en/docs/Web/MathML/Element
   val mathJaxTags = Set("math", "maction", "maligngroup", "malignmark", "menclose", "merror", "mfenced", "mfrac", "mglyph", "mi",
     "mlabeledtr", "mlongdiv", "mmultiscripts", "mn", "mo", "mover", "mpadded", "mphantom", "mroot", "mrow", "ms", "mscarries",
     "mscarry", "msgroup", "msline", "mspace", "msqrt", "msrow", "mstack", "mstyle", "msub", "msup", "msubsup", "mtable", "mtd",
     "mtext", "mtr", "munder", "munderover", "semantics", "annotation", "annotation-xml")
   val permittedHTMLTags = Set("body", "article", "section", "table", "tr", "td", "li", "a", "button", "div", "p", "pre", "code", "sup",
-    "h1", "h2", "h3", "h4", "h5", "h6", "aside", "strong", "figure", "ul", "br", "ol", "i", "em", "b", "th", "tbody", "blockquote",
-    "details", "summary", "table", "thead", "tfoot", "tbody", "caption", "audio", "figcaption") ++ mathJaxTags
+    "h1", "h2", "h3", "h4", "h5", "h6", "aside", "strong", "ul", "br", "ol", "i", "em", "b", "th", "tbody", "blockquote",
+    "details", "summary", "table", "thead", "tfoot", "tbody", "caption", "audio", "figcaption", "figure", resourceHtmlEmbedTag) ++ mathJaxTags
 
   val permittedHTMLAttributes = Set("data-resource", "data-id", "data-content-id", "data-link-text", "data-url",
     "data-size", "data-videoid", "data-account", "data-player", "data-key", "data-alt", "data-caption", "data-align", "data-nrk-video-id", "href", "title")
+
 
   def verify() = {
     val missingProperties = ContentApiProps.filter(entry => entry._2.isEmpty).toList

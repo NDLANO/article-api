@@ -40,7 +40,7 @@ trait ImageConverterModule {
 
       imageApiService.importOrGetMetaByExternId(cont.get("nid")) match {
         case Some(image) =>
-          HtmlTagGenerator.buildFigure(figureDataAttributes + ("url" -> s"$imageApiUrl/${image.id}"))
+          HtmlTagGenerator.buildEmbedContent(figureDataAttributes + ("url" -> s"$imageApiUrl/${image.id}"))
         case None =>
           (s"<img src='stock.jpeg' alt='The image with id ${cont.get("nid")} was not not found' />",
             Seq(s"Image with id ${cont.get("nid")} was not found"))
