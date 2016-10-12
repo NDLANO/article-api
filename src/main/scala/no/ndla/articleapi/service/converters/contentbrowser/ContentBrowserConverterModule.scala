@@ -25,13 +25,13 @@ trait ContentBrowserConverterModules
   extends ExtractServiceComponent
   with StorageService
   with AmazonClientComponent
-  with ImageApiServiceComponent
   with ConverterModules
   with ConverterServiceComponent
   with DataSourceComponent
   with ArticleRepositoryComponent
   with ExtractConvertStoreContent
   with ImageConverterModule
+  with ImageApiClient
   with LenkeConverterModule
   with H5PConverterModule
   with OppgaveConverterModule

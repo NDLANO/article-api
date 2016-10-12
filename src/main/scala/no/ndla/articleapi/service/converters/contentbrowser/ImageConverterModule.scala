@@ -11,12 +11,12 @@ package no.ndla.articleapi.service.converters.contentbrowser
 
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.articleapi.model.{ImportStatus, RequiredLibrary}
-import no.ndla.articleapi.service.ImageApiServiceComponent
-import no.ndla.articleapi.ArticleApiProperties.imageApiUrl
+import no.ndla.articleapi.ArticleApiProperties.externalImageApiUrl
+import no.ndla.articleapi.integration.ImageApiClient
 import no.ndla.articleapi.service.converters.HtmlTagGenerator
 
 trait ImageConverterModule {
-  this: ImageApiServiceComponent =>
+  this: ImageApiClient =>
 
   object ImageConverter extends ContentBrowserConverterModule with LazyLogging {
     override val typeName: String = "image"
@@ -38,9 +38,9 @@ trait ImageConverterModule {
         "align" -> alignment.getOrElse("")
       )
 
-      imageApiService.importOrGetMetaByExternId(cont.get("nid")) match {
+      imageApiClient.importOrGetMetaByExternId(cont.get("nid")) match {
         case Some(image) =>
-          HtmlTagGenerator.buildFigure(figureDataAttributes + ("url" -> s"$imageApiUrl/${image.id}"))
+          HtmlTagGenerator.buildFigure(figureDataAttributes + ("url" -> s"$externalImageApiUrl/${image.id}"))
         case None =>
           (s"<img src='stock.jpeg' alt='The image with id ${cont.get("nid")} was not not found' />",
             Seq(s"Image with id ${cont.get("nid")} was not found"))

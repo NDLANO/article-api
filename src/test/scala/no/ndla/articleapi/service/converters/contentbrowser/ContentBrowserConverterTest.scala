@@ -12,8 +12,7 @@ package no.ndla.articleapi.service.converters.contentbrowser
 import no.ndla.articleapi.ArticleApiProperties._
 import no.ndla.articleapi.TestEnvironment
 import no.ndla.articleapi.model.{Copyright, ImportStatus, License, NodeGeneralContent}
-import no.ndla.articleapi.integration.LanguageContent
-import no.ndla.articleapi.service.{Image, ImageMetaInformation, ImageVariants}
+import no.ndla.articleapi.integration.{Image, ImageMetaInformation, ImageVariants, LanguageContent}
 import no.ndla.articleapi.UnitSuite
 import org.mockito.Mockito._
 
@@ -56,7 +55,7 @@ class ContentBrowserConverterTest extends UnitSuite with TestEnvironment {
           |</article>""".stripMargin.replace("\n", "")
 
     when(extractService.getNodeType(nodeId)).thenReturn(Some("image"))
-    when(imageApiService.importOrGetMetaByExternId(nodeId)).thenReturn(Some(imageMeta))
+    when(imageApiClient.importOrGetMetaByExternId(nodeId)).thenReturn(Some(imageMeta))
     val (result, status) = contentBrowserConverter.convert(initialContent, ImportStatus(Seq(), Seq()))
 
     result.content should equal (expectedResult)
