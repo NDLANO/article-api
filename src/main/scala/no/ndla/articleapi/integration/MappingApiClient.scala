@@ -28,7 +28,7 @@ trait MappingApiClient {
 
     def languageCodeSupported(languageCode: String): Boolean = getLanguageMapping().exists(_._1 == languageCode)
 
-    private val getLanguageMapping = Memoize[Map[String, String]](ArticleApiProperties.IsoMappingCacheAgeInMs, () => {
+    private val getLanguageMapping = Memoize[Map[String, String]](() => {
       ndlaClient.fetch[Map[String, String]](Http(allLanguageMappingsEndpoint)) match {
         case Success(map) => map
         case Failure(ex) => throw ex
