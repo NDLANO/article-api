@@ -97,15 +97,27 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
   }
 
   test("That html attributes are removed from the article") {
-    val contentNodeBokmal = LanguageContent(nodeId, nodeId, """<table class="testclass" data-resource="test"></table>""", Some("nb"))
+    val contentNodeBokmal = LanguageContent(nodeId, nodeId, """<table class="testclass" title="test"></table>""", Some("nb"))
     val node = NodeToConvert(List(contentTitle), List(contentNodeBokmal), copyright, List(tag), Seq(visualElement), Seq(), "fagstoff", new Date(0), new Date(1))
-    val bokmalExpectedResult = """<table data-resource="test"></table>"""
+    val bokmalExpectedResult = """<table title="test"></table>"""
 
     val (result, status) = service.toArticle(node, ImportStatus(Seq(), Seq()))
-    val bokmalStrippedResult = " +".r.replaceAllIn(result.content.head.content, " ")
 
-    bokmalStrippedResult should equal (bokmalExpectedResult)
+    result.content.head.content should equal (bokmalExpectedResult)
     status.messages.nonEmpty should equal (true)
+    result.requiredLibraries.isEmpty should equal (true)
+  }
+
+  test("That align attributes for td tags are not removed") {
+    val htmlTableWithAlignAttributes = """<table><tbody><tr><td align="right" valign="top">Table row cell</td></tr></tbody></table>"""
+    val contentNodeBokmal = LanguageContent(nodeId, nodeId, htmlTableWithAlignAttributes, Some("nb"))
+    val node = NodeToConvert(List(contentTitle), List(contentNodeBokmal), copyright, List(tag), Seq(visualElement), Seq(), "fagstoff", new Date(0), new Date(1))
+    val expectedResult = """<table><tbody><tr><th align="right" valign="top">Table row cell</th></tr></tbody></table>"""
+
+    val (result, status) = service.toArticle(node, ImportStatus(Seq(), Seq()))
+
+    result.content.head.content should equal (expectedResult)
+    status.messages.isEmpty should equal (true)
     result.requiredLibraries.isEmpty should equal (true)
   }
 
