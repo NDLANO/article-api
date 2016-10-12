@@ -83,4 +83,5 @@ trait TestEnvironment
   val tagsService = mock[TagsService]
   val searchConverterService = mock[SearchConverterService]
   val jestClient = mock[JestClient]
+  val audioApiClient = mock[AudioApiClient]
 }

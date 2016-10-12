@@ -31,6 +31,7 @@ trait ContentBrowserConverter {
       NonExistentNodeConverter.typeName -> NonExistentNodeConverter,
       VideoConverter.typeName -> VideoConverter,
       VeiledningConverter.typeName -> VeiledningConverter,
+      AudioConverter.typeName -> AudioConverter,
       BiblioConverter.typeName -> BiblioConverter)
 
     def convert(languageContent: LanguageContent, importStatus: ImportStatus): (LanguageContent, ImportStatus) = {

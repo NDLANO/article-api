@@ -44,7 +44,6 @@ object ArticleApiProperties extends LazyLogging {
 
   val ndlaBaseHost = "http://ndla.no/"
 
-  val SearchHost = "search-engine"
   lazy val SearchServer = get("SEARCH_SERVER")
   lazy val SearchRegion = get("SEARCH_REGION")
   lazy val RunWithSignedSearchRequests = getBoolean("RUN_WITH_SIGNED_SEARCH_REQUESTS")
@@ -66,8 +65,9 @@ object ArticleApiProperties extends LazyLogging {
   lazy val CMUser = get("CM_USER")
   lazy val CMPassword = get("CM_PASSWORD")
 
-  val MappingHost = "mapping-api"
-  val IsoMappingCacheAgeInMs = 1000 * 60 * 60 // 1 hour caching
+  lazy val AudioHost = get("AUDIO_HOST")
+  lazy val MappingHost = get("MAPPING_HOST")
+  val ApiClientsCacheAgeInMs: Long = 1000 * 60 * 60 // 1 hour caching
   val TopicAPIUrl = "http://api.topic.ndla.no/rest/v1/keywords/?filter[node]=ndlanode_"
 
   lazy val MigrationHost = get("MIGRATION_HOST")
@@ -84,7 +84,8 @@ object ArticleApiProperties extends LazyLogging {
     "details", "summary", "table", "thead", "tfoot", "tbody", "caption", "audio", "figcaption") ++ mathJaxTags
 
   val permittedHTMLAttributes = Set("data-resource", "data-id", "data-content-id", "data-link-text", "data-url",
-    "data-size", "data-videoid", "data-account", "data-player", "data-key", "data-alt", "data-caption", "data-align", "data-nrk-video-id", "href", "title")
+    "data-size", "data-videoid", "data-account", "data-player", "data-key", "data-alt", "data-caption", "data-align",
+    "data-nrk-video-id", "data-audio-id", "href", "title")
 
   def verify() = {
     val missingProperties = ContentApiProps.filter(entry => entry._2.isEmpty).toList

@@ -12,48 +12,42 @@ package no.ndla.articleapi.service.converters.contentbrowser
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.articleapi.service.{ExtractServiceComponent, StorageService}
 import no.ndla.articleapi.ArticleApiProperties.amazonUrlPrefix
+import no.ndla.articleapi.integration.AudioApiClient
 import no.ndla.articleapi.model.{ImportStatus, RequiredLibrary}
+import no.ndla.articleapi.service.converters.HtmlTagGenerator
 
 trait AudioConverterModule  {
-  this: ExtractServiceComponent with StorageService =>
+  this: ExtractServiceComponent with StorageService with AudioApiClient =>
 
   object AudioConverter extends ContentBrowserConverterModule with LazyLogging {
     override val typeName: String = "audio"
 
     override def convert(content: ContentBrowser, visitedNodes: Seq[String]): (String, Seq[RequiredLibrary], ImportStatus) = {
-      val requiredLibraries = List[RequiredLibrary]()
       val nodeId = content.get("nid")
-      val audioMeta = extractService.getAudioMeta(nodeId)
-
       logger.info(s"Converting audio with nid $nodeId")
 
-      audioMeta match {
-        case Some(audio) => {
-          val (filePath, uploadError) = storageService.uploadFileFromUrl(nodeId, audio) match {
-            case Some(filepath) => (filepath, List())
-            case None => {
-              val msg = s"""Failed to upload audio (node $nodeId)"""
-              logger.warn(msg)
-              ("", List(msg))
-            }
-          }
-
-          val player =
-            s"""<figure>
-              <figcaption>${audio.title}</figcaption>
-              <audio src="$amazonUrlPrefix/$filePath" preload="auto" controls>
-                Your browser does not support the <code>audio</code> element.
-              </audio>
-            </figure>
-          """.stripMargin
-          (player, requiredLibraries, ImportStatus(uploadError, visitedNodes))
-        }
-        case None => {
-          val msg = s"""Failed to retrieve audio metadata for node $nodeId"""
-          logger.warn(msg)
-          (s"{Error: $msg}", requiredLibraries, ImportStatus(List(msg), visitedNodes))
-        }
+      val (converted, status) = audioApiClient.getOrImportAudio(nodeId) match {
+        case Some(id) => insertAudio(content, id)
+        case None => insertFailedAudioImport(content)
       }
+
+      (converted, Seq(), status ++ ImportStatus(Seq(), visitedNodes))
+    }
+
+    private def insertFailedAudioImport(content: ContentBrowser): (String, ImportStatus) = {
+      val message = s"Failed to import audio with node id ${content.get("nid")}"
+      logger.warn(message)
+      (s"{Failed to import audio: ${content.get("nid")}}", ImportStatus(Seq(message), Seq()))
+    }
+
+    private def insertAudio(content: ContentBrowser, id: Long): (String, ImportStatus) = {
+      val resourceAttributes = Map(
+        "resource" -> "audio",
+        "id" -> content.id.toString,
+        "audio-id" -> id.toString
+      )
+      val (resource, errors) = HtmlTagGenerator.buildFigure(resourceAttributes)
+      (resource, ImportStatus(errors, Seq()))
     }
 
   }
