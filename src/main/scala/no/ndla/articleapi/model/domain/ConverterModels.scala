@@ -7,13 +7,13 @@
  */
 
 
-package no.ndla.articleapi.model
+package no.ndla.articleapi.model.domain
 
 import java.net.URL
 import java.util.Date
 
 import com.netaporter.uri.dsl._
-import no.ndla.articleapi.integration.{LanguageContent, MigrationRelatedContents}
+import no.ndla.articleapi.integration.LanguageContent
 
 case class NodeGeneralContent(nid: String, tnid: String, title: String, content: String, language: String) {
   def isMainNode = (nid == tnid || tnid == "0")

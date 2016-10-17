@@ -11,7 +11,7 @@ package no.ndla.articleapi.service.converters.contentbrowser
 
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.articleapi.integration.{ConverterModule, LanguageContent}
-import no.ndla.articleapi.model.{ImportStatus, RequiredLibrary}
+import no.ndla.articleapi.model.domain.ImportStatus
 import org.jsoup.nodes.Element
 
 import scala.annotation.tailrec

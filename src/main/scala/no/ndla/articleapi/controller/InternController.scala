@@ -9,10 +9,10 @@
 
 package no.ndla.articleapi.controller
 
-import no.ndla.articleapi.model.ImportStatus
+import no.ndla.articleapi.model.domain.ImportStatus
 import no.ndla.articleapi.repository.ArticleRepositoryComponent
 import no.ndla.articleapi.service.search.SearchIndexServiceComponent
-import no.ndla.articleapi.service.{ConverterServiceComponent, ExtractConvertStoreContent, ExtractServiceComponent, ArticleContentInformation}
+import no.ndla.articleapi.service.{ArticleContentInformation, ConverterServiceComponent, ExtractConvertStoreContent, ExtractServiceComponent}
 import org.json4s.{DefaultFormats, Formats}
 import org.scalatra.Ok
 

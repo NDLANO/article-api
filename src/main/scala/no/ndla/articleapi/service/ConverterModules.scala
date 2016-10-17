@@ -10,7 +10,7 @@
 package no.ndla.articleapi.service
 
 import no.ndla.articleapi.integration.ConverterModule
-import no.ndla.articleapi.model.{ImportStatus, NodeToConvert}
+import no.ndla.articleapi.model.domain.{ImportStatus, NodeToConvert}
 
 trait ConverterModules {
   val converterModules: Seq[ConverterModule]

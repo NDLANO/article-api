@@ -10,7 +10,7 @@ package no.ndla.articleapi.service.search
 
 import java.util.Date
 
-import no.ndla.articleapi.model.{ArticleTitle, _}
+import no.ndla.articleapi.model.domain._
 import no.ndla.articleapi.model.search._
 import no.ndla.articleapi.{TestEnvironment, UnitSuite}
 

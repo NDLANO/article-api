@@ -10,10 +10,11 @@
 package no.ndla.articleapi.service
 
 import com.typesafe.scalalogging.LazyLogging
-import no.ndla.articleapi.model.Copyright
 import org.json4s.DefaultFormats
 import org.json4s.native.Serialization._
-import no.ndla.articleapi.ArticleApiProperties.{imageApiBaseUrl, imageApiImportImageURL, imageApiGetByExternalIdURL}
+import no.ndla.articleapi.ArticleApiProperties.{imageApiBaseUrl, imageApiGetByExternalIdURL, imageApiImportImageURL}
+import no.ndla.articleapi.model.domain.Copyright
+
 import scalaj.http.{Http, HttpRequest}
 
 trait ImageApiServiceComponent {

@@ -11,10 +11,10 @@ package no.ndla.articleapi.service.converters.contentbrowser
 
 import no.ndla.articleapi.ArticleApiProperties._
 import no.ndla.articleapi.TestEnvironment
-import no.ndla.articleapi.model.{Copyright, ImportStatus, License, NodeGeneralContent}
 import no.ndla.articleapi.integration.LanguageContent
 import no.ndla.articleapi.service.{Image, ImageMetaInformation, ImageVariants}
 import no.ndla.articleapi.UnitSuite
+import no.ndla.articleapi.model.domain.{ImportStatus, NodeGeneralContent, Copyright, License}
 import org.mockito.Mockito._
 
 class ContentBrowserConverterTest extends UnitSuite with TestEnvironment {

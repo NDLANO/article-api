@@ -9,11 +9,10 @@
 
 package no.ndla.articleapi.service
 
-import no.ndla.articleapi.model.{Article, ArticleSummary}
+import no.ndla.articleapi.model.domain.Article
 import no.ndla.articleapi.repository.ArticleRepositoryComponent
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Element
-
 import scala.collection.JavaConversions._
 import scala.annotation.tailrec
 

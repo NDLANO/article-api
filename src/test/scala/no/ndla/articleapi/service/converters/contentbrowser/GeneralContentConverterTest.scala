@@ -13,7 +13,7 @@ import java.util.Date
 
 import no.ndla.articleapi.{TestEnvironment, UnitSuite}
 import no.ndla.articleapi.integration.LanguageContent
-import no.ndla.articleapi.model._
+import no.ndla.articleapi.model.domain._
 import org.mockito.Mockito._
 
 import scala.util.{Failure, Try}

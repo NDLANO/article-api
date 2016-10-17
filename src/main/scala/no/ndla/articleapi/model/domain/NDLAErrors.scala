@@ -7,7 +7,7 @@
  */
 
 
-package no.ndla.articleapi.model
+package no.ndla.articleapi.model.domain
 
 import java.text.SimpleDateFormat
 import java.util.Date

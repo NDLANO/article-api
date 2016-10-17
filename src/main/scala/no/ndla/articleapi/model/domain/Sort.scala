@@ -6,7 +6,7 @@
  *
  */
 
-package no.ndla.articleapi.model
+package no.ndla.articleapi.model.domain
 
 object Sort  extends Enumeration {
   val ByRelevanceDesc = Value("-relevance")

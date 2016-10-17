@@ -12,7 +12,7 @@ package no.ndla.articleapi.service.converters.contentbrowser
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.articleapi.service.{ExtractServiceComponent, StorageService}
 import no.ndla.articleapi.ArticleApiProperties.amazonUrlPrefix
-import no.ndla.articleapi.model.{ImportStatus, RequiredLibrary}
+import no.ndla.articleapi.model.domain.{ImportStatus, RequiredLibrary}
 
 trait AudioConverterModule  {
   this: ExtractServiceComponent with StorageService =>

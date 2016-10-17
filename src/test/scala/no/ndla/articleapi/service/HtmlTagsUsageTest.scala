@@ -11,7 +11,7 @@ package no.ndla.articleapi.service
 
 import java.util.Date
 
-import no.ndla.articleapi.model._
+import no.ndla.articleapi.model.domain._
 import no.ndla.articleapi.{TestEnvironment, UnitSuite}
 import org.mockito.Mockito._
 

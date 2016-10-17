@@ -50,6 +50,7 @@ object ComponentRegistry
   with TagsService
   with MigrationApiClient
   with SearchConverterService
+  with ReadService
 {
   implicit val swagger = new ArticleSwagger
 
@@ -95,6 +96,7 @@ object ComponentRegistry
   lazy val mappingApiClient = new MappingApiClient
   lazy val tagsService = new TagsService
   lazy val searchConverterService = new SearchConverterService
+  lazy val readService = new ReadService
 
   lazy val contentBrowserConverter = new ContentBrowserConverter
   lazy val biblioConverter = new BiblioConverter

@@ -10,8 +10,8 @@
 package no.ndla.articleapi.controller
 
 import no.ndla.articleapi.ComponentRegistry.{articleRepository, searchService}
-import no.ndla.articleapi.model.Error._
-import no.ndla.articleapi.model._
+import no.ndla.articleapi.model.api.{Article, SearchResult}
+import no.ndla.articleapi.model.domain.{Error, Sort}
 import org.json4s.{DefaultFormats, Formats}
 import org.scalatra.swagger.{Swagger, SwaggerSupport}
 
@@ -89,10 +89,10 @@ trait ArticleController {
       if (articleId.forall(_.isDigit)) {
         articleRepository.withId(articleId) match {
           case Some(image) => image
-          case None => halt(status = 404, body = Error(NOT_FOUND, s"No article with id $articleId found"))
+          case None => halt(status = 404, body = Error(Error.NOT_FOUND, s"No article with id $articleId found"))
         }
       } else {
-        halt(status = 404, body = Error(NOT_FOUND, s"No article with id $articleId found"))
+        halt(status = 404, body = Error(Error.NOT_FOUND, s"No article with id $articleId found"))
       }
     }
   }

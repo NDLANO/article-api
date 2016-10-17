@@ -13,7 +13,7 @@ import com.amazonaws.{AmazonClientException, AmazonServiceException}
 import com.amazonaws.services.s3.model._
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.articleapi.integration.AmazonClientComponent
-import no.ndla.articleapi.model.ContentFilMeta
+import no.ndla.articleapi.model.domain.ContentFilMeta
 
 trait StorageService {
   this: AmazonClientComponent =>

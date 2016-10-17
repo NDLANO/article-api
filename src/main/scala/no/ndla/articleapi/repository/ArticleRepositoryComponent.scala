@@ -12,7 +12,7 @@ package no.ndla.articleapi.repository
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.articleapi.ArticleApiProperties
 import no.ndla.articleapi.integration.DataSourceComponent
-import no.ndla.articleapi.model.{Article, ArticleSummary}
+import no.ndla.articleapi.model.domain.{Article, ArticleSummary}
 import org.postgresql.util.PGobject
 import scalikejdbc.{ConnectionPool, DB, DataSourceConnectionPool, _}
 import no.ndla.network.ApplicationUrl
@@ -84,7 +84,7 @@ trait ArticleRepositoryComponent {
         groupRanges.foreach(range => {
           func(
             sql"select id,document from contentdata where id between ${range._1} and ${range._2}".map(rs => {
-              asArticle(rs.long("id").toString, rs.string("document"))
+              asArticle(rs.long("id"), rs.string("document"))
             }).toList.apply
           )
         })
@@ -93,17 +93,17 @@ trait ArticleRepositoryComponent {
 
     def all: List[Article] = {
       DB readOnly { implicit session =>
-        sql"select id, document from contentdata".map(rs => asArticle(rs.string("id"), rs.string("document"))).list().apply()
+        sql"select id, document from contentdata".map(rs => asArticle(rs.long("id"), rs.string("document"))).list().apply()
       }
     }
 
     def allWithExternalSubjectId(externalSubjectId: String): List[Article] = {
       DB readOnly { implicit session =>
-        sql"select id, document from contentdata where ${externalSubjectId} = ANY(external_subject_id)".map(rs => asArticle(rs.string("id"), rs.string("document"))).list().apply()
+        sql"select id, document from contentdata where ${externalSubjectId} = ANY(external_subject_id)".map(rs => asArticle(rs.long("id"), rs.string("document"))).list().apply()
       }
     }
 
-    def withId(articleId: String): Option[Article] = {
+    def withId(articleId: Long): Option[Article] = {
       DB readOnly { implicit session =>
         sql"select document from contentdata where id = ${articleId.toInt}".map(rs => rs.string("document")).single.apply match {
           case Some(json) => Option(asArticle(articleId, json))
@@ -132,7 +132,7 @@ trait ArticleRepositoryComponent {
       ArticleSummary(articleId.toString, meta.title, ApplicationUrl.get + articleId, meta.copyright.license.license)
     }
 
-    def asArticle(articleId: String, json: String): Article = {
+    def asArticle(articleId: Long, json: String): Article = {
       import org.json4s.native.Serialization.read
       implicit val formats = org.json4s.DefaultFormats
 

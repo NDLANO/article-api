@@ -6,7 +6,7 @@
  *
  */
 
-package no.ndla.articleapi.model
+package no.ndla.articleapi.model.domain
 
 import com.sksamuel.elastic4s.analyzers._
 

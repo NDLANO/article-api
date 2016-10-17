@@ -11,9 +11,8 @@ package no.ndla.articleapi.service
 
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.articleapi.integration.MigrationApiClient
-import no.ndla.articleapi.model.{Article, ImportStatus, NodeNotFoundException, NodeToConvert}
+import no.ndla.articleapi.model.domain.{Article, ImportStatus, NodeNotFoundException, NodeToConvert}
 import no.ndla.articleapi.repository.ArticleRepositoryComponent
-
 import scala.util.{Failure, Success, Try}
 
 trait ExtractConvertStoreContent {
@@ -45,7 +44,7 @@ trait ExtractConvertStoreContent {
     }
 
     private def convert(nodeToConvert: NodeToConvert, importStatus: ImportStatus): (Article, ImportStatus) =
-      converterService.toArticle(nodeToConvert, importStatus)
+      converterService.toDomainArticle(nodeToConvert, importStatus)
 
     private def store(article: Article, mainNodeNid: String): Long = {
       val subjectIds = getSubjectIds(mainNodeNid)

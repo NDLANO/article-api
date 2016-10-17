@@ -11,8 +11,8 @@ package no.ndla.articleapi.service.converters.contentbrowser
 
 import no.ndla.articleapi.{TestEnvironment, UnitSuite}
 import no.ndla.articleapi.ArticleApiProperties.amazonUrlPrefix
-import no.ndla.articleapi.model.ContentFilMeta._
-import no.ndla.articleapi.model.ContentFilMeta
+import no.ndla.articleapi.model.domain.ContentFilMeta
+import no.ndla.articleapi.model.domain.ContentFilMeta._
 import org.mockito.Mockito._
 
 class AudioConverterTest extends UnitSuite with TestEnvironment {

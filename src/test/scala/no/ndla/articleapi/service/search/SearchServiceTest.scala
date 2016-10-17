@@ -10,7 +10,7 @@
 package no.ndla.articleapi.service.search
 
 import no.ndla.articleapi.integration.JestClientFactory
-import no.ndla.articleapi.model._
+import no.ndla.articleapi.model.domain._
 import no.ndla.articleapi.{TestEnvironment, UnitSuite}
 import org.elasticsearch.common.settings.Settings
 import org.elasticsearch.node.{Node, NodeBuilder}
@@ -18,7 +18,6 @@ import org.joda.time.DateTime
 
 import scala.reflect.io.Path
 import scala.util.Random
-
 
 class SearchServiceTest extends UnitSuite with TestEnvironment {
 

@@ -7,7 +7,7 @@
  */
 
 
-package no.ndla.articleapi.model
+package no.ndla.articleapi.model.domain
 
 case class ImportStatus(messages: Seq[String], visitedNodes: Seq[String] = Seq()) {
   def ++(importStatus: ImportStatus): ImportStatus =

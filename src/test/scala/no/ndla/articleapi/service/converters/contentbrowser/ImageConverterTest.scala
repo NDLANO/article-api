@@ -9,8 +9,8 @@
 
 package no.ndla.articleapi.service.converters.contentbrowser
 
+import no.ndla.articleapi.model.domain.{Author, Copyright, License}
 import no.ndla.articleapi.{TestEnvironment, UnitSuite}
-import no.ndla.articleapi.model.{Author, Copyright, License}
 import no.ndla.articleapi.service._
 import org.mockito.Mockito._
 

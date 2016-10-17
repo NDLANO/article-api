@@ -9,9 +9,9 @@
 
 package no.ndla.articleapi.service.converters.contentbrowser
 
-import no.ndla.articleapi.model.{ImportStatus, RequiredLibrary}
 import com.netaporter.uri.dsl._
 import com.typesafe.scalalogging.LazyLogging
+import no.ndla.articleapi.model.domain.{ImportStatus, RequiredLibrary}
 import no.ndla.articleapi.service.ExtractServiceComponent
 import no.ndla.articleapi.service.converters.HtmlTagGenerator
 import org.jsoup.Jsoup

@@ -11,7 +11,7 @@ package no.ndla.articleapi.service.converters
 
 import no.ndla.articleapi.UnitSuite
 import no.ndla.articleapi.integration.LanguageContent
-import no.ndla.articleapi.model.ImportStatus
+import no.ndla.articleapi.model.domain.ImportStatus
 
 class SimpleTagConverterTest extends UnitSuite {
   val nodeId = "1234"

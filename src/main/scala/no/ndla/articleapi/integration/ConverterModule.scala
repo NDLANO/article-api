@@ -9,13 +9,11 @@
 
 package no.ndla.articleapi.integration
 
-import no.ndla.articleapi.model._
+import no.ndla.articleapi.model.domain._
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Element
 import org.jsoup.nodes.Entities.EscapeMode
-
 import scala.annotation.tailrec
-
 
 trait ConverterModule {
   def stringToJsoupDocument(htmlString: String): Element = {

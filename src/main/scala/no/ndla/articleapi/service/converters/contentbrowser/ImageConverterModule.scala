@@ -10,9 +10,9 @@
 package no.ndla.articleapi.service.converters.contentbrowser
 
 import com.typesafe.scalalogging.LazyLogging
-import no.ndla.articleapi.model.{ImportStatus, RequiredLibrary}
 import no.ndla.articleapi.service.ImageApiServiceComponent
 import no.ndla.articleapi.ArticleApiProperties.imageApiUrl
+import no.ndla.articleapi.model.domain.{ImportStatus, RequiredLibrary}
 import no.ndla.articleapi.service.converters.HtmlTagGenerator
 
 trait ImageConverterModule {

@@ -11,8 +11,8 @@ package no.ndla.articleapi.service
 
 import java.util.Date
 
-import no.ndla.articleapi.integration.{LanguageContent, MigrationRelatedContent, MigrationRelatedContents, MigrationSubjectMeta}
-import no.ndla.articleapi.model._
+import no.ndla.articleapi.integration.{LanguageContent, MigrationSubjectMeta}
+import no.ndla.articleapi.model.domain._
 import no.ndla.articleapi.{TestEnvironment, UnitSuite}
 import org.mockito.Mockito._
 import org.mockito.Matchers._

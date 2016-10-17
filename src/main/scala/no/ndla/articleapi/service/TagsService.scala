@@ -11,7 +11,7 @@ package no.ndla.articleapi.service
 
 import no.ndla.articleapi.ArticleApiProperties.TopicAPIUrl
 import no.ndla.articleapi.integration.MappingApiClient
-import no.ndla.articleapi.model.ArticleTag
+import no.ndla.articleapi.model.domain.ArticleTag
 
 import scala.io.Source
 import scala.util.matching.Regex

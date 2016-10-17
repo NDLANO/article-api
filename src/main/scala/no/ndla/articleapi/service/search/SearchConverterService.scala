@@ -9,7 +9,7 @@
 package no.ndla.articleapi.service.search
 
 import com.typesafe.scalalogging.LazyLogging
-import no.ndla.articleapi.model._
+import no.ndla.articleapi.model.domain.{Article, ArticleSummary, ArticleTitle}
 import no.ndla.articleapi.model.search._
 import no.ndla.network.ApplicationUrl
 import org.jsoup.Jsoup
