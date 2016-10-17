@@ -41,7 +41,7 @@ trait ElasticContentIndexComponent {
       val bulkBuilder = new Bulk.Builder()
       searchableArticles.foreach(imageMeta => {
         val source = write(imageMeta)
-        bulkBuilder.addAction(new Index.Builder(source).index(indexName).`type`(ArticleApiProperties.SearchDocument).id(imageMeta.id).build)
+        bulkBuilder.addAction(new Index.Builder(source).index(indexName).`type`(ArticleApiProperties.SearchDocument).id(imageMeta.id.toString).build)
       })
 
       val response = jestClient.execute(bulkBuilder.build())

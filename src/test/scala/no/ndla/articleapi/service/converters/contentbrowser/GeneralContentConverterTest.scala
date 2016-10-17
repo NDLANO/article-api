@@ -13,6 +13,7 @@ import java.util.Date
 
 import no.ndla.articleapi.{TestEnvironment, UnitSuite}
 import no.ndla.articleapi.integration.LanguageContent
+import no.ndla.articleapi.model.api.NodeNotFoundException
 import no.ndla.articleapi.model.domain._
 import org.mockito.Mockito._
 
@@ -25,6 +26,7 @@ class GeneralContentConverterTest extends UnitSuite with TestEnvironment {
   val contentString = s"[contentbrowser ==nid=$nodeId==imagecache=Fullbredde==width===alt=$altText==link===node_link=1==link_type=link_to_content==lightbox_size===remove_fields[76661]=1==remove_fields[76663]=1==remove_fields[76664]=1==remove_fields[76666]=1==insertion=$insertion==link_title_text= ==link_text= ==text_align===css_class=contentbrowser contentbrowser]"
   val sampleFagstoff1 = NodeGeneralContent(nodeId, nodeId, "Tittel", "Innhold", "nb")
   val sampleFagstoff2 = NodeGeneralContent(nodeId, nodeId2, "Tittel", "Innhald", "nn")
+  val sampleArticleSummary = ArticleSummary(1, Seq(ArticleTitle("title", Some("nb"))), "http://url", "publicdomain")
 
   val generalContentConverter = new GeneralContentConverter {
     override val typeName: String = "test"
@@ -58,7 +60,7 @@ class GeneralContentConverterTest extends UnitSuite with TestEnvironment {
     val expectedResult = s"<details><summary>Tittel</summary>${sampleFagstoff1.content}</details>"
 
     when(extractService.getNodeGeneralContent(nodeId)).thenReturn(Seq(sampleFagstoff1, sampleFagstoff2))
-    when(articleRepository.withExternalId(nodeId)).thenReturn(Some(ArticleSummary("1", Seq(ArticleTitle("title", Some("nb"))), "http://url", "publicdomain")))
+    when(articleRepository.withExternalId(nodeId)).thenReturn(Some(sampleArticleSummary))
     val (result, requiredLibraries, status) = generalContentConverter.convert(content, Seq())
     val strippedResult = " +".r.replaceAllIn(result.replace("\n", ""), " ")
 
@@ -74,7 +76,7 @@ class GeneralContentConverterTest extends UnitSuite with TestEnvironment {
     val expectedResult = s"""<figure data-content-id="1" data-id="1" data-link-text="Tittel" data-resource="content-link"></figure>"""
 
     when(extractService.getNodeGeneralContent(nodeId)).thenReturn(Seq(sampleFagstoff1, sampleFagstoff2))
-    when(articleRepository.withExternalId(nodeId)).thenReturn(Some(ArticleSummary("1", Seq(ArticleTitle("title", Some("nb"))), "http://url", "publicdomain")))
+    when(articleRepository.withExternalId(nodeId)).thenReturn(Some(sampleArticleSummary))
     val (result, requiredLibraries, status) = generalContentConverter.convert(content, Seq())
     val strippedResult = " +".r.replaceAllIn(result.replace("\n", ""), " ")
 
@@ -89,7 +91,7 @@ class GeneralContentConverterTest extends UnitSuite with TestEnvironment {
     val expectedResult = s"""<figure data-content-id="1" data-id="1" data-link-text="Tittel" data-resource="content-link"></figure>"""
 
     when(extractService.getNodeGeneralContent(nodeId)).thenReturn(Seq(sampleFagstoff1, sampleFagstoff2))
-    when(articleRepository.withExternalId(nodeId)).thenReturn(Some(ArticleSummary("1", Seq(ArticleTitle("title", Some("nb"))), "http://url", "publicdomain")))
+    when(articleRepository.withExternalId(nodeId)).thenReturn(Some(sampleArticleSummary))
     val (result, requiredLibraries, status) = generalContentConverter.convert(content, Seq())
     val strippedResult = " +".r.replaceAllIn(result.replace("\n", ""), " ")
 
@@ -104,7 +106,7 @@ class GeneralContentConverterTest extends UnitSuite with TestEnvironment {
     val expectedResult = s"""<figure data-content-id="1" data-id="1" data-link-text="Tittel" data-resource="content-link"></figure>"""
 
     when(extractService.getNodeGeneralContent(nodeId)).thenReturn(Seq(sampleFagstoff1, sampleFagstoff2))
-    when(articleRepository.withExternalId(nodeId)).thenReturn(Some(ArticleSummary("1", Seq(ArticleTitle("title", Some("nb"))), "http://url", "publicdomain")))
+    when(articleRepository.withExternalId(nodeId)).thenReturn(Some(sampleArticleSummary))
 
     val (result, requiredLibraries, status) = generalContentConverter.convert(content, Seq())
     val strippedResult = " +".r.replaceAllIn(result.replace("\n", ""), " ")

@@ -20,8 +20,8 @@ trait ArticleContentInformation {
   this: ArticleRepositoryComponent =>
 
   object ArticleContentInformation {
-    def getHtmlTagsMap: Map[String, Seq[String]] = {
-      @tailrec def getHtmlTagsMap(nodes: Seq[Article], tagsMap: Map[String, List[String]]): Map[String, List[String]] = {
+    def getHtmlTagsMap: Map[String, Seq[Long]] = {
+      @tailrec def getHtmlTagsMap(nodes: Seq[Article], tagsMap: Map[String, List[Long]]): Map[String, List[Long]] = {
         if (nodes.isEmpty)
           return tagsMap
 
@@ -29,8 +29,8 @@ trait ArticleContentInformation {
 
         val tagMaps = node.content.map(article => {
           val elements = Jsoup.parseBodyFragment(article.content).select("article").select("*").toList
-          buildMap(node.id, elements)
-        }).foldLeft(tagsMap)((map, articleMap) => addOrUpdateMap(map, articleMap))
+          buildMap(node.id.get, elements)
+        }).foldLeft(tagsMap)((map, articleMap) => mergeMaps(map, articleMap))
 
         getHtmlTagsMap(nodes.tail, tagMaps)
       }
@@ -38,22 +38,20 @@ trait ArticleContentInformation {
       getHtmlTagsMap(articleRepository.all, Map())
     }
 
-    private def buildMap(id: String, elements: List[Element]): Map[String, List[String]] =
-      elements.foldLeft(Map[String, List[String]]())((map, element) => {
+    private def buildMap(id: Long, elements: List[Element]): Map[String, List[Long]] =
+      elements.foldLeft(Map[String, List[Long]]())((map, element) => {
         val list = map.getOrElse(element.tagName, List())
         map + (element.tagName -> (list ++ Seq(id)))
       })
 
-    private def addOrUpdateMap(mapToUpdate: Map[String, Seq[String]], mapToInsert: Map[String, List[String]]): Map[String, List[String]] = {
+    private def mergeMaps(mapToUpdate: Map[String, List[Long]], mapToInsert: Map[String, List[Long]]): Map[String, List[Long]] = {
       val mergedLists = mapToUpdate.toList ++ mapToInsert.toList
-      val a = mergedLists.groupBy(_._1)
-
-      a.map { case (k, v) => k -> v.unzip._2.flatten.distinct }
+      mergedLists.groupBy(_._1).map { case (k, v) => k -> v.unzip._2.flatten.distinct }
     }
 
     def getExternalEmbedResources(subjectId: String): Map[String, Seq[String]] = {
       articleRepository.allWithExternalSubjectId(subjectId).flatMap(articleInfo => {
-        val externalId = articleRepository.getExternalIdFromId(articleInfo.id.toInt).getOrElse("unknown ID")
+        val externalId = articleRepository.getExternalIdFromId(articleInfo.id.get).getOrElse("unknown ID")
         val urls = articleInfo.content.flatMap(content => {
           val elements = Jsoup.parseBodyFragment(content.content).select("""figure[data-resource=external]""")
           elements.toList.map(el => el.attr("data-url"))

@@ -52,6 +52,7 @@ trait TestEnvironment
   with MappingApiClient
   with TagsService
   with SearchConverterService
+  with ReadService
 {
 
   val searchService = mock[SearchService]
@@ -78,6 +79,8 @@ trait TestEnvironment
   val postProcessorModules = List(TableConverter, HTMLCleaner)
   val imageApiService = mock[ImageApiService]
   val storageService = mock[AmazonStorageService]
+  val readService = mock[ReadService]
+
   val ndlaClient = mock[NdlaClient]
   val mappingApiClient = mock[MappingApiClient]
   val tagsService = mock[TagsService]

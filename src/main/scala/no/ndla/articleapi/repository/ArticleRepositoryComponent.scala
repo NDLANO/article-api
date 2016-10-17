@@ -58,16 +58,16 @@ trait ArticleRepositoryComponent {
     def getIdFromExternalId(externalId: String)(implicit session: DBSession = AutoSession): Option[Long] =
       sql"select id from contentdata where external_id=${externalId}".map(rs => rs.long("id")).single.apply()
 
-    def getExternalIdFromId(id: Int): Option[String] = {
+    def getExternalIdFromId(id: Long): Option[String] = {
       DB readOnly { implicit session =>
-        sql"select external_id from contentdata where id = ${id}"
+        sql"select external_id from contentdata where id = ${id.toInt}"
         .map(rs => rs.string("external_id")).single.apply()
       }
     }
 
     def minMaxId: (Long, Long) = {
       DB readOnly { implicit session =>
-        sql"select min(id) as mi, max(id) as ma from contentdata;".map(rs => {
+        sql"select min(id) as mi, max(id) as ma from contentdata".map(rs => {
           (rs.long("mi"), rs.long("ma"))
         }).single().apply() match {
           case Some(minmax) => minmax
@@ -129,7 +129,7 @@ trait ArticleRepositoryComponent {
       implicit val formats = org.json4s.DefaultFormats
 
       val meta = read[Article](json)
-      ArticleSummary(articleId.toString, meta.title, ApplicationUrl.get + articleId, meta.copyright.license.license)
+      ArticleSummary(articleId, meta.title, ApplicationUrl.get + articleId, meta.copyright.license.license)
     }
 
     def asArticle(articleId: Long, json: String): Article = {
@@ -138,7 +138,7 @@ trait ArticleRepositoryComponent {
 
       val meta = read[Article](json)
       Article(
-        articleId,
+        Some(articleId),
         meta.title,
         meta.content,
         meta.copyright,

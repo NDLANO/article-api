@@ -9,21 +9,19 @@
 
 package no.ndla.articleapi.controller
 
-import no.ndla.articleapi.ComponentRegistry.{articleRepository, searchService}
-import no.ndla.articleapi.model.api.{Article, SearchResult}
-import no.ndla.articleapi.model.domain.{Error, Sort}
-import org.json4s.{DefaultFormats, Formats}
+import no.ndla.articleapi.model.api.{Article, Error, SearchResult}
+import no.ndla.articleapi.model.domain.Sort
+import no.ndla.articleapi.service.ReadService
+import no.ndla.articleapi.service.search.SearchService
 import org.scalatra.swagger.{Swagger, SwaggerSupport}
 
 import scala.util.Try
 
 trait ArticleController {
+  this: ReadService with SearchService =>
   val articleController: ArticleController
 
   class ArticleController(implicit val swagger: Swagger) extends NdlaController with SwaggerSupport {
-
-    protected implicit override val jsonFormats: Formats = DefaultFormats
-
     protected val applicationDescription = "API for accessing images from ndla.no."
 
     val getAllArticles =
@@ -52,7 +50,7 @@ trait ArticleController {
         parameters(
         headerParam[Option[String]]("X-Correlation-ID").description("User supplied correlation-id. May be omitted."),
         headerParam[Option[String]]("app-key").description("Your app-key. May be omitted to access api anonymously, but rate limiting applies on anonymous access."),
-        pathParam[String]("article_id").description("Id of the article that is to be returned")
+        pathParam[Long]("article_id").description("Id of the article that is to be returned")
         ))
 
     get("/", operation(getAllArticles)) {
@@ -62,7 +60,6 @@ trait ArticleController {
       val sort = paramOrNone("sort")
       val pageSize = paramOrNone("page-size").flatMap(ps => Try(ps.toInt).toOption)
       val page = paramOrNone("page").flatMap(idx => Try(idx.toInt).toOption)
-      logger.info("GET / with params query='{}', language={}, license={}, page={}, page-size={}", query, language, license, page, pageSize)
 
       query match {
         case Some(q) => searchService.matchingQuery(
@@ -83,17 +80,13 @@ trait ArticleController {
     }
 
     get("/:article_id", operation(getArticleById)) {
-      val articleId = params("article_id")
-      logger.info("GET /{}", articleId)
+      val articleId = long("article_id")
 
-      if (articleId.forall(_.isDigit)) {
-        articleRepository.withId(articleId) match {
-          case Some(image) => image
-          case None => halt(status = 404, body = Error(Error.NOT_FOUND, s"No article with id $articleId found"))
-        }
-      } else {
-        halt(status = 404, body = Error(Error.NOT_FOUND, s"No article with id $articleId found"))
+      readService.withId(articleId) match {
+        case Some(image) => image
+        case None => halt(status = 404, body = Error(Error.NOT_FOUND, s"No article with id $articleId found"))
       }
+
     }
   }
 

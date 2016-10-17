@@ -21,7 +21,7 @@ trait SearchConverterService {
 
     def asSearchableArticle(ai: Article): SearchableArticle = {
       SearchableArticle(
-        id = ai.id,
+        id = ai.id.get,
         title = SearchableLanguageValues(ai.title.map(title => LanguageValue(title.language, title.title))),
         content = SearchableLanguageValues(ai.content.map(article => LanguageValue(article.language, Jsoup.parseBodyFragment(article.content).text()))),
         tags = SearchableLanguageList(ai.tags.map(tag => LanguageValue(tag.language, tag.tags))),
@@ -38,7 +38,7 @@ trait SearchConverterService {
         license = searchableArticle.license)
     }
 
-    def createUrlToLearningPath(id: String): String = {
+    def createUrlToLearningPath(id: Long): String = {
       s"${ApplicationUrl.get}$id"
     }
   }

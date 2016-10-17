@@ -62,7 +62,7 @@ trait GeneralContentConverterModule {
           val (figureElement, figureUsageErrors) = HtmlTagGenerator.buildFigure(Map(
             "resource" -> "content-link",
             "id" -> s"${contentBrowser.id}",
-            "content-id" -> id,
+            "content-id" -> id.toString,
             "link-text" -> contentBrowser.get("link_text")
           ))
           (figureElement, importStatus ++ ImportStatus(figureUsageErrors, Seq()))
@@ -76,12 +76,12 @@ trait GeneralContentConverterModule {
       }
     }
 
-    def getContentId(externalId: String, visitedNodes: Seq[String]): (Option[String], ImportStatus) = {
+    def getContentId(externalId: String, visitedNodes: Seq[String]): (Option[Long], ImportStatus) = {
       articleRepository.withExternalId(externalId) match {
         case Some(content) => (Some(content.id), ImportStatus(Seq(), (visitedNodes :+ externalId).distinct))
         case None => {
           extractConvertStoreContent.processNode(externalId, ImportStatus(Seq(), visitedNodes)) match {
-            case Success((newId, importStatus)) => (Some(newId.toString), importStatus)
+            case Success((newId, importStatus)) => (Some(newId), importStatus)
             case Failure(exc) => (None, ImportStatus(Seq(exc.getMessage), visitedNodes))
           }
         }

@@ -11,8 +11,10 @@ package no.ndla.articleapi.service
 
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.articleapi.integration.MigrationApiClient
-import no.ndla.articleapi.model.domain.{Article, ImportStatus, NodeNotFoundException, NodeToConvert}
+import no.ndla.articleapi.model.api.NodeNotFoundException
+import no.ndla.articleapi.model.domain.{Article, ImportStatus, NodeToConvert}
 import no.ndla.articleapi.repository.ArticleRepositoryComponent
+
 import scala.util.{Failure, Success, Try}
 
 trait ExtractConvertStoreContent {
