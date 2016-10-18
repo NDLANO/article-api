@@ -88,7 +88,7 @@ object HTMLCleaner extends ConverterModule with LazyLogging {
 
   private def getIngressImage(el: Element): Option[Element] = {
     val firstSection = Option(el.select("body>section").first)
-    firstSection.flatMap(section => Option(section.select("figure[data-resource=image]").first))
+    firstSection.flatMap(section => Option(section.select(s"$resourceHtmlEmbedTag[data-resource=image]").first))
   }
 
   private def extractIngress(el: Element): (Option[LanguageIngress]) = {

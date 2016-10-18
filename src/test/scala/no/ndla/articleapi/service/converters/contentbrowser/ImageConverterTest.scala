@@ -12,6 +12,7 @@ package no.ndla.articleapi.service.converters.contentbrowser
 import no.ndla.articleapi.{TestEnvironment, UnitSuite}
 import no.ndla.articleapi.model.{Author, Copyright, License}
 import no.ndla.articleapi.service._
+import no.ndla.articleapi.ArticleApiProperties.resourceHtmlEmbedTag
 import org.mockito.Mockito._
 
 class ImageConverterTest extends UnitSuite with TestEnvironment {
@@ -30,7 +31,7 @@ class ImageConverterTest extends UnitSuite with TestEnvironment {
     val (small, full) = (Image("small.jpg", 1024, ""), Image("full.jpg", 1024, ""))
     val imageVariants = ImageVariants(Some(small), Some(full))
     val image = ImageMetaInformation("1234", List(ImageTitle("", Some("nb"))), List(ImageAltText("", Some("nb"))), imageVariants, copyright, List(ImageTag(List(""), Some(""))))
-    val expectedResult = s"""<figure data-align="" data-alt="$altText" data-caption="$caption" data-id="1" data-resource="image" data-size="fullbredde" data-url="http://localhost/images/$nodeId"></figure>"""
+    val expectedResult = s"""<$resourceHtmlEmbedTag data-align="" data-alt="$altText" data-caption="$caption" data-id="1" data-resource="image" data-size="fullbredde" data-url="http://localhost/images/$nodeId" />"""
 
     when(imageApiService.importOrGetMetaByExternId(nodeId)).thenReturn(Some(image))
 
@@ -44,7 +45,7 @@ class ImageConverterTest extends UnitSuite with TestEnvironment {
     val (small, full) = (Image("small.jpg", 1024, ""), Image("full.jpg", 1024, ""))
     val imageVariants = ImageVariants(Some(small), Some(full))
     val image = ImageMetaInformation("1234", List(ImageTitle("", Some("nb"))), List(ImageAltText("", Some("nb"))), imageVariants, copyright, List(ImageTag(List(""), Some(""))))
-    val expectedResult = s"""<figure data-align="" data-alt="$altText" data-caption="" data-id="1" data-resource="image" data-size="fullbredde" data-url="http://localhost/images/$nodeId"></figure>"""
+    val expectedResult = s"""<$resourceHtmlEmbedTag data-align="" data-alt="$altText" data-caption="" data-id="1" data-resource="image" data-size="fullbredde" data-url="http://localhost/images/$nodeId" />"""
 
     when(imageApiService.importOrGetMetaByExternId(nodeId)).thenReturn(Some(image))
     val (result, requiredLibraries, errors) = ImageConverter.convert(ContentBrowser(contentStringEmptyCaption, Some("nb"), 1), Seq())
@@ -70,7 +71,7 @@ class ImageConverterTest extends UnitSuite with TestEnvironment {
     val (small, full) = (Image("small.jpg", 1024, ""), Image("full.jpg", 1024, ""))
     val imageVariants = ImageVariants(Some(small), Some(full))
     val image = ImageMetaInformation("1234", List(ImageTitle("", Some("nb"))), List(ImageAltText("", Some("nb"))), imageVariants, copyright, List(ImageTag(List(""), Some(""))))
-    val expectedResult = s"""<figure data-align="right" data-alt="$altText" data-caption="$caption" data-id="1" data-resource="image" data-size="fullbredde" data-url="http://localhost/images/$nodeId"></figure>"""
+    val expectedResult = s"""<$resourceHtmlEmbedTag data-align="right" data-alt="$altText" data-caption="$caption" data-id="1" data-resource="image" data-size="fullbredde" data-url="http://localhost/images/$nodeId" />"""
 
     when(imageApiService.importOrGetMetaByExternId(nodeId)).thenReturn(Some(image))
     val (result, requiredLibraries, errors) = ImageConverter.convert(ContentBrowser(contentStringWithLeftMargin, Some("nb"), 1), Seq())

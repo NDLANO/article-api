@@ -12,10 +12,11 @@ package no.ndla.articleapi.service
 import java.util.Date
 
 import no.ndla.articleapi.TestEnvironment
-import no.ndla.articleapi.integration.{LanguageContent, LanguageIngress, MigrationRelatedContent, MigrationRelatedContents}
+import no.ndla.articleapi.integration.LanguageContent
 import no.ndla.articleapi.model._
 import no.ndla.articleapi.UnitSuite
 import no.ndla.articleapi.service.converters.TableConverter
+import no.ndla.articleapi.ArticleApiProperties.resourceHtmlEmbedTag
 import org.mockito.Mockito._
 import org.mockito.Matchers._
 
@@ -98,8 +99,8 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
 
   test("ingress is extracted when wrapped in <p> tags") {
     val content =
-      """<section>
-        |<figure data-size="fullbredde" data-url="http://image-api/images/5359" data-align="" data-id="9" data-resource="image" data-alt="To personer" data-caption="capt."></figure>
+      s"""<section>
+        |<$resourceHtmlEmbedTag data-size="fullbredde" data-url="http://image-api/images/5359" data-align="" data-id="9" data-resource="image" data-alt="To personer" data-caption="capt." />
         |<p><strong>Når man driver med medieproduksjon, er det mye arbeid som må gjøres<br /></strong></p>
         |</section>
         |<section> <p>Det som kan gi helse- og sikkerhetsproblemer på en dataarbeidsplass, er:</section>""".stripMargin
@@ -152,7 +153,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     val imageMeta = ImageMetaInformation(newId, List(), List(), ImageVariants(Some(Image("small.jpeg", 128, "")), Some(Image(imageUrl, 256, ""))), Copyright(License("", "", Some("")), "", List()), List())
     val expectedResult =
       s"""|<article>
-          |<figure data-align="" data-alt="$sampleAlt" data-caption="" data-id="1" data-resource="image" data-size="fullbredde" data-url="http://localhost/images/$newId"></figure>
+          |<$resourceHtmlEmbedTag data-align="" data-alt="$sampleAlt" data-caption="" data-id="1" data-resource="image" data-size="fullbredde" data-url="http://localhost/images/$newId" />
           |</article>""".stripMargin.replace("\n", "")
 
     when(extractService.getNodeType(nodeId)).thenReturn(Some("image"))
@@ -177,9 +178,9 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
   }
 
   test("That empty html tags are removed") {
-    val contentNodeBokmal = LanguageContent(nodeId, nodeId, """<article> <div></div><p><div></div></p><figure data-id="1"></figure></article>""", Some("nb"))
+    val contentNodeBokmal = LanguageContent(nodeId, nodeId, s"""<article> <div></div><p><div></div></p><$resourceHtmlEmbedTag data-id="1"></$resourceHtmlEmbedTag></article>""", Some("nb"))
     val node = NodeToConvert(List(contentTitle), List(contentNodeBokmal), copyright, List(tag), Seq(visualElement), Seq(), "fagstoff", new Date(0), new Date(1))
-    val expectedResult = """<article> <figure data-id="1"></figure></article>"""
+    val expectedResult = s"""<article> <$resourceHtmlEmbedTag data-id="1" /></article>"""
 
     val (result, status) = service.toArticle(node, ImportStatus(Seq(), Seq()))
     val strippedResult = " +".r.replaceAllIn(result.content.head.content.replace("\n", ""), " ")

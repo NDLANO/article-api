@@ -8,13 +8,13 @@
 
 package no.ndla.articleapi.service.converters
 
-import no.ndla.articleapi.ArticleApiProperties
+import no.ndla.articleapi.ArticleApiProperties.{permittedHTMLAttributes, resourceHtmlEmbedTag}
 
 object HtmlTagGenerator {
-  def buildFigure(dataAttributes: Map[String, String]): (String, Seq[String]) = {
+  def buildEmbedContent(dataAttributes: Map[String, String]): (String, Seq[String]) = {
     val attributesWithPrefix = prefixKeyWith(dataAttributes, "data-")
     val errorMessages = verifyAttributeKeys(attributesWithPrefix.keySet)
-    (s"<figure ${buildAttributesString(attributesWithPrefix)}></figure>", errorMessages)
+    (s"<$resourceHtmlEmbedTag ${buildAttributesString(attributesWithPrefix)} />", errorMessages)
   }
 
   def buildAnchor(href: String, anchorText: String, extraAttributes: Map[String, String] = Map()): (String, Seq[String]) = {
@@ -38,5 +38,5 @@ object HtmlTagGenerator {
     }).toSeq
 
   private def isAttributeKeyValid(attributeKey: String): Boolean =
-    ArticleApiProperties.permittedHTMLAttributes.contains(attributeKey)
+    permittedHTMLAttributes.contains(attributeKey)
 }
