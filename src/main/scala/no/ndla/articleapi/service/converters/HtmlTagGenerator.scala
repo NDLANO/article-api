@@ -8,13 +8,14 @@
 
 package no.ndla.articleapi.service.converters
 
+import no.ndla.articleapi.ArticleApiProperties.resourceHtmlEmbedTag
 import no.ndla.articleapi.service.converters.HTMLCleaner.isAttributeKeyValid
 
 object HtmlTagGenerator {
-  def buildFigure(dataAttributes: Map[String, String]): (String, Seq[String]) = {
+  def buildEmbedContent(dataAttributes: Map[String, String]): (String, Seq[String]) = {
     val attributesWithPrefix = prefixKeyWith(dataAttributes, "data-")
-    val errorMessages = verifyAttributeKeys(attributesWithPrefix.keySet, "figure")
-    (s"<figure ${buildAttributesString(attributesWithPrefix)}></figure>", errorMessages)
+    val errorMessages = verifyAttributeKeys(attributesWithPrefix.keySet, resourceHtmlEmbedTag)
+    (s"<$resourceHtmlEmbedTag ${buildAttributesString(attributesWithPrefix)} />", errorMessages)
   }
 
   def buildAnchor(href: String, anchorText: String, extraAttributes: Map[String, String] = Map()): (String, Seq[String]) = {

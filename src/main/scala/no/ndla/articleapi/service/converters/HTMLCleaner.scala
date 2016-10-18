@@ -1,11 +1,14 @@
 package no.ndla.articleapi.service.converters
 
-import no.ndla.articleapi.integration.{ConverterModule, LanguageContent}
+import com.typesafe.scalalogging.LazyLogging
+import no.ndla.articleapi.ArticleApiProperties._
+import no.ndla.articleapi.integration.{ConverterModule, LanguageContent, LanguageIngress}
 import no.ndla.articleapi.model.ImportStatus
 import org.jsoup.nodes.{Element, Node}
+
 import scala.collection.JavaConversions._
 
-object HTMLCleaner extends ConverterModule {
+object HTMLCleaner extends ConverterModule with LazyLogging {
   override def convert(content: LanguageContent, importStatus: ImportStatus): (LanguageContent, ImportStatus) = {
     val element = stringToJsoupDocument(content.content)
 
@@ -14,8 +17,9 @@ object HTMLCleaner extends ConverterModule {
     removeComments(element)
     removeNbsp(element)
     removeEmptyTags(element)
+    val ingress = extractIngress(element)
 
-    (content.copy(content=jsoupDocumentToString(element)),
+    (content.copy(content=jsoupDocumentToString(element), ingress=ingress),
       ImportStatus(importStatus.messages ++ illegalTags ++ illegalAttributes, importStatus.visitedNodes))
   }
 
@@ -59,7 +63,7 @@ object HTMLCleaner extends ConverterModule {
   }
 
   private def removeEmptyTags(element: Element): Element = {
-    for (el <- element.select("p,div")) {
+    for (el <- element.select("p,div,section")) {
       if (!el.hasText && el.isBlock) {
         el.remove()
       }
@@ -72,6 +76,43 @@ object HTMLCleaner extends ConverterModule {
     el.html(el.html().replace("\u00a0", "")) // \u00a0 is the unicode representation of &nbsp;
   }
 
+  private def getIngressText(el: Element): Option[Element] = {
+    val firstSection = Option(el.select("body>section").first)
+    val ingress = firstSection.flatMap(section => Option(section.select(">p>strong").first))
+
+    ingress match {
+      case None => firstSection.flatMap(section => Option(section.select(">strong").first))
+      case x => x
+    }
+  }
+
+  private def getIngressImage(el: Element): Option[Element] = {
+    val firstSection = Option(el.select("body>section").first)
+    firstSection.flatMap(section => Option(section.select(s"$resourceHtmlEmbedTag[data-resource=image]").first))
+  }
+
+  private def extractIngress(el: Element): (Option[LanguageIngress]) = {
+    val ingressTextElement = getIngressText(el)
+    val ingressImageElement = getIngressImage(el)
+
+    val ingressText = ingressTextElement.flatMap(rs => {
+      rs.remove()
+      stringToOption(rs.text)
+    })
+    val ingressImageUrl = ingressImageElement.flatMap(rs => {
+      rs.remove()
+      stringToOption(rs.attr("data-url"))
+    })
+
+    removeEmptyTags(el)
+    (ingressText, ingressImageUrl) match {
+      case (None, None) => None
+      case _ => Some(LanguageIngress(ingressText, ingressImageUrl))
+    }
+  }
+
+  private def stringToOption(str: String): Option[String] = Option(str).filter(_.trim.nonEmpty)
+
   private object PermittedHTML {
     // MathML element reference list: https://developer.mozilla.org/en/docs/Web/MathML/Element
     private val mathJaxTags = Set("math", "maction", "maligngroup", "malignmark", "menclose", "merror", "mfenced", "mfrac", "mglyph", "mi",
@@ -79,14 +120,14 @@ object HTMLCleaner extends ConverterModule {
       "mscarry", "msgroup", "msline", "mspace", "msqrt", "msrow", "mstack", "mstyle", "msub", "msup", "msubsup", "mtable", "mtd",
       "mtext", "mtr", "munder", "munderover", "semantics", "annotation", "annotation-xml")
     val tags = Set("body", "article", "section", "table", "tr", "td", "li", "a", "button", "div", "p", "pre", "code", "sup",
-      "h1", "h2", "h3", "h4", "h5", "h6", "aside", "strong", "figure", "ul", "br", "ol", "i", "em", "b", "th", "tbody", "blockquote",
-      "details", "summary", "table", "thead", "tfoot", "tbody", "caption", "audio", "figcaption") ++ mathJaxTags
+      "h1", "h2", "h3", "h4", "h5", "h6", "aside", "strong", "ul", "br", "ol", "i", "em", "b", "th", "tbody", "blockquote",
+      "details", "summary", "table", "thead", "tfoot", "tbody", "caption", "audio", "figcaption", resourceHtmlEmbedTag) ++ mathJaxTags
 
     val legalAttributesForAll = Set("href", "title")
     val tagAttributes = Map(
       "td" -> Set("align", "valign"),
       "th" -> Set("align", "valign"),
-      "figure" -> Set("data-resource", "data-id", "data-content-id", "data-link-text", "data-url",
+      resourceHtmlEmbedTag -> Set("data-resource", "data-id", "data-content-id", "data-link-text", "data-url",
         "data-size", "data-videoid", "data-account", "data-player", "data-key", "data-alt", "data-caption", "data-align", "data-nrk-video-id")
     )
   }

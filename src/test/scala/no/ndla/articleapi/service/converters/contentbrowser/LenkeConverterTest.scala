@@ -10,6 +10,7 @@
 package no.ndla.articleapi.service.converters.contentbrowser
 
 import no.ndla.articleapi.{TestEnvironment, UnitSuite}
+import no.ndla.articleapi.ArticleApiProperties.resourceHtmlEmbedTag
 import org.mockito.Mockito._
 
 class LenkeConverterTest extends UnitSuite with TestEnvironment {
@@ -18,7 +19,7 @@ class LenkeConverterTest extends UnitSuite with TestEnvironment {
   val contentString = s"[contentbrowser ==nid=$nodeId==imagecache=Fullbredde==width===alt=$altText==link===node_link=1==link_type=link_to_content==lightbox_size===remove_fields[76661]=1==remove_fields[76663]=1==remove_fields[76664]=1==remove_fields[76666]=1==insertion===link_title_text= ==link_text= ==text_align===css_class=contentbrowser contentbrowser]"
   val linkUrl = "https://www.youtube.com/watch?v=1qN72LEQnaU"
   val nrkLinkUrl = "http://nrk.no/skole/klippdetalj?topic=urn%3Ax-mediadb%3A18745"
-  val linkEmbedCode = s"""<figure data-id="1" data-resource="external" data-url="$linkUrl"></figure>"""
+  val linkEmbedCode = s"""<$resourceHtmlEmbedTag data-id="1" data-resource="external" data-url="$linkUrl" />"""
 
   test("That LenkeConverter returns an embed code if insertion method is 'inline'") {
     val insertion = "inline"
@@ -92,7 +93,7 @@ class LenkeConverterTest extends UnitSuite with TestEnvironment {
     val content = ContentBrowser(contentString, Some("nb"), 1)
     val nrkVideoId = "94605"
     val nrkScriptUrl = "https://www.nrk.no/serum/latest/js/video_embed.js"
-    val expectedResult = s"""<figure data-id="1" data-nrk-video-id="$nrkVideoId" data-resource="external" data-url="$nrkLinkUrl"></figure>"""
+    val expectedResult = s"""<$resourceHtmlEmbedTag data-id="1" data-nrk-video-id="$nrkVideoId" data-resource="external" data-url="$nrkLinkUrl" />"""
 
     when(extractService.getNodeEmbedUrl(nodeId)).thenReturn(Some(nrkLinkUrl))
     when(extractService.getNodeEmbedCode(nodeId)).thenReturn(Some(s"""<div class="nrk-video" data-nrk-id="$nrkVideoId"></div><script src="$nrkScriptUrl"></script>"""))

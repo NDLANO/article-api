@@ -74,6 +74,8 @@ object ArticleApiProperties extends LazyLogging {
   lazy val MigrationUser = get("MIGRATION_USER")
   lazy val MigrationPassword = get("MIGRATION_PASSWORD")
 
+  val resourceHtmlEmbedTag = "embed"
+
   def verify() = {
     val missingProperties = ContentApiProps.filter(entry => entry._2.isEmpty).toList
     if(missingProperties.nonEmpty){
