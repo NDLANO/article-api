@@ -33,4 +33,21 @@ class HTMLCleanerTest extends UnitSuite {
     result.content.replace("\n", "") should equal (expectedResult)
     result.requiredLibraries.length should equal (0)
   }
+
+  test("That isAttributeKeyValid returns false for illegal attributes") {
+    HTMLCleaner.isAttributeKeyValid("data-random-junk", "td") should equal (false)
+  }
+
+  test("That isAttributeKeyValid returns true for legal attributes") {
+    HTMLCleaner.isAttributeKeyValid("align", "td") should equal (true)
+  }
+
+  test("That isTagValid returns false for illegal tags") {
+    HTMLCleaner.isTagValid("yodawg") should equal (false)
+  }
+
+  test("That isTagValid returns true for legal attributes") {
+    HTMLCleaner.isTagValid("section") should equal (true)
+  }
+
 }

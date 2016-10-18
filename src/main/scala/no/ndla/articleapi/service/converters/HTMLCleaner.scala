@@ -72,29 +72,32 @@ object HTMLCleaner extends ConverterModule {
     el.html(el.html().replace("\u00a0", "")) // \u00a0 is the unicode representation of &nbsp;
   }
 
-  def isAttributeKeyValid(attributeKey: String, tagName: String): Boolean = {
+  private object PermittedHTML {
+    // MathML element reference list: https://developer.mozilla.org/en/docs/Web/MathML/Element
+    private val mathJaxTags = Set("math", "maction", "maligngroup", "malignmark", "menclose", "merror", "mfenced", "mfrac", "mglyph", "mi",
+      "mlabeledtr", "mlongdiv", "mmultiscripts", "mn", "mo", "mover", "mpadded", "mphantom", "mroot", "mrow", "ms", "mscarries",
+      "mscarry", "msgroup", "msline", "mspace", "msqrt", "msrow", "mstack", "mstyle", "msub", "msup", "msubsup", "mtable", "mtd",
+      "mtext", "mtr", "munder", "munderover", "semantics", "annotation", "annotation-xml")
+    val tags = Set("body", "article", "section", "table", "tr", "td", "li", "a", "button", "div", "p", "pre", "code", "sup",
+      "h1", "h2", "h3", "h4", "h5", "h6", "aside", "strong", "figure", "ul", "br", "ol", "i", "em", "b", "th", "tbody", "blockquote",
+      "details", "summary", "table", "thead", "tfoot", "tbody", "caption", "audio", "figcaption") ++ mathJaxTags
+
     val legalAttributesForAll = Set("href", "title")
-    val permittedHTMLAttributes = Map(
+    val tagAttributes = Map(
       "td" -> Set("align", "valign"),
       "th" -> Set("align", "valign"),
       "figure" -> Set("data-resource", "data-id", "data-content-id", "data-link-text", "data-url",
         "data-size", "data-videoid", "data-account", "data-player", "data-key", "data-alt", "data-caption", "data-align", "data-nrk-video-id")
     )
+  }
 
-    val legalAttributesForTag = permittedHTMLAttributes.getOrElse(tagName, Set())
-    (legalAttributesForTag ++ legalAttributesForAll).contains(attributeKey)
+  def isAttributeKeyValid(attributeKey: String, tagName: String): Boolean = {
+    val legalAttributesForTag = PermittedHTML.tagAttributes.getOrElse(tagName, Set())
+    (legalAttributesForTag ++ PermittedHTML.legalAttributesForAll).contains(attributeKey)
   }
 
   def isTagValid(tagName: String): Boolean = {
-    // MathML element reference list: https://developer.mozilla.org/en/docs/Web/MathML/Element
-    val mathJaxTags = Set("math", "maction", "maligngroup", "malignmark", "menclose", "merror", "mfenced", "mfrac", "mglyph", "mi",
-      "mlabeledtr", "mlongdiv", "mmultiscripts", "mn", "mo", "mover", "mpadded", "mphantom", "mroot", "mrow", "ms", "mscarries",
-      "mscarry", "msgroup", "msline", "mspace", "msqrt", "msrow", "mstack", "mstyle", "msub", "msup", "msubsup", "mtable", "mtd",
-      "mtext", "mtr", "munder", "munderover", "semantics", "annotation", "annotation-xml")
-    val permittedHTMLTags = Set("body", "article", "section", "table", "tr", "td", "li", "a", "button", "div", "p", "pre", "code", "sup",
-      "h1", "h2", "h3", "h4", "h5", "h6", "aside", "strong", "figure", "ul", "br", "ol", "i", "em", "b", "th", "tbody", "blockquote",
-      "details", "summary", "table", "thead", "tfoot", "tbody", "caption", "audio", "figcaption") ++ mathJaxTags
-    permittedHTMLTags.contains(tagName)
+    PermittedHTML.tags.contains(tagName)
   }
 
 }
