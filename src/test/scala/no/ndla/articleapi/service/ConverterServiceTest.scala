@@ -12,7 +12,7 @@ package no.ndla.articleapi.service
 import java.util.Date
 
 import no.ndla.articleapi.TestEnvironment
-import no.ndla.articleapi.integration.LanguageContent
+import no.ndla.articleapi.integration.{Image, ImageMetaInformation, ImageVariants, LanguageContent}
 import no.ndla.articleapi.model._
 import no.ndla.articleapi.UnitSuite
 import no.ndla.articleapi.service.converters.TableConverter
@@ -169,7 +169,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
           |</article>""".stripMargin.replace("\n", "")
 
     when(extractService.getNodeType(nodeId)).thenReturn(Some("image"))
-    when(imageApiService.importOrGetMetaByExternId(nodeId)).thenReturn(Some(imageMeta))
+    when(imageApiClient.importOrGetMetaByExternId(nodeId)).thenReturn(Some(imageMeta))
     val (result, status) = service.toArticle(node, ImportStatus(Seq(), Seq()))
 
     result.content.head.content should equal (expectedResult)

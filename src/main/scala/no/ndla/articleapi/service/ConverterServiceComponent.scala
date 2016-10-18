@@ -11,11 +11,13 @@ package no.ndla.articleapi.service
 
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.articleapi.ArticleApiProperties.maxConvertionRounds
+import no.ndla.articleapi.integration.ImageApiClient
 import no.ndla.articleapi.model._
+
 import scala.annotation.tailrec
 
 trait ConverterServiceComponent {
-  this: ConverterModules with ExtractConvertStoreContent with ImageApiServiceComponent =>
+  this: ConverterModules with ExtractConvertStoreContent with ImageApiClient =>
   val converterService: ConverterService
 
   class ConverterService extends LazyLogging {
@@ -49,7 +51,7 @@ trait ConverterServiceComponent {
       executePostprocessorModules(nodeToConvert, importStatus)
 
     private def toArticleIngress(nodeIngress: NodeIngressFromSeparateDBTable): Option[(ArticleIntroduction, ImportStatus)] = {
-      val newImageId = nodeIngress.imageNid.flatMap(imageApiService.importOrGetMetaByExternId).map(_.id)
+      val newImageId = nodeIngress.imageNid.flatMap(imageApiClient.importOrGetMetaByExternId).map(_.id)
 
       val importStatus = (nodeIngress.imageNid, newImageId) match {
         case (Some(imageNid), None) => ImportStatus(s"Failed to import ingress image with external id $imageNid", Seq())

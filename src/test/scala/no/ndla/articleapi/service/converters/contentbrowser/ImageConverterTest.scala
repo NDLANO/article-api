@@ -9,6 +9,7 @@
 
 package no.ndla.articleapi.service.converters.contentbrowser
 
+import no.ndla.articleapi.integration._
 import no.ndla.articleapi.{TestEnvironment, UnitSuite}
 import no.ndla.articleapi.model.{Author, Copyright, License}
 import no.ndla.articleapi.service._
@@ -33,7 +34,7 @@ class ImageConverterTest extends UnitSuite with TestEnvironment {
     val image = ImageMetaInformation("1234", List(ImageTitle("", Some("nb"))), List(ImageAltText("", Some("nb"))), imageVariants, copyright, List(ImageTag(List(""), Some(""))))
     val expectedResult = s"""<$resourceHtmlEmbedTag data-align="" data-alt="$altText" data-caption="$caption" data-id="1" data-resource="image" data-size="fullbredde" data-url="http://localhost/images/$nodeId" />"""
 
-    when(imageApiService.importOrGetMetaByExternId(nodeId)).thenReturn(Some(image))
+    when(imageApiClient.importOrGetMetaByExternId(nodeId)).thenReturn(Some(image))
 
     val (result, requiredLibraries, errors) = ImageConverter.convert(content, Seq())
     result should equal (expectedResult)
@@ -47,7 +48,7 @@ class ImageConverterTest extends UnitSuite with TestEnvironment {
     val image = ImageMetaInformation("1234", List(ImageTitle("", Some("nb"))), List(ImageAltText("", Some("nb"))), imageVariants, copyright, List(ImageTag(List(""), Some(""))))
     val expectedResult = s"""<$resourceHtmlEmbedTag data-align="" data-alt="$altText" data-caption="" data-id="1" data-resource="image" data-size="fullbredde" data-url="http://localhost/images/$nodeId" />"""
 
-    when(imageApiService.importOrGetMetaByExternId(nodeId)).thenReturn(Some(image))
+    when(imageApiClient.importOrGetMetaByExternId(nodeId)).thenReturn(Some(image))
     val (result, requiredLibraries, errors) = ImageConverter.convert(ContentBrowser(contentStringEmptyCaption, Some("nb"), 1), Seq())
 
     result should equal (expectedResult)
@@ -58,7 +59,7 @@ class ImageConverterTest extends UnitSuite with TestEnvironment {
   test("That a contentbrowser string of type 'image' returns an HTML img-tag with a stock image if image is inexistant") {
     val expectedResult = s"""<img src='stock.jpeg' alt='The image with id $nodeId was not not found' />"""
 
-    when(imageApiService.importOrGetMetaByExternId(nodeId)).thenReturn(None)
+    when(imageApiClient.importOrGetMetaByExternId(nodeId)).thenReturn(None)
 
     val (result, requiredLibraries, errors) = ImageConverter.convert(content, Seq())
 
@@ -73,7 +74,7 @@ class ImageConverterTest extends UnitSuite with TestEnvironment {
     val image = ImageMetaInformation("1234", List(ImageTitle("", Some("nb"))), List(ImageAltText("", Some("nb"))), imageVariants, copyright, List(ImageTag(List(""), Some(""))))
     val expectedResult = s"""<$resourceHtmlEmbedTag data-align="right" data-alt="$altText" data-caption="$caption" data-id="1" data-resource="image" data-size="fullbredde" data-url="http://localhost/images/$nodeId" />"""
 
-    when(imageApiService.importOrGetMetaByExternId(nodeId)).thenReturn(Some(image))
+    when(imageApiClient.importOrGetMetaByExternId(nodeId)).thenReturn(Some(image))
     val (result, requiredLibraries, errors) = ImageConverter.convert(ContentBrowser(contentStringWithLeftMargin, Some("nb"), 1), Seq())
 
     result should equal (expectedResult)

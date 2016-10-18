@@ -31,20 +31,15 @@ object ArticleApiProperties extends LazyLogging {
 
   lazy val ContactEmail = get("CONTACT_EMAIL")
   lazy val HostAddr = get("HOST_ADDR")
-  lazy val Domains = get("DOMAINS").split(",") ++ Array(HostAddr)
+  lazy val Domain = get("DOMAIN")
 
   val audioStorageDirectory = "audio"
 
-  lazy val imageApiBaseUrl = get("IMAGE_API_BASE_URL")
-  val imageApiInternEndpointURLSuffix = "intern"
-  val imageApiImportImageURL = s"$imageApiInternEndpointURLSuffix/import"
-  val imageApiGetByExternalIdURL = s"$imageApiInternEndpointURLSuffix/extern"
-
-  lazy val imageApiUrl = get("IMAGE_API_URL")
+  lazy val internalImageApiUrl = get("INTERNAL_IMAGE_API_URL")
+  lazy val externalImageApiUrl = s"http://$Domain/images"
 
   val ndlaBaseHost = "http://ndla.no/"
 
-  val SearchHost = "search-engine"
   lazy val SearchServer = get("SEARCH_SERVER")
   lazy val SearchRegion = get("SEARCH_REGION")
   lazy val RunWithSignedSearchRequests = getBoolean("RUN_WITH_SIGNED_SEARCH_REQUESTS")
@@ -66,8 +61,9 @@ object ArticleApiProperties extends LazyLogging {
   lazy val CMUser = get("CM_USER")
   lazy val CMPassword = get("CM_PASSWORD")
 
-  val MappingHost = "mapping-api"
-  val IsoMappingCacheAgeInMs = 1000 * 60 * 60 // 1 hour caching
+  lazy val AudioHost = get("AUDIO_HOST")
+  lazy val MappingHost = get("MAPPING_HOST")
+  val ApiClientsCacheAgeInMs: Long = 1000 * 60 * 60 // 1 hour caching
   val TopicAPIUrl = "http://api.topic.ndla.no/rest/v1/keywords/?filter[node]=ndlanode_"
 
   lazy val MigrationHost = get("MIGRATION_HOST")

@@ -43,7 +43,6 @@ trait TestEnvironment
   with ContentBrowserConverter
   with BiblioConverterModule
   with BiblioConverter
-  with ImageApiServiceComponent
   with AmazonClientComponent
   with StorageService
   with ArticleContentInformation
@@ -76,11 +75,12 @@ trait TestEnvironment
   val biblioConverter = new BiblioConverter
   val converterModules = List(SimpleTagConverter, biblioConverter, DivTableConverter, contentBrowserConverter)
   val postProcessorModules = List(TableConverter, HTMLCleaner)
-  val imageApiService = mock[ImageApiService]
   val storageService = mock[AmazonStorageService]
   val ndlaClient = mock[NdlaClient]
   val mappingApiClient = mock[MappingApiClient]
   val tagsService = mock[TagsService]
   val searchConverterService = mock[SearchConverterService]
   val jestClient = mock[JestClient]
+  val audioApiClient = mock[AudioApiClient]
+  val imageApiClient = mock[ImageApiClient]
 }
