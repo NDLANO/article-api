@@ -26,6 +26,15 @@ object ArticleApiProperties extends LazyLogging {
   val CorrelationIdHeader = "X-Correlation-ID"
   val CorrelationIdKey = "correlationID"
 
+  lazy val MetaUserName = get("META_USER_NAME")
+  lazy val MetaPassword = get("META_PASSWORD")
+  lazy val MetaResource = get("META_RESOURCE")
+  lazy val MetaServer = get("META_SERVER")
+  lazy val MetaPort = getInt("META_PORT")
+  lazy val MetaInitialConnections = getInt("META_INITIAL_CONNECTIONS")
+  lazy val MetaMaxConnections = getInt("META_MAX_CONNECTIONS")
+  lazy val MetaSchema = get("META_SCHEMA")
+
   lazy val NDLABrightcoveAccountId = get("NDLA_BRIGHTCOVE_ACCOUNT_ID")
   lazy val NDLABrightcovePlayerId = get("NDLA_BRIGHTCOVE_PLAYER_ID")
 

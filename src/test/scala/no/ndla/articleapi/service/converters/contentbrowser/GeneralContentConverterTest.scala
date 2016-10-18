@@ -60,7 +60,7 @@ class GeneralContentConverterTest extends UnitSuite with TestEnvironment {
     val expectedResult = s"<details><summary>Tittel</summary>${sampleFagstoff1.content}</details>"
 
     when(extractService.getNodeGeneralContent(nodeId)).thenReturn(Seq(sampleFagstoff1, sampleFagstoff2))
-    when(articleRepository.withExternalId(nodeId)).thenReturn(Some(sampleArticleSummary))
+    when(articleRepository.getIdFromExternalId(nodeId)).thenReturn(Some(1: Long))
     val (result, requiredLibraries, status) = generalContentConverter.convert(content, Seq())
     val strippedResult = " +".r.replaceAllIn(result.replace("\n", ""), " ")
 
@@ -76,7 +76,7 @@ class GeneralContentConverterTest extends UnitSuite with TestEnvironment {
     val expectedResult = s"""<figure data-content-id="1" data-id="1" data-link-text="Tittel" data-resource="content-link"></figure>"""
 
     when(extractService.getNodeGeneralContent(nodeId)).thenReturn(Seq(sampleFagstoff1, sampleFagstoff2))
-    when(articleRepository.withExternalId(nodeId)).thenReturn(Some(sampleArticleSummary))
+    when(articleRepository.getIdFromExternalId(nodeId)).thenReturn(Some(1: Long))
     val (result, requiredLibraries, status) = generalContentConverter.convert(content, Seq())
     val strippedResult = " +".r.replaceAllIn(result.replace("\n", ""), " ")
 
@@ -91,7 +91,7 @@ class GeneralContentConverterTest extends UnitSuite with TestEnvironment {
     val expectedResult = s"""<figure data-content-id="1" data-id="1" data-link-text="Tittel" data-resource="content-link"></figure>"""
 
     when(extractService.getNodeGeneralContent(nodeId)).thenReturn(Seq(sampleFagstoff1, sampleFagstoff2))
-    when(articleRepository.withExternalId(nodeId)).thenReturn(Some(sampleArticleSummary))
+    when(articleRepository.getIdFromExternalId(nodeId)).thenReturn(Some(1: Long))
     val (result, requiredLibraries, status) = generalContentConverter.convert(content, Seq())
     val strippedResult = " +".r.replaceAllIn(result.replace("\n", ""), " ")
 
@@ -106,7 +106,7 @@ class GeneralContentConverterTest extends UnitSuite with TestEnvironment {
     val expectedResult = s"""<figure data-content-id="1" data-id="1" data-link-text="Tittel" data-resource="content-link"></figure>"""
 
     when(extractService.getNodeGeneralContent(nodeId)).thenReturn(Seq(sampleFagstoff1, sampleFagstoff2))
-    when(articleRepository.withExternalId(nodeId)).thenReturn(Some(sampleArticleSummary))
+    when(articleRepository.getIdFromExternalId(nodeId)).thenReturn(Some(1: Long))
 
     val (result, requiredLibraries, status) = generalContentConverter.convert(content, Seq())
     val strippedResult = " +".r.replaceAllIn(result.replace("\n", ""), " ")
@@ -123,7 +123,7 @@ class GeneralContentConverterTest extends UnitSuite with TestEnvironment {
     val expectedResult = s"""<figure data-content-id="1111" data-id="1" data-link-text="Tittel" data-resource="content-link"></figure>"""
 
     when(extractService.getNodeGeneralContent(nodeId)).thenReturn(Seq(sampleFagstoff1, sampleFagstoff2))
-    when(articleRepository.withExternalId(nodeId)).thenReturn(None)
+    when(articleRepository.getIdFromExternalId(nodeId)).thenReturn(None)
     when(extractConvertStoreContent.processNode(nodeId, ImportStatus(Seq(), Seq(nodeId2)))).thenReturn(Try((newNodeid, ImportStatus(Seq(), Seq(nodeId2, nodeId)))))
 
     val languageContent = LanguageContent(nodeId, nodeId, "<div>sample content</div>", Some("en"))
@@ -141,7 +141,7 @@ class GeneralContentConverterTest extends UnitSuite with TestEnvironment {
     val expectedResult = s"""<a href="http://ndla.no//node/$nodeId">Tittel</a>"""
 
     when(extractService.getNodeGeneralContent(nodeId)).thenReturn(Seq(sampleFagstoff1, sampleFagstoff2))
-    when(articleRepository.withExternalId(nodeId)).thenReturn(None)
+    when(articleRepository.getIdFromExternalId(nodeId)).thenReturn(None)
     when(extractConvertStoreContent.processNode(nodeId, ImportStatus(Seq(), Seq(nodeId2)))).thenReturn(Failure(NodeNotFoundException("Node was not found")))
 
     val languageContent = LanguageContent(nodeId, nodeId2, "<div>sample content</div>", Some("en"))

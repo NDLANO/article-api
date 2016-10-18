@@ -28,7 +28,7 @@ trait ArticleContentInformation {
         val node = nodes.head
 
         val tagMaps = node.content.map(article => {
-          val elements = Jsoup.parseBodyFragment(article.content).select("article").select("*").toList
+          val elements = Jsoup.parseBodyFragment(article.content).select("body").first.children.select("*").toList
           buildMap(node.id.get, elements)
         }).foldLeft(tagsMap)((map, articleMap) => mergeMaps(map, articleMap))
 

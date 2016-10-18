@@ -41,7 +41,7 @@ class ExtractConvertStoreContentTest extends UnitSuite with TestEnvironment {
     when(extractService.getNodeData(nodeId)).thenReturn(sampleNode)
     when(extractService.getNodeType(nodeId2)).thenReturn(Some("fagstoff"))
     when(extractService.getNodeGeneralContent(nodeId2)).thenReturn(Seq(NodeGeneralContent(nodeId2, nodeId2, "title", "content", "en")))
-    when(articleRepository.withExternalId(nodeId2)).thenReturn(None)
+    when(articleRepository.getIdFromExternalId(nodeId2)).thenReturn(None)
     when(extractConvertStoreContent.processNode(nodeId2, ImportStatus(Seq(), Seq(nodeId)))).thenReturn(Try((newNodeid, ImportStatus(Seq(), Seq(nodeId, nodeId2)))))
     when(migrationApiClient.getSubjectForNode(nodeId)).thenReturn(Try(Seq(MigrationSubjectMeta("52", "helsearbeider vg2"))))
 
@@ -59,7 +59,7 @@ class ExtractConvertStoreContentTest extends UnitSuite with TestEnvironment {
     when(extractService.getNodeData(nodeId)).thenReturn(sampleNode)
     when(extractService.getNodeType(nodeId2)).thenReturn(Some("fagstoff"))
     when(extractService.getNodeGeneralContent(nodeId2)).thenReturn(Seq(NodeGeneralContent(nodeId2, nodeId2, "title", "content", "en")))
-    when(articleRepository.withExternalId(nodeId2)).thenReturn(None)
+    when(articleRepository.getIdFromExternalId(nodeId2)).thenReturn(None)
     when(extractConvertStoreContent.processNode(nodeId2, ImportStatus(Seq(), Seq("9876", nodeId)))).thenReturn(Try((newNodeid, ImportStatus(Seq(), Seq("9876", nodeId, nodeId2)))))
     when(migrationApiClient.getSubjectForNode(nodeId)).thenReturn(Try(Seq(MigrationSubjectMeta("52", "helsearbeider vg2"))))
 

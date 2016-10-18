@@ -77,8 +77,8 @@ trait GeneralContentConverterModule {
     }
 
     def getContentId(externalId: String, visitedNodes: Seq[String]): (Option[Long], ImportStatus) = {
-      articleRepository.withExternalId(externalId) match {
-        case Some(content) => (Some(content.id), ImportStatus(Seq(), (visitedNodes :+ externalId).distinct))
+      articleRepository.getIdFromExternalId(externalId) match {
+        case Some(id) => (Some(id), ImportStatus(Seq(), (visitedNodes :+ externalId).distinct))
         case None => {
           extractConvertStoreContent.processNode(externalId, ImportStatus(Seq(), visitedNodes)) match {
             case Success((newId, importStatus)) => (Some(newId), importStatus)
