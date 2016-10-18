@@ -44,7 +44,7 @@ class HTMLCleanerTest extends UnitSuite {
                    |</section>
                    |<section>
                    |<h2>Mediehverdagen</h2>
-                 |</section>""".stripMargin.replace("\n", "")
+                   |</section>""".stripMargin.replace("\n", "")
 
     val expectedContentResult = """<section><h2>Mediehverdagen</h2></section>"""
     val expectedIngressResult = LanguageIngress(Some("Medievanene er i endring."), Some("http://image-api/images/5452"))
