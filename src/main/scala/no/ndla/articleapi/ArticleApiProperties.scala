@@ -83,7 +83,7 @@ object ArticleApiProperties extends LazyLogging {
     "mtext", "mtr", "munder", "munderover", "semantics", "annotation", "annotation-xml")
   val permittedHTMLTags = Set("body", "article", "section", "table", "tr", "td", "li", "a", "button", "div", "p", "pre", "code", "sup",
     "h1", "h2", "h3", "h4", "h5", "h6", "aside", "strong", "ul", "br", "ol", "i", "em", "b", "th", "tbody", "blockquote",
-    "details", "summary", "table", "thead", "tfoot", "tbody", "caption", "audio", "figcaption", "figure", resourceHtmlEmbedTag) ++ mathJaxTags
+    "details", "summary", "table", "thead", "tfoot", "tbody", "caption", "audio", "figcaption", resourceHtmlEmbedTag) ++ mathJaxTags
 
   val permittedHTMLAttributes = Set("data-resource", "data-id", "data-content-id", "data-link-text", "data-url",
     "data-size", "data-videoid", "data-account", "data-player", "data-key", "data-alt", "data-caption", "data-align", "data-nrk-video-id", "href", "title")
