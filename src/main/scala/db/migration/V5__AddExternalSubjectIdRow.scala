@@ -30,7 +30,7 @@ class V5__Populate_Subject_Id_column extends JdbcMigration {
   }
 
   def getSubjectIds(externalId: String): V5__ExternalIds = {
-    V5__ExternalIds(externalId, migrationApiClient.getSubjectForNode(externalId).getOrElse(Seq()).map(_.nid))
+    V5__ExternalIds(externalId, migrationApiClient.getSubjectForNode(externalId).getOrElse(Seq()).map(_.nid).distinct)
   }
 
   def update(external: V5__ExternalIds)(implicit session: DBSession) = {

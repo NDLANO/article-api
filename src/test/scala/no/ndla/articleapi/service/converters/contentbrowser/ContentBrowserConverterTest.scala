@@ -35,7 +35,7 @@ class ContentBrowserConverterTest extends UnitSuite with TestEnvironment {
   test("That content-browser strings of type h5p_content are converted correctly") {
     val nodeId = "1234"
     val initialContent = LanguageContent(nodeId, nodeId, s"<article>$sampleContentString</article>", Some("en"))
-    val expectedResult = s"""<article><figure data-id="1" data-resource="h5p" data-url="http://ndla.no/h5p/embed/$nodeId"></figure></article>"""
+    val expectedResult = s"""<article><$resourceHtmlEmbedTag data-id="1" data-resource="h5p" data-url="http://ndla.no/h5p/embed/$nodeId" /></article>"""
 
     when(extractService.getNodeType(nodeId)).thenReturn(Some("h5p_content"))
     val (result, status) = contentBrowserConverter.convert(initialContent, ImportStatus(Seq(), Seq()))
@@ -51,7 +51,7 @@ class ContentBrowserConverterTest extends UnitSuite with TestEnvironment {
     val imageMeta = ImageMetaInformation(newId, List(), List(), ImageVariants(Some(Image("small.jpeg", 128, "")), Some(Image(imageUrl, 256, ""))), Copyright(License("", "", Some("")), "", List()), List())
     val expectedResult =
       s"""|<article>
-          |<figure data-align="" data-alt="$alt" data-caption="" data-id="1" data-resource="image" data-size="fullbredde" data-url="http://localhost/images/$newId"></figure>
+          |<$resourceHtmlEmbedTag data-align="" data-alt="$alt" data-caption="" data-id="1" data-resource="image" data-size="fullbredde" data-url="http://localhost/images/$newId" />
           |</article>""".stripMargin.replace("\n", "")
 
     when(extractService.getNodeType(nodeId)).thenReturn(Some("image"))
@@ -120,8 +120,8 @@ class ContentBrowserConverterTest extends UnitSuite with TestEnvironment {
   }
 
   test("That Content-browser strings of type video are converted into HTML img tags") {
-    val initialContent = LanguageContent(nodeId, nodeId, s"<article>$sampleContentString</article>", Some("en"))
-    val expectedResult = s"""<article><figure data-account="$NDLABrightcoveAccountId" data-id="1" data-player="$NDLABrightcovePlayerId" data-resource="brightcove" data-videoid="ref:$nodeId"></figure></article>"""
+    val initialContent = LanguageContent(nodeId, nodeId, s"$sampleContentString", Some("en"))
+    val expectedResult = s"""<$resourceHtmlEmbedTag data-account="$NDLABrightcoveAccountId" data-id="1" data-player="$NDLABrightcovePlayerId" data-resource="brightcove" data-videoid="ref:$nodeId" />"""
     when(extractService.getNodeType(nodeId)).thenReturn(Some("video"))
     val (result, status) = contentBrowserConverter.convert(initialContent, ImportStatus(Seq(), Seq()))
     val strippedResult = " +".r.replaceAllIn(result.content.replace("\n", ""), " ")

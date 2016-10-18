@@ -54,7 +54,7 @@ trait LenkeConverterModule {
       logger.info(message)
 
       val (extraAttributes, requiredLibs) = getExtraAttributes(url, cont)
-      val (figureTag, errors) = HtmlTagGenerator.buildFigure(attributes ++ extraAttributes)
+      val (figureTag, errors) = HtmlTagGenerator.buildEmbedContent(attributes ++ extraAttributes)
       (figureTag, requiredLibs, errors :+ message)
     }
 

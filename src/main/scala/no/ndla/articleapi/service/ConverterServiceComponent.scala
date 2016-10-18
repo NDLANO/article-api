@@ -50,7 +50,7 @@ trait ConverterServiceComponent {
     private def postProcess(nodeToConvert: NodeToConvert, importStatus: ImportStatus): (NodeToConvert, ImportStatus) =
       executePostprocessorModules(nodeToConvert, importStatus)
 
-    private def toArticleIngress(nodeIngress: NodeIngress): (ArticleIntroduction, ImportStatus) = {
+    private def toArticleIngress(nodeIngress: NodeIngressFromSeparateDBTable): Option[(ArticleIntroduction, ImportStatus)] = {
       val newImageId = nodeIngress.imageNid.flatMap(imageApiClient.importOrGetMetaByExternId).map(_.id)
 
       val importStatus = (nodeIngress.imageNid, newImageId) match {
@@ -58,12 +58,20 @@ trait ConverterServiceComponent {
         case _ => ImportStatus(Seq(), Seq())
       }
 
-      (ArticleIntroduction(nodeIngress.content, newImageId, nodeIngress.ingressVisPaaSiden == 1, nodeIngress.language), importStatus)
+      nodeIngress.ingressVisPaaSiden == 1 match {
+        case true => Some(ArticleIntroduction(nodeIngress.content, newImageId, nodeIngress.language), importStatus)
+        case false => None
+      }
     }
 
     private def toArticle(nodeToConvert: NodeToConvert): (Article, ImportStatus) = {
       val requiredLibraries = nodeToConvert.contents.flatMap(_.requiredLibraries).distinct
-      val (ingresses, importStatuses) = nodeToConvert.ingress.map(toArticleIngress).unzip
+      val ingressesFromSeparateDatabaseTable = nodeToConvert.ingressesFromSeparateDBTable.flatMap(toArticleIngress)
+
+      val (ingresses, ingressImportStatus) = ingressesFromSeparateDatabaseTable.isEmpty match {
+        case false => ingressesFromSeparateDatabaseTable.unzip
+        case true => (nodeToConvert.contents.flatMap(x => x.asArticleIntroduction), Seq())
+      }
 
       (Article("0",
         nodeToConvert.titles,
@@ -75,7 +83,7 @@ trait ConverterServiceComponent {
         ingresses,
         nodeToConvert.created,
         nodeToConvert.updated,
-        nodeToConvert.contentType), ImportStatus(importStatuses))
+        nodeToConvert.contentType), ImportStatus(ingressImportStatus))
     }
 
   }

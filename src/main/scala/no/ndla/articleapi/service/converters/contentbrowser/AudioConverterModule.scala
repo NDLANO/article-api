@@ -46,7 +46,7 @@ trait AudioConverterModule  {
         "id" -> content.id.toString,
         "audio-id" -> id.toString
       )
-      val (resource, errors) = HtmlTagGenerator.buildFigure(resourceAttributes)
+      val (resource, errors) = HtmlTagGenerator.buildEmbedContent(resourceAttributes)
       (resource, ImportStatus(errors, Seq()))
     }
 
