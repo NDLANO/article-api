@@ -15,7 +15,7 @@ trait HealthController {
 
   class HealthController extends ScalatraServlet {
 
-    get("/health") {
+    get("/") {
       Ok()
     }
   }
