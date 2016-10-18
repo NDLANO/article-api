@@ -31,12 +31,12 @@ object ArticleApiProperties extends LazyLogging {
 
   lazy val ContactEmail = get("CONTACT_EMAIL")
   lazy val HostAddr = get("HOST_ADDR")
-  lazy val Domains = get("DOMAINS").split(",") ++ Array(HostAddr)
+  lazy val Domain = get("DOMAIN")
 
   val audioStorageDirectory = "audio"
 
   lazy val internalImageApiUrl = get("INTERNAL_IMAGE_API_URL")
-  lazy val externalImageApiUrl = get("EXTERNAL_IMAGE_API_URL")
+  lazy val externalImageApiUrl = s"http://$Domain/images"
 
   val ndlaBaseHost = "http://ndla.no/"
 

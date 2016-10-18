@@ -20,7 +20,7 @@ abstract class UnitSuite extends FunSuite with Matchers with OptionValues with I
   ArticleApiProperties.setProperties(Map(
     "CONTACT_EMAIL" -> Some("someone@somewhere.earth"),
     "HOST_ADDR" -> Some("localhost"),
-    "DOMAINS" -> Some("localhost"),
+    "DOMAIN" -> Some("localhost"),
 
     "DB_USER_NAME" -> Some("user"),
     "DB_PASSWORD" -> Some("password"),
@@ -42,7 +42,6 @@ abstract class UnitSuite extends FunSuite with Matchers with OptionValues with I
     "STORAGE_NAME" -> Some("test.storage"),
     "NDLA_BRIGHTCOVE_ACCOUNT_ID" -> Some("0123456789"),
     "NDLA_BRIGHTCOVE_PLAYER_ID" -> Some("qwerty"),
-    "NDLA_API_URL" -> Some("http://localhost"),
-    "EXTERNAL_IMAGE_API_URL" -> Some("http://localhost/images")
+    "NDLA_API_URL" -> Some("http://localhost")
   ))
 }
