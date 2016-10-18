@@ -10,8 +10,8 @@ package db.migration
 
 import no.ndla.articleapi.{TestEnvironment, UnitSuite}
 
-class V5__RemoveIngressVisPaaSidenTest extends UnitSuite with TestEnvironment {
-  val migrator = new V5__RemoveIngressVisPaaSiden
+class V6__RemoveIngressVisPaaSidenTest extends UnitSuite with TestEnvironment {
+  val migrator = new V6__RemoveIngressVisPaaSiden
 
   test("That converting old document converts to expected new document") {
     val oldDocument =
@@ -21,7 +21,7 @@ class V5__RemoveIngressVisPaaSidenTest extends UnitSuite with TestEnvironment {
       """{"id":"0","introduction":[{"introduction":"<p>statistiske data</p>","image":"5452","language":"nb"},
                                   |{"introduction":"<p>stutustuske dutu</p>","image":"5452","language":"nn"}]}""".stripMargin.replace("\n", "")
 
-    migrator.convertDocumentToNewFormat(V5_DBContent(1, oldDocument)).document should equal (newDocument)
+    migrator.convertDocumentToNewFormat(V6_DBContent(1, oldDocument)).document should equal (newDocument)
   }
 
 }

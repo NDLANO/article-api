@@ -99,4 +99,21 @@ class HTMLCleanerTest extends UnitSuite {
     result.content should equal(expectedContentResult)
     result.ingress should equal(Some(expectedIngressResult))
   }
+
+  test("That isAttributeKeyValid returns false for illegal attributes") {
+    HTMLCleaner.isAttributeKeyValid("data-random-junk", "td") should equal (false)
+  }
+
+  test("That isAttributeKeyValid returns true for legal attributes") {
+    HTMLCleaner.isAttributeKeyValid("align", "td") should equal (true)
+  }
+
+  test("That isTagValid returns false for illegal tags") {
+    HTMLCleaner.isTagValid("yodawg") should equal (false)
+  }
+
+  test("That isTagValid returns true for legal attributes") {
+    HTMLCleaner.isTagValid("section") should equal (true)
+  }
+
 }

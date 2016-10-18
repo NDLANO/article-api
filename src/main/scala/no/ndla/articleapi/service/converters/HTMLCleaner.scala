@@ -25,7 +25,7 @@ object HTMLCleaner extends ConverterModule with LazyLogging {
 
   private def unwrapIllegalTags(el: Element): Seq[String] = {
     el.select("*").toList.
-      filter(x => !permittedHTMLTags.contains(x.tagName))
+      filter(x => !isTagValid(x.tagName))
       .map(x => {
         val tagName = x.tagName
         x.unwrap()
@@ -35,12 +35,12 @@ object HTMLCleaner extends ConverterModule with LazyLogging {
   }
 
   private def removeAttributes(el: Element): Seq[String] = {
-    el.select("*").toList.flatMap(x => {
-      x.attributes().toList.
-        filter(x => !permittedHTMLAttributes.contains(x.getKey))
-        .map(y => {
-          val keyName = y.getKey
-          x.removeAttr(keyName)
+    el.select("*").toList.flatMap(tag => {
+      tag.attributes().toList.
+        filter(attribute => !isAttributeKeyValid(attribute.getKey, tag.tagName))
+        .map(illegalAttribute => {
+          val keyName = illegalAttribute.getKey
+          tag.removeAttr(keyName)
           keyName
       })
     })
@@ -112,4 +112,34 @@ object HTMLCleaner extends ConverterModule with LazyLogging {
   }
 
   private def stringToOption(str: String): Option[String] = Option(str).filter(_.trim.nonEmpty)
+
+  private object PermittedHTML {
+    // MathML element reference list: https://developer.mozilla.org/en/docs/Web/MathML/Element
+    private val mathJaxTags = Set("math", "maction", "maligngroup", "malignmark", "menclose", "merror", "mfenced", "mfrac", "mglyph", "mi",
+      "mlabeledtr", "mlongdiv", "mmultiscripts", "mn", "mo", "mover", "mpadded", "mphantom", "mroot", "mrow", "ms", "mscarries",
+      "mscarry", "msgroup", "msline", "mspace", "msqrt", "msrow", "mstack", "mstyle", "msub", "msup", "msubsup", "mtable", "mtd",
+      "mtext", "mtr", "munder", "munderover", "semantics", "annotation", "annotation-xml")
+    val tags = Set("body", "article", "section", "table", "tr", "td", "li", "a", "button", "div", "p", "pre", "code", "sup",
+      "h1", "h2", "h3", "h4", "h5", "h6", "aside", "strong", "ul", "br", "ol", "i", "em", "b", "th", "tbody", "blockquote",
+      "details", "summary", "table", "thead", "tfoot", "tbody", "caption", "audio", "figcaption", resourceHtmlEmbedTag) ++ mathJaxTags
+
+    val legalAttributesForAll = Set("href", "title")
+    val tagAttributes = Map(
+      "td" -> Set("align", "valign"),
+      "th" -> Set("align", "valign"),
+      resourceHtmlEmbedTag -> Set("data-resource", "data-id", "data-content-id", "data-link-text", "data-url",
+        "data-size", "data-videoid", "data-account", "data-player", "data-key", "data-alt", "data-caption", "data-align",
+        "data-audio-id", "data-nrk-video-id")
+    )
+  }
+
+  def isAttributeKeyValid(attributeKey: String, tagName: String): Boolean = {
+    val legalAttributesForTag = PermittedHTML.tagAttributes.getOrElse(tagName, Set())
+    (legalAttributesForTag ++ PermittedHTML.legalAttributesForAll).contains(attributeKey)
+  }
+
+  def isTagValid(tagName: String): Boolean = {
+    PermittedHTML.tags.contains(tagName)
+  }
+
 }
