@@ -17,7 +17,7 @@ import org.json4s.native.Serialization._
 import org.postgresql.util.PGobject
 import scalikejdbc._
 
-class V5__RemoveIngressVisPaaSiden extends JdbcMigration {
+class V6__RemoveIngressVisPaaSiden extends JdbcMigration {
   implicit val formats = org.json4s.DefaultFormats
 
   override def migrate(connection: Connection) = {
@@ -29,11 +29,11 @@ class V5__RemoveIngressVisPaaSiden extends JdbcMigration {
     }
   }
 
-  def allContentNodes(implicit session: DBSession): List[V5_DBContent] = {
-    sql"select id, document from contentdata".map(rs => V5_DBContent(rs.long("id"), rs.string("document"))).list().apply()
+  def allContentNodes(implicit session: DBSession): List[V6_DBContent] = {
+    sql"select id, document from contentdata".map(rs => V6_DBContent(rs.long("id"), rs.string("document"))).list().apply()
   }
 
-  def convertDocumentToNewFormat(content: V5_DBContent): V5_DBContent = {
+  def convertDocumentToNewFormat(content: V6_DBContent): V6_DBContent = {
     val json = parse(content.document).transformField {
       case JField("introduction", JArray(intro)) => ("introduction", JArray(intro).removeField {
         case ("displayIngress", _) => true
@@ -41,10 +41,10 @@ class V5__RemoveIngressVisPaaSiden extends JdbcMigration {
       })
     }
 
-    V5_DBContent(content.id, write(json))
+    V6_DBContent(content.id, write(json))
   }
 
-  def update(content: V5_DBContent)(implicit session: DBSession) = {
+  def update(content: V6_DBContent)(implicit session: DBSession) = {
     val dataObject = new PGobject()
     dataObject.setType("jsonb")
     dataObject.setValue(content.document)
@@ -53,4 +53,4 @@ class V5__RemoveIngressVisPaaSiden extends JdbcMigration {
   }
 
 }
-case class V5_DBContent(id: Long, document: String)
+case class V6_DBContent(id: Long, document: String)
