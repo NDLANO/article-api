@@ -51,8 +51,8 @@ trait LenkeConverterModule {
     private def insertInline(url: String, cont: ContentBrowser): (String, Option[RequiredLibrary], Seq[String]) = {
       val message = s"External resource to be embedded: $url"
       val attributes = Map("resource" -> "external", "id" -> s"${cont.id}", "url" -> url)
-      logger.info(message)
 
+      logger.info(message)
       val (extraAttributes, requiredLibs) = getExtraAttributes(url, cont)
       val (figureTag, errors) = HtmlTagGenerator.buildEmbedContent(attributes ++ extraAttributes)
       (figureTag, requiredLibs, errors :+ message)
@@ -69,7 +69,8 @@ trait LenkeConverterModule {
     def extraNrkAttributes(nodeId: String): (Map[String, String], Option[RequiredLibrary]) = {
       val doc = Jsoup.parseBodyFragment(extractService.getNodeEmbedCode(nodeId).get)
       val (videoId, requiredLibrary) = (doc.select("div[data-nrk-id]").attr("data-nrk-id"), doc.select("script").attr("src"))
-      (Map("nrk-video-id" -> videoId), Some(RequiredLibrary("text/javascript", "NRK video embed", requiredLibrary)))
+      (Map("nrk-video-id" -> videoId, "resource" -> "nrk"),
+        Some(RequiredLibrary("text/javascript", "NRK video embed", requiredLibrary)))
     }
 
     private def insertDetailSummary(url: String, cont: ContentBrowser): (String, Option[RequiredLibrary], Seq[String]) = {

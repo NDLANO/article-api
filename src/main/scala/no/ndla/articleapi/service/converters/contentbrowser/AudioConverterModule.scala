@@ -11,6 +11,7 @@ package no.ndla.articleapi.service.converters.contentbrowser
 
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.articleapi.service.{ExtractServiceComponent, StorageService}
+import no.ndla.articleapi.ArticleApiProperties.externalAudioApiUrl
 import no.ndla.articleapi.integration.AudioApiClient
 import no.ndla.articleapi.model.domain.{ImportStatus, RequiredLibrary}
 import no.ndla.articleapi.service.converters.HtmlTagGenerator
@@ -43,7 +44,7 @@ trait AudioConverterModule  {
       val resourceAttributes = Map(
         "resource" -> "audio",
         "id" -> content.id.toString,
-        "audio-id" -> id.toString
+        "url" -> s"$externalAudioApiUrl/$id"
       )
       val (resource, errors) = HtmlTagGenerator.buildEmbedContent(resourceAttributes)
       (resource, ImportStatus(errors, Seq()))

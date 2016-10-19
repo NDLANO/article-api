@@ -93,7 +93,7 @@ class LenkeConverterTest extends UnitSuite with TestEnvironment {
     val content = ContentBrowser(contentString, Some("nb"), 1)
     val nrkVideoId = "94605"
     val nrkScriptUrl = "https://www.nrk.no/serum/latest/js/video_embed.js"
-    val expectedResult = s"""<$resourceHtmlEmbedTag data-id="1" data-nrk-video-id="$nrkVideoId" data-resource="external" data-url="$nrkLinkUrl" />"""
+    val expectedResult = s"""<$resourceHtmlEmbedTag data-id="1" data-nrk-video-id="$nrkVideoId" data-resource="nrk" data-url="$nrkLinkUrl" />"""
 
     when(extractService.getNodeEmbedUrl(nodeId)).thenReturn(Some(nrkLinkUrl))
     when(extractService.getNodeEmbedCode(nodeId)).thenReturn(Some(s"""<div class="nrk-video" data-nrk-id="$nrkVideoId"></div><script src="$nrkScriptUrl"></script>"""))

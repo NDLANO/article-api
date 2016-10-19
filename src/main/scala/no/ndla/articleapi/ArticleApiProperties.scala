@@ -46,6 +46,7 @@ object ArticleApiProperties extends LazyLogging {
 
   lazy val internalImageApiUrl = get("INTERNAL_IMAGE_API_URL")
   lazy val externalImageApiUrl = s"http://$Domain/images"
+  lazy val externalAudioApiUrl = s"http://$Domain/audio"
 
   val ndlaBaseHost = "http://ndla.no/"
 
