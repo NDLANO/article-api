@@ -14,5 +14,4 @@ import scala.annotation.meta.field
 
 case class ArticleIntroduction(introduction: String,
                                image: Option[String],
-                               displayIngress: Boolean,
                                language: Option[String])

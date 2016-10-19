@@ -40,20 +40,15 @@ object ArticleApiProperties extends LazyLogging {
 
   lazy val ContactEmail = get("CONTACT_EMAIL")
   lazy val HostAddr = get("HOST_ADDR")
-  lazy val Domains = get("DOMAINS").split(",") ++ Array(HostAddr)
+  lazy val Domain = get("DOMAIN")
 
   val audioStorageDirectory = "audio"
 
-  lazy val imageApiBaseUrl = get("IMAGE_API_BASE_URL")
-  val imageApiInternEndpointURLSuffix = "intern"
-  val imageApiImportImageURL = s"$imageApiInternEndpointURLSuffix/import"
-  val imageApiGetByExternalIdURL = s"$imageApiInternEndpointURLSuffix/extern"
-
-  lazy val imageApiUrl = get("IMAGE_API_URL")
+  lazy val internalImageApiUrl = get("INTERNAL_IMAGE_API_URL")
+  lazy val externalImageApiUrl = s"http://$Domain/images"
 
   val ndlaBaseHost = "http://ndla.no/"
 
-  val SearchHost = "search-engine"
   lazy val SearchServer = get("SEARCH_SERVER")
   lazy val SearchRegion = get("SEARCH_REGION")
   lazy val RunWithSignedSearchRequests = getBoolean("RUN_WITH_SIGNED_SEARCH_REQUESTS")
@@ -75,25 +70,16 @@ object ArticleApiProperties extends LazyLogging {
   lazy val CMUser = get("CM_USER")
   lazy val CMPassword = get("CM_PASSWORD")
 
-  val MappingHost = "mapping-api"
-  val IsoMappingCacheAgeInMs = 1000 * 60 * 60 // 1 hour caching
+  lazy val AudioHost = get("AUDIO_HOST")
+  lazy val MappingHost = get("MAPPING_HOST")
+  val ApiClientsCacheAgeInMs: Long = 1000 * 60 * 60 // 1 hour caching
   val TopicAPIUrl = "http://api.topic.ndla.no/rest/v1/keywords/?filter[node]=ndlanode_"
 
   lazy val MigrationHost = get("MIGRATION_HOST")
   lazy val MigrationUser = get("MIGRATION_USER")
   lazy val MigrationPassword = get("MIGRATION_PASSWORD")
 
-  // MathML element reference list: https://developer.mozilla.org/en/docs/Web/MathML/Element
-  val mathJaxTags = Set("math", "maction", "maligngroup", "malignmark", "menclose", "merror", "mfenced", "mfrac", "mglyph", "mi",
-    "mlabeledtr", "mlongdiv", "mmultiscripts", "mn", "mo", "mover", "mpadded", "mphantom", "mroot", "mrow", "ms", "mscarries",
-    "mscarry", "msgroup", "msline", "mspace", "msqrt", "msrow", "mstack", "mstyle", "msub", "msup", "msubsup", "mtable", "mtd",
-    "mtext", "mtr", "munder", "munderover", "semantics", "annotation", "annotation-xml")
-  val permittedHTMLTags = Set("body", "article", "section", "table", "tr", "td", "li", "a", "button", "div", "p", "pre", "code", "sup",
-    "h1", "h2", "h3", "h4", "h5", "h6", "aside", "strong", "figure", "ul", "br", "ol", "i", "em", "b", "th", "tbody", "blockquote",
-    "details", "summary", "table", "thead", "tfoot", "tbody", "caption", "audio", "figcaption") ++ mathJaxTags
-
-  val permittedHTMLAttributes = Set("data-resource", "data-id", "data-content-id", "data-link-text", "data-url",
-    "data-size", "data-videoid", "data-account", "data-player", "data-key", "data-alt", "data-caption", "data-align", "data-nrk-video-id", "href", "title")
+  val resourceHtmlEmbedTag = "embed"
 
   def verify() = {
     val missingProperties = ContentApiProps.filter(entry => entry._2.isEmpty).toList

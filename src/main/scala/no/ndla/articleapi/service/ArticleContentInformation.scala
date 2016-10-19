@@ -11,6 +11,7 @@ package no.ndla.articleapi.service
 
 import no.ndla.articleapi.model.domain.Article
 import no.ndla.articleapi.repository.ArticleRepositoryComponent
+import no.ndla.articleapi.ArticleApiProperties.resourceHtmlEmbedTag
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Element
 import scala.collection.JavaConversions._
@@ -53,7 +54,7 @@ trait ArticleContentInformation {
       articleRepository.allWithExternalSubjectId(subjectId).flatMap(articleInfo => {
         val externalId = articleRepository.getExternalIdFromId(articleInfo.id.get).getOrElse("unknown ID")
         val urls = articleInfo.content.flatMap(content => {
-          val elements = Jsoup.parseBodyFragment(content.content).select("""figure[data-resource=external]""")
+          val elements = Jsoup.parseBodyFragment(content.content).select(s"""$resourceHtmlEmbedTag[data-resource~=(external|nrk)]""")
           elements.toList.map(el => el.attr("data-url"))
         })
 

@@ -9,7 +9,7 @@
 
 package no.ndla.articleapi.service.converters.contentbrowser
 
-import no.ndla.articleapi.integration.{AmazonClientComponent, DataSourceComponent, MappingApiClient, MigrationApiClient}
+import no.ndla.articleapi.integration._
 import no.ndla.articleapi.model.domain.{ImportStatus, RequiredLibrary}
 import no.ndla.articleapi.repository.ArticleRepositoryComponent
 import no.ndla.articleapi.service._
@@ -25,19 +25,20 @@ trait ContentBrowserConverterModules
   extends ExtractServiceComponent
   with StorageService
   with AmazonClientComponent
-  with ImageApiServiceComponent
   with ConverterModules
   with ConverterServiceComponent
   with DataSourceComponent
   with ArticleRepositoryComponent
   with ExtractConvertStoreContent
   with ImageConverterModule
+  with ImageApiClient
   with LenkeConverterModule
   with H5PConverterModule
   with OppgaveConverterModule
   with FagstoffConverterModule
   with NonExistentNodeConverterModule
   with AudioConverterModule
+  with AudioApiClient
   with AktualitetConverterModule
   with VideoConverterModule
   with FilConverterModule

@@ -26,19 +26,17 @@ trait ArticleRepositoryComponent {
     ConnectionPool.singleton(new DataSourceConnectionPool(dataSource))
 
     def insert(article: Article, externalId: String, externalSubjectId: Seq[String])(implicit session: DBSession = AutoSession): Long = {
-      val c = Article.column
       val dataObject = new PGobject()
       dataObject.setType("jsonb")
       dataObject.setValue(write(article))
 
       val articleId: Long = sql"insert into ${Article.table} (external_id, external_subject_id, document) values (${externalId}, ARRAY[${externalSubjectId}], ${dataObject})".updateAndReturnGeneratedKey().apply
 
-      logger.info(s"Inserted node ${externalId}: $articleId")
+      logger.info(s"Inserted node $externalId: $articleId")
       articleId
     }
 
     def update(article: Article, externalId: String)(implicit session: DBSession = AutoSession): Long = {
-      val c = Article.column
       val dataObject = new PGobject()
       dataObject.setType("jsonb")
       dataObject.setValue(write(article))
@@ -49,16 +47,20 @@ trait ArticleRepositoryComponent {
       articleId
     }
 
+    def withId(articleId: Long): Option[Article] =
+      articleWhere(sqls"ar.id=${articleId.toInt}")
+
+    def exists(externalId: String): Boolean =
+      articleWhere(sqls"ar.external_id=$externalId").isDefined
+
     def getIdFromExternalId(externalId: String)(implicit session: DBSession = AutoSession): Option[Long] = {
-      val ar = Article.syntax("ar")
-      sql"select ${ar.result.id} from ${Article.as(ar)} where external_id=${externalId}"
-        .map(Article(ar)).single.apply().flatMap(_.id)
+      sql"select id from ${Article.table} where external_id=${externalId}"
+        .map(rs => rs.long("id")).single.apply()
     }
 
     def getExternalIdFromId(id: Long)(implicit session: DBSession = AutoSession): Option[String] = {
-      val ar = Article.syntax("ar")
-      sql"select ar.external_id from ${Article.as(ar)} where id=${id.toInt}"
-      .map(rs => rs.string("external_id")).single.apply()
+      sql"select external_id from ${Article.table} where id=${id.toInt}"
+        .map(rs => rs.string("external_id")).single.apply()
     }
 
     private def minMaxId(implicit session: DBSession = AutoSession): (Long, Long) = {
@@ -89,12 +91,6 @@ trait ArticleRepositoryComponent {
 
     def allWithExternalSubjectId(externalSubjectId: String): Seq[Article] =
       articlesWhere(sqls"$externalSubjectId=ANY(ar.external_subject_id)")
-
-    def withId(articleId: Long): Option[Article] =
-      articleWhere(sqls"ar.id=${articleId.toInt}")
-
-    def exists(externalId: String): Boolean =
-      articleWhere(sqls"ar.external_id=$externalId").isDefined
 
     private def articleWhere(whereClause: SQLSyntax)(implicit session: DBSession = ReadOnlyAutoSession): Option[Article] = {
       val ar = Article.syntax("ar")

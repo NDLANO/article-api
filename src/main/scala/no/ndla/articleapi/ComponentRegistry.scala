@@ -36,7 +36,6 @@ object ComponentRegistry
   with ExtractServiceComponent
   with ConverterModules
   with ConverterServiceComponent
-  with ImageApiServiceComponent
   with ContentBrowserConverterModules
   with ContentBrowserConverter
   with BiblioConverterModule
@@ -80,17 +79,9 @@ object ComponentRegistry
   lazy val storageName = ArticleApiProperties.StorageName
   lazy val storageService = new AmazonStorageService
 
-  lazy val CMHost = ArticleApiProperties.CMHost
-  lazy val CMPort = ArticleApiProperties.CMPort
-  lazy val CMDatabase = ArticleApiProperties.CMDatabase
-  lazy val CMUser = ArticleApiProperties.CMUser
-  lazy val CMPassword = ArticleApiProperties.CMPassword
-  lazy val imageApiBaseUrl = ArticleApiProperties.imageApiBaseUrl
-
   lazy val migrationApiClient = new MigrationApiClient
   lazy val extractService = new ExtractService
   lazy val converterService = new ConverterService
-  lazy val imageApiService = new ImageApiService
 
   lazy val ndlaClient = new NdlaClient
   lazy val mappingApiClient = new MappingApiClient
@@ -103,4 +94,6 @@ object ComponentRegistry
   lazy val converterModules = List(SimpleTagConverter, biblioConverter, DivTableConverter, contentBrowserConverter)
   lazy val postProcessorModules = List(TableConverter, HTMLCleaner)
   lazy val jestClient: JestClient = JestClientFactory.getClient()
+  lazy val audioApiClient = new AudioApiClient
+  lazy val imageApiClient = new ImageApiClient
 }

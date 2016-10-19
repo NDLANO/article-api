@@ -42,18 +42,22 @@ trait ConverterModule {
 
     val (convertedContent, contentImportStatus) = convertLoop(nodeToConvert.contents, Seq(), importStatus)
 
-    val (convertedIngress, finalImportStatus) = convertLoop(nodeToConvert.ingress.map(_.asLanguageContent), Seq(), contentImportStatus)
-    val finalIngress = nodeToConvert.ingress.map(x => x.copy(content=convertedIngress.find(_.nid == x.nid).get.content))
+    val (convertedIngress, finalImportStatus) = convertLoop(nodeToConvert.ingressesFromSeparateDBTable.map(_.asLanguageContent), Seq(), contentImportStatus)
+    val finalIngress = nodeToConvert.ingressesFromSeparateDBTable.map(x => x.copy(content=convertedIngress.find(_.nid == x.nid).get.content))
 
-    (nodeToConvert.copy(contents=convertedContent, ingress=finalIngress), finalImportStatus)
+    (nodeToConvert.copy(contents=convertedContent, ingressesFromSeparateDBTable=finalIngress), finalImportStatus)
   }
 }
 
 case class LanguageContent(nid: String, tnid: String, content: String, language: Option[String],
                            requiredLibraries: Seq[RequiredLibrary] = List[RequiredLibrary](),
-                           footNotes: Option[Map[String, FootNoteItem]] = None) {
+                           footNotes: Option[Map[String, FootNoteItem]] = None,
+                           ingress: Option[LanguageIngress] = None) {
   def isMainNode = nid == tnid || tnid == "0"
   def isTranslation = !isMainNode
 
   def asContent: ArticleContent = ArticleContent(content, footNotes, language)
+  def asArticleIntroduction: Option[ArticleIntroduction] = ingress.map(x => ArticleIntroduction(x.content.getOrElse(""), x.imageUrl, language))
 }
+
+case class LanguageIngress(content: Option[String], imageUrl: Option[String])

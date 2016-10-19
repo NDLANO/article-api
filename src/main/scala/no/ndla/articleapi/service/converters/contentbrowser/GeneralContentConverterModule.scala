@@ -59,7 +59,7 @@ trait GeneralContentConverterModule {
 
       contentId match {
         case Some(id) => {
-          val (figureElement, figureUsageErrors) = HtmlTagGenerator.buildFigure(Map(
+          val (figureElement, figureUsageErrors) = HtmlTagGenerator.buildEmbedContent(Map(
             "resource" -> "content-link",
             "id" -> s"${contentBrowser.id}",
             "content-id" -> id.toString,

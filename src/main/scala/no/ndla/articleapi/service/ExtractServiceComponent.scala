@@ -36,9 +36,6 @@ trait ExtractServiceComponent {
     def getNodeEmbedCode(nodeId: String): Option[String] =
       migrationApiClient.getNodeEmbedData(nodeId).map(x => x.embedCode).toOption
 
-    def getAudioMeta(nodeId: String): Option[ContentFilMeta] =
-      migrationApiClient.getAudioMeta(nodeId).map(x => x.asContentFilMeta).toOption
-
     def getNodeFilMeta(nodeId: String): Option[ContentFilMeta] =
       migrationApiClient.getFilMeta(nodeId).map(x => x.asContentFilMeta).toOption
 

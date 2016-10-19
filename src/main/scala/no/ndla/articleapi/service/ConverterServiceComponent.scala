@@ -11,13 +11,14 @@ package no.ndla.articleapi.service
 
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.articleapi.ArticleApiProperties.maxConvertionRounds
-import no.ndla.articleapi.model.domain.{ImportStatus, NodeIngress, NodeToConvert}
+import no.ndla.articleapi.integration.ImageApiClient
+import no.ndla.articleapi.model.domain._
 import no.ndla.articleapi.model.{api, domain}
 
 import scala.annotation.tailrec
 
 trait ConverterServiceComponent {
-  this: ConverterModules with ExtractConvertStoreContent with ImageApiServiceComponent =>
+  this: ConverterModules with ExtractConvertStoreContent with ImageApiClient =>
   val converterService: ConverterService
 
   class ConverterService extends LazyLogging {
@@ -50,20 +51,30 @@ trait ConverterServiceComponent {
     private def postProcess(nodeToConvert: NodeToConvert, importStatus: ImportStatus): (NodeToConvert, ImportStatus) =
       executePostprocessorModules(nodeToConvert, importStatus)
 
-    private def toDomainArticleIngress(nodeIngress: NodeIngress): (domain.ArticleIntroduction, ImportStatus) = {
-      val newImageId = nodeIngress.imageNid.flatMap(imageApiService.importOrGetMetaByExternId).map(_.id)
+    private def toDomainArticleIngress(nodeIngress: NodeIngressFromSeparateDBTable): Option[(domain.ArticleIntroduction, ImportStatus)] = {
+      val newImageId = nodeIngress.imageNid.flatMap(imageApiClient.importOrGetMetaByExternId).map(_.id)
 
       val importStatus = (nodeIngress.imageNid, newImageId) match {
         case (Some(imageNid), None) => ImportStatus(s"Failed to import ingress image with external id $imageNid", Seq())
         case _ => ImportStatus(Seq(), Seq())
       }
 
-      (domain.ArticleIntroduction(nodeIngress.content, newImageId, nodeIngress.ingressVisPaaSiden == 1, nodeIngress.language), importStatus)
+      ArticleIntroduction(nodeIngress.content, newImageId, nodeIngress.language)
+
+      nodeIngress.ingressVisPaaSiden == 1 match {
+        case true => Some(ArticleIntroduction(nodeIngress.content, newImageId, nodeIngress.language), importStatus)
+        case false => None
+      }
     }
 
     private def toDomainArticle(nodeToConvert: NodeToConvert): (domain.Article, ImportStatus) = {
       val requiredLibraries = nodeToConvert.contents.flatMap(_.requiredLibraries).distinct
-      val (ingresses, importStatuses) = nodeToConvert.ingress.map(toDomainArticleIngress).unzip
+      val ingressesFromSeparateDatabaseTable = nodeToConvert.ingressesFromSeparateDBTable.flatMap(toDomainArticleIngress)
+
+      val (ingresses, ingressImportStatus) = ingressesFromSeparateDatabaseTable.isEmpty match {
+        case false => ingressesFromSeparateDatabaseTable.unzip
+        case true => (nodeToConvert.contents.flatMap(x => x.asArticleIntroduction), Seq())
+      }
 
       (domain.Article(None,
         nodeToConvert.titles,
@@ -75,7 +86,7 @@ trait ConverterServiceComponent {
         ingresses,
         nodeToConvert.created,
         nodeToConvert.updated,
-        nodeToConvert.contentType), ImportStatus(importStatuses))
+        nodeToConvert.contentType), ImportStatus(ingressImportStatus))
     }
 
     def toApiArticle(article: domain.Article): api.Article = {
@@ -138,7 +149,7 @@ trait ConverterServiceComponent {
     }
 
     def toApiArticleIntroduction(intro: domain.ArticleIntroduction): api.ArticleIntroduction = {
-      api.ArticleIntroduction(intro.introduction, intro.image, intro.displayIngress, intro.language)
+      api.ArticleIntroduction(intro.introduction, intro.image, intro.language)
     }
 
   }

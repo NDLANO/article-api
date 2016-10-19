@@ -12,11 +12,13 @@ package no.ndla.articleapi.service
 import java.util.Date
 
 import no.ndla.articleapi.TestEnvironment
-import no.ndla.articleapi.integration.LanguageContent
+import no.ndla.articleapi.integration.{Image, ImageMetaInformation, ImageVariants, LanguageContent}
 import no.ndla.articleapi.UnitSuite
 import no.ndla.articleapi.model.domain._
 import no.ndla.articleapi.service.converters.TableConverter
+import no.ndla.articleapi.ArticleApiProperties.resourceHtmlEmbedTag
 import org.mockito.Mockito._
+import org.mockito.Matchers._
 
 import scala.util.Try
 
@@ -75,10 +77,10 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
 
   test("That the ingress is not added to the content") {
     val (nodeId, nodeId2) = ("1234", "4321")
-    val ingressNodeBokmal = NodeIngress("1", "1", "Hvem er sterkest?", None, 1, Some("nn"))
+    val ingressNodeBokmal = NodeIngressFromSeparateDBTable("1", "1", "Hvem er sterkest?", None, 1, Some("nn"))
     val contentNodeBokmal = LanguageContent(nodeId, nodeId, "Nordavinden og sola kranglet en gang om hvem av dem som var den sterkeste", Some("nb"))
 
-    val ingressNodeNynorsk = NodeIngress("2", "2", "Kven er sterkast?", None, 1, Some("nn"))
+    val ingressNodeNynorsk = NodeIngressFromSeparateDBTable("2", "2", "Kven er sterkast?", None, 1, Some("nn"))
     val contentNodeNynorsk = LanguageContent(nodeId2, nodeId, "Nordavinden og sola krangla ein gong om kven av dei som var den sterkaste", Some("nn"))
 
     val node = NodeToConvert(List(contentTitle), List(contentNodeBokmal, contentNodeNynorsk), copyright, List(tag), Seq(visualElement), Seq(), "fagstoff", new Date(0), new Date(1))
@@ -95,16 +97,50 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     result.requiredLibraries.isEmpty should equal (true)
   }
 
+  test("ingress is extracted when wrapped in <p> tags") {
+    val content =
+      s"""<section>
+        |<$resourceHtmlEmbedTag data-size="fullbredde" data-url="http://image-api/images/5359" data-align="" data-id="9" data-resource="image" data-alt="To personer" data-caption="capt." />
+        |<p><strong>Når man driver med medieproduksjon, er det mye arbeid som må gjøres<br /></strong></p>
+        |</section>
+        |<section> <p>Det som kan gi helse- og sikkerhetsproblemer på en dataarbeidsplass, er:</section>""".stripMargin
+    val expectedContentResult = ArticleContent("""<section> <p>Det som kan gi helse- og sikkerhetsproblemer på en dataarbeidsplass, er:</p></section>""", None, Some("nb"))
+    val expectedIngressResult = ArticleIntroduction("Når man driver med medieproduksjon, er det mye arbeid som må gjøres", Some("http://image-api/images/5359"), Some("nb"))
+
+    val ingressNodeBokmal = NodeIngressFromSeparateDBTable("1", "1", "Hvem er sterkest?", None, 0, Some("nb"))
+    val contentNodeBokmal = LanguageContent(nodeId, nodeId, content, Some("nb"))
+
+    val node = NodeToConvert(List(contentTitle), List(contentNodeBokmal), copyright, List(tag), Seq(visualElement), Seq(ingressNodeBokmal), "fagstoff", new Date(0), new Date(1))
+    val (result, status) = service.toDomainArticle(node, ImportStatus(Seq(), Seq()))
+
+    result.content.length should be (1)
+    result.introduction.length should be (1)
+    result.content.head should equal(expectedContentResult)
+    result.introduction.head should equal(expectedIngressResult)
+  }
+
   test("That html attributes are removed from the article") {
-    val contentNodeBokmal = LanguageContent(nodeId, nodeId, """<table class="testclass" data-resource="test"></table>""", Some("nb"))
+    val contentNodeBokmal = LanguageContent(nodeId, nodeId, """<table class="testclass" title="test"></table>""", Some("nb"))
     val node = NodeToConvert(List(contentTitle), List(contentNodeBokmal), copyright, List(tag), Seq(visualElement), Seq(), "fagstoff", new Date(0), new Date(1))
-    val bokmalExpectedResult = """<table data-resource="test"></table>"""
+    val bokmalExpectedResult = """<table title="test"></table>"""
 
     val (result, status) = service.toDomainArticle(node, ImportStatus(Seq(), Seq()))
-    val bokmalStrippedResult = " +".r.replaceAllIn(result.content.head.content, " ")
 
-    bokmalStrippedResult should equal (bokmalExpectedResult)
+    result.content.head.content should equal (bokmalExpectedResult)
     status.messages.nonEmpty should equal (true)
+    result.requiredLibraries.isEmpty should equal (true)
+  }
+
+  test("That align attributes for td tags are not removed") {
+    val htmlTableWithAlignAttributes = """<table><tbody><tr><td align="right" valign="top">Table row cell</td></tr></tbody></table>"""
+    val contentNodeBokmal = LanguageContent(nodeId, nodeId, htmlTableWithAlignAttributes, Some("nb"))
+    val node = NodeToConvert(List(contentTitle), List(contentNodeBokmal), copyright, List(tag), Seq(visualElement), Seq(), "fagstoff", new Date(0), new Date(1))
+    val expectedResult = """<table><tbody><tr><th align="right" valign="top">Table row cell</th></tr></tbody></table>"""
+
+    val (result, status) = service.toDomainArticle(node, ImportStatus(Seq(), Seq()))
+
+    result.content.head.content should equal (expectedResult)
+    status.messages.isEmpty should equal (true)
     result.requiredLibraries.isEmpty should equal (true)
   }
 
@@ -129,11 +165,11 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     val imageMeta = ImageMetaInformation(newId, List(), List(), ImageVariants(Some(Image("small.jpeg", 128, "")), Some(Image(imageUrl, 256, ""))), Copyright(License("", "", Some("")), "", List()), List())
     val expectedResult =
       s"""|<article>
-          |<figure data-align="" data-alt="$sampleAlt" data-caption="" data-id="1" data-resource="image" data-size="fullbredde" data-url="http://localhost/images/$newId"></figure>
+          |<$resourceHtmlEmbedTag data-align="" data-alt="$sampleAlt" data-caption="" data-id="1" data-resource="image" data-size="fullbredde" data-url="http://localhost/images/$newId" />
           |</article>""".stripMargin.replace("\n", "")
 
     when(extractService.getNodeType(nodeId)).thenReturn(Some("image"))
-    when(imageApiService.importOrGetMetaByExternId(nodeId)).thenReturn(Some(imageMeta))
+    when(imageApiClient.importOrGetMetaByExternId(nodeId)).thenReturn(Some(imageMeta))
     val (result, status) = service.toDomainArticle(node, ImportStatus(Seq(), Seq()))
 
     result.content.head.content should equal (expectedResult)
@@ -154,9 +190,9 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
   }
 
   test("That empty html tags are removed") {
-    val contentNodeBokmal = LanguageContent(nodeId, nodeId, """<article> <div></div><p><div></div></p><figure data-id="1"></figure></article>""", Some("nb"))
+    val contentNodeBokmal = LanguageContent(nodeId, nodeId, s"""<article> <div></div><p><div></div></p><$resourceHtmlEmbedTag data-id="1"></$resourceHtmlEmbedTag></article>""", Some("nb"))
     val node = NodeToConvert(List(contentTitle), List(contentNodeBokmal), copyright, List(tag), Seq(visualElement), Seq(), "fagstoff", new Date(0), new Date(1))
-    val expectedResult = """<article> <figure data-id="1"></figure></article>"""
+    val expectedResult = s"""<article> <$resourceHtmlEmbedTag data-id="1" /></article>"""
 
     val (result, status) = service.toDomainArticle(node, ImportStatus(Seq(), Seq()))
     val strippedResult = " +".r.replaceAllIn(result.content.head.content.replace("\n", ""), " ")
