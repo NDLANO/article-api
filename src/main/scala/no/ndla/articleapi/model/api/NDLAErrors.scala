@@ -7,7 +7,7 @@
  */
 
 
-package no.ndla.articleapi.model
+package no.ndla.articleapi.model.api
 
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -27,3 +27,4 @@ object Error {
 
 case class Error(code:String, description:String, occuredAt:String = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS").format(new Date()))
 case class NodeNotFoundException(message: String) extends Exception(message)
+class ValidationException(message: String) extends RuntimeException(message)

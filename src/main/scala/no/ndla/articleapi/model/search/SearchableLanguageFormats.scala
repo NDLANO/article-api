@@ -1,9 +1,8 @@
 package no.ndla.articleapi.model.search
 
-import no.ndla.articleapi.model.Language.UnknownLanguage
 import org.json4s.JsonAST.{JArray, JField, JObject, JString}
 import org.json4s.{CustomSerializer, MappingException}
-
+import no.ndla.articleapi.model.domain.Language.UnknownLanguage
 
 class SearchableLanguageValueSerializer extends CustomSerializer[SearchableLanguageValues](format => ( {
   case JObject(items) => SearchableLanguageValues(items.map {

@@ -22,8 +22,8 @@ import io.searchbox.indices.mapping.PutMapping
 import io.searchbox.indices.{CreateIndex, DeleteIndex, IndicesExists}
 import no.ndla.articleapi.ArticleApiProperties
 import no.ndla.articleapi.integration.ElasticClientComponent
-import no.ndla.articleapi.model.Article
-import no.ndla.articleapi.model.Language._
+import no.ndla.articleapi.model.domain.Article
+import no.ndla.articleapi.model.domain.Language.languageAnalyzers
 import no.ndla.articleapi.model.search.SearchableLanguageFormats
 import org.elasticsearch.ElasticsearchException
 import org.json4s.native.Serialization.write
@@ -41,7 +41,7 @@ trait ElasticContentIndexComponent {
       val bulkBuilder = new Bulk.Builder()
       searchableArticles.foreach(imageMeta => {
         val source = write(imageMeta)
-        bulkBuilder.addAction(new Index.Builder(source).index(indexName).`type`(ArticleApiProperties.SearchDocument).id(imageMeta.id).build)
+        bulkBuilder.addAction(new Index.Builder(source).index(indexName).`type`(ArticleApiProperties.SearchDocument).id(imageMeta.id.toString).build)
       })
 
       val response = jestClient.execute(bulkBuilder.build())

@@ -9,7 +9,7 @@
 package no.ndla.articleapi.integration
 
 import no.ndla.articleapi.ArticleApiProperties
-import no.ndla.articleapi.model.Copyright
+import no.ndla.articleapi.model.domain.Copyright
 import no.ndla.network.NdlaClient
 
 import scalaj.http.{Http, HttpRequest}

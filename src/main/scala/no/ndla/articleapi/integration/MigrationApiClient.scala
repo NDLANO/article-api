@@ -12,9 +12,8 @@ package no.ndla.articleapi.integration
 import java.net.URL
 import java.util.Date
 
-import com.typesafe.scalalogging.LazyLogging
 import no.ndla.articleapi.ArticleApiProperties
-import no.ndla.articleapi.model._
+import no.ndla.articleapi.model.domain._
 import no.ndla.articleapi.service.TagsService
 import no.ndla.network.NdlaClient
 

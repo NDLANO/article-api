@@ -13,7 +13,7 @@ import com.typesafe.scalalogging.LazyLogging
 import no.ndla.articleapi.service.{ExtractServiceComponent, StorageService}
 import no.ndla.articleapi.ArticleApiProperties.externalAudioApiUrl
 import no.ndla.articleapi.integration.AudioApiClient
-import no.ndla.articleapi.model.{ImportStatus, RequiredLibrary}
+import no.ndla.articleapi.model.domain.{ImportStatus, RequiredLibrary}
 import no.ndla.articleapi.service.converters.HtmlTagGenerator
 
 trait AudioConverterModule  {

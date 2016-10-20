@@ -10,7 +10,7 @@
 package no.ndla.articleapi.service
 
 import no.ndla.articleapi.integration._
-import no.ndla.articleapi.model._
+import no.ndla.articleapi.model.domain.{BiblioMeta, ContentFilMeta, NodeGeneralContent, NodeToConvert}
 
 import scala.util.{Failure, Success}
 

@@ -9,8 +9,9 @@
 package no.ndla.articleapi.service.converters
 
 import no.ndla.articleapi.integration.{ConverterModule, LanguageContent}
-import no.ndla.articleapi.model.ImportStatus
+import no.ndla.articleapi.model.domain.ImportStatus
 import org.jsoup.nodes.Element
+
 import scala.collection.JavaConversions._
 
 object TableConverter extends ConverterModule {
