@@ -11,21 +11,22 @@ package no.ndla.articleapi.service
 
 import java.util.Date
 
-import no.ndla.articleapi.model._
+import no.ndla.articleapi.model.domain._
 import no.ndla.articleapi.{TestEnvironment, UnitSuite}
+import no.ndla.articleapi.ArticleApiProperties.resourceHtmlEmbedTag
 import org.mockito.Mockito._
 
 class HtmlTagsUsageTest extends UnitSuite with TestEnvironment {
   val embedUrl = "http://hello.yes.this.is.dog"
   val copyright = Copyright(License("publicdomain", "", None), "", List())
-  val article1 = Article("1", Seq(ArticleTitle("test", Some("en"))), Seq(ArticleContent("<article><div>test</div></article>", None, Some("en"))), copyright, Seq(), Seq(), Seq(), Seq(), new Date(0), new Date(1), "fagstoff")
-  val article2 = Article("2", Seq(ArticleTitle("test", Some("en"))), Seq(ArticleContent("<article><div>test</div><p>paragraph</p></article>", None, Some("en"))), copyright, Seq(), Seq(), Seq(), Seq(), new Date(0), new Date(1), "fagstoff")
-  val article3 = Article("3", Seq(ArticleTitle("test", Some("en"))), Seq(ArticleContent("<article><img></img></article>", None, Some("en"))), copyright, Seq(), Seq(), Seq(), Seq(), new Date(0), new Date(1), "fagstoff")
-  val article4 = Article("4", Seq(ArticleTitle("test", Some("en"))), Seq(ArticleContent(s"""<article><figure data-resource="external" data-url="$embedUrl""></figure></article>""", None, Some("en"))), copyright, Seq(), Seq(), Seq(), Seq(), new Date(0), new Date(1), "fagstoff")
+  val article1 = Article(Some(1), Seq(ArticleTitle("test", Some("en"))), Seq(ArticleContent("<article><div>test</div></article>", None, Some("en"))), copyright, Seq(), Seq(), Seq(), Seq(), new Date(0), new Date(1), "fagstoff")
+  val article2 = Article(Some(2), Seq(ArticleTitle("test", Some("en"))), Seq(ArticleContent("<article><div>test</div><p>paragraph</p></article>", None, Some("en"))), copyright, Seq(), Seq(), Seq(), Seq(), new Date(0), new Date(1), "fagstoff")
+  val article3 = Article(Some(3), Seq(ArticleTitle("test", Some("en"))), Seq(ArticleContent("<article><img></img></article>", None, Some("en"))), copyright, Seq(), Seq(), Seq(), Seq(), new Date(0), new Date(1), "fagstoff")
+  val article4 = Article(Some(4), Seq(ArticleTitle("test", Some("en"))), Seq(ArticleContent(s"""<article><$resourceHtmlEmbedTag data-resource="external" data-url="$embedUrl"" /></article>""", None, Some("en"))), copyright, Seq(), Seq(), Seq(), Seq(), new Date(0), new Date(1), "fagstoff")
 
 
   test("That getHtmlTagsMap counts html elements correctly") {
-    val expectedResult = Map("article" -> List("1", "2", "3"), "div" -> List("1", "2"), "p" -> List("2"), "img" -> List("3"))
+    val expectedResult = Map("article" -> List(1, 2, 3), "div" -> List(1, 2), "p" -> List(2), "img" -> List(3))
     when(articleRepository.all).thenReturn(List(article1, article2, article3))
     ArticleContentInformation.getHtmlTagsMap should equal (expectedResult)
   }
@@ -38,7 +39,7 @@ class HtmlTagsUsageTest extends UnitSuite with TestEnvironment {
   test("getExternalEmbedResources returns a map with external embed resources") {
     val (externalId, externalSubjectId) = ("1234", "52")
     when(articleRepository.allWithExternalSubjectId(externalSubjectId)).thenReturn(List(article4))
-    when(articleRepository.getExternalIdFromId(article4.id.toInt)).thenReturn(Some(externalId))
+    when(articleRepository.getExternalIdFromId(article4.id.get)).thenReturn(Some(externalId))
     ArticleContentInformation.getExternalEmbedResources(externalSubjectId) should equal(Map(externalId -> Seq(embedUrl)))
   }
 }

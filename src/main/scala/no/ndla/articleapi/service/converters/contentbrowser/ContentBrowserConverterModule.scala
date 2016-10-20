@@ -10,7 +10,7 @@
 package no.ndla.articleapi.service.converters.contentbrowser
 
 import no.ndla.articleapi.integration._
-import no.ndla.articleapi.model.{ImportStatus, RequiredLibrary}
+import no.ndla.articleapi.model.domain.{ImportStatus, RequiredLibrary}
 import no.ndla.articleapi.repository.ArticleRepositoryComponent
 import no.ndla.articleapi.service._
 import no.ndla.network.NdlaClient

@@ -16,7 +16,7 @@ case class SearchableLanguageValues(languageValues: Seq[LanguageValue[String]])
 
 case class SearchableLanguageList(languageValues: Seq[LanguageValue[Seq[String]]])
 
-case class SearchableArticle(id: String,
+case class SearchableArticle(id: Long,
                              title: SearchableLanguageValues,
                              content: SearchableLanguageValues,
                              tags: SearchableLanguageList,

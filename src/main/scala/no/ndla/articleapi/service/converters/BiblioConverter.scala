@@ -11,12 +11,11 @@ package no.ndla.articleapi.service.converters
 
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.articleapi.integration.{ConverterModule, LanguageContent}
-import no.ndla.articleapi.model.{FootNoteItem, ImportStatus}
+import no.ndla.articleapi.model.domain.{ImportStatus, FootNoteItem}
 import no.ndla.articleapi.service.ExtractServiceComponent
 import org.jsoup.nodes.Element
 
 import scala.collection.JavaConversions._
-
 import scala.annotation.tailrec
 
 trait BiblioConverter {

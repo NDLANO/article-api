@@ -15,14 +15,14 @@ import io.searchbox.core.{Count, Search, SearchResult => JestSearchResult}
 import io.searchbox.params.Parameters
 import no.ndla.articleapi.ArticleApiProperties
 import no.ndla.articleapi.integration.ElasticClientComponent
-import no.ndla.articleapi.model._
+import no.ndla.articleapi.model.api.{ArticleSummary, ArticleTitle, SearchResult}
+import no.ndla.articleapi.model.domain.{Language, Sort}
 import no.ndla.network.ApplicationUrl
 import org.elasticsearch.ElasticsearchException
 import org.elasticsearch.index.IndexNotFoundException
 import org.elasticsearch.index.query.{BoolQueryBuilder, MatchQueryBuilder, QueryBuilders}
 import org.elasticsearch.search.builder.SearchSourceBuilder
 import org.elasticsearch.search.sort.{FieldSortBuilder, SortBuilders, SortOrder}
-
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 

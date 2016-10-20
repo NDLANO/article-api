@@ -2,8 +2,9 @@ package no.ndla.articleapi.service.converters
 
 import no.ndla.articleapi.UnitSuite
 import no.ndla.articleapi.integration.{LanguageContent, LanguageIngress}
-import no.ndla.articleapi.model.ImportStatus
 import no.ndla.articleapi.ArticleApiProperties.resourceHtmlEmbedTag
+import no.ndla.articleapi.integration.LanguageContent
+import no.ndla.articleapi.model.domain.ImportStatus
 
 class HTMLCleanerTest extends UnitSuite {
   val nodeId = "1234"

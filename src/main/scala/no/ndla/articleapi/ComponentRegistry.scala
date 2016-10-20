@@ -49,18 +49,19 @@ object ComponentRegistry
   with TagsService
   with MigrationApiClient
   with SearchConverterService
+  with ReadService
 {
   implicit val swagger = new ArticleSwagger
 
   lazy val dataSource = new PGPoolingDataSource()
-  dataSource.setUser(ArticleApiProperties.get("META_USER_NAME"))
-  dataSource.setPassword(ArticleApiProperties.get("META_PASSWORD"))
-  dataSource.setDatabaseName(ArticleApiProperties.get("META_RESOURCE"))
-  dataSource.setServerName(ArticleApiProperties.get("META_SERVER"))
-  dataSource.setPortNumber(ArticleApiProperties.getInt("META_PORT"))
-  dataSource.setInitialConnections(ArticleApiProperties.getInt("META_INITIAL_CONNECTIONS"))
-  dataSource.setMaxConnections(ArticleApiProperties.getInt("META_MAX_CONNECTIONS"))
-  dataSource.setCurrentSchema(ArticleApiProperties.get("META_SCHEMA"))
+  dataSource.setUser(ArticleApiProperties.MetaUserName)
+  dataSource.setPassword(ArticleApiProperties.MetaPassword)
+  dataSource.setDatabaseName(ArticleApiProperties.MetaResource)
+  dataSource.setServerName(ArticleApiProperties.MetaServer)
+  dataSource.setPortNumber(ArticleApiProperties.MetaPort)
+  dataSource.setInitialConnections(ArticleApiProperties.MetaInitialConnections)
+  dataSource.setMaxConnections(ArticleApiProperties.MetaMaxConnections)
+  dataSource.setCurrentSchema(ArticleApiProperties.MetaSchema)
 
   lazy val extractConvertStoreContent = new ExtractConvertStoreContent
   lazy val internController = new InternController
@@ -86,6 +87,7 @@ object ComponentRegistry
   lazy val mappingApiClient = new MappingApiClient
   lazy val tagsService = new TagsService
   lazy val searchConverterService = new SearchConverterService
+  lazy val readService = new ReadService
 
   lazy val contentBrowserConverter = new ContentBrowserConverter
   lazy val biblioConverter = new BiblioConverter

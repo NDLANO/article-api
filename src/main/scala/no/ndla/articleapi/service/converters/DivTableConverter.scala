@@ -10,7 +10,8 @@
 package no.ndla.articleapi.service.converters
 
 import no.ndla.articleapi.integration.{ConverterModule, LanguageContent}
-import no.ndla.articleapi.model.ImportStatus
+import no.ndla.articleapi.model.domain.ImportStatus
+
 import scala.collection.JavaConversions._
 
 object DivTableConverter extends ConverterModule {

@@ -3,7 +3,7 @@ package no.ndla.articleapi.service.converters
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.articleapi.ArticleApiProperties._
 import no.ndla.articleapi.integration.{ConverterModule, LanguageContent, LanguageIngress}
-import no.ndla.articleapi.model.ImportStatus
+import no.ndla.articleapi.model.domain.ImportStatus
 import org.jsoup.nodes.{Element, Node}
 
 import scala.collection.JavaConversions._
