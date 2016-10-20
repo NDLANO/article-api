@@ -12,7 +12,7 @@ package no.ndla.articleapi.service
 import no.ndla.articleapi.integration._
 import no.ndla.articleapi.model._
 
-import scala.util.{Failure, Success}
+import scala.util.{Failure, Success, Try}
 
 trait ExtractServiceComponent {
   this: MigrationApiClient with TagsService =>
@@ -34,7 +34,7 @@ trait ExtractServiceComponent {
       migrationApiClient.getNodeEmbedData(nodeId).map(x => x.url).toOption
 
     def getNodeEmbedCode(nodeId: String): Option[String] =
-      migrationApiClient.getNodeEmbedData(nodeId).map(x => x.embedCode).toOption
+      migrationApiClient.getNodeEmbedData(nodeId).toOption.flatMap(x => x.embedCode)
 
     def getNodeFilMeta(nodeId: String): Option[ContentFilMeta] =
       migrationApiClient.getFilMeta(nodeId).map(x => x.asContentFilMeta).toOption
