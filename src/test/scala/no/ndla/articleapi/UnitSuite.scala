@@ -20,7 +20,7 @@ abstract class UnitSuite extends FunSuite with Matchers with OptionValues with I
   ArticleApiProperties.setProperties(Map(
     "CONTACT_EMAIL" -> Some("someone@somewhere.earth"),
     "HOST_ADDR" -> Some("localhost"),
-    "DOMAIN" -> Some("localhost"),
+    "NDLA_ENVIRONMENT" -> Some("local"),
 
     "DB_USER_NAME" -> Some("user"),
     "DB_PASSWORD" -> Some("password"),

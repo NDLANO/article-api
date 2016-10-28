@@ -40,13 +40,12 @@ object ArticleApiProperties extends LazyLogging {
 
   lazy val ContactEmail = get("CONTACT_EMAIL")
   lazy val HostAddr = get("HOST_ADDR")
-  lazy val Domain = get("DOMAIN")
-
-  val audioStorageDirectory = "audio"
+  lazy val Environment = get("NDLA_ENVIRONMENT")
+  lazy val Domain = getDomain
 
   lazy val internalImageApiUrl = get("INTERNAL_IMAGE_API_URL")
-  lazy val externalImageApiUrl = s"http://$Domain/images"
-  lazy val externalAudioApiUrl = s"http://$Domain/audio"
+  lazy val externalImageApiUrl = s"$Domain/images"
+  lazy val externalAudioApiUrl = s"$Domain/audio"
 
   val ndlaBaseHost = "http://ndla.no/"
 
@@ -94,6 +93,12 @@ object ArticleApiProperties extends LazyLogging {
 
   def setProperties(properties: Map[String, Option[String]]) = {
     properties.foreach(prop => ContentApiProps.put(prop._1, prop._2))
+  }
+
+  private def getDomain: String = {
+    Map("local" -> "http://localhost",
+      "prod" -> "http://api.ndla.no"
+    ).getOrElse(Environment, s"http://api.$Environment.ndla.no")
   }
 
   def get(envKey: String): String = {
