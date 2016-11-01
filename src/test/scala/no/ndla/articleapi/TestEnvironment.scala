@@ -65,7 +65,7 @@ trait TestEnvironment
   val dataSource = mock[DataSource]
   val articleRepository = mock[ArticleRepository]
   val amazonClient = mock[AmazonS3Client]
-  val storageName = "testStorageName"
+  val attachmentStorageName = "testStorageName"
 
   val extractConvertStoreContent = mock[ExtractConvertStoreContent]
 
@@ -76,7 +76,7 @@ trait TestEnvironment
   val biblioConverter = new BiblioConverter
   val converterModules = List(SimpleTagConverter, biblioConverter, DivTableConverter, contentBrowserConverter)
   val postProcessorModules = List(TableConverter, HTMLCleaner)
-  val storageService = mock[AmazonStorageService]
+  val attachmentStorageService = mock[AmazonStorageService]
   val readService = mock[ReadService]
 
   val ndlaClient = mock[NdlaClient]

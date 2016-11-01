@@ -10,100 +10,85 @@
 package no.ndla.articleapi
 
 import com.typesafe.scalalogging.LazyLogging
+import no.ndla.network.secrets.PropertyKeys
+import no.ndla.network.secrets.Secrets.readSecrets
 
 import scala.collection.mutable
 import scala.io.Source
+import scala.util.{Properties, Success, Try}
 
 object ArticleApiProperties extends LazyLogging {
-  var ContentApiProps: mutable.Map[String, Option[String]] = mutable.HashMap()
 
-  lazy val ApplicationPort = getInt("APPLICATION_PORT")
+  var ArticleApiProps: mutable.Map[String, Option[String]] = mutable.HashMap()
+
+  lazy val ApplicationPort = 80
+  lazy val ContactEmail = "christergundersen@ndla.no"
+
+  lazy val Domain = get("DOMAIN")
+
+  lazy val MetaUserName = get(PropertyKeys.MetaUserNameKey)
+  lazy val MetaPassword = get(PropertyKeys.MetaPasswordKey)
+  lazy val MetaResource = get(PropertyKeys.MetaResourceKey)
+  lazy val MetaServer = get(PropertyKeys.MetaServerKey)
+  lazy val MetaPort = getInt(PropertyKeys.MetaPortKey)
+  lazy val MetaSchema = get(PropertyKeys.MetaSchemaKey)
+  lazy val MetaInitialConnections = 3
+  lazy val MetaMaxConnections = 20
+
+  lazy val AttachmentStorageName = get("NDLA_ENVIRONMENT") + ".attachments.ndla"
+
+  lazy val SearchServer = getOrElse("SEARCH_SERVER", "http://search-article-api.ndla-local")
+  lazy val SearchRegion = getOrElse("SEARCH_REGION", "eu-central-1")
+  lazy val SearchIndex = "articles"
+  lazy val SearchDocument = "article"
+  lazy val DefaultPageSize: Int = 10
+  lazy val MaxPageSize: Int = 100
+  lazy val IndexBulkSize = 1000
+  lazy val RunWithSignedSearchRequests = getOrElse("RUN_WITH_SIGNED_SEARCH_REQUESTS", "true").toBoolean
+
+  lazy val TopicAPIUrl = get("TOPIC_API_URL")
+  lazy val MigrationHost = get("MIGRATION_HOST")
+  lazy val MigrationUser = get("MIGRATION_USER")
+  lazy val MigrationPassword = get("MIGRATION_PASSWORD")
+
+  val CorrelationIdKey = "correlationID"
+  val CorrelationIdHeader = "X-Correlation-ID"
+  val AudioHost = "audio-api.ndla-local"
+  val MappingHost = "mapping-api.ndla-local"
+  val internalImageApiUrl = "image-api.ndla-local"
+  val ApiClientsCacheAgeInMs: Long = 1000 * 60 * 60  // 1 hour caching
+
+  lazy val NDLABrightcoveAccountId = get("NDLA_BRIGHTCOVE_ACCOUNT_ID")
+  lazy val NDLABrightcovePlayerId = get("NDLA_BRIGHTCOVE_PLAYER_ID")
 
   // When converting a content node, the converter may run several times over the content to make sure
   // everything is converted. This value defines a maximum number of times the converter runs on a node
   val maxConvertionRounds = 5
 
-  val CorrelationIdHeader = "X-Correlation-ID"
-  val CorrelationIdKey = "correlationID"
-
-  lazy val MetaUserName = get("META_USER_NAME")
-  lazy val MetaPassword = get("META_PASSWORD")
-  lazy val MetaResource = get("META_RESOURCE")
-  lazy val MetaServer = get("META_SERVER")
-  lazy val MetaPort = getInt("META_PORT")
-  lazy val MetaInitialConnections = getInt("META_INITIAL_CONNECTIONS")
-  lazy val MetaMaxConnections = getInt("META_MAX_CONNECTIONS")
-  lazy val MetaSchema = get("META_SCHEMA")
-
-  lazy val NDLABrightcoveAccountId = get("NDLA_BRIGHTCOVE_ACCOUNT_ID")
-  lazy val NDLABrightcovePlayerId = get("NDLA_BRIGHTCOVE_PLAYER_ID")
-
-  lazy val ContactEmail = get("CONTACT_EMAIL")
-  lazy val HostAddr = get("HOST_ADDR")
-  lazy val Domain = get("DOMAIN")
-
-  val audioStorageDirectory = "audio"
-
-  lazy val internalImageApiUrl = get("INTERNAL_IMAGE_API_URL")
   lazy val externalImageApiUrl = s"http://$Domain/images"
   lazy val externalAudioApiUrl = s"http://$Domain/audio"
 
-  val ndlaBaseHost = "http://ndla.no/"
-
-  lazy val SearchServer = get("SEARCH_SERVER")
-  lazy val SearchRegion = get("SEARCH_REGION")
-  lazy val RunWithSignedSearchRequests = getBoolean("RUN_WITH_SIGNED_SEARCH_REQUESTS")
-  lazy val SearchIndex = get("SEARCH_INDEX")
-  lazy val SearchDocument = get("SEARCH_DOCUMENT")
-  lazy val DefaultPageSize: Int = getInt("SEARCH_DEFAULT_PAGE_SIZE")
-  lazy val MaxPageSize: Int = getInt("SEARCH_MAX_PAGE_SIZE")
-  lazy val IndexBulkSize = getInt("INDEX_BULK_SIZE")
-
-  lazy val AmazonBaseUrl = get("AMAZON_BASE_URL")
-  lazy val StorageName = get("STORAGE_NAME")
-  lazy val StorageAccessKey = get("STORAGE_ACCESS_KEY")
-  lazy val StorageSecretKey = get("STORAGE_SECRET_KEY")
-  lazy val amazonUrlPrefix = s"$AmazonBaseUrl/$StorageName"
-
-  lazy val CMHost = get("CM_HOST")
-  lazy val CMPort = get("CM_PORT")
-  lazy val CMDatabase = get("CM_DATABASE")
-  lazy val CMUser = get("CM_USER")
-  lazy val CMPassword = get("CM_PASSWORD")
-
-  lazy val AudioHost = get("AUDIO_HOST")
-  lazy val MappingHost = get("MAPPING_HOST")
-  val ApiClientsCacheAgeInMs: Long = 1000 * 60 * 60 // 1 hour caching
-  val TopicAPIUrl = "http://api.topic.ndla.no/rest/v1/keywords/?filter[node]=ndlanode_"
-
-  lazy val MigrationHost = get("MIGRATION_HOST")
-  lazy val MigrationUser = get("MIGRATION_USER")
-  lazy val MigrationPassword = get("MIGRATION_PASSWORD")
-
   val resourceHtmlEmbedTag = "embed"
 
-  def verify() = {
-    val missingProperties = ContentApiProps.filter(entry => entry._2.isEmpty).toList
-    if(missingProperties.nonEmpty){
-      missingProperties.foreach(entry => logger.error("Missing required environment variable {}", entry._1))
+  def setProperties(properties: Map[String, Option[String]]) = {
+    Success(properties.foreach(prop => ArticleApiProps.put(prop._1, prop._2)))
+  }
 
-      logger.error("Shutting down.")
-      System.exit(1)
+  private def getOrElse(envKey: String, defaultValue: String) = {
+    ArticleApiProps.get(envKey).flatten match {
+      case Some(value) => value
+      case None => defaultValue
     }
   }
 
-  def setProperties(properties: Map[String, Option[String]]) = {
-    properties.foreach(prop => ContentApiProps.put(prop._1, prop._2))
-  }
-
   def get(envKey: String): String = {
-    ContentApiProps.get(envKey).flatten match {
+    ArticleApiProps.get(envKey).flatten match {
       case Some(value) => value
       case None => throw new NoSuchFieldError(s"Missing environment variable $envKey")
     }
   }
 
-  def getInt(envKey: String):Integer = {
+  def getInt(envKey: String): Integer = {
     get(envKey).toInt
   }
 
@@ -112,16 +97,23 @@ object ArticleApiProperties extends LazyLogging {
   }
 }
 
-object PropertiesLoader {
+object PropertiesLoader extends LazyLogging {
   val EnvironmentFile = "/article-api.env"
 
-  def readPropertyFile(): Map[String,Option[String]] = {
-    val keys = Source.fromInputStream(getClass.getResourceAsStream(EnvironmentFile)).getLines().withFilter(line => line.matches("^\\w+$"))
-    keys.map(key => key -> scala.util.Properties.envOrNone(key)).toMap
+  def readPropertyFile() = {
+    Try(Source.fromInputStream(getClass.getResourceAsStream(EnvironmentFile)).getLines().map(key => key -> Properties.envOrNone(key)).toMap)
   }
 
   def load() = {
-    ArticleApiProperties.setProperties(readPropertyFile())
-    ArticleApiProperties.verify()
+    val verification = for {
+      file <- readPropertyFile()
+      secrets <- readSecrets("article_api.secrets")
+      didSetProperties <- ArticleApiProperties.setProperties(file ++ secrets)
+    } yield didSetProperties
+
+    if (verification.isFailure) {
+      logger.error("Unable to load properties", verification.failed.get)
+      System.exit(1)
+    }
   }
 }

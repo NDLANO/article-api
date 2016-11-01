@@ -139,7 +139,7 @@ class GeneralContentConverterTest extends UnitSuite with TestEnvironment {
   test("That GeneralContentConverter links back to old NDLA if node could not be imported") {
     val contentString = s"[contentbrowser ==nid=$nodeId==imagecache=Fullbredde==width===alt=$altText==link===node_link=1==link_type=link_to_content==lightbox_size===remove_fields[76661]=1==remove_fields[76663]=1==remove_fields[76664]=1==remove_fields[76666]=1==insertion=link==link_title_text===link_text=Tittel==text_align===css_class=contentbrowser contentbrowser]"
     val content = ContentBrowser(contentString, Some("nb"))
-    val expectedResult = s"""<a href="http://ndla.no//node/$nodeId">Tittel</a>"""
+    val expectedResult = s"""<a href="http://ndla.no/node/$nodeId">Tittel</a>"""
 
     when(extractService.getNodeGeneralContent(nodeId)).thenReturn(Seq(sampleFagstoff1, sampleFagstoff2))
     when(articleRepository.getIdFromExternalId(nodeId)).thenReturn(None)
