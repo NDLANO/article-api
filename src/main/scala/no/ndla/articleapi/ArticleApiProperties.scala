@@ -24,8 +24,6 @@ object ArticleApiProperties extends LazyLogging {
   lazy val ApplicationPort = 80
   lazy val ContactEmail = "christergundersen@ndla.no"
 
-  lazy val Domain = get("DOMAIN")
-
   lazy val MetaUserName = get(PropertyKeys.MetaUserNameKey)
   lazy val MetaPassword = get(PropertyKeys.MetaPasswordKey)
   lazy val MetaResource = get(PropertyKeys.MetaResourceKey)
@@ -65,6 +63,8 @@ object ArticleApiProperties extends LazyLogging {
   // everything is converted. This value defines a maximum number of times the converter runs on a node
   val maxConvertionRounds = 5
 
+  lazy val Environment = get("NDLA_ENVIRONMENT")
+  lazy val Domain = getDomain
   lazy val externalImageApiUrl = s"http://$Domain/images"
   lazy val externalAudioApiUrl = s"http://$Domain/audio"
 
@@ -79,6 +79,12 @@ object ArticleApiProperties extends LazyLogging {
       case Some(value) => value
       case None => defaultValue
     }
+  }
+
+  private def getDomain: String = {
+    Map("local" -> "http://localhost",
+      "prod" -> "http://api.ndla.no"
+    ).getOrElse(Environment, s"http://api.$Environment.ndla.no")
   }
 
   def get(envKey: String): String = {

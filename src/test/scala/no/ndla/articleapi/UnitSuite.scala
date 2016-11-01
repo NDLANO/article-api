@@ -17,7 +17,6 @@ abstract class UnitSuite extends FunSuite with Matchers with OptionValues with I
 
   ArticleApiProperties.setProperties(Map(
     "NDLA_ENVIRONMENT" -> Some("unittest"),
-    "DOMAIN" -> Some("localhost"),
 
     "NDLA_BRIGHTCOVE_ACCOUNT_ID" -> Some("0123456789"),
     "NDLA_BRIGHTCOVE_PLAYER_ID" -> Some("qwerty"),
