@@ -16,7 +16,7 @@ import org.scalatest.mock.MockitoSugar
 abstract class UnitSuite extends FunSuite with Matchers with OptionValues with Inside with Inspectors with MockitoSugar with BeforeAndAfterEach with BeforeAndAfterAll {
 
   ArticleApiProperties.setProperties(Map(
-    "NDLA_ENVIRONMENT" -> Some("unittest"),
+    "NDLA_ENVIRONMENT" -> Some("local"),
 
     "NDLA_BRIGHTCOVE_ACCOUNT_ID" -> Some("0123456789"),
     "NDLA_BRIGHTCOVE_PLAYER_ID" -> Some("qwerty"),

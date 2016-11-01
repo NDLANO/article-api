@@ -65,8 +65,8 @@ object ArticleApiProperties extends LazyLogging {
 
   lazy val Environment = get("NDLA_ENVIRONMENT")
   lazy val Domain = getDomain
-  lazy val externalImageApiUrl = s"http://$Domain/images"
-  lazy val externalAudioApiUrl = s"http://$Domain/audio"
+  lazy val externalImageApiUrl = s"$Domain/images"
+  lazy val externalAudioApiUrl = s"$Domain/audio"
 
   val resourceHtmlEmbedTag = "embed"
 
