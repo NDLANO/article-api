@@ -23,6 +23,8 @@ abstract class UnitSuite extends FunSuite with Matchers with OptionValues with I
 
     "MIGRATION_HOST" -> Some("article-api"),
     "MIGRATION_USER" -> Some("user"),
-    "MIGRATION_PASSWORD" -> Some("password")
+    "MIGRATION_PASSWORD" -> Some("password"),
+
+    "RUN_WITH_SIGNED_SEARCH_REQUESTS" -> Some("false")
   ))
 }
