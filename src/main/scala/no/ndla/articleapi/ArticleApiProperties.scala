@@ -110,7 +110,7 @@ object PropertiesLoader extends LazyLogging {
     Try(Source.fromInputStream(getClass.getResourceAsStream(EnvironmentFile)).getLines().map(key => key -> Properties.envOrNone(key)).toMap)
   }
 
-  def verify(properties: Map[String, Option[String]]) = {
+  def verifyPropertyFile(properties: Map[String, Option[String]]) = {
     val missingProperties = properties.filter(entry => entry._2.isEmpty).toList
     missingProperties.isEmpty match {
       case true => Success(properties)
@@ -121,9 +121,9 @@ object PropertiesLoader extends LazyLogging {
   def load() = {
     val verification = for {
       file <- readPropertyFile()
-      if verify(file)
+      verifiedFile <- verifyPropertyFile(file)
       secrets <- readSecrets("article_api.secrets")
-      didSetProperties <- ArticleApiProperties.setProperties(file ++ secrets)
+      didSetProperties <- ArticleApiProperties.setProperties(verifiedFile ++ secrets)
     } yield didSetProperties
 
     if (verification.isFailure) {
