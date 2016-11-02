@@ -71,7 +71,13 @@ object ArticleApiProperties extends LazyLogging {
   val resourceHtmlEmbedTag = "embed"
 
   def setProperties(properties: Map[String, Option[String]]) = {
-    Success(properties.foreach(prop => ArticleApiProps.put(prop._1, prop._2)))
+    properties.foreach(prop => ArticleApiProps.put(prop._1, prop._2))
+
+    val missingProperties = ArticleApiProps.filter(entry => entry._2.isEmpty).toList
+    missingProperties.isEmpty match {
+      case true => Success()
+      case false => Failure(new Exception(s"Missing the following properties: $missingProperties"))
+    }
   }
 
   private def getOrElse(envKey: String, defaultValue: String) = {
@@ -110,20 +116,11 @@ object PropertiesLoader extends LazyLogging {
     Try(Source.fromInputStream(getClass.getResourceAsStream(EnvironmentFile)).getLines().map(key => key -> Properties.envOrNone(key)).toMap)
   }
 
-  def verifyPropertyFile(properties: Map[String, Option[String]]) = {
-    val missingProperties = properties.filter(entry => entry._2.isEmpty).toList
-    missingProperties.isEmpty match {
-      case true => Success(properties)
-      case false => Failure(new Exception(s"Missing the following properties from $EnvironmentFile: $missingProperties"))
-    }
-  }
-
   def load() = {
     val verification = for {
       file <- readPropertyFile()
-      verifiedFile <- verifyPropertyFile(file)
       secrets <- readSecrets("article_api.secrets")
-      didSetProperties <- ArticleApiProperties.setProperties(verifiedFile ++ secrets)
+      didSetProperties <- ArticleApiProperties.setProperties(file ++ secrets)
     } yield didSetProperties
 
     if (verification.isFailure) {
