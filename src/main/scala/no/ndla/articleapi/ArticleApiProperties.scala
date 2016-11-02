@@ -70,7 +70,18 @@ object ArticleApiProperties extends LazyLogging {
 
   val resourceHtmlEmbedTag = "embed"
 
+  def verify() = {
+    val missingProperties = ArticleApiProps.filter(entry => entry._2.isEmpty).toList
+    if(missingProperties.nonEmpty){
+      missingProperties.foreach(entry => logger.error("Missing required environment variable {}", entry._1))
+
+      logger.error("Shutting down.")
+      System.exit(1)
+    }
+  }
+
   def setProperties(properties: Map[String, Option[String]]) = {
+    verify()
     Success(properties.foreach(prop => ArticleApiProps.put(prop._1, prop._2)))
   }
 
