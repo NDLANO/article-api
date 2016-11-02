@@ -15,7 +15,7 @@ import no.ndla.network.secrets.Secrets.readSecrets
 
 import scala.collection.mutable
 import scala.io.Source
-import scala.util.{Properties, Success, Try}
+import scala.util.{Failure, Properties, Success, Try}
 
 object ArticleApiProperties extends LazyLogging {
 
@@ -54,7 +54,7 @@ object ArticleApiProperties extends LazyLogging {
   val AudioHost = "audio-api.ndla-local"
   val MappingHost = "mapping-api.ndla-local"
   val internalImageApiUrl = "image-api.ndla-local"
-  val ApiClientsCacheAgeInMs: Long = 1000 * 60 * 60  // 1 hour caching
+  val ApiClientsCacheAgeInMs: Long = 1000 * 60 * 60 // 1 hour caching
 
   lazy val NDLABrightcoveAccountId = get("NDLA_BRIGHTCOVE_ACCOUNT_ID")
   lazy val NDLABrightcovePlayerId = get("NDLA_BRIGHTCOVE_PLAYER_ID")
@@ -70,18 +70,7 @@ object ArticleApiProperties extends LazyLogging {
 
   val resourceHtmlEmbedTag = "embed"
 
-  def verify() = {
-    val missingProperties = ArticleApiProps.filter(entry => entry._2.isEmpty).toList
-    if(missingProperties.nonEmpty){
-      missingProperties.foreach(entry => logger.error("Missing required environment variable {}", entry._1))
-
-      logger.error("Shutting down.")
-      System.exit(1)
-    }
-  }
-
   def setProperties(properties: Map[String, Option[String]]) = {
-    verify()
     Success(properties.foreach(prop => ArticleApiProps.put(prop._1, prop._2)))
   }
 
@@ -121,9 +110,18 @@ object PropertiesLoader extends LazyLogging {
     Try(Source.fromInputStream(getClass.getResourceAsStream(EnvironmentFile)).getLines().map(key => key -> Properties.envOrNone(key)).toMap)
   }
 
+  def verify(properties: Map[String, Option[String]]) = {
+    val missingProperties = properties.filter(entry => entry._2.isEmpty).toList
+    missingProperties.isEmpty match {
+      case true => Success(properties)
+      case false => Failure(new Exception(s"Missing the following properties from $EnvironmentFile: $missingProperties"))
+    }
+  }
+
   def load() = {
     val verification = for {
       file <- readPropertyFile()
+      if verify(file)
       secrets <- readSecrets("article_api.secrets")
       didSetProperties <- ArticleApiProperties.setProperties(file ++ secrets)
     } yield didSetProperties
