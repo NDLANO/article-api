@@ -68,9 +68,9 @@ trait GeneralContentConverterModule {
           (figureElement, importStatus ++ ImportStatus(figureUsageErrors, Seq()))
         }
         case None => {
-          val warnMessage = s"""Link to old ndla.no ($ndlaBaseHost/node/${contentBrowser.get("nid")})"""
+          val warnMessage = s"""Link to old ndla.no (http://ndla.no/node/${contentBrowser.get("nid")})"""
           logger.warn(warnMessage)
-          (s"""<a href="$ndlaBaseHost/node/${contentBrowser.get("nid")}">${contentBrowser.get("link_text")}</a>""",
+          (s"""<a href="http://ndla.no/node/${contentBrowser.get("nid")}">${contentBrowser.get("link_text")}</a>""",
             importStatus.copy(messages=importStatus.messages ++ Seq(warnMessage)))
         }
       }

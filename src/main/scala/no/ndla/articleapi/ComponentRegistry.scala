@@ -9,9 +9,8 @@
 
 package no.ndla.articleapi
 
-import com.amazonaws.auth.BasicAWSCredentials
-import com.amazonaws.regions.{Region, Regions}
-import com.amazonaws.services.s3.AmazonS3Client
+import com.amazonaws.regions.Regions
+import com.amazonaws.services.s3.AmazonS3ClientBuilder
 import io.searchbox.client.JestClient
 import no.ndla.articleapi.controller.{ArticleController, HealthController, InternController}
 import no.ndla.articleapi.integration._
@@ -74,10 +73,8 @@ object ComponentRegistry
   lazy val elasticContentIndex = new ElasticContentIndex
   lazy val searchIndexService = new SearchIndexService
 
-  val amazonClient = new AmazonS3Client(new BasicAWSCredentials(ArticleApiProperties.StorageAccessKey, ArticleApiProperties.StorageSecretKey))
-  amazonClient.setRegion(Region.getRegion(Regions.EU_CENTRAL_1))
-  lazy val storageName = ArticleApiProperties.StorageName
-  lazy val storageService = new AmazonStorageService
+  val amazonClient = AmazonS3ClientBuilder.standard().withRegion(Regions.EU_CENTRAL_1).build()
+  lazy val attachmentStorageService = new AmazonStorageService
 
   lazy val migrationApiClient = new MigrationApiClient
   lazy val extractService = new ExtractService

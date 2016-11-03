@@ -9,9 +9,8 @@
 
 package no.ndla.articleapi.integration
 
-import com.amazonaws.services.s3.AmazonS3Client
+import com.amazonaws.services.s3.AmazonS3
 
 trait AmazonClientComponent {
-  val amazonClient: AmazonS3Client
-  val storageName: String
+  val amazonClient: AmazonS3
 }

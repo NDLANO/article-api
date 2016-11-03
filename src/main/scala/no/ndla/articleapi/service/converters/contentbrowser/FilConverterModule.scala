@@ -23,7 +23,7 @@ trait FilConverterModule {
 
       extractService.getNodeFilMeta(nodeId) match {
         case Some(fileMeta) => {
-          val (filePath, uploadError) = storageService.uploadFileFromUrl(nodeId, fileMeta) match {
+          val (filePath, uploadError) = attachmentStorageService.uploadFileFromUrl(nodeId, fileMeta) match {
             case Some(path) => (path, List())
             case None => {
               val msg = s"Failed to upload audio (node $nodeId)"
