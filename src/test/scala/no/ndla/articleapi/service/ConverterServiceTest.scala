@@ -12,7 +12,7 @@ package no.ndla.articleapi.service
 import java.util.Date
 
 import no.ndla.articleapi.TestEnvironment
-import no.ndla.articleapi.integration.{Image, ImageMetaInformation, ImageVariants, LanguageContent}
+import no.ndla.articleapi.integration.{ImageMetaInformation, LanguageContent}
 import no.ndla.articleapi.UnitSuite
 import no.ndla.articleapi.model.domain._
 import no.ndla.articleapi.service.converters.TableConverter
@@ -162,7 +162,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     val newId = "1"
     val contentNode = LanguageContent(nodeId, nodeId, s"<article>$sampleContentString</article>", Some("en"))
     val node = NodeToConvert(List(contentTitle), List(contentNode), copyright, List(tag), Seq(visualElement), Seq(), "fagstoff", new Date(0), new Date(1))
-    val imageMeta = ImageMetaInformation(newId, List(), List(), ImageVariants(Some(Image("small.jpeg", 128, "")), Some(Image(imageUrl, 256, ""))), Copyright(License("", "", Some("")), "", List()), List())
+    val imageMeta = ImageMetaInformation(newId, List(), List(), imageUrl, 256, "", Copyright(License("", "", Some("")), "", List()), List())
     val expectedResult =
       s"""|<article>
           |<$resourceHtmlEmbedTag data-align="" data-alt="$sampleAlt" data-caption="" data-id="1" data-resource="image" data-size="fullbredde" data-url="http://localhost/images/$newId" />
