@@ -105,12 +105,11 @@ object HTMLCleaner extends ConverterModule with LazyLogging {
       rs.remove()
       stringToOption(rs.text)
     })
-    val ingressImageUrl = ingressImageElement.flatMap(rs => {
-      rs.remove()
-      stringToOption(rs.attr("data-url"))
-    })
+
+    ingressImageElement.map(rs => {rs.remove()})
 
     removeEmptyTags(el)
+    
     ingressText match {
       case None => None
       case _ => Some(LanguageIngress(ingressText))
