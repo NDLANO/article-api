@@ -99,17 +99,14 @@ object HTMLCleaner extends ConverterModule with LazyLogging {
 
   private def extractIngress(el: Element): (Option[LanguageIngress]) = {
     val ingressTextElement = getIngressText(el)
-    val ingressImageElement = getIngressImage(el)
 
     val ingressText = ingressTextElement.flatMap(rs => {
       rs.remove()
       stringToOption(rs.text)
     })
 
-    ingressImageElement.map(rs => {rs.remove()})
-
     removeEmptyTags(el)
-    
+
     ingressText match {
       case None => None
       case _ => Some(LanguageIngress(ingressText))

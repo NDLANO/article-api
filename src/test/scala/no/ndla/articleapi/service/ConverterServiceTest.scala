@@ -103,8 +103,12 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
         |<$resourceHtmlEmbedTag data-size="fullbredde" data-url="http://image-api/images/5359" data-align="" data-id="9" data-resource="image" data-alt="To personer" data-caption="capt." />
         |<p><strong>Når man driver med medieproduksjon, er det mye arbeid som må gjøres<br /></strong></p>
         |</section>
-        |<section> <p>Det som kan gi helse- og sikkerhetsproblemer på en dataarbeidsplass, er:</section>""".stripMargin
-    val expectedContentResult = ArticleContent("""<section> <p>Det som kan gi helse- og sikkerhetsproblemer på en dataarbeidsplass, er:</p></section>""", None, Some("nb"))
+        |<section> <p>Det som kan gi helse- og sikkerhetsproblemer på en dataarbeidsplass, er:</section>""".stripMargin.replace("\n", "")
+    val expectedContentResult = ArticleContent(
+      s"""<section>
+         |<$resourceHtmlEmbedTag data-size="fullbredde" data-url="http://image-api/images/5359" data-align="" data-id="9" data-resource="image" data-alt="To personer" data-caption="capt." />
+         |</section>
+         |<section> <p>Det som kan gi helse- og sikkerhetsproblemer på en dataarbeidsplass, er:</p></section>""".stripMargin.replace("\n", ""), None, Some("nb"))
     val expectedIngressResult = ArticleIntroduction("Når man driver med medieproduksjon, er det mye arbeid som må gjøres", Some("nb"))
 
     val ingressNodeBokmal = NodeIngressFromSeparateDBTable("1", "1", "Hvem er sterkest?", None, 0, Some("nb"))
