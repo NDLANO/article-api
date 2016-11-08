@@ -111,9 +111,9 @@ object HTMLCleaner extends ConverterModule with LazyLogging {
     })
 
     removeEmptyTags(el)
-    (ingressText, ingressImageUrl) match {
-      case (None, None) => None
-      case _ => Some(LanguageIngress(ingressText, ingressImageUrl))
+    ingressText match {
+      case None => None
+      case _ => Some(LanguageIngress(ingressText))
     }
   }
 

@@ -105,7 +105,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
         |</section>
         |<section> <p>Det som kan gi helse- og sikkerhetsproblemer på en dataarbeidsplass, er:</section>""".stripMargin
     val expectedContentResult = ArticleContent("""<section> <p>Det som kan gi helse- og sikkerhetsproblemer på en dataarbeidsplass, er:</p></section>""", None, Some("nb"))
-    val expectedIngressResult = ArticleIntroduction("Når man driver med medieproduksjon, er det mye arbeid som må gjøres", Some("http://image-api/images/5359"), Some("nb"))
+    val expectedIngressResult = ArticleIntroduction("Når man driver med medieproduksjon, er det mye arbeid som må gjøres", Some("nb"))
 
     val ingressNodeBokmal = NodeIngressFromSeparateDBTable("1", "1", "Hvem er sterkest?", None, 0, Some("nb"))
     val contentNodeBokmal = LanguageContent(nodeId, nodeId, content, Some("nb"))
