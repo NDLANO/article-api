@@ -11,7 +11,7 @@ package no.ndla.articleapi.service.converters.contentbrowser
 
 import no.ndla.articleapi.ArticleApiProperties._
 import no.ndla.articleapi.TestEnvironment
-import no.ndla.articleapi.integration.{Image, ImageMetaInformation, ImageVariants, LanguageContent}
+import no.ndla.articleapi.integration.{ImageMetaInformation, LanguageContent}
 import no.ndla.articleapi.UnitSuite
 import no.ndla.articleapi.model.domain.{ImportStatus, NodeGeneralContent, Copyright, License}
 import org.mockito.Mockito._
@@ -48,7 +48,7 @@ class ContentBrowserConverterTest extends UnitSuite with TestEnvironment {
     val (nodeId, imageUrl, alt) = ("1234", "full.jpeg", "Fotografi")
     val newId = "1"
     val initialContent = LanguageContent(nodeId, nodeId, s"<article>$sampleContentString</article>", Some("en"))
-    val imageMeta = ImageMetaInformation(newId, List(), List(), ImageVariants(Some(Image("small.jpeg", 128, "")), Some(Image(imageUrl, 256, ""))), Copyright(License("", "", Some("")), "", List()), List())
+    val imageMeta = ImageMetaInformation(newId, List(), List(), imageUrl, 256, "", Copyright(License("", "", Some("")), "", List()), List())
     val expectedResult =
       s"""|<article>
           |<$resourceHtmlEmbedTag data-align="" data-alt="$alt" data-caption="" data-id="1" data-resource="image" data-size="fullbredde" data-url="http://localhost/images/$newId" />
