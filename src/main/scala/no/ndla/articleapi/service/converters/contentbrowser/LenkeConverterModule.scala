@@ -80,7 +80,7 @@ trait LenkeConverterModule {
 
     private def insertAnchor(url: String, cont: ContentBrowser): (String, Option[RequiredLibrary], Seq[String]) = {
       val (htmlTag, errors) = HtmlTagGenerator.buildAnchor(url, cont.get("link_text"), Map("title" -> cont.get("link_title_text")))
-      (htmlTag, None, errors)
+      (s" $htmlTag", None, errors)
     }
 
     private def insertUnhandled(url: String, cont: ContentBrowser): (String, Option[RequiredLibrary], Seq[String]) = {
