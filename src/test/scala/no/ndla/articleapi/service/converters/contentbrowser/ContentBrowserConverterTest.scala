@@ -121,7 +121,7 @@ class ContentBrowserConverterTest extends UnitSuite with TestEnvironment {
 
   test("That Content-browser strings of type video are converted into HTML img tags") {
     val initialContent = LanguageContent(nodeId, nodeId, s"$sampleContentString", Some("en"))
-    val expectedResult = s"""<$resourceHtmlEmbedTag data-account="$NDLABrightcoveAccountId" data-id="1" data-player="$NDLABrightcovePlayerId" data-resource="brightcove" data-videoid="ref:$nodeId" />"""
+    val expectedResult = s"""<$resourceHtmlEmbedTag data-account="$NDLABrightcoveAccountId" data-caption="" data-id="1" data-player="$NDLABrightcovePlayerId" data-resource="brightcove" data-videoid="ref:$nodeId" />"""
     when(extractService.getNodeType(nodeId)).thenReturn(Some("video"))
     val (result, status) = contentBrowserConverter.convert(initialContent, ImportStatus(Seq(), Seq()))
     val strippedResult = " +".r.replaceAllIn(result.content.replace("\n", ""), " ")
