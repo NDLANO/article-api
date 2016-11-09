@@ -59,13 +59,13 @@ trait GeneralContentConverterModule {
 
       contentId match {
         case Some(id) => {
-          val (embedContent, figureUsageErrors) = HtmlTagGenerator.buildEmbedContent(Map(
+          val (embedContent, embedUsageErrors) = HtmlTagGenerator.buildEmbedContent(Map(
             "resource" -> "content-link",
             "id" -> s"${contentBrowser.id}",
             "content-id" -> id.toString,
             "link-text" -> contentBrowser.get("link_text")
           ))
-          (s" $embedContent", importStatus ++ ImportStatus(figureUsageErrors, Seq()))
+          (s" $embedContent", importStatus ++ ImportStatus(embedUsageErrors, Seq()))
         }
         case None => {
           val warnMessage = s"""Link to old ndla.no ($ndlaBaseHost/node/${contentBrowser.get("nid")})"""
