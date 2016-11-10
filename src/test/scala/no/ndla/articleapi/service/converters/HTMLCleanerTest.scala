@@ -47,10 +47,17 @@ class HTMLCleanerTest extends UnitSuite {
                    |<h2>Mediehverdagen</h2>
                    |</section>""".stripMargin.replace("\n", "")
 
-    val expectedContentResult = """<section><h2>Mediehverdagen</h2></section>"""
-    val expectedIngressResult = LanguageIngress(Some("Medievanene er i endring."), Some("http://image-api/images/5452"))
+    val expectedContentResult =
+      s"""<section>
+         |<$resourceHtmlEmbedTag data-size="fullbredde" data-url="http://image-api/images/5452" data-align="" data-id="1" data-resource="image" data-alt="Mobiltelefon sender SMS" />
+         |</section>
+         |<section>
+         |<h2>Mediehverdagen</h2>
+         |</section>""".stripMargin.replace("\n", "")
+    val expectedIngressResult = LanguageIngress("Medievanene er i endring.")
 
     val (result, status) = HTMLCleaner.convert(defaultLanguageContent.copy(content=content), defaultImportStatus)
+
     result.content should equal(expectedContentResult)
     result.ingress should equal(Some(expectedIngressResult))
   }
@@ -60,12 +67,16 @@ class HTMLCleanerTest extends UnitSuite {
                     |<$resourceHtmlEmbedTag data-size="fullbredde" data-url="http://image-api/images/5452" data-align="" data-id="1" data-resource="image" data-alt="Mobiltelefon sender SMS" />
                     |<h2>Mediehverdagen</h2>
                     |</section>""".stripMargin.replace("\n", "")
-    val expectedContentResult = """<section><h2>Mediehverdagen</h2></section>"""
-    val expectedIngressResult = LanguageIngress(None, Some("http://image-api/images/5452"))
+    val expectedContentResult =
+      s"""<section>
+         |<$resourceHtmlEmbedTag data-size="fullbredde" data-url="http://image-api/images/5452" data-align="" data-id="1" data-resource="image" data-alt="Mobiltelefon sender SMS" />
+         |<h2>Mediehverdagen</h2>
+         |</section>""".stripMargin.replace("\n", "")
+    val expectedIngressResult = None
     val (result, status) = HTMLCleaner.convert(defaultLanguageContent.copy(content=content), defaultImportStatus)
 
     result.content should equal(expectedContentResult)
-    result.ingress should equal(Some(expectedIngressResult))
+    result.ingress should equal(expectedIngressResult)
     result.requiredLibraries.length should equal (0)
   }
 
@@ -79,7 +90,7 @@ class HTMLCleanerTest extends UnitSuite {
         |</section>
       """.stripMargin.replace("\n", "")
     val expectedContentResult = """<section><ul><li><a href="#" title="Snopes">Snopes</a></li></ul></section>"""
-    val expectedIngressResult = LanguageIngress(Some("Du har sikkert opplevd rykter og usannheter"), None)
+    val expectedIngressResult = LanguageIngress("Du har sikkert opplevd rykter og usannheter")
     val (result, status) = HTMLCleaner.convert(defaultLanguageContent.copy(content=content), defaultImportStatus)
 
     result.content should equal(expectedContentResult)
@@ -93,8 +104,11 @@ class HTMLCleanerTest extends UnitSuite {
                     |<strong>Medievanene er i endring.</strong>
                     |<h2>Mediehverdagen</h2>
                     |</section>""".stripMargin.replace("\n", "")
-    val expectedContentResult = """<section><h2>Mediehverdagen</h2></section>"""
-    val expectedIngressResult = LanguageIngress(Some("Medievanene er i endring."), Some("http://image-api/images/5452"))
+    val expectedContentResult =
+      s"""<section>
+        |<$resourceHtmlEmbedTag data-size="fullbredde" data-url="http://image-api/images/5452" data-align="" data-id="1" data-resource="image" data-alt="Mobiltelefon sender SMS" />
+        |<h2>Mediehverdagen</h2></section>""".stripMargin.replace("\n", "")
+    val expectedIngressResult = LanguageIngress("Medievanene er i endring.")
     val (result, status) = HTMLCleaner.convert(defaultLanguageContent.copy(content=content), defaultImportStatus)
 
     result.content should equal(expectedContentResult)

@@ -86,38 +86,19 @@ object HTMLCleaner extends ConverterModule with LazyLogging {
     }
   }
 
-  private def getIngressImage(el: Element): Option[Element] = {
-    val firstSection = Option(el.select("body>section").first)
-    def getFirstElement(elementSelector: String): Option[Element] =
-      firstSection.flatMap(section => Option(section.select(elementSelector).first))
-
-    getFirstElement(s">$resourceHtmlEmbedTag[data-resource=image]") match {
-      case None => getFirstElement(s">p>$resourceHtmlEmbedTag[data-resource=image]")
-      case x => x
-    }
-  }
-
   private def extractIngress(el: Element): (Option[LanguageIngress]) = {
     val ingressTextElement = getIngressText(el)
-    val ingressImageElement = getIngressImage(el)
 
-    val ingressText = ingressTextElement.flatMap(rs => {
+    val ingressText = ingressTextElement.map(rs => {
       rs.remove()
-      stringToOption(rs.text)
-    })
-    val ingressImageUrl = ingressImageElement.flatMap(rs => {
-      rs.remove()
-      stringToOption(rs.attr("data-url"))
+      rs.text()
     })
 
     removeEmptyTags(el)
-    (ingressText, ingressImageUrl) match {
-      case (None, None) => None
-      case _ => Some(LanguageIngress(ingressText, ingressImageUrl))
-    }
-  }
 
-  private def stringToOption(str: String): Option[String] = Option(str).filter(_.trim.nonEmpty)
+    ingressText.map(text => LanguageIngress(text))
+
+  }
 
   private object PermittedHTML {
     // MathML element reference list: https://developer.mozilla.org/en/docs/Web/MathML/Element
