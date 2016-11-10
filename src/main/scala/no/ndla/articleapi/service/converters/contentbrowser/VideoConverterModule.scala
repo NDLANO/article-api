@@ -24,6 +24,7 @@ trait VideoConverterModule {
       val (embedVideoMeta, errors) = HtmlTagGenerator.buildEmbedContent(Map(
         "resource" -> "brightcove",
         "id" -> s"${content.id.toString}",
+        "caption" -> content.get("link_text"),
         "videoid" -> s"ref:${content.get("nid")}",
         "account" -> s"$NDLABrightcoveAccountId",
         "player" -> s"$NDLABrightcovePlayerId"

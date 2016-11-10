@@ -59,10 +59,10 @@ trait ConverterServiceComponent {
         case _ => ImportStatus(Seq(), Seq())
       }
 
-      ArticleIntroduction(nodeIngress.content, newImageId, nodeIngress.language)
+      ArticleIntroduction(nodeIngress.content, nodeIngress.language)
 
       nodeIngress.ingressVisPaaSiden == 1 match {
-        case true => Some(ArticleIntroduction(nodeIngress.content, newImageId, nodeIngress.language), importStatus)
+        case true => Some(ArticleIntroduction(nodeIngress.content, nodeIngress.language), importStatus)
         case false => None
       }
     }
@@ -149,7 +149,7 @@ trait ConverterServiceComponent {
     }
 
     def toApiArticleIntroduction(intro: domain.ArticleIntroduction): api.ArticleIntroduction = {
-      api.ArticleIntroduction(intro.introduction, intro.image, intro.language)
+      api.ArticleIntroduction(intro.introduction, intro.language)
     }
 
   }
