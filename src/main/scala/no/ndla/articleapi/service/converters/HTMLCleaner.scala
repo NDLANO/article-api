@@ -12,11 +12,14 @@ object HTMLCleaner extends ConverterModule with LazyLogging {
   override def convert(content: LanguageContent, importStatus: ImportStatus): (LanguageContent, ImportStatus) = {
     val element = stringToJsoupDocument(content.content)
 
+
+
     val illegalTags = unwrapIllegalTags(element).map(x => s"Illegal tag(s) removed: $x").distinct
     val illegalAttributes = removeAttributes(element).map(x => s"Illegal attribute(s) removed: $x").distinct
     removeComments(element)
     removeNbsp(element)
     removeEmptyTags(element)
+    wrapTextAfterHeadingInPTag(element)
     val ingress = extractIngress(element)
 
     (content.copy(content=jsoupDocumentToString(element), ingress=ingress),
@@ -115,6 +118,16 @@ object HTMLCleaner extends ConverterModule with LazyLogging {
       case (None, None) => None
       case _ => Some(LanguageIngress(ingressText, ingressImageUrl))
     }
+  }
+
+  private def wrapTextAfterHeadingInPTag (element: Element) : Element = {
+    println(element)
+    for ( el <- element.getElementsByTag("h2")) {
+      println()
+      println("yoyoyooy")
+    }
+
+    element
   }
 
   private def stringToOption(str: String): Option[String] = Option(str).filter(_.trim.nonEmpty)
