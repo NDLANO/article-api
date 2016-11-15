@@ -4,7 +4,7 @@ import com.typesafe.scalalogging.LazyLogging
 import no.ndla.articleapi.ArticleApiProperties._
 import no.ndla.articleapi.integration.{ConverterModule, LanguageContent, LanguageIngress}
 import no.ndla.articleapi.model.domain.ImportStatus
-import org.jsoup.nodes.{Element, Node}
+import org.jsoup.nodes.{TextNode, Element, Node}
 
 import scala.collection.JavaConversions._
 
@@ -12,14 +12,14 @@ object HTMLCleaner extends ConverterModule with LazyLogging {
   override def convert(content: LanguageContent, importStatus: ImportStatus): (LanguageContent, ImportStatus) = {
     val element = stringToJsoupDocument(content.content)
 
-
-
     val illegalTags = unwrapIllegalTags(element).map(x => s"Illegal tag(s) removed: $x").distinct
     val illegalAttributes = removeAttributes(element).map(x => s"Illegal attribute(s) removed: $x").distinct
+
     removeComments(element)
     removeNbsp(element)
     removeEmptyTags(element)
-    wrapTextAfterHeadingInPTag(element)
+    wrapStandaloneTextInPTag(element)
+
     val ingress = extractIngress(element)
 
     (content.copy(content=jsoupDocumentToString(element), ingress=ingress),
@@ -102,13 +102,15 @@ object HTMLCleaner extends ConverterModule with LazyLogging {
     ingressText.map(text => LanguageIngress(text))
 
   }
-  
-  private def wrapTextAfterHeadingInPTag (element: Element) : Element = {
-    println(element)
-    for ( el <- element.getElementsByTag("h2")) {
-      println()
-      println("yoyoyooy")
-    }
+
+  private def wrapStandaloneTextInPTag (element: Element) : Element = {
+    val sections = element.select("body>section")
+    sections.map(node => node.childNodes().map(child => {
+      if (child.nodeName() == "#text" && !child.asInstanceOf[TextNode].isBlank) {
+        child.wrap("<p>")
+      }
+      child
+    }))
 
     element
   }
