@@ -42,10 +42,8 @@ trait ConverterModule {
 
     val (convertedContent, contentImportStatus) = convertLoop(nodeToConvert.contents, Seq(), importStatus)
 
-    val (convertedIngress, finalImportStatus) = convertLoop(nodeToConvert.ingressesFromSeparateDBTable.map(_.asLanguageContent), Seq(), contentImportStatus)
-    val finalIngress = nodeToConvert.ingressesFromSeparateDBTable.map(x => x.copy(content=convertedIngress.find(_.nid == x.nid).get.content))
 
-    (nodeToConvert.copy(contents=convertedContent, ingressesFromSeparateDBTable=finalIngress), finalImportStatus)
+    (nodeToConvert.copy(contents=convertedContent), contentImportStatus)
   }
 }
 

@@ -11,6 +11,9 @@ class HTMLCleanerTest extends UnitSuite {
   val defaultLanguageContent = LanguageContent(nodeId, nodeId, """<article><!-- this is a comment --><h1>heading<!-- comment --></h1></article>""", Some("en"))
   val defaultImportStatus = ImportStatus(Seq(), Seq())
 
+  val defaultLanguageIngress = LanguageIngress("Jeg er en ingress")
+  val defaultLanguageIngressWithHtml = LanguageIngress("<p>Jeg er en ingress</p>")
+
   test("That HTMLCleaner unwraps illegal attributes") {
     val initialContent = LanguageContent(nodeId, nodeId, """<body><article><h1 class="useless">heading<div style="width='0px'">hey</div></h1></article></body>""", Some("en"))
     val expectedResult = "<article><h1>heading<div>hey</div></h1></article>"
@@ -92,7 +95,6 @@ class HTMLCleanerTest extends UnitSuite {
     val expectedContentResult = """<section><ul><li><a href="#" title="Snopes">Snopes</a></li></ul></section>"""
     val expectedIngressResult = LanguageIngress("Du har sikkert opplevd rykter og usannheter")
     val (result, status) = HTMLCleaner.convert(defaultLanguageContent.copy(content=content), defaultImportStatus)
-
     result.content should equal(expectedContentResult)
     result.ingress should equal(Some(expectedIngressResult))
     result.requiredLibraries.length should equal (0)
@@ -129,6 +131,48 @@ class HTMLCleanerTest extends UnitSuite {
 
   test("That isTagValid returns true for legal attributes") {
     HTMLCleaner.isTagValid("section") should equal (true)
+  }
+
+  test("That HTMLCleaner do not insert ingress if already added from seperate table") {
+    val content = s"""<section>
+                      |<$resourceHtmlEmbedTag data-size="fullbredde" data-url="http://image-api/images/5452" data-align="" data-id="1" data-resource="image" data-alt="Mobiltelefon sender SMS" />
+                      |<strong>Medievanene er i endring.</strong>
+                      |<h2>Mediehverdagen</h2>
+                      |</section>""".stripMargin.replace("\n", "")
+    val expectedContentResult = s"""<section>
+          |<$resourceHtmlEmbedTag data-size="fullbredde" data-url="http://image-api/images/5452" data-align="" data-id="1" data-resource="image" data-alt="Mobiltelefon sender SMS" />
+          |<strong>Medievanene er i endring.</strong>
+          |<h2>Mediehverdagen</h2>
+          |</section>""".stripMargin.replace("\n", "")
+
+    val notExpectedIngressResult = LanguageIngress("Medievanene er i endring.")
+    val expectedIngressResult = LanguageIngress("Jeg er en ingress")
+
+    val (result, status) = HTMLCleaner.convert(defaultLanguageContent.copy(content=content, ingress = Some(defaultLanguageIngress)), defaultImportStatus)
+
+    result.content should equal(expectedContentResult)
+    result.ingress should equal(Some(expectedIngressResult))
+    result.ingress should not equal(Some(notExpectedIngressResult))
+
+  }
+  test("That HTMLCleaner removes p tags in ingress from seperate table") {
+    val content = s"""<section>
+                      |<$resourceHtmlEmbedTag data-size="fullbredde" data-url="http://image-api/images/5452" data-align="" data-id="1" data-resource="image" data-alt="Mobiltelefon sender SMS" />
+                      |<strong>Medievanene er i endring.</strong>
+                      |<h2>Mediehverdagen</h2>
+                      |</section>""".stripMargin.replace("\n", "")
+    val expectedContentResult = s"""<section>
+                                    |<$resourceHtmlEmbedTag data-size="fullbredde" data-url="http://image-api/images/5452" data-align="" data-id="1" data-resource="image" data-alt="Mobiltelefon sender SMS" />
+                                    |<strong>Medievanene er i endring.</strong>
+                                    |<h2>Mediehverdagen</h2>
+                                    |</section>""".stripMargin.replace("\n", "")
+
+    val expectedIngressResult = LanguageIngress("Jeg er en ingress")
+
+    val (result, status) = HTMLCleaner.convert(defaultLanguageContent.copy(content=content, ingress = Some(defaultLanguageIngressWithHtml)), defaultImportStatus)
+
+    result.content should equal(expectedContentResult)
+    result.ingress should equal(Some(expectedIngressResult))
   }
 
 }
