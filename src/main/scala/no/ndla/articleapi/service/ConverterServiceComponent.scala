@@ -54,15 +54,8 @@ trait ConverterServiceComponent {
 
     private def toDomainArticle(nodeToConvert: NodeToConvert): (domain.Article) = {
       val requiredLibraries = nodeToConvert.contents.flatMap(_.requiredLibraries).distinct
-      //val ingressesFromSeparateDatabaseTable = nodeToConvert.ingressesFromSeparateDBTable.flatMap(toDomainArticleIngress)
-      //nodeToConvert.contents.map(content => content.ingress)
-      /*val (ingresses, ingressImportStatus) = ingressesFromSeparateDatabaseTable.isEmpty match {
-        case false => ingressesFromSeparateDatabaseTable.unzip
-        case true => (nodeToConvert.contents.flatMap(x => x.asArticleIntroduction), Seq())
-      }*/
-      val ingresses = nodeToConvert.contents.flatMap(content => content.asArticleIntroduction)
 
-      //val (ingresses, ingressImportStatus) = (nodeToConvert.contents.flatMap(content => content.asArticleIntroduction), Seq())
+      val ingresses = nodeToConvert.contents.flatMap(content => content.asArticleIntroduction)
 
       domain.Article(None,
         nodeToConvert.titles,

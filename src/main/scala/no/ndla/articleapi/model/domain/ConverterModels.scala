@@ -31,11 +31,6 @@ object ContentFilMeta {
   implicit def stringToUrl(s: String): URL = new URL(s.uri)
 }
 
-/*case class NodeIngressFromSeparateDBTable(nid: String, tnid: String, content: String, imageNid: Option[String],
-                                          ingressVisPaaSiden: Int, language: Option[String]) {
-  def asLanguageContent: LanguageContent = LanguageContent(nid, tnid, content, language)
-}*/
-
 case class BiblioMeta(biblio: Biblio, authors: Seq[BiblioAuthor])
 case class Biblio(title: String, bibType: String, year: String, edition: String, publisher: String)
 case class BiblioAuthor(name: String, lastname: String, firstname: String)
