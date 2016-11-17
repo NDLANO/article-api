@@ -129,6 +129,14 @@ class HTMLCleanerTest extends UnitSuite {
 
     result.content should equal(expectedContentResult)
   }
+  test("blank standalone text in a section is not wrapped in <p> tags") {
+    val content = s"""<section>Medievanene er i endring.<p>Noe innhold</p>  <h2>Mediehverdagen</h2></section>"""
+    val expectedContentResult = s"""<section><p>Medievanene er i endring.</p><p>Noe innhold</p>  <h2>Mediehverdagen</h2></section>"""
+
+    val (result, status) = HTMLCleaner.convert(defaultLanguageContent.copy(content=content), defaultImportStatus)
+
+    result.content should equal(expectedContentResult)
+  }
 
   test("That isAttributeKeyValid returns false for illegal attributes") {
     HTMLCleaner.isAttributeKeyValid("data-random-junk", "td") should equal (false)
