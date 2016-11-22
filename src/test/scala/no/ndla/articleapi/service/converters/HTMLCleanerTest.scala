@@ -155,7 +155,7 @@ class HTMLCleanerTest extends UnitSuite {
     result.ingress should not equal(Some(notExpectedIngressResult))
 
   }
-  test("That HTMLCleaner removes p tags in ingress from seperate table") {
+  test("That HTMLCleaner removes all tags in ingress from seperate table") {
     val content = s"""<section>
                       |<$resourceHtmlEmbedTag data-size="fullbredde" data-url="http://image-api/images/5452" data-align="" data-id="1" data-resource="image" data-alt="Mobiltelefon sender SMS" />
                       |<strong>Medievanene er i endring.</strong>

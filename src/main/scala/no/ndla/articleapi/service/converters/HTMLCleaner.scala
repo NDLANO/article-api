@@ -19,7 +19,7 @@ object HTMLCleaner extends ConverterModule with LazyLogging {
     removeEmptyTags(element)
 
     val ingressLanguage = content.ingress match {
-      case Some(ingress) => Some(LanguageIngress(extractIngressText(Some(stringToJsoupDocument(ingress.content))).getOrElse("")))
+      case Some(ingress) => Some(LanguageIngress(extractIngressText(stringToJsoupDocument(ingress.content))))
       case None => extractIngress(element)
     }
 
@@ -91,19 +91,15 @@ object HTMLCleaner extends ConverterModule with LazyLogging {
   }
 
   private def extractIngress(el: Element): (Option[LanguageIngress]) = {
-    val ingressTextElement = getIngressText(el)
-
-    val ingressText = extractIngressText(ingressTextElement)
+    val ingressText = getIngressText(el).map(ingress => extractIngressText(ingress))
 
     removeEmptyTags(el)
     ingressText.map(text => LanguageIngress(text))
   }
 
-  private def extractIngressText(ingressTextElement: Option[Element]): Option[String] = {
-    ingressTextElement.map(rs => {
-      rs.remove()
-      rs.text()
-    })
+  private def extractIngressText(ingressTextElement: Element): String = {
+    ingressTextElement.remove()
+    ingressTextElement.text()
   }
 
   private object PermittedHTML {

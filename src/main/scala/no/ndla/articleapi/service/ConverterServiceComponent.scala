@@ -27,8 +27,7 @@ trait ConverterServiceComponent {
       val (convertedContent, converterStatus) = convert(nodeToConvert, maxConvertionRounds, importStatus.copy(visitedNodes = updatedVisitedNodes.distinct))
       val (postProcessed, postProcessStatus) = postProcess(convertedContent, converterStatus)
 
-      val article = toDomainArticle(postProcessed)
-      (article, postProcessStatus)
+      (toDomainArticle(postProcessed), postProcessStatus)
     }
 
     @tailrec private def convert (nodeToConvert: NodeToConvert, maxRoundsLeft: Int, importStatus: ImportStatus): (NodeToConvert, ImportStatus) = {
