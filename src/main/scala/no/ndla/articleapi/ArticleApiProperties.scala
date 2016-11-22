@@ -26,6 +26,8 @@ object ArticleApiProperties extends LazyLogging {
   val CorrelationIdHeader = "X-Correlation-ID"
   val CorrelationIdKey = "correlationID"
 
+  lazy val EnableJoubelH5POembed = getBoolean("ENABLE_JOUBEL_H5P_OEMBED")
+
   lazy val MetaUserName = get("META_USER_NAME")
   lazy val MetaPassword = get("META_PASSWORD")
   lazy val MetaResource = get("META_RESOURCE")
