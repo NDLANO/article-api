@@ -18,6 +18,7 @@ abstract class UnitSuite extends FunSuite with Matchers with OptionValues with I
   val MAX_PAGE_SIZE = 548
 
   ArticleApiProperties.setProperties(Map(
+    "ENABLE_JOUBEL_H5P_OEMBED" -> Some("true"),
     "CONTACT_EMAIL" -> Some("someone@somewhere.earth"),
     "HOST_ADDR" -> Some("localhost"),
     "DOMAIN" -> Some("localhost"),
