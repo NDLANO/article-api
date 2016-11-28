@@ -31,9 +31,9 @@ class SearchServiceTest extends UnitSuite with TestEnvironment {
   override val elasticContentIndex = new ElasticContentIndex
   override val searchConverterService = new SearchConverterService
 
-  val byNcSa = Copyright(License("by-nc-sa", "Attribution-NonCommercial-ShareAlike", None), "Gotham City", List(Author("Forfatter", "DC Comics")))
-  val publicDomain = Copyright(License("publicdomain", "Public Domain", None), "Metropolis", List(Author("Forfatter", "Bruce Wayne")))
-  val copyrighted = Copyright(License("copyrighted", "Copyrighted", None), "New York", List(Author("Forfatter", "Clark Kent")))
+  val byNcSa = Copyright("by-nc-sa", "Gotham City", List(Author("Forfatter", "DC Comics")))
+  val publicDomain = Copyright("publicdomain", "Metropolis", List(Author("Forfatter", "Bruce Wayne")))
+  val copyrighted = Copyright("copyrighted", "New York", List(Author("Forfatter", "Clark Kent")))
 
   val today = DateTime.now()
 

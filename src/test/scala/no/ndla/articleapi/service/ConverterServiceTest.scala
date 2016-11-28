@@ -12,7 +12,7 @@ package no.ndla.articleapi.service
 import java.util.Date
 
 import no.ndla.articleapi.{ArticleApiProperties, TestEnvironment, UnitSuite}
-import no.ndla.articleapi.integration.{ImageMetaInformation, LanguageContent}
+import no.ndla.articleapi.integration._
 import no.ndla.articleapi.model.domain._
 import no.ndla.articleapi.service.converters.TableConverter
 import no.ndla.articleapi.ArticleApiProperties.resourceHtmlEmbedTag
@@ -26,9 +26,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
 
   val service = new ConverterService
   val contentTitle = ArticleTitle("", Some(""))
-  val license = License("licence", "description", Some("http://"))
   val author = Author("forfatter", "Henrik")
-  val copyright = Copyright(license, "", List(author))
   val tag = ArticleTag(List("asdf"), Some("nb"))
   val visualElement = VisualElement("http://image-api/1", "image", Some("nb"))
   val requiredLibrary = RequiredLibrary("", "", "")
@@ -38,7 +36,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
   val sampleNode = NodeToConvert(List(contentTitle), Seq(), "by-sa", Seq(author), List(tag), Seq(visualElement), Seq(), "fagstoff", new Date(0), new Date(1))
 
   override def beforeEach = {
-    when(mappingApiClient.getLicenseDefinition("by-sa")).thenReturn(Some(License("by-sa", "Creative Commons Attribution-ShareAlike 2.0 Generic", None)))
+    when(mappingApiClient.getLicenseDefinition("by-sa")).thenReturn(Some(LicenseDefinition("by-sa", "Creative Commons Attribution-ShareAlike 2.0 Generic", None)))
   }
 
   test("That the document is wrapped in an article tag") {
@@ -170,7 +168,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     val newId = "1"
     val contentNode = LanguageContent(nodeId, nodeId, s"<article>$sampleContentString</article>", Some("en"))
     val node = sampleNode.copy(contents=List(contentNode))
-    val imageMeta = ImageMetaInformation(newId, List(), List(), imageUrl, 256, "", Copyright(License("", "", Some("")), "", List()), List())
+    val imageMeta = ImageMetaInformation(newId, List(), List(), imageUrl, 256, "", ImageCopyright(ImageLicense("", "", Some("")), "", List()), List())
     val expectedResult =
       s"""|<article>
           |<$resourceHtmlEmbedTag data-align="" data-alt="$sampleAlt" data-caption="" data-id="1" data-resource="image" data-size="fullbredde" data-url="http://localhost/images/$newId" />

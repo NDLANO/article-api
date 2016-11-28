@@ -11,7 +11,6 @@ package no.ndla.articleapi.integration
 
 import no.ndla.articleapi.ArticleApiProperties
 import no.ndla.articleapi.caching.Memoize
-import no.ndla.articleapi.model.domain.License
 import no.ndla.network.NdlaClient
 
 import scalaj.http.Http
@@ -25,8 +24,8 @@ trait MappingApiClient {
     private val allLanguageMappingsEndpoint = s"http://${ArticleApiProperties.MappingHost}/iso639"
     private val allLicenseDefinitionsEndpoint = s"http://${ArticleApiProperties.MappingHost}/licenses"
 
-    def getLicenseDefinition(licenseName: String): Option[License] = {
-      getLicenseDefinitions().find(_.license == licenseName).map(l => License(l.license, l.description, l.url))
+    def getLicenseDefinition(licenseName: String): Option[LicenseDefinition] = {
+      getLicenseDefinitions().find(_.license == licenseName).map(l => LicenseDefinition(l.license, l.description, l.url))
     }
 
     def get6391CodeFor6392Code(languageCode6392: String): Option[String] = getLanguageMapping().find(_._1 == languageCode6392).map(_._2)

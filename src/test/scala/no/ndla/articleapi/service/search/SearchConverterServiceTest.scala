@@ -18,7 +18,7 @@ class SearchConverterServiceTest extends UnitSuite with TestEnvironment {
 
   override val searchConverterService = new SearchConverterService
 
-  val byNcSa = Copyright(License("by-nc-sa", "Attribution-NonCommercial-ShareAlike", None), "Gotham City", List(Author("Forfatter", "DC Comics")))
+  val byNcSa = Copyright("by-nc-sa", "Gotham City", List(Author("Forfatter", "DC Comics")))
 
   val titles = List(
     ArticleTitle("Bokmål tittel", Some("nb")), ArticleTitle("Nynorsk tittel", Some("nn")),
@@ -76,7 +76,7 @@ class SearchConverterServiceTest extends UnitSuite with TestEnvironment {
     val articleSummary = searchConverterService.asArticleSummary(searchableArticle)
 
     articleSummary.id should equal (article.id.get)
-    articleSummary.license should equal (article.copyright.license.license)
+    articleSummary.license should equal (article.copyright.license)
     articleSummary.title should equal (article.title)
   }
 

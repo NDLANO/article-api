@@ -89,8 +89,7 @@ trait ConverterServiceComponent {
         nodeToConvert.contentType), ImportStatus(ingressImportStatus))
     }
 
-    private def toDomainCopyright(shortenedLicense: String, authors: Seq[Author]): Copyright = {
-      val license = mappingApiClient.getLicenseDefinition(shortenedLicense).get
+    private def toDomainCopyright(license: String, authors: Seq[Author]): Copyright = {
       val origin = authors.find(author => author.`type`.toLowerCase == "opphavsmann").map(_.name).getOrElse("")
       val authorsExcludingOrigin = authors.filterNot(x => x.name != origin && x.`type` == "opphavsmann")
       Copyright(license, origin, authorsExcludingOrigin)
@@ -135,7 +134,8 @@ trait ConverterServiceComponent {
       )
     }
 
-    def toApiLicense(license: domain.License): api.License = {
+    def toApiLicense(shortLicense: String): api.License = {
+      val license = mappingApiClient.getLicenseDefinition(shortLicense).get
       api.License(license.license, license.description, license.url)
     }
 
