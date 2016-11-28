@@ -139,7 +139,7 @@ case class MigrationContentFileMeta(nid: String, tnid: String, title: String, fi
   def asContentFilMeta: ContentFilMeta = ContentFilMeta(nid, tnid, title, fileName, new URL(url), mimeType, fileSize)
 }
 
-case class MigrationEmbedMeta(url: String, embedCode: Option[String])
+case class MigrationEmbedMeta(url: Option[String], embedCode: Option[String])
 
 case class MigrationPageTitle(title: String, `type`: String, language: Option[String])
 
