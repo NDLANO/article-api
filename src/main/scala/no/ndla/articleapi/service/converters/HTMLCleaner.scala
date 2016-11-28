@@ -4,7 +4,7 @@ import com.typesafe.scalalogging.LazyLogging
 import no.ndla.articleapi.ArticleApiProperties._
 import no.ndla.articleapi.integration.{ConverterModule, LanguageContent, LanguageIngress}
 import no.ndla.articleapi.model.domain.ImportStatus
-import org.jsoup.nodes.{Element, Node}
+import org.jsoup.nodes.{TextNode, Element, Node}
 
 import scala.collection.JavaConversions._
 
@@ -14,9 +14,12 @@ object HTMLCleaner extends ConverterModule with LazyLogging {
 
     val illegalTags = unwrapIllegalTags(element).map(x => s"Illegal tag(s) removed: $x").distinct
     val illegalAttributes = removeAttributes(element).map(x => s"Illegal attribute(s) removed: $x").distinct
+
     removeComments(element)
     removeNbsp(element)
     removeEmptyTags(element)
+
+    wrapStandaloneTextInPTag(element)
 
     val ingressLanguage = content.ingress match {
       case Some(ingress) => Some(LanguageIngress(extractIngressText(stringToJsoupDocument(ingress.content))))
@@ -102,6 +105,18 @@ object HTMLCleaner extends ConverterModule with LazyLogging {
     ingressTextElement.text()
   }
 
+  private def wrapStandaloneTextInPTag (element: Element) : Element = {
+    val sections = element.select("body>section")
+    sections.map(node => node.childNodes().map(child => {
+      if (child.nodeName() == "#text" && !child.asInstanceOf[TextNode].isBlank) {
+        child.wrap("<p>")
+      }
+      child
+    }))
+
+    element
+  }
+
   private object PermittedHTML {
     // MathML element reference list: https://developer.mozilla.org/en/docs/Web/MathML/Element
     private val mathJaxTags = Set("math", "maction", "maligngroup", "malignmark", "menclose", "merror", "mfenced", "mfrac", "mglyph", "mi",
@@ -118,7 +133,7 @@ object HTMLCleaner extends ConverterModule with LazyLogging {
       "th" -> Set("align", "valign"),
       resourceHtmlEmbedTag -> Set("data-resource", "data-id", "data-content-id", "data-link-text", "data-url",
         "data-size", "data-videoid", "data-account", "data-player", "data-key", "data-alt", "data-caption", "data-align",
-        "data-audio-id", "data-nrk-video-id")
+        "data-audio-id", "data-nrk-video-id", "data-message")
     )
   }
 

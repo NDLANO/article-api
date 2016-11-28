@@ -6,20 +6,15 @@
  *
  */
 
-
 package no.ndla.articleapi.service
 
 import java.util.Date
-
-import no.ndla.articleapi.TestEnvironment
+import no.ndla.articleapi.{TestEnvironment, UnitSuite}
 import no.ndla.articleapi.integration.{LanguageIngress, ImageMetaInformation, LanguageContent}
-import no.ndla.articleapi.UnitSuite
 import no.ndla.articleapi.model.domain._
 import no.ndla.articleapi.service.converters.TableConverter
 import no.ndla.articleapi.ArticleApiProperties.resourceHtmlEmbedTag
 import org.mockito.Mockito._
-import org.mockito.Matchers._
-
 import scala.util.Try
 
 class ConverterServiceTest extends UnitSuite with TestEnvironment {
@@ -231,6 +226,24 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     val (result, importStatus) = TableConverter.convert(initialContent, ImportStatus(Seq(), Seq()))
 
     result.content should equal(tableExpectedResult)
+  }
+
+  test("JoubelH5PConverter is used when ENABLE_JOUBEL_H5P_OEMBED is true") {
+    val h5pNodeId = "160303"
+    val contentStringWithValidNodeId = s"[contentbrowser ==nid=$h5pNodeId==imagecache=Fullbredde==width===alt=$sampleAlt==link===node_link=1==link_type=link_to_content==lightbox_size===remove_fields[76661]=1==remove_fields[76663]=1==remove_fields[76664]=1==remove_fields[76666]=1==insertion===link_title_text= ==link_text= ==text_align===css_class=contentbrowser contentbrowser]"
+    val expectedResult = s"""<$resourceHtmlEmbedTag data-id="1" data-resource="h5p" data-url="${JoubelH5PConverter.JoubelH5PBaseUrl}/1" />"""
+
+    val contentNodeBokmal = LanguageContent(nodeId, nodeId, contentStringWithValidNodeId, Some("nb"))
+    val node = NodeToConvert(List(contentTitle), List(contentNodeBokmal), copyright, List(tag), Seq(visualElement), "fagstoff", new Date(0), new Date(1))
+
+    when(extractService.getNodeType(h5pNodeId)).thenReturn(Some("h5p_content"))
+
+    val (result, status) = service.toDomainArticle(node, ImportStatus(Seq(), Seq()))
+    val strippedResult = " +".r.replaceAllIn(result.content.head.content.replace("\n", ""), " ")
+
+    strippedResult should equal (expectedResult)
+    status.messages.isEmpty should equal (true)
+    result.requiredLibraries.isEmpty should equal (true)
   }
 
 }
