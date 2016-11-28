@@ -30,7 +30,7 @@ trait ImageApiClient {
 
     def importImage(externId: String): Option[ImageMetaInformation] = {
       val second = 1000
-      val request: HttpRequest = Http(s"$imageApiImportImageURL".replace(":external_id", externId)).timeout(15 * second, 15 * second).postForm
+      val request: HttpRequest = Http(s"$imageApiImportImageURL".replace(":external_id", externId)).timeout(20 * second, 20 * second).postForm
       ndlaClient.fetch[ImageMetaInformation](request).toOption
     }
 
