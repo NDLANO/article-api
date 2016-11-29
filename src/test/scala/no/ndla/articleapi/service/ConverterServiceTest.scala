@@ -6,19 +6,16 @@
  *
  */
 
-
 package no.ndla.articleapi.service
 
 import java.util.Date
 
-import no.ndla.articleapi.{ArticleApiProperties, TestEnvironment, UnitSuite}
+import no.ndla.articleapi.{TestEnvironment, UnitSuite}
 import no.ndla.articleapi.integration._
 import no.ndla.articleapi.model.domain._
 import no.ndla.articleapi.service.converters.TableConverter
 import no.ndla.articleapi.ArticleApiProperties.resourceHtmlEmbedTag
-import no.ndla.articleapi.service.converters.contentbrowser.ContentBrowser
 import org.mockito.Mockito._
-import org.mockito.Matchers._
 
 import scala.util.Try
 
@@ -33,7 +30,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
   val nodeId = "1234"
   val sampleAlt = "Fotografi"
   val sampleContentString = s"[contentbrowser ==nid=${nodeId}==imagecache=Fullbredde==width===alt=$sampleAlt==link===node_link=1==link_type=link_to_content==lightbox_size===remove_fields[76661]=1==remove_fields[76663]=1==remove_fields[76664]=1==remove_fields[76666]=1==insertion===link_title_text= ==link_text= ==text_align===css_class=contentbrowser contentbrowser]"
-  val sampleNode = NodeToConvert(List(contentTitle), Seq(), "by-sa", Seq(author), List(tag), Seq(visualElement), Seq(), "fagstoff", new Date(0), new Date(1))
+  val sampleNode = NodeToConvert(List(contentTitle), Seq(), "by-sa", Seq(author), List(tag), Seq(visualElement), "fagstoff", new Date(0), new Date(1))
 
   override def beforeEach = {
     when(mappingApiClient.getLicenseDefinition("by-sa")).thenReturn(Some(LicenseDefinition("by-sa", "Creative Commons Attribution-ShareAlike 2.0 Generic", None)))
@@ -79,11 +76,11 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
 
   test("That the ingress is not added to the content") {
     val (nodeId, nodeId2) = ("1234", "4321")
-    val ingressNodeBokmal = NodeIngressFromSeparateDBTable("1", "1", "Hvem er sterkest?", None, 1, Some("nn"))
-    val contentNodeBokmal = LanguageContent(nodeId, nodeId, "Nordavinden og sola kranglet en gang om hvem av dem som var den sterkeste", Some("nb"))
+    val ingressNodeBokmal = LanguageIngress("Hvem er sterkest?")
+    val contentNodeBokmal = LanguageContent(nodeId, nodeId, "Nordavinden og sola kranglet en gang om hvem av dem som var den sterkeste", Some("nb"), ingress = Some(ingressNodeBokmal))
 
-    val ingressNodeNynorsk = NodeIngressFromSeparateDBTable("2", "2", "Kven er sterkast?", None, 1, Some("nn"))
-    val contentNodeNynorsk = LanguageContent(nodeId2, nodeId, "Nordavinden og sola krangla ein gong om kven av dei som var den sterkaste", Some("nn"))
+    val ingressNodeNynorsk = LanguageIngress("Kven er sterkast?")
+    val contentNodeNynorsk = LanguageContent(nodeId2, nodeId, "Nordavinden og sola krangla ein gong om kven av dei som var den sterkaste", Some("nn"), ingress = Some(ingressNodeNynorsk))
 
     val node = sampleNode.copy(contents=List(contentNodeBokmal, contentNodeNynorsk))
     val bokmalExpectedResult = "Nordavinden og sola kranglet en gang om hvem av dem som var den sterkeste"
@@ -109,12 +106,14 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     val expectedContentResult = ArticleContent(
       s"""<section>
          |<$resourceHtmlEmbedTag data-size="fullbredde" data-url="http://image-api/images/5359" data-align="" data-id="9" data-resource="image" data-alt="To personer" data-caption="capt." />
+         |<p><strong>Når man driver med medieproduksjon, er det mye arbeid som må gjøres<br /></strong></p>
          |</section>
          |<section> <p>Det som kan gi helse- og sikkerhetsproblemer på en dataarbeidsplass, er:</p></section>""".stripMargin.replace("\n", ""), None, Some("nb"))
-    val expectedIngressResult = ArticleIntroduction("Når man driver med medieproduksjon, er det mye arbeid som må gjøres", Some("nb"))
 
-    val ingressNodeBokmal = NodeIngressFromSeparateDBTable("1", "1", "Hvem er sterkest?", None, 0, Some("nb"))
-    val contentNodeBokmal = LanguageContent(nodeId, nodeId, content, Some("nb"))
+    val expectedIngressResult = ArticleIntroduction("Hvem er sterkest?", Some("nb"))
+
+    val ingressNodeBokmal = LanguageIngress("Hvem er sterkest?")
+    val contentNodeBokmal = LanguageContent(nodeId, nodeId, content, Some("nb"), ingress = Some(ingressNodeBokmal))
 
     val node = sampleNode.copy(contents=List(contentNodeBokmal))
     val (result, status) = service.toDomainArticle(node, ImportStatus(Seq(), Seq()))
@@ -126,7 +125,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
   }
 
   test("That html attributes are removed from the article") {
-    val contentNodeBokmal = LanguageContent(nodeId, nodeId, """<table class="testclass" title="test"></table>""", Some("nb"))
+    val contentNodeBokmal = LanguageContent(nodeId, nodeId, """<table class="testclass" title="test"></table>""", Some("nb"), ingress = None)
     val node = sampleNode.copy(contents=List(contentNodeBokmal))
     val bokmalExpectedResult = """<table title="test"></table>"""
 
@@ -139,7 +138,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
 
   test("That align attributes for td tags are not removed") {
     val htmlTableWithAlignAttributes = """<table><tbody><tr><td align="right" valign="top">Table row cell</td></tr></tbody></table>"""
-    val contentNodeBokmal = LanguageContent(nodeId, nodeId, htmlTableWithAlignAttributes, Some("nb"))
+    val contentNodeBokmal = LanguageContent(nodeId, nodeId, htmlTableWithAlignAttributes, Some("nb"), ingress = None)
     val node = sampleNode.copy(contents=List(contentNodeBokmal))
     val expectedResult = """<table><tbody><tr><th align="right" valign="top">Table row cell</th></tr></tbody></table>"""
 
@@ -151,7 +150,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
   }
 
   test("That html comments are removed") {
-    val contentNodeBokmal = LanguageContent(nodeId, nodeId, """<p><!-- this is a comment -->not a comment</p> <!-- another comment -->""", Some("nb"))
+    val contentNodeBokmal = LanguageContent(nodeId, nodeId, """<p><!-- this is a comment -->not a comment</p> <!-- another comment -->""", Some("nb"), ingress = None)
     val node = sampleNode.copy(contents=List(contentNodeBokmal))
     val expectedResult = """<p>not a comment</p>"""
 
@@ -166,7 +165,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
   test("That images are converted") {
     val (nodeId, imageUrl, alt) = ("1234", "full.jpeg", "Fotografi")
     val newId = "1"
-    val contentNode = LanguageContent(nodeId, nodeId, s"<article>$sampleContentString</article>", Some("en"))
+    val contentNode = LanguageContent(nodeId, nodeId, s"<article>$sampleContentString</article>", Some("en"), ingress = None)
     val node = sampleNode.copy(contents=List(contentNode))
     val imageMeta = ImageMetaInformation(newId, List(), List(), imageUrl, 256, "", ImageCopyright(ImageLicense("", "", Some("")), "", List()), List())
     val expectedResult =
@@ -183,7 +182,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
   }
 
   test("&nbsp is removed") {
-    val contentNodeBokmal = LanguageContent(nodeId, nodeId, """<article> <p>hello&nbsp; you</article>""", Some("nb"))
+    val contentNodeBokmal = LanguageContent(nodeId, nodeId, """<article> <p>hello&nbsp; you</article>""", Some("nb"), ingress = None)
     val node = sampleNode.copy(contents=List(contentNodeBokmal))
     val expectedResult = """<article> <p>hello you</p></article>"""
 
@@ -196,7 +195,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
   }
 
   test("That empty html tags are removed") {
-    val contentNodeBokmal = LanguageContent(nodeId, nodeId, s"""<article> <div></div><p><div></div></p><$resourceHtmlEmbedTag data-id="1"></$resourceHtmlEmbedTag></article>""", Some("nb"))
+    val contentNodeBokmal = LanguageContent(nodeId, nodeId, s"""<article> <div></div><p><div></div></p><$resourceHtmlEmbedTag data-id="1"></$resourceHtmlEmbedTag></article>""", Some("nb"), ingress = None)
     val node = sampleNode.copy(contents=List(contentNodeBokmal))
     val expectedResult = s"""<article> <$resourceHtmlEmbedTag data-id="1" /></article>"""
 

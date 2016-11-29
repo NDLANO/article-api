@@ -27,11 +27,10 @@ trait ConverterServiceComponent {
       val (convertedContent, converterStatus) = convert(nodeToConvert, maxConvertionRounds, importStatus.copy(visitedNodes = updatedVisitedNodes.distinct))
       val (postProcessed, postProcessStatus) = postProcess(convertedContent, converterStatus)
 
-      val (article, toArticleStatus) = toDomainArticle(postProcessed)
-      (article, postProcessStatus ++ toArticleStatus)
+      (toDomainArticle(postProcessed), postProcessStatus)
     }
 
-    @tailrec private def convert(nodeToConvert: NodeToConvert, maxRoundsLeft: Int, importStatus: ImportStatus): (NodeToConvert, ImportStatus) = {
+    @tailrec private def convert (nodeToConvert: NodeToConvert, maxRoundsLeft: Int, importStatus: ImportStatus): (NodeToConvert, ImportStatus) = {
       if (maxRoundsLeft == 0) {
         val message = "Maximum number of converter rounds reached; Some content might not be converted"
         logger.warn(message)
@@ -51,32 +50,13 @@ trait ConverterServiceComponent {
     private def postProcess(nodeToConvert: NodeToConvert, importStatus: ImportStatus): (NodeToConvert, ImportStatus) =
       executePostprocessorModules(nodeToConvert, importStatus)
 
-    private def toDomainArticleIngress(nodeIngress: NodeIngressFromSeparateDBTable): Option[(domain.ArticleIntroduction, ImportStatus)] = {
-      val newImageId = nodeIngress.imageNid.flatMap(imageApiClient.importOrGetMetaByExternId).map(_.id)
 
-      val importStatus = (nodeIngress.imageNid, newImageId) match {
-        case (Some(imageNid), None) => ImportStatus(s"Failed to import ingress image with external id $imageNid", Seq())
-        case _ => ImportStatus(Seq(), Seq())
-      }
-
-      ArticleIntroduction(nodeIngress.content, nodeIngress.language)
-
-      nodeIngress.ingressVisPaaSiden == 1 match {
-        case true => Some(ArticleIntroduction(nodeIngress.content, nodeIngress.language), importStatus)
-        case false => None
-      }
-    }
-
-    private def toDomainArticle(nodeToConvert: NodeToConvert): (domain.Article, ImportStatus) = {
+    private def toDomainArticle(nodeToConvert: NodeToConvert): (domain.Article) = {
       val requiredLibraries = nodeToConvert.contents.flatMap(_.requiredLibraries).distinct
-      val ingressesFromSeparateDatabaseTable = nodeToConvert.ingressesFromSeparateDBTable.flatMap(toDomainArticleIngress)
 
-      val (ingresses, ingressImportStatus) = ingressesFromSeparateDatabaseTable.isEmpty match {
-        case false => ingressesFromSeparateDatabaseTable.unzip
-        case true => (nodeToConvert.contents.flatMap(x => x.asArticleIntroduction), Seq())
-      }
+      val ingresses = nodeToConvert.contents.flatMap(content => content.asArticleIntroduction)
 
-      (domain.Article(None,
+      domain.Article(None,
         nodeToConvert.titles,
         nodeToConvert.contents.map(_.asContent),
         toDomainCopyright(nodeToConvert.license, nodeToConvert.authors),
@@ -86,7 +66,7 @@ trait ConverterServiceComponent {
         ingresses,
         nodeToConvert.created,
         nodeToConvert.updated,
-        nodeToConvert.contentType), ImportStatus(ingressImportStatus))
+        nodeToConvert.contentType)
     }
 
     private def toDomainCopyright(license: String, authors: Seq[Author]): Copyright = {
