@@ -21,7 +21,7 @@ import scala.util.Try
 import scalaj.http.Http
 
 trait MigrationApiClient {
-  this: NdlaClient with TagsService =>
+  this: NdlaClient with TagsService with MappingApiClient =>
 
   val migrationApiClient: MigrationApiClient
 
@@ -78,7 +78,8 @@ case class MigrationMainNodeImport(titles: Seq[MigrationContentTitle], ingresses
   def asNodeToConvert(nodeId: String, tags: List[ArticleTag]): NodeToConvert = NodeToConvert(
     titles.map(x => x.asContentTitle),
     asLanguageContents,
-    Copyright(License(license.getOrElse(""), "", None), "", authors.map(x => x.asAuthor)),
+    license.getOrElse(""),
+    authors.flatMap(x => x.asAuthor),
     tags,
     visualElements.map(_.asVisualElement),
     contentType.head.`type`,
@@ -101,8 +102,13 @@ case class MigrationNodeGeneralContent(nid: String, tnid: String, title: String,
   def asNodeGeneralContent: NodeGeneralContent = NodeGeneralContent(nid, tnid, title, content, language)
 }
 
-case class MigrationContentAuthor(`type`: String, name: String) {
-  def asAuthor = Author(`type`, name)
+case class MigrationContentAuthor(`type`: Option[String], name: Option[String]) {
+  def asAuthor: Option[Author] = {
+    (`type`, name) match {
+      case (None, None) => None
+      case (authorType, authorName) => Some(Author(authorType.getOrElse(""), authorName.getOrElse("")))
+    }
+  }
 }
 
 case class MigrationContentTitle(title: String, language: Option[String]) {

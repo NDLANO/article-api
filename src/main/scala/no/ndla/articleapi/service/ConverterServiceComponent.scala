@@ -11,14 +11,14 @@ package no.ndla.articleapi.service
 
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.articleapi.ArticleApiProperties.maxConvertionRounds
-import no.ndla.articleapi.integration.ImageApiClient
+import no.ndla.articleapi.integration.{ImageApiClient, MappingApiClient}
 import no.ndla.articleapi.model.domain._
 import no.ndla.articleapi.model.{api, domain}
 
 import scala.annotation.tailrec
 
 trait ConverterServiceComponent {
-  this: ConverterModules with ExtractConvertStoreContent with ImageApiClient =>
+  this: ConverterModules with ExtractConvertStoreContent with ImageApiClient with MappingApiClient =>
   val converterService: ConverterService
 
   class ConverterService extends LazyLogging {
@@ -59,7 +59,7 @@ trait ConverterServiceComponent {
       domain.Article(None,
         nodeToConvert.titles,
         nodeToConvert.contents.map(_.asContent),
-        nodeToConvert.copyright,
+        toDomainCopyright(nodeToConvert.license, nodeToConvert.authors),
         nodeToConvert.tags,
         requiredLibraries,
         nodeToConvert.visualElements,
@@ -67,6 +67,12 @@ trait ConverterServiceComponent {
         nodeToConvert.created,
         nodeToConvert.updated,
         nodeToConvert.contentType)
+    }
+
+    private def toDomainCopyright(license: String, authors: Seq[Author]): Copyright = {
+      val origin = authors.find(author => author.`type`.toLowerCase == "opphavsmann").map(_.name).getOrElse("")
+      val authorsExcludingOrigin = authors.filterNot(x => x.name != origin && x.`type` == "opphavsmann")
+      Copyright(license, origin, authorsExcludingOrigin)
     }
 
     def toApiArticle(article: domain.Article): api.Article = {
@@ -108,7 +114,8 @@ trait ConverterServiceComponent {
       )
     }
 
-    def toApiLicense(license: domain.License): api.License = {
+    def toApiLicense(shortLicense: String): api.License = {
+      val license = mappingApiClient.getLicenseDefinition(shortLicense).get
       api.License(license.license, license.description, license.url)
     }
 

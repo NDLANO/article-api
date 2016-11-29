@@ -9,7 +9,7 @@
 package no.ndla.articleapi.integration
 
 import no.ndla.articleapi.ArticleApiProperties
-import no.ndla.articleapi.model.domain.Copyright
+import no.ndla.articleapi.model.domain.{Author, Copyright}
 import no.ndla.network.NdlaClient
 
 import scalaj.http.{Http, HttpRequest}
@@ -44,7 +44,9 @@ trait ImageApiClient {
   }
 }
 
-case class ImageMetaInformation(id:String, titles:List[ImageTitle], alttexts:List[ImageAltText], imageUrl:String, size:Int, contentType:String, copyright:Copyright, tags:List[ImageTag])
+case class ImageMetaInformation(id:String, titles:List[ImageTitle], alttexts:List[ImageAltText], imageUrl:String, size:Int, contentType:String, copyright: ImageCopyright, tags:List[ImageTag])
+case class ImageCopyright(license: ImageLicense, origin: String, authors: Seq[Author])
+case class ImageLicense(license: String, description: String, url: Option[String])
 case class ImageTitle(title:String, language:Option[String])
 case class ImageAltText(alttext:String, language:Option[String])
 case class ImageTag(tags: Seq[String], language:Option[String])

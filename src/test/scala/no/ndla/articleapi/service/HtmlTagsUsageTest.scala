@@ -18,7 +18,7 @@ import org.mockito.Mockito._
 
 class HtmlTagsUsageTest extends UnitSuite with TestEnvironment {
   val embedUrl = "http://hello.yes.this.is.dog"
-  val copyright = Copyright(License("publicdomain", "", None), "", List())
+  val copyright = Copyright("publicdomain", "", List())
   val article1 = Article(Some(1), Seq(ArticleTitle("test", Some("en"))), Seq(ArticleContent("<article><div>test</div></article>", None, Some("en"))), copyright, Seq(), Seq(), Seq(), Seq(), new Date(0), new Date(1), "fagstoff")
   val article2 = Article(Some(2), Seq(ArticleTitle("test", Some("en"))), Seq(ArticleContent("<article><div>test</div><p>paragraph</p></article>", None, Some("en"))), copyright, Seq(), Seq(), Seq(), Seq(), new Date(0), new Date(1), "fagstoff")
   val article3 = Article(Some(3), Seq(ArticleTitle("test", Some("en"))), Seq(ArticleContent("<article><img></img></article>", None, Some("en"))), copyright, Seq(), Seq(), Seq(), Seq(), new Date(0), new Date(1), "fagstoff")
