@@ -9,7 +9,7 @@
 package no.ndla.articleapi.integration
 
 import no.ndla.articleapi.ArticleApiProperties
-import no.ndla.articleapi.model.domain.Copyright
+import no.ndla.articleapi.model.domain.{Author, Copyright}
 import no.ndla.network.NdlaClient
 
 import scalaj.http.{Http, HttpRequest}
@@ -30,7 +30,7 @@ trait ImageApiClient {
 
     def importImage(externId: String): Option[ImageMetaInformation] = {
       val second = 1000
-      val request: HttpRequest = Http(s"$imageApiImportImageURL".replace(":external_id", externId)).timeout(15 * second, 15 * second).postForm
+      val request: HttpRequest = Http(s"$imageApiImportImageURL".replace(":external_id", externId)).timeout(20 * second, 20 * second).postForm
       ndlaClient.fetch[ImageMetaInformation](request).toOption
     }
 
@@ -44,9 +44,10 @@ trait ImageApiClient {
   }
 }
 
-case class ImageMetaInformation(id:String, titles:List[ImageTitle], alttexts:List[ImageAltText], images:ImageVariants, copyright:Copyright, tags:List[ImageTag])
+case class ImageMetaInformation(id:String, titles:List[ImageTitle], alttexts:List[ImageAltText], imageUrl:String, size:Int, contentType:String, copyright: ImageCopyright, tags:List[ImageTag])
+case class ImageCopyright(license: ImageLicense, origin: String, authors: Seq[Author])
+case class ImageLicense(license: String, description: String, url: Option[String])
 case class ImageTitle(title:String, language:Option[String])
 case class ImageAltText(alttext:String, language:Option[String])
 case class ImageTag(tags: Seq[String], language:Option[String])
-case class ImageVariants(small: Option[Image], full: Option[Image])
-case class Image(url:String, size:Int, contentType:String)
+

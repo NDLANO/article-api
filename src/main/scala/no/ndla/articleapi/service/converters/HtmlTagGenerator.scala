@@ -18,6 +18,9 @@ object HtmlTagGenerator {
     (s"<$resourceHtmlEmbedTag ${buildAttributesString(attributesWithPrefix)} />", errorMessages)
   }
 
+  def buildErrorContent(message: String, id: String): (String, Seq[String]) =
+    buildEmbedContent(Map("resource" -> "error", "id" -> id, "message" -> message))
+
   def buildAnchor(href: String, anchorText: String, extraAttributes: Map[String, String] = Map()): (String, Seq[String]) = {
     val attributes = extraAttributes + ("href" -> href)
     val errorMessages = verifyAttributeKeys(attributes.keySet, "a")

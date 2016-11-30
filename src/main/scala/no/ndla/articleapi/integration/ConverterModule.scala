@@ -42,10 +42,8 @@ trait ConverterModule {
 
     val (convertedContent, contentImportStatus) = convertLoop(nodeToConvert.contents, Seq(), importStatus)
 
-    val (convertedIngress, finalImportStatus) = convertLoop(nodeToConvert.ingressesFromSeparateDBTable.map(_.asLanguageContent), Seq(), contentImportStatus)
-    val finalIngress = nodeToConvert.ingressesFromSeparateDBTable.map(x => x.copy(content=convertedIngress.find(_.nid == x.nid).get.content))
 
-    (nodeToConvert.copy(contents=convertedContent, ingressesFromSeparateDBTable=finalIngress), finalImportStatus)
+    (nodeToConvert.copy(contents=convertedContent), contentImportStatus)
   }
 }
 
@@ -57,7 +55,7 @@ case class LanguageContent(nid: String, tnid: String, content: String, language:
   def isTranslation = !isMainNode
 
   def asContent: ArticleContent = ArticleContent(content, footNotes, language)
-  def asArticleIntroduction: Option[ArticleIntroduction] = ingress.map(x => ArticleIntroduction(x.content.getOrElse(""), x.imageUrl, language))
+  def asArticleIntroduction: Option[ArticleIntroduction] = ingress.map(x => ArticleIntroduction(x.content, language))
 }
 
-case class LanguageIngress(content: Option[String], imageUrl: Option[String])
+case class LanguageIngress(content: String)

@@ -11,15 +11,15 @@ package no.ndla.articleapi.service.converters.contentbrowser
 
 import no.ndla.articleapi.ArticleApiProperties._
 import no.ndla.articleapi.TestEnvironment
-import no.ndla.articleapi.integration.{Image, ImageMetaInformation, ImageVariants, LanguageContent}
+import no.ndla.articleapi.integration.{ImageCopyright, ImageLicense, ImageMetaInformation, LanguageContent}
 import no.ndla.articleapi.UnitSuite
-import no.ndla.articleapi.model.domain.{ImportStatus, NodeGeneralContent, Copyright, License}
+import no.ndla.articleapi.model.domain.{Copyright, ImportStatus, NodeGeneralContent}
 import org.mockito.Mockito._
 
 class ContentBrowserConverterTest extends UnitSuite with TestEnvironment {
   val nodeId = "1234"
   val sampleAlt = "Fotografi"
-  val sampleContentString = s"[contentbrowser ==nid=${nodeId}==imagecache=Fullbredde==width===alt=$sampleAlt==link===node_link=1==link_type=link_to_content==lightbox_size===remove_fields[76661]=1==remove_fields[76663]=1==remove_fields[76664]=1==remove_fields[76666]=1==insertion=inline==link_title_text= ==link_text= ==text_align===css_class=contentbrowser contentbrowser]"
+  val sampleContentString = s"[contentbrowser ==nid=$nodeId==imagecache=Fullbredde==width===alt=$sampleAlt==link===node_link=1==link_type=link_to_content==lightbox_size===remove_fields[76661]=1==remove_fields[76663]=1==remove_fields[76664]=1==remove_fields[76666]=1==insertion=inline==link_title_text= ==link_text= ==text_align===css_class=contentbrowser contentbrowser]"
 
   test("That content-browser strings are replaced") {
     val initialContent = LanguageContent(nodeId, nodeId, s"<article><p>$sampleContentString</p></article>", Some("en"))
@@ -33,22 +33,23 @@ class ContentBrowserConverterTest extends UnitSuite with TestEnvironment {
   }
 
   test("That content-browser strings of type h5p_content are converted correctly") {
-    val nodeId = "1234"
+    val (validNodeId, joubelH5PIdId) = ValidH5PNodeIds.head
+    val sampleContentString = s"[contentbrowser ==nid=$validNodeId==imagecache=Fullbredde==width===alt=$sampleAlt==link===node_link=1==link_type=link_to_content==lightbox_size===remove_fields[76661]=1==remove_fields[76663]=1==remove_fields[76664]=1==remove_fields[76666]=1==insertion=inline==link_title_text= ==link_text= ==text_align===css_class=contentbrowser contentbrowser]"
     val initialContent = LanguageContent(nodeId, nodeId, s"<article>$sampleContentString</article>", Some("en"))
-    val expectedResult = s"""<article><$resourceHtmlEmbedTag data-id="1" data-resource="h5p" data-url="http://ndla.no/h5p/embed/$nodeId" /></article>"""
+    val expectedResult = s"""<article><$resourceHtmlEmbedTag data-id="1" data-resource="h5p" data-url="${JoubelH5PConverter.JoubelH5PBaseUrl}/$joubelH5PIdId" /></article>"""
 
-    when(extractService.getNodeType(nodeId)).thenReturn(Some("h5p_content"))
+    when(extractService.getNodeType(validNodeId)).thenReturn(Some("h5p_content"))
     val (result, status) = contentBrowserConverter.convert(initialContent, ImportStatus(Seq(), Seq()))
 
     result.content should equal (expectedResult)
-    result.requiredLibraries.length should equal (1)
+    result.requiredLibraries.length should equal (0)
   }
 
   test("That Content-browser strings of type image are converted into HTML img tags") {
     val (nodeId, imageUrl, alt) = ("1234", "full.jpeg", "Fotografi")
     val newId = "1"
     val initialContent = LanguageContent(nodeId, nodeId, s"<article>$sampleContentString</article>", Some("en"))
-    val imageMeta = ImageMetaInformation(newId, List(), List(), ImageVariants(Some(Image("small.jpeg", 128, "")), Some(Image(imageUrl, 256, ""))), Copyright(License("", "", Some("")), "", List()), List())
+    val imageMeta = ImageMetaInformation(newId, List(), List(), imageUrl, 256, "", ImageCopyright(ImageLicense("", "", Some("")), "", List()), List())
     val expectedResult =
       s"""|<article>
           |<$resourceHtmlEmbedTag data-align="" data-alt="$alt" data-caption="" data-id="1" data-resource="image" data-size="fullbredde" data-url="http://localhost/images/$newId" />
@@ -121,7 +122,7 @@ class ContentBrowserConverterTest extends UnitSuite with TestEnvironment {
 
   test("That Content-browser strings of type video are converted into HTML img tags") {
     val initialContent = LanguageContent(nodeId, nodeId, s"$sampleContentString", Some("en"))
-    val expectedResult = s"""<$resourceHtmlEmbedTag data-account="$NDLABrightcoveAccountId" data-id="1" data-player="$NDLABrightcovePlayerId" data-resource="brightcove" data-videoid="ref:$nodeId" />"""
+    val expectedResult = s"""<$resourceHtmlEmbedTag data-account="$NDLABrightcoveAccountId" data-caption="" data-id="1" data-player="$NDLABrightcovePlayerId" data-resource="brightcove" data-videoid="ref:$nodeId" />"""
     when(extractService.getNodeType(nodeId)).thenReturn(Some("video"))
     val (result, status) = contentBrowserConverter.convert(initialContent, ImportStatus(Seq(), Seq()))
     val strippedResult = " +".r.replaceAllIn(result.content.replace("\n", ""), " ")

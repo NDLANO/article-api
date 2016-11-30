@@ -4,7 +4,7 @@ import com.typesafe.scalalogging.LazyLogging
 import no.ndla.articleapi.ArticleApiProperties._
 import no.ndla.articleapi.integration.{ConverterModule, LanguageContent, LanguageIngress}
 import no.ndla.articleapi.model.domain.ImportStatus
-import org.jsoup.nodes.{Element, Node}
+import org.jsoup.nodes.{TextNode, Element, Node}
 
 import scala.collection.JavaConversions._
 
@@ -14,12 +14,19 @@ object HTMLCleaner extends ConverterModule with LazyLogging {
 
     val illegalTags = unwrapIllegalTags(element).map(x => s"Illegal tag(s) removed: $x").distinct
     val illegalAttributes = removeAttributes(element).map(x => s"Illegal attribute(s) removed: $x").distinct
+
     removeComments(element)
     removeNbsp(element)
     removeEmptyTags(element)
-    val ingress = extractIngress(element)
 
-    (content.copy(content=jsoupDocumentToString(element), ingress=ingress),
+    wrapStandaloneTextInPTag(element)
+
+    val ingressLanguage = content.ingress match {
+      case Some(ingress) => Some(LanguageIngress(extractIngressText(stringToJsoupDocument(ingress.content))))
+      case None => extractIngress(element)
+    }
+
+    (content.copy(content=jsoupDocumentToString(element), ingress=ingressLanguage),
       ImportStatus(importStatus.messages ++ illegalTags ++ illegalAttributes, importStatus.visitedNodes))
   }
 
@@ -86,38 +93,29 @@ object HTMLCleaner extends ConverterModule with LazyLogging {
     }
   }
 
-  private def getIngressImage(el: Element): Option[Element] = {
-    val firstSection = Option(el.select("body>section").first)
-    def getFirstElement(elementSelector: String): Option[Element] =
-      firstSection.flatMap(section => Option(section.select(elementSelector).first))
-
-    getFirstElement(s">$resourceHtmlEmbedTag[data-resource=image]") match {
-      case None => getFirstElement(s">p>$resourceHtmlEmbedTag[data-resource=image]")
-      case x => x
-    }
-  }
-
   private def extractIngress(el: Element): (Option[LanguageIngress]) = {
-    val ingressTextElement = getIngressText(el)
-    val ingressImageElement = getIngressImage(el)
-
-    val ingressText = ingressTextElement.flatMap(rs => {
-      rs.remove()
-      stringToOption(rs.text)
-    })
-    val ingressImageUrl = ingressImageElement.flatMap(rs => {
-      rs.remove()
-      stringToOption(rs.attr("data-url"))
-    })
+    val ingressText = getIngressText(el).map(ingress => extractIngressText(ingress))
 
     removeEmptyTags(el)
-    (ingressText, ingressImageUrl) match {
-      case (None, None) => None
-      case _ => Some(LanguageIngress(ingressText, ingressImageUrl))
-    }
+    ingressText.map(text => LanguageIngress(text))
   }
 
-  private def stringToOption(str: String): Option[String] = Option(str).filter(_.trim.nonEmpty)
+  private def extractIngressText(ingressTextElement: Element): String = {
+    ingressTextElement.remove()
+    ingressTextElement.text()
+  }
+
+  private def wrapStandaloneTextInPTag (element: Element) : Element = {
+    val sections = element.select("body>section")
+    sections.map(node => node.childNodes().map(child => {
+      if (child.nodeName() == "#text" && !child.asInstanceOf[TextNode].isBlank) {
+        child.wrap("<p>")
+      }
+      child
+    }))
+
+    element
+  }
 
   private object PermittedHTML {
     // MathML element reference list: https://developer.mozilla.org/en/docs/Web/MathML/Element
@@ -135,7 +133,7 @@ object HTMLCleaner extends ConverterModule with LazyLogging {
       "th" -> Set("align", "valign"),
       resourceHtmlEmbedTag -> Set("data-resource", "data-id", "data-content-id", "data-link-text", "data-url",
         "data-size", "data-videoid", "data-account", "data-player", "data-key", "data-alt", "data-caption", "data-align",
-        "data-audio-id", "data-nrk-video-id")
+        "data-audio-id", "data-nrk-video-id", "data-message")
     )
   }
 

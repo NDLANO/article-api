@@ -11,6 +11,7 @@ package no.ndla.articleapi.service.converters.contentbrowser
 
 import com.netaporter.uri.dsl._
 import com.typesafe.scalalogging.LazyLogging
+import no.ndla.articleapi.integration.MigrationEmbedMeta
 import no.ndla.articleapi.model.domain.{ImportStatus, RequiredLibrary}
 import no.ndla.articleapi.service.ExtractServiceComponent
 import no.ndla.articleapi.service.converters.HtmlTagGenerator
@@ -29,12 +30,21 @@ trait LenkeConverterModule {
     }
 
     def convertLink(cont: ContentBrowser): (String, Seq[RequiredLibrary], Seq[String]) = {
-      val url = extractService.getNodeEmbedUrl(cont.get("nid")).get
+      val embedMeta = extractService.getNodeEmbedMeta(cont.get("nid")) match {
+        case Some(meta) => meta
+        case _ => {
+          val message = s"Failed to import embed meta (${cont.get("nid")})"
+          logger.warn(message)
+          return ("", Seq(), message :: Nil)
+        }
+      }
+
+      val (url, embedCode) = (embedMeta.url.getOrElse(""), embedMeta.embedCode.getOrElse(""))
       val (htmlTag, requiredLibrary, errors) = cont.get("insertion") match {
         case "link" => insertAnchor(url, cont)
-        case "inline" => insertInline(url, cont)
+        case "inline" => insertInline(url, embedCode, cont)
         case "lightbox_large" => insertAnchor(url, cont)
-        case "collapsed_body" => insertDetailSummary(url, cont)
+        case "collapsed_body" => insertDetailSummary(url, embedCode, cont)
         case _ => insertUnhandled(url, cont)
       }
 
@@ -48,39 +58,39 @@ trait LenkeConverterModule {
       }
     }
 
-    private def insertInline(url: String, cont: ContentBrowser): (String, Option[RequiredLibrary], Seq[String]) = {
+    private def insertInline(url: String, embedCode: String, cont: ContentBrowser): (String, Option[RequiredLibrary], Seq[String]) = {
       val message = s"External resource to be embedded: $url"
       val attributes = Map("resource" -> "external", "id" -> s"${cont.id}", "url" -> url)
 
       logger.info(message)
-      val (extraAttributes, requiredLibs) = getExtraAttributes(url, cont)
+      val (extraAttributes, requiredLibs) = getExtraAttributes(url, embedCode, cont)
       val (figureTag, errors) = HtmlTagGenerator.buildEmbedContent(attributes ++ extraAttributes)
       (figureTag, requiredLibs, errors :+ message)
     }
 
-    private def getExtraAttributes(url: String, cont: ContentBrowser): (Map[String, String], Option[RequiredLibrary]) = {
+    private def getExtraAttributes(url: String, embedCode: String, cont: ContentBrowser): (Map[String, String], Option[RequiredLibrary]) = {
       val NRKUrlPattern = """(.*nrk.no)""".r
       url.host.getOrElse("") match {
-        case NRKUrlPattern(_) => extraNrkAttributes(cont.get("nid"))
+        case NRKUrlPattern(_) => extraNrkAttributes(embedCode)
         case _ => (Map(), None)
       }
     }
 
-    def extraNrkAttributes(nodeId: String): (Map[String, String], Option[RequiredLibrary]) = {
-      val doc = Jsoup.parseBodyFragment(extractService.getNodeEmbedCode(nodeId).get)
+    def extraNrkAttributes(embedCode: String): (Map[String, String], Option[RequiredLibrary]) = {
+      val doc = Jsoup.parseBodyFragment(embedCode)
       val (videoId, requiredLibrary) = (doc.select("div[data-nrk-id]").attr("data-nrk-id"), doc.select("script").attr("src"))
       (Map("nrk-video-id" -> videoId, "resource" -> "nrk"),
         Some(RequiredLibrary("text/javascript", "NRK video embed", requiredLibrary)))
     }
 
-    private def insertDetailSummary(url: String, cont: ContentBrowser): (String, Option[RequiredLibrary], Seq[String]) = {
-      val (embedFigure, requiredLib, figureErrors) = insertInline(url, cont)
-      (s"<details><summary>${cont.get("link_text")}</summary>$embedFigure</details>", requiredLib, figureErrors)
+    private def insertDetailSummary(url: String, embedCode: String, cont: ContentBrowser): (String, Option[RequiredLibrary], Seq[String]) = {
+      val (elementToInsert, requiredLib, figureErrors) = insertInline(url, embedCode, cont)
+      (s"<details><summary>${cont.get("link_text")}</summary>$elementToInsert</details>", requiredLib, figureErrors)
     }
 
     private def insertAnchor(url: String, cont: ContentBrowser): (String, Option[RequiredLibrary], Seq[String]) = {
       val (htmlTag, errors) = HtmlTagGenerator.buildAnchor(url, cont.get("link_text"), Map("title" -> cont.get("link_title_text")))
-      (htmlTag, None, errors)
+      (s" $htmlTag", None, errors)
     }
 
     private def insertUnhandled(url: String, cont: ContentBrowser): (String, Option[RequiredLibrary], Seq[String]) = {

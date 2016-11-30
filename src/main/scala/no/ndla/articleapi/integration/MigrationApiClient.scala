@@ -21,7 +21,7 @@ import scala.util.Try
 import scalaj.http.Http
 
 trait MigrationApiClient {
-  this: NdlaClient with TagsService =>
+  this: NdlaClient with TagsService with MappingApiClient =>
 
   val migrationApiClient: MigrationApiClient
 
@@ -78,10 +78,10 @@ case class MigrationMainNodeImport(titles: Seq[MigrationContentTitle], ingresses
   def asNodeToConvert(nodeId: String, tags: List[ArticleTag]): NodeToConvert = NodeToConvert(
     titles.map(x => x.asContentTitle),
     asLanguageContents,
-    Copyright(License(license.getOrElse(""), "", None), "", authors.map(x => x.asAuthor)),
+    license.getOrElse(""),
+    authors.flatMap(x => x.asAuthor),
     tags,
     visualElements.map(_.asVisualElement),
-    ingresses.map(_.asNodeIngress),
     contentType.head.`type`,
     contents.minBy(_.created).created,
     contents.maxBy(_.changed).changed)
@@ -92,7 +92,8 @@ case class MigrationMainNodeImport(titles: Seq[MigrationContentTitle], ingresses
         content.nid,
         content.tnid,
         content.content,
-        content.language)
+        content.language,
+        ingress = ingresses.find(ingress => ingress.language == content.language && ingress.ingressVisPaaSiden == 1).map(ingress => LanguageIngress(ingress.content.getOrElse(""))))
     })
   }
 }
@@ -101,17 +102,20 @@ case class MigrationNodeGeneralContent(nid: String, tnid: String, title: String,
   def asNodeGeneralContent: NodeGeneralContent = NodeGeneralContent(nid, tnid, title, content, language)
 }
 
-case class MigrationContentAuthor(`type`: String, name: String) {
-  def asAuthor = Author(`type`, name)
+case class MigrationContentAuthor(`type`: Option[String], name: Option[String]) {
+  def asAuthor: Option[Author] = {
+    (`type`, name) match {
+      case (None, None) => None
+      case (authorType, authorName) => Some(Author(authorType.getOrElse(""), authorName.getOrElse("")))
+    }
+  }
 }
 
 case class MigrationContentTitle(title: String, language: Option[String]) {
   def asContentTitle: ArticleTitle = ArticleTitle(title, language)
 }
 
-case class MigrationIngress(nid: String, content: String, imageNid: Option[String], ingressVisPaaSiden: Int, language: Option[String]) {
-  def asNodeIngress: NodeIngressFromSeparateDBTable = NodeIngressFromSeparateDBTable(nid, nid, content, imageNid, ingressVisPaaSiden, language)
-}
+case class MigrationIngress(nid: String, content: Option[String], imageNid: Option[String], ingressVisPaaSiden: Int, language: Option[String])
 
 case class MigrationContent(nid: String, tnid: String, content: String, language: Option[String], created: Date, changed: Date)
 
@@ -133,7 +137,7 @@ case class MigrationContentFileMeta(nid: String, tnid: String, title: String, fi
   def asContentFilMeta: ContentFilMeta = ContentFilMeta(nid, tnid, title, fileName, new URL(url), mimeType, fileSize)
 }
 
-case class MigrationEmbedMeta(url: String, embedCode: Option[String])
+case class MigrationEmbedMeta(url: Option[String], embedCode: Option[String])
 
 case class MigrationPageTitle(title: String, `type`: String, language: Option[String])
 

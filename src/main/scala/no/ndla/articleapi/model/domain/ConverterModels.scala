@@ -22,18 +22,12 @@ case class NodeGeneralContent(nid: String, tnid: String, title: String, content:
   def asContentTitle = ArticleTitle(title, Some(language))
 }
 
-case class NodeToConvert(titles: Seq[ArticleTitle], contents: Seq[LanguageContent], copyright: Copyright, tags: Seq[ArticleTag],
-                         visualElements: Seq[VisualElement], ingressesFromSeparateDBTable: Seq[NodeIngressFromSeparateDBTable],
-                         contentType: String, created: Date, updated: Date)
+case class NodeToConvert(titles: Seq[ArticleTitle], contents: Seq[LanguageContent], license: String, authors: Seq[Author], tags: Seq[ArticleTag],
+                         visualElements: Seq[VisualElement], contentType: String, created: Date, updated: Date)
 
 case class ContentFilMeta(nid: String, tnid: String, title: String, fileName: String, url: URL, mimeType: String, fileSize: String)
 object ContentFilMeta {
   implicit def stringToUrl(s: String): URL = new URL(s.uri)
-}
-
-case class NodeIngressFromSeparateDBTable(nid: String, tnid: String, content: String, imageNid: Option[String],
-                                          ingressVisPaaSiden: Int, language: Option[String]) {
-  def asLanguageContent: LanguageContent = LanguageContent(nid, tnid, content, language)
 }
 
 case class BiblioMeta(biblio: Biblio, authors: Seq[BiblioAuthor])

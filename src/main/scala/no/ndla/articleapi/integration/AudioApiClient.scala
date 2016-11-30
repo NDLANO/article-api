@@ -36,7 +36,8 @@ trait AudioApiClient {
     }
 
     def importAudio(externalId: String): Try[Long] = {
-      val request = Http(ImportAudioEndpoint.replace(":external_id", externalId)).postForm
+      val second = 1000
+      val request = Http(ImportAudioEndpoint.replace(":external_id", externalId)).timeout(20 * second, 20 * second).postForm
       ndlaClient.fetch[AudioApiMetaInformation](request).map(_.id)
     }
 

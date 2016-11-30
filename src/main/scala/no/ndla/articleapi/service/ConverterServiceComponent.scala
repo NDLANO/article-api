@@ -11,14 +11,14 @@ package no.ndla.articleapi.service
 
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.articleapi.ArticleApiProperties.maxConvertionRounds
-import no.ndla.articleapi.integration.ImageApiClient
+import no.ndla.articleapi.integration.{ImageApiClient, MappingApiClient}
 import no.ndla.articleapi.model.domain._
 import no.ndla.articleapi.model.{api, domain}
 
 import scala.annotation.tailrec
 
 trait ConverterServiceComponent {
-  this: ConverterModules with ExtractConvertStoreContent with ImageApiClient =>
+  this: ConverterModules with ExtractConvertStoreContent with ImageApiClient with MappingApiClient =>
   val converterService: ConverterService
 
   class ConverterService extends LazyLogging {
@@ -27,11 +27,10 @@ trait ConverterServiceComponent {
       val (convertedContent, converterStatus) = convert(nodeToConvert, maxConvertionRounds, importStatus.copy(visitedNodes = updatedVisitedNodes.distinct))
       val (postProcessed, postProcessStatus) = postProcess(convertedContent, converterStatus)
 
-      val (article, toArticleStatus) = toDomainArticle(postProcessed)
-      (article, postProcessStatus ++ toArticleStatus)
+      (toDomainArticle(postProcessed), postProcessStatus)
     }
 
-    @tailrec private def convert(nodeToConvert: NodeToConvert, maxRoundsLeft: Int, importStatus: ImportStatus): (NodeToConvert, ImportStatus) = {
+    @tailrec private def convert (nodeToConvert: NodeToConvert, maxRoundsLeft: Int, importStatus: ImportStatus): (NodeToConvert, ImportStatus) = {
       if (maxRoundsLeft == 0) {
         val message = "Maximum number of converter rounds reached; Some content might not be converted"
         logger.warn(message)
@@ -51,42 +50,29 @@ trait ConverterServiceComponent {
     private def postProcess(nodeToConvert: NodeToConvert, importStatus: ImportStatus): (NodeToConvert, ImportStatus) =
       executePostprocessorModules(nodeToConvert, importStatus)
 
-    private def toDomainArticleIngress(nodeIngress: NodeIngressFromSeparateDBTable): Option[(domain.ArticleIntroduction, ImportStatus)] = {
-      val newImageId = nodeIngress.imageNid.flatMap(imageApiClient.importOrGetMetaByExternId).map(_.id)
 
-      val importStatus = (nodeIngress.imageNid, newImageId) match {
-        case (Some(imageNid), None) => ImportStatus(s"Failed to import ingress image with external id $imageNid", Seq())
-        case _ => ImportStatus(Seq(), Seq())
-      }
-
-      ArticleIntroduction(nodeIngress.content, newImageId, nodeIngress.language)
-
-      nodeIngress.ingressVisPaaSiden == 1 match {
-        case true => Some(ArticleIntroduction(nodeIngress.content, newImageId, nodeIngress.language), importStatus)
-        case false => None
-      }
-    }
-
-    private def toDomainArticle(nodeToConvert: NodeToConvert): (domain.Article, ImportStatus) = {
+    private def toDomainArticle(nodeToConvert: NodeToConvert): (domain.Article) = {
       val requiredLibraries = nodeToConvert.contents.flatMap(_.requiredLibraries).distinct
-      val ingressesFromSeparateDatabaseTable = nodeToConvert.ingressesFromSeparateDBTable.flatMap(toDomainArticleIngress)
 
-      val (ingresses, ingressImportStatus) = ingressesFromSeparateDatabaseTable.isEmpty match {
-        case false => ingressesFromSeparateDatabaseTable.unzip
-        case true => (nodeToConvert.contents.flatMap(x => x.asArticleIntroduction), Seq())
-      }
+      val ingresses = nodeToConvert.contents.flatMap(content => content.asArticleIntroduction)
 
-      (domain.Article(None,
+      domain.Article(None,
         nodeToConvert.titles,
         nodeToConvert.contents.map(_.asContent),
-        nodeToConvert.copyright,
+        toDomainCopyright(nodeToConvert.license, nodeToConvert.authors),
         nodeToConvert.tags,
         requiredLibraries,
         nodeToConvert.visualElements,
         ingresses,
         nodeToConvert.created,
         nodeToConvert.updated,
-        nodeToConvert.contentType), ImportStatus(ingressImportStatus))
+        nodeToConvert.contentType)
+    }
+
+    private def toDomainCopyright(license: String, authors: Seq[Author]): Copyright = {
+      val origin = authors.find(author => author.`type`.toLowerCase == "opphavsmann").map(_.name).getOrElse("")
+      val authorsExcludingOrigin = authors.filterNot(x => x.name != origin && x.`type` == "opphavsmann")
+      Copyright(license, origin, authorsExcludingOrigin)
     }
 
     def toApiArticle(article: domain.Article): api.Article = {
@@ -128,7 +114,8 @@ trait ConverterServiceComponent {
       )
     }
 
-    def toApiLicense(license: domain.License): api.License = {
+    def toApiLicense(shortLicense: String): api.License = {
+      val license = mappingApiClient.getLicenseDefinition(shortLicense).get
       api.License(license.license, license.description, license.url)
     }
 
@@ -149,7 +136,7 @@ trait ConverterServiceComponent {
     }
 
     def toApiArticleIntroduction(intro: domain.ArticleIntroduction): api.ArticleIntroduction = {
-      api.ArticleIntroduction(intro.introduction, intro.image, intro.language)
+      api.ArticleIntroduction(intro.introduction, intro.language)
     }
 
   }

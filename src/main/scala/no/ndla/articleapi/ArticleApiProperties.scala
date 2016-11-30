@@ -23,6 +23,8 @@ object ArticleApiProperties extends LazyLogging {
   val ContactEmail = "christergundersen@ndla.no"
   val Environment = propOrElse("NDLA_ENVIRONMENT", "local")
 
+  val EnableJoubelH5POembed = booleanProp("ENABLE_JOUBEL_H5P_OEMBED")
+
   val MetaUserName = prop(PropertyKeys.MetaUserNameKey)
   val MetaPassword = prop(PropertyKeys.MetaPasswordKey)
   val MetaResource = prop(PropertyKeys.MetaResourceKey)
@@ -76,6 +78,8 @@ object ArticleApiProperties extends LazyLogging {
      case Success(values) => values
      case Failure(exception) => throw new RuntimeException(s"Unable to load remote secrets from $SecretsFile", exception)
    }
+
+  def booleanProp(key: String) = prop(key).toBoolean
 
   def prop(key: String): String = {
     propOrElse(key, throw new RuntimeException(s"Unable to load property $key"))
