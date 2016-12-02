@@ -28,7 +28,7 @@ class SearchServiceTest extends UnitSuite with TestEnvironment {
   override val jestClient = JestClientFactory.getClient(searchServer = s"http://localhost:$esHttpPort")
 
   override val searchService = new SearchService
-  override val elasticContentIndex = new ElasticContentIndex
+  override val elasticContentIndex = new IndexService
   override val searchConverterService = new SearchConverterService
 
   val byNcSa = Copyright("by-nc-sa", "Gotham City", List(Author("Forfatter", "DC Comics")))

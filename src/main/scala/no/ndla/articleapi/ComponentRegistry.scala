@@ -15,32 +15,32 @@ import com.amazonaws.services.s3.AmazonS3Client
 import io.searchbox.client.JestClient
 import no.ndla.articleapi.controller.{ArticleController, HealthController, InternController}
 import no.ndla.articleapi.integration._
-import no.ndla.articleapi.repository.ArticleRepositoryComponent
+import no.ndla.articleapi.repository.ArticleRepository
 import no.ndla.articleapi.service._
 import no.ndla.articleapi.service.converters._
 import no.ndla.articleapi.service.converters.contentbrowser._
-import no.ndla.articleapi.service.search.{ElasticContentIndexComponent, SearchConverterService, SearchIndexServiceComponent, SearchService}
+import no.ndla.articleapi.service.search.{IndexService, SearchConverterService, SearchIndexService, SearchService}
 import no.ndla.network.NdlaClient
 import org.postgresql.ds.PGPoolingDataSource
 
 object ComponentRegistry
-  extends DataSourceComponent
+  extends DataSource
   with InternController
   with ArticleController
   with HealthController
-  with ArticleRepositoryComponent
-  with ElasticClientComponent
+  with ArticleRepository
+  with ElasticClient
   with SearchService
-  with ElasticContentIndexComponent
-  with SearchIndexServiceComponent
-  with ExtractServiceComponent
+  with IndexService
+  with SearchIndexService
+  with ExtractService
   with ConverterModules
-  with ConverterServiceComponent
+  with ConverterService
   with ContentBrowserConverterModules
   with ContentBrowserConverter
   with BiblioConverterModule
   with BiblioConverter
-  with AmazonClientComponent
+  with AmazonClient
   with StorageService
   with ArticleContentInformation
   with ExtractConvertStoreContent
@@ -71,7 +71,7 @@ object ComponentRegistry
 
   lazy val articleRepository = new ArticleRepository
   lazy val searchService = new SearchService
-  lazy val elasticContentIndex = new ElasticContentIndex
+  lazy val elasticContentIndex = new IndexService
   lazy val searchIndexService = new SearchIndexService
 
   val amazonClient = new AmazonS3Client(new BasicAWSCredentials(ArticleApiProperties.StorageAccessKey, ArticleApiProperties.StorageSecretKey))

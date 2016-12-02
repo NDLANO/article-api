@@ -11,14 +11,14 @@ package no.ndla.articleapi.repository
 
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.articleapi.ArticleApiProperties
-import no.ndla.articleapi.integration.DataSourceComponent
+import no.ndla.articleapi.integration.DataSource
 import no.ndla.articleapi.model.domain.Article
 import org.postgresql.util.PGobject
 import scalikejdbc.{ConnectionPool, DB, DataSourceConnectionPool, _}
 import org.json4s.native.Serialization.write
 
-trait ArticleRepositoryComponent {
-  this: DataSourceComponent =>
+trait ArticleRepository {
+  this: DataSource =>
   val articleRepository: ArticleRepository
 
   class ArticleRepository extends LazyLogging {

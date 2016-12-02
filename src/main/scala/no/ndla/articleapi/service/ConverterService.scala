@@ -17,7 +17,7 @@ import no.ndla.articleapi.model.{api, domain}
 
 import scala.annotation.tailrec
 
-trait ConverterServiceComponent {
+trait ConverterService {
   this: ConverterModules with ExtractConvertStoreContent with ImageApiClient with MappingApiClient =>
   val converterService: ConverterService
 

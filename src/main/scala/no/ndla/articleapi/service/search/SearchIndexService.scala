@@ -12,7 +12,7 @@ package no.ndla.articleapi.service.search
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.articleapi.ComponentRegistry
 
-trait SearchIndexServiceComponent {
+trait SearchIndexService {
   val searchIndexService: SearchIndexService
 
   class SearchIndexService extends LazyLogging {

@@ -21,18 +21,20 @@ import io.searchbox.indices.aliases.{AddAliasMapping, GetAliases, ModifyAliases,
 import io.searchbox.indices.mapping.PutMapping
 import io.searchbox.indices.{CreateIndex, DeleteIndex, IndicesExists}
 import no.ndla.articleapi.ArticleApiProperties
-import no.ndla.articleapi.integration.ElasticClientComponent
+import no.ndla.articleapi.integration.ElasticClient
 import no.ndla.articleapi.model.domain.Article
 import no.ndla.articleapi.model.domain.Language.languageAnalyzers
 import no.ndla.articleapi.model.search.SearchableLanguageFormats
 import org.elasticsearch.ElasticsearchException
 import org.json4s.native.Serialization.write
 
-trait ElasticContentIndexComponent {
-  this: ElasticClientComponent with SearchConverterService =>
-  val elasticContentIndex: ElasticContentIndex
+import scala.util.{Failure, Success, Try}
 
-  class ElasticContentIndex extends LazyLogging {
+trait IndexService {
+  this: ElasticClient with SearchConverterService =>
+  val elasticContentIndex: IndexService
+
+  class IndexService extends LazyLogging {
 
     def indexDocuments(articleData: List[Article], indexName: String): Int = {
       implicit val formats = SearchableLanguageFormats.JSonFormats

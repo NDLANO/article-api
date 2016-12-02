@@ -13,12 +13,12 @@ import com.typesafe.scalalogging.LazyLogging
 import no.ndla.articleapi.integration.MigrationApiClient
 import no.ndla.articleapi.model.api.NodeNotFoundException
 import no.ndla.articleapi.model.domain.{Article, ImportStatus, NodeToConvert}
-import no.ndla.articleapi.repository.ArticleRepositoryComponent
+import no.ndla.articleapi.repository.ArticleRepository
 
 import scala.util.{Failure, Success, Try}
 
 trait ExtractConvertStoreContent {
-  this: ExtractServiceComponent with MigrationApiClient with ConverterServiceComponent with ArticleRepositoryComponent =>
+  this: ExtractService with MigrationApiClient with ConverterService with ArticleRepository =>
 
   val extractConvertStoreContent: ExtractConvertStoreContent
 

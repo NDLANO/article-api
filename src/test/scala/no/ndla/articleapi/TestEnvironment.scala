@@ -9,41 +9,39 @@
 
 package no.ndla.articleapi
 
-import javax.sql.DataSource
-
 import com.amazonaws.services.s3.AmazonS3Client
 import io.searchbox.client.JestClient
 import no.ndla.articleapi.controller.{ArticleController, HealthController, InternController}
 import no.ndla.articleapi.integration._
-import no.ndla.articleapi.repository.ArticleRepositoryComponent
+import no.ndla.articleapi.repository.ArticleRepository
 import no.ndla.articleapi.service._
 import no.ndla.articleapi.service.converters.contentbrowser._
 import no.ndla.articleapi.service.converters._
-import no.ndla.articleapi.service.search.{ElasticContentIndexComponent, SearchConverterService, SearchIndexServiceComponent, SearchService}
+import no.ndla.articleapi.service.search.{IndexService, SearchConverterService, SearchIndexService, SearchService}
 import no.ndla.network.NdlaClient
 import org.scalatest.mock.MockitoSugar
 
 
 trait TestEnvironment
-  extends ElasticClientComponent
+  extends ElasticClient
   with SearchService
-  with ElasticContentIndexComponent
-  with SearchIndexServiceComponent
+  with IndexService
+  with SearchIndexService
   with ArticleController
   with InternController
   with HealthController
-  with DataSourceComponent
-  with ArticleRepositoryComponent
+  with DataSource
+  with ArticleRepository
   with MockitoSugar
   with MigrationApiClient
-  with ExtractServiceComponent
+  with ExtractService
   with ConverterModules
-  with ConverterServiceComponent
+  with ConverterService
   with ContentBrowserConverterModules
   with ContentBrowserConverter
   with BiblioConverterModule
   with BiblioConverter
-  with AmazonClientComponent
+  with AmazonClient
   with StorageService
   with ArticleContentInformation
   with ExtractConvertStoreContent
@@ -55,14 +53,14 @@ trait TestEnvironment
 {
 
   val searchService = mock[SearchService]
-  val elasticContentIndex = mock[ElasticContentIndex]
+  val elasticContentIndex = mock[IndexService]
   val searchIndexService = mock[SearchIndexService]
 
   val internController = mock[InternController]
   val articleController = mock[ArticleController]
   val healthController = mock[HealthController]
 
-  val dataSource = mock[DataSource]
+  val dataSource = mock[javax.sql.DataSource]
   val articleRepository = mock[ArticleRepository]
   val amazonClient = mock[AmazonS3Client]
   val storageName = "testStorageName"
