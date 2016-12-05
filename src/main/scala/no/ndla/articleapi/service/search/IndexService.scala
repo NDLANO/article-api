@@ -32,9 +32,21 @@ import scala.util.{Failure, Success, Try}
 
 trait IndexService {
   this: ElasticClient with SearchConverterService =>
-  val elasticContentIndex: IndexService
+  val indexService: IndexService
 
   class IndexService extends LazyLogging {
+    implicit val formats = SearchableLanguageFormats.JSonFormats
+
+    def indexDocument(article: Article) = {
+      Try {
+        val source = write(searchConverterService.asSearchableArticle(article))
+        val indexRequest = new Index.Builder(source).index(ArticleApiProperties.SearchIndex).`type`(ArticleApiProperties.SearchDocument).id(article.id.get.toString).build
+        val result = jestClient.execute(indexRequest)
+        if (!result.isSucceeded) {
+          logger.warn(s"Received error = ${result.getErrorMessage}")
+        }
+      }
+    }
 
     def indexDocuments(articleData: List[Article], indexName: String): Int = {
       implicit val formats = SearchableLanguageFormats.JSonFormats

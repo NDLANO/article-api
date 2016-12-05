@@ -71,7 +71,7 @@ object ComponentRegistry
 
   lazy val articleRepository = new ArticleRepository
   lazy val searchService = new SearchService
-  lazy val elasticContentIndex = new IndexService
+  lazy val indexService = new IndexService
   lazy val searchIndexService = new SearchIndexService
 
   val amazonClient = new AmazonS3Client(new BasicAWSCredentials(ArticleApiProperties.StorageAccessKey, ArticleApiProperties.StorageSecretKey))

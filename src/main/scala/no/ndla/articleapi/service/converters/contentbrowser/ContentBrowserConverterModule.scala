@@ -13,6 +13,7 @@ import no.ndla.articleapi.integration._
 import no.ndla.articleapi.model.domain.{ImportStatus, RequiredLibrary}
 import no.ndla.articleapi.repository.ArticleRepository
 import no.ndla.articleapi.service._
+import no.ndla.articleapi.service.search.{IndexService, SearchConverterService}
 import no.ndla.network.NdlaClient
 
 
@@ -30,6 +31,9 @@ trait ContentBrowserConverterModules
   with DataSource
   with ArticleRepository
   with ExtractConvertStoreContent
+  with IndexService
+  with ElasticClient
+  with SearchConverterService
   with ImageConverterModule
   with ImageApiClient
   with LenkeConverterModule

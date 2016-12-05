@@ -53,7 +53,7 @@ trait TestEnvironment
 {
 
   val searchService = mock[SearchService]
-  val elasticContentIndex = mock[IndexService]
+  val indexService = mock[IndexService]
   val searchIndexService = mock[SearchIndexService]
 
   val internController = mock[InternController]

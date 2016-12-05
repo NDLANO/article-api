@@ -14,11 +14,12 @@ import no.ndla.articleapi.integration.MigrationApiClient
 import no.ndla.articleapi.model.api.NodeNotFoundException
 import no.ndla.articleapi.model.domain.{Article, ImportStatus, NodeToConvert}
 import no.ndla.articleapi.repository.ArticleRepository
+import no.ndla.articleapi.service.search.IndexService
 
 import scala.util.{Failure, Success, Try}
 
 trait ExtractConvertStoreContent {
-  this: ExtractService with MigrationApiClient with ConverterService with ArticleRepository =>
+  this: ExtractService with MigrationApiClient with ConverterService with ArticleRepository with IndexService =>
 
   val extractConvertStoreContent: ExtractConvertStoreContent
 
@@ -33,7 +34,8 @@ trait ExtractConvertStoreContent {
       extract(externalId) map { case (node, mainNodeId) =>
         val (convertedNode, updatedImportStatus) = convert(node, importStatus)
         val newId = store(convertedNode, mainNodeId)
-        (newId, updatedImportStatus ++ ImportStatus(Seq(s"Successfully imported node $externalId: $newId")))
+        val indexErrors = indexArticle(convertedNode.copy(id=Some(newId)))
+        (newId, updatedImportStatus ++ ImportStatus(Seq(s"Successfully imported node $externalId: $newId") ++ indexErrors))
       }
     }
 
@@ -53,6 +55,13 @@ trait ExtractConvertStoreContent {
       articleRepository.exists(mainNodeNid) match {
         case true => articleRepository.update(article, mainNodeNid)
         case false => articleRepository.insert(article, mainNodeNid, subjectIds)
+      }
+    }
+
+    private def indexArticle(article: Article): Seq[String] = {
+      indexService.indexDocument(article) match {
+        case Failure(_) => Seq(s"Failed to add article with id ${article.id} to search index")
+        case Success(_) => Seq()
       }
     }
 

@@ -28,7 +28,7 @@ class SearchServiceTest extends UnitSuite with TestEnvironment {
   override val jestClient = JestClientFactory.getClient(searchServer = s"http://localhost:$esHttpPort")
 
   override val searchService = new SearchService
-  override val elasticContentIndex = new IndexService
+  override val indexService = new IndexService
   override val searchConverterService = new SearchConverterService
 
   val byNcSa = Copyright("by-nc-sa", "Gotham City", List(Author("Forfatter", "DC Comics")))
@@ -55,9 +55,9 @@ class SearchServiceTest extends UnitSuite with TestEnvironment {
     esNode.start()
 
 
-    val indexName = elasticContentIndex.createIndex()
-    elasticContentIndex.updateAliasTarget(None, indexName)
-    elasticContentIndex.indexDocuments(List(article1, article2, article3, article4), indexName)
+    val indexName = indexService.createIndex()
+    indexService.updateAliasTarget(None, indexName)
+    indexService.indexDocuments(List(article1, article2, article3, article4), indexName)
 
     blockUntil(() => searchService.countDocuments() == 4)
   }
