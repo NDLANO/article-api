@@ -29,41 +29,41 @@ import org.elasticsearch.ElasticsearchException
 import org.json4s.native.Serialization.write
 
 import scala.util.{Failure, Success, Try}
+import io.searchbox.action.Action
+import io.searchbox.client.JestResult
 
 trait IndexService {
   this: ElasticClient with SearchConverterService =>
   val indexService: IndexService
 
   class IndexService extends LazyLogging {
-    implicit val formats = SearchableLanguageFormats.JSonFormats
 
-    def indexDocument(article: Article) = {
-      Try {
-        val source = write(searchConverterService.asSearchableArticle(article))
-        val indexRequest = new Index.Builder(source).index(ArticleApiProperties.SearchIndex).`type`(ArticleApiProperties.SearchDocument).id(article.id.get.toString).build
-        val result = jestClient.execute(indexRequest)
-        if (!result.isSucceeded) {
-          logger.warn(s"Received error = ${result.getErrorMessage}")
-        }
+    private def createIndexRequest(article: Article, indexName: String) = {
+      implicit val formats = SearchableLanguageFormats.JSonFormats
+      val source= write(searchConverterService.asSearchableArticle(article))
+      new Index.Builder(source).index(indexName).`type`(ArticleApiProperties.SearchDocument).id(article.id.get.toString).build
+    }
+
+    private def executeIndexRequest[T <: JestResult](indexRequest: Action[T]) = {
+      Try(jestClient.execute(indexRequest)) match {
+        case Success(response) =>
+          if (!response.isSucceeded)
+            throw new ElasticsearchException(s"Unable to index article(s) to ${ArticleApiProperties.SearchIndex}. ErrorMessage: {}", response.getErrorMessage)
+        case Failure(f) =>
+          throw new ElasticsearchException(s"Failed to execute index request. Try recreating the index. The error was ${f.getMessage}")
       }
     }
 
-    def indexDocuments(articleData: List[Article], indexName: String): Int = {
-      implicit val formats = SearchableLanguageFormats.JSonFormats
-      val searchableArticles = articleData.map(searchConverterService.asSearchableArticle)
+    def indexDocument(article: Article): Unit =
+      executeIndexRequest(createIndexRequest(article, ArticleApiProperties.SearchIndex))
 
+    def indexDocuments(articles: List[Article], indexName: String): Int = {
       val bulkBuilder = new Bulk.Builder()
-      searchableArticles.foreach(imageMeta => {
-        val source = write(imageMeta)
-        bulkBuilder.addAction(new Index.Builder(source).index(indexName).`type`(ArticleApiProperties.SearchDocument).id(imageMeta.id.toString).build)
-      })
+      articles.foreach(article => bulkBuilder.addAction(createIndexRequest(article, indexName)))
+      executeIndexRequest(bulkBuilder.build())
 
-      val response = jestClient.execute(bulkBuilder.build())
-      if (!response.isSucceeded) {
-        throw new ElasticsearchException(s"Unable to index documents to ${ArticleApiProperties.SearchIndex}. ErrorMessage: {}", response.getErrorMessage)
-      }
-      logger.info(s"Indexed ${searchableArticles.size} documents")
-      searchableArticles.size
+      logger.info(s"Indexed ${articles.size} documents")
+      articles.size
     }
 
     def createIndex(): String = {

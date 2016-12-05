@@ -57,7 +57,9 @@ class SearchServiceTest extends UnitSuite with TestEnvironment {
 
     val indexName = indexService.createIndex()
     indexService.updateAliasTarget(None, indexName)
-    indexService.indexDocuments(List(article1, article2, article3, article4), indexName)
+    indexService.indexDocuments(List(article1, article2), indexName)
+    indexService.indexDocument(article3)
+    indexService.indexDocument(article4)
 
     blockUntil(() => searchService.countDocuments() == 4)
   }

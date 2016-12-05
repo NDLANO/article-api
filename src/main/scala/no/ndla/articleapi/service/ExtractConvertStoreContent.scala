@@ -59,8 +59,8 @@ trait ExtractConvertStoreContent {
     }
 
     private def indexArticle(article: Article): Seq[String] = {
-      indexService.indexDocument(article) match {
-        case Failure(_) => Seq(s"Failed to add article with id ${article.id} to search index")
+      Try(indexService.indexDocument(article)) match {
+        case Failure(f) => Seq(s"Failed to index article with id ${article.id}: ${f.getMessage}")
         case Success(_) => Seq()
       }
     }
