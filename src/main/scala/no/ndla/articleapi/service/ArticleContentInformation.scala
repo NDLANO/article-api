@@ -10,7 +10,7 @@
 package no.ndla.articleapi.service
 
 import no.ndla.articleapi.model.domain.Article
-import no.ndla.articleapi.repository.ArticleRepositoryComponent
+import no.ndla.articleapi.repository.ArticleRepository
 import no.ndla.articleapi.ArticleApiProperties.resourceHtmlEmbedTag
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Element
@@ -18,7 +18,7 @@ import scala.collection.JavaConversions._
 import scala.annotation.tailrec
 
 trait ArticleContentInformation {
-  this: ArticleRepositoryComponent =>
+  this: ArticleRepository =>
 
   object ArticleContentInformation {
     def getHtmlTagsMap: Map[String, Seq[Long]] = {

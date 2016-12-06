@@ -10,11 +10,11 @@ package no.ndla.articleapi.service.converters.contentbrowser
 
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.articleapi.model.domain.{ImportStatus, RequiredLibrary}
-import no.ndla.articleapi.repository.ArticleRepositoryComponent
-import no.ndla.articleapi.service.{ExtractConvertStoreContent, ExtractServiceComponent}
+import no.ndla.articleapi.repository.ArticleRepository
+import no.ndla.articleapi.service.{ExtractConvertStoreContent, ExtractService}
 
 trait BiblioConverterModule {
-  this: ExtractServiceComponent with ExtractConvertStoreContent with ArticleRepositoryComponent =>
+  this: ExtractService with ExtractConvertStoreContent with ArticleRepository =>
 
   object BiblioConverter extends ContentBrowserConverterModule with LazyLogging {
     override val typeName: String = "biblio"

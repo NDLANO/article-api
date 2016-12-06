@@ -10,36 +10,33 @@
 package no.ndla.articleapi.service.search
 
 import com.typesafe.scalalogging.LazyLogging
-import no.ndla.articleapi.ComponentRegistry
+import no.ndla.articleapi.repository.ArticleRepository
 
-trait SearchIndexServiceComponent {
+trait SearchIndexService {
+  this: ArticleRepository with IndexService =>
   val searchIndexService: SearchIndexService
 
   class SearchIndexService extends LazyLogging {
-
-    val contentData = ComponentRegistry.articleRepository
-    val contentIndex = ComponentRegistry.elasticContentIndex
-
     def indexDocuments() = {
       synchronized {
         val start = System.currentTimeMillis
 
-        val newIndexName = contentIndex.createIndex()
-        val oldIndexName = contentIndex.aliasTarget
+        val newIndexName = indexService.createIndex()
+        val oldIndexName = indexService.aliasTarget
 
         oldIndexName match {
-          case None => contentIndex.updateAliasTarget(oldIndexName, newIndexName)
+          case None => indexService.updateAliasTarget(oldIndexName, newIndexName)
           case Some(_) =>
         }
 
         var numIndexed = 0
-        contentData.applyToAll(docs => {
-          numIndexed += contentIndex.indexDocuments(docs, newIndexName)
+        articleRepository.applyToAll(docs => {
+          numIndexed += indexService.indexDocuments(docs, newIndexName)
         })
 
         oldIndexName.foreach(indexName => {
-          contentIndex.updateAliasTarget(oldIndexName, newIndexName)
-          contentIndex.delete(indexName)
+          indexService.updateAliasTarget(oldIndexName, newIndexName)
+          indexService.delete(indexName)
         })
 
         val result = s"Completed indexing of $numIndexed documents in ${System.currentTimeMillis() - start} ms."

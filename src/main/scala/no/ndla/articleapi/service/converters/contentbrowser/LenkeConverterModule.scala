@@ -13,12 +13,12 @@ import com.netaporter.uri.dsl._
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.articleapi.integration.MigrationEmbedMeta
 import no.ndla.articleapi.model.domain.{ImportStatus, RequiredLibrary}
-import no.ndla.articleapi.service.ExtractServiceComponent
+import no.ndla.articleapi.service.ExtractService
 import no.ndla.articleapi.service.converters.HtmlTagGenerator
 import org.jsoup.Jsoup
 
 trait LenkeConverterModule {
-  this: ExtractServiceComponent =>
+  this: ExtractService =>
 
   object LenkeConverter extends ContentBrowserConverterModule with LazyLogging {
     override val typeName: String = "lenke"

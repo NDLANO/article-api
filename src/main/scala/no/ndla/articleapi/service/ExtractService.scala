@@ -14,7 +14,7 @@ import no.ndla.articleapi.model.domain.{BiblioMeta, ContentFilMeta, NodeGeneralC
 
 import scala.util.{Failure, Success, Try}
 
-trait ExtractServiceComponent {
+trait ExtractService {
   this: MigrationApiClient with TagsService =>
 
   val extractService: ExtractService
