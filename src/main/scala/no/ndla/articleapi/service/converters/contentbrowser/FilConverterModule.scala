@@ -10,10 +10,10 @@
 package no.ndla.articleapi.service.converters.contentbrowser
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.articleapi.model.domain.{ImportStatus, RequiredLibrary}
-import no.ndla.articleapi.service.{ExtractServiceComponent, StorageService}
+import no.ndla.articleapi.service.{ExtractService, StorageService}
 
 trait FilConverterModule {
-  this: ExtractServiceComponent with StorageService =>
+  this: ExtractService with StorageService =>
 
   object FilConverter extends ContentBrowserConverterModule with LazyLogging {
     override val typeName: String = "fil"

@@ -10,16 +10,16 @@
 package no.ndla.articleapi.controller
 
 import no.ndla.articleapi.model.domain.ImportStatus
-import no.ndla.articleapi.repository.ArticleRepositoryComponent
-import no.ndla.articleapi.service.search.SearchIndexServiceComponent
-import no.ndla.articleapi.service.{ArticleContentInformation, ConverterServiceComponent, ExtractConvertStoreContent, ExtractServiceComponent}
+import no.ndla.articleapi.repository.ArticleRepository
+import no.ndla.articleapi.service.search.SearchIndexService
+import no.ndla.articleapi.service.{ArticleContentInformation, ConverterService, ExtractConvertStoreContent, ExtractService}
 import org.json4s.{DefaultFormats, Formats}
 import org.scalatra.Ok
 
 import scala.util.{Failure, Success}
 
 trait InternController {
-  this: ExtractServiceComponent with ConverterServiceComponent with ArticleRepositoryComponent with ArticleContentInformation with ExtractConvertStoreContent with SearchIndexServiceComponent =>
+  this: ExtractService with ConverterService with ArticleRepository with ArticleContentInformation with ExtractConvertStoreContent with SearchIndexService =>
   val internController: InternController
 
   class InternController extends NdlaController {

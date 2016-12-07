@@ -14,7 +14,7 @@ import com.typesafe.scalalogging.LazyLogging
 import io.searchbox.core.{Count, Search, SearchResult => JestSearchResult}
 import io.searchbox.params.Parameters
 import no.ndla.articleapi.ArticleApiProperties
-import no.ndla.articleapi.integration.ElasticClientComponent
+import no.ndla.articleapi.integration.ElasticClient
 import no.ndla.articleapi.model.api.{ArticleSummary, ArticleTitle, SearchResult}
 import no.ndla.articleapi.model.domain.{Language, Sort}
 import no.ndla.network.ApplicationUrl
@@ -27,7 +27,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
 trait SearchService {
-  this: ElasticClientComponent with SearchIndexServiceComponent with SearchConverterService =>
+  this: ElasticClient with SearchIndexService with SearchConverterService =>
   val searchService: SearchService
 
   class SearchService extends LazyLogging {

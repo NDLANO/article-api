@@ -12,14 +12,14 @@ package no.ndla.articleapi.service.converters
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.articleapi.integration.{ConverterModule, LanguageContent}
 import no.ndla.articleapi.model.domain.{ImportStatus, FootNoteItem}
-import no.ndla.articleapi.service.ExtractServiceComponent
+import no.ndla.articleapi.service.ExtractService
 import org.jsoup.nodes.Element
 
 import scala.collection.JavaConversions._
 import scala.annotation.tailrec
 
 trait BiblioConverter {
-  this: ExtractServiceComponent =>
+  this: ExtractService =>
   val biblioConverter: BiblioConverter
 
   class BiblioConverter extends ConverterModule with LazyLogging {

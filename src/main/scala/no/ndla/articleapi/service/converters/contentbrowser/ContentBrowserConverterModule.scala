@@ -11,8 +11,9 @@ package no.ndla.articleapi.service.converters.contentbrowser
 
 import no.ndla.articleapi.integration._
 import no.ndla.articleapi.model.domain.{ImportStatus, RequiredLibrary}
-import no.ndla.articleapi.repository.ArticleRepositoryComponent
+import no.ndla.articleapi.repository.ArticleRepository
 import no.ndla.articleapi.service._
+import no.ndla.articleapi.service.search.{IndexService, SearchConverterService}
 import no.ndla.network.NdlaClient
 
 
@@ -22,14 +23,17 @@ trait ContentBrowserConverterModule {
 }
 
 trait ContentBrowserConverterModules
-  extends ExtractServiceComponent
+  extends ExtractService
   with StorageService
-  with AmazonClientComponent
+  with AmazonClient
   with ConverterModules
-  with ConverterServiceComponent
-  with DataSourceComponent
-  with ArticleRepositoryComponent
+  with ConverterService
+  with DataSource
+  with ArticleRepository
   with ExtractConvertStoreContent
+  with IndexService
+  with ElasticClient
+  with SearchConverterService
   with ImageConverterModule
   with ImageApiClient
   with LenkeConverterModule

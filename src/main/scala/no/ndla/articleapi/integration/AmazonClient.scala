@@ -9,8 +9,9 @@
 
 package no.ndla.articleapi.integration
 
-import javax.sql.DataSource
+import com.amazonaws.services.s3.AmazonS3
 
-trait DataSourceComponent {
-  val dataSource: DataSource
+trait AmazonClient {
+  val amazonClient: AmazonS3
+  val storageName: String
 }

@@ -11,11 +11,11 @@ package no.ndla.articleapi.service.converters.contentbrowser
 
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.articleapi.model.domain.{ImportStatus, RequiredLibrary}
-import no.ndla.articleapi.service.ExtractServiceComponent
+import no.ndla.articleapi.service.ExtractService
 import no.ndla.articleapi.service.converters.HtmlTagGenerator
 
 trait H5PConverterModule {
-  this: ExtractServiceComponent =>
+  this: ExtractService =>
 
   object H5PConverter extends ContentBrowserConverterModule with LazyLogging {
     override val typeName: String = "h5p_content"

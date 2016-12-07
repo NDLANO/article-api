@@ -15,7 +15,7 @@ import org.mockito.Mockito._
 
 import scala.util.{Success, Try}
 
-class ExtractServiceComponentTest extends UnitSuite with TestEnvironment {
+class ExtractServiceTest extends UnitSuite with TestEnvironment {
   override val extractService = new ExtractService
 
   val (nodeId1, nodeId2) = ("111", "222")

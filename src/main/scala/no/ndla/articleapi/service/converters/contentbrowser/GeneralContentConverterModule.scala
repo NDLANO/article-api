@@ -12,14 +12,14 @@ package no.ndla.articleapi.service.converters.contentbrowser
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.articleapi.ArticleApiProperties._
 import no.ndla.articleapi.model.domain.{ImportStatus, RequiredLibrary}
-import no.ndla.articleapi.repository.ArticleRepositoryComponent
+import no.ndla.articleapi.repository.ArticleRepository
 import no.ndla.articleapi.service.converters.HtmlTagGenerator
-import no.ndla.articleapi.service.{ExtractConvertStoreContent, ExtractServiceComponent}
+import no.ndla.articleapi.service.{ExtractConvertStoreContent, ExtractService}
 
 import scala.util.{Failure, Success}
 
 trait GeneralContentConverterModule {
-  this: ExtractServiceComponent with ArticleRepositoryComponent with ExtractConvertStoreContent =>
+  this: ExtractService with ArticleRepository with ExtractConvertStoreContent =>
 
   abstract class GeneralContentConverter extends ContentBrowserConverterModule with LazyLogging {
     override def convert(contentBrowser: ContentBrowser, visitedNodes: Seq[String]): (String, Seq[RequiredLibrary], ImportStatus) = {

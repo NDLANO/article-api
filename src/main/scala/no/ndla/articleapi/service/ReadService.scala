@@ -9,10 +9,10 @@
 package no.ndla.articleapi.service
 
 import no.ndla.articleapi.model.api.Article
-import no.ndla.articleapi.repository.ArticleRepositoryComponent
+import no.ndla.articleapi.repository.ArticleRepository
 
 trait ReadService {
-  this: ArticleRepositoryComponent with ConverterServiceComponent =>
+  this: ArticleRepository with ConverterService =>
   val readService: ReadService
 
   class ReadService {

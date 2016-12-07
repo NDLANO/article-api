@@ -9,11 +9,11 @@
 
 package no.ndla.articleapi.service.converters.contentbrowser
 
-import no.ndla.articleapi.repository.ArticleRepositoryComponent
-import no.ndla.articleapi.service.{ConverterServiceComponent, ExtractConvertStoreContent, ExtractServiceComponent}
+import no.ndla.articleapi.repository.ArticleRepository
+import no.ndla.articleapi.service.{ConverterService, ExtractConvertStoreContent, ExtractService}
 
 trait OppgaveConverterModule extends GeneralContentConverterModule {
-  this: ExtractServiceComponent with ExtractConvertStoreContent with ConverterServiceComponent with ArticleRepositoryComponent =>
+  this: ExtractService with ExtractConvertStoreContent with ConverterService with ArticleRepository =>
 
   object OppgaveConverter extends GeneralContentConverter {
     override val typeName: String = "oppgave"
