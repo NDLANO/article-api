@@ -42,7 +42,7 @@ trait TestEnvironment
   with BiblioConverterModule
   with BiblioConverter
   with AmazonClient
-  with StorageService
+  with AttachmentStorageService
   with ArticleContentInformation
   with ExtractConvertStoreContent
   with NdlaClient

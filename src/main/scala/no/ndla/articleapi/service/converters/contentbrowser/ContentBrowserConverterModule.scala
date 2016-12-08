@@ -24,7 +24,7 @@ trait ContentBrowserConverterModule {
 
 trait ContentBrowserConverterModules
   extends ExtractService
-  with StorageService
+  with AttachmentStorageService
   with AmazonClient
   with ConverterModules
   with ConverterService

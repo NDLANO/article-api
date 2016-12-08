@@ -14,7 +14,7 @@ import com.amazonaws.services.s3.model.PutObjectRequest
 import no.ndla.articleapi.{TestEnvironment, UnitSuite}
 import org.mockito.Mockito._
 
-class StorageServiceTest extends UnitSuite with TestEnvironment {
+class AttachmentStorageServiceTest extends UnitSuite with TestEnvironment {
   override val attachmentStorageService = new AmazonStorageService
 
   test("That uploadFile returns None if upload fails") {

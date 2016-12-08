@@ -13,5 +13,5 @@ import com.amazonaws.services.s3.AmazonS3
 
 trait AmazonClient {
   val amazonClient: AmazonS3
-  val storageName: String
+  val attachmentStorageName: String
 }

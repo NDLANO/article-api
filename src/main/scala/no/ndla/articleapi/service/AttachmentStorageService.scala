@@ -15,9 +15,9 @@ import com.typesafe.scalalogging.LazyLogging
 import no.ndla.articleapi.integration.AmazonClient
 import no.ndla.articleapi.model.domain.ContentFilMeta
 
-trait StorageService {
+trait AttachmentStorageService {
   this: AmazonClient =>
-  val storageService: AmazonStorageService
+  val attachmentStorageService: AmazonStorageService
 
   class AmazonStorageService extends LazyLogging {
     def uploadFileFromUrl(storageKeyPrefix: String, filMeta: ContentFilMeta): Option[String] = {
@@ -27,7 +27,7 @@ trait StorageService {
       metaData.setContentType(filMeta.mimeType)
       metaData.setContentLength(filMeta.fileSize.toLong)
 
-      uploadFile(new PutObjectRequest(storageName, storageKey, connection.getInputStream, metaData), storageKey)
+      uploadFile(new PutObjectRequest(attachmentStorageName, storageKey, connection.getInputStream, metaData), storageKey)
     }
 
   def uploadFile(request: PutObjectRequest, storageKey: String): Option[String] = {
@@ -44,7 +44,7 @@ trait StorageService {
 
     def contains(storageKey: String): Boolean = {
       try {
-        val s3Object = Option(amazonClient.getObject(new GetObjectRequest(storageName, storageKey)))
+        val s3Object = Option(amazonClient.getObject(new GetObjectRequest(attachmentStorageName, storageKey)))
         s3Object match {
           case Some(obj) => {
             obj.close()

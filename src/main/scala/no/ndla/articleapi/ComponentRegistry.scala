@@ -40,7 +40,7 @@ object ComponentRegistry
   with BiblioConverterModule
   with BiblioConverter
   with AmazonClient
-  with StorageService
+  with AttachmentStorageService
   with ArticleContentInformation
   with ExtractConvertStoreContent
   with NdlaClient
@@ -74,6 +74,7 @@ object ComponentRegistry
   lazy val searchIndexService = new SearchIndexService
 
   val amazonClient = AmazonS3ClientBuilder.standard().withRegion(Regions.EU_CENTRAL_1).build()
+  lazy val attachmentStorageName = ArticleApiProperties.AttachmentStorageName
   lazy val attachmentStorageService = new AmazonStorageService
 
   lazy val migrationApiClient = new MigrationApiClient
