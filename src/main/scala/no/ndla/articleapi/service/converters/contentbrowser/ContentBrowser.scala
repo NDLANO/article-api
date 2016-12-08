@@ -15,7 +15,7 @@ case class ContentBrowser(textContainingContentBrowser: String, language: Option
   // Extract the contentbrowser variables
   private val Pattern: Regex = """(?s).*(\[contentbrowser (.*) ?contentbrowser(?:_margin_left)?\]).*""".r
   val (contentBrowser, contentBrowserData) = textContainingContentBrowser match {
-    case Pattern(cblol, hehe) => (cblol, hehe)
+    case Pattern(contentBrowserString, contentBrowserStringData) => (contentBrowserString, contentBrowserStringData)
     case _ => ("", "")
   }
   // Extract every key-value pair and build a map
