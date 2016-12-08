@@ -8,14 +8,14 @@ import no.ndla.articleapi.model.domain.ImportStatus
 
 class HTMLCleanerTest extends UnitSuite {
   val nodeId = "1234"
-  val defaultLanguageContent = LanguageContent(nodeId, nodeId, """<article><!-- this is a comment --><h1>heading<!-- comment --></h1></article>""", Some("en"))
+  val defaultLanguageContent = LanguageContent(nodeId, nodeId, """<article><!-- this is a comment --><h1>heading<!-- comment --></h1></article>""", "metadescription", Some("en"))
   val defaultImportStatus = ImportStatus(Seq(), Seq())
 
   val defaultLanguageIngress = LanguageIngress("Jeg er en ingress")
   val defaultLanguageIngressWithHtml = LanguageIngress("<p>Jeg er en ingress</p>")
 
   test("That HTMLCleaner unwraps illegal attributes") {
-    val initialContent = LanguageContent(nodeId, nodeId, """<body><article><h1 class="useless">heading<div style="width='0px'">hey</div></h1></article></body>""", Some("en"))
+    val initialContent = defaultLanguageContent.copy(content="""<body><article><h1 class="useless">heading<div style="width='0px'">hey</div></h1></article></body>""")
     val expectedResult = "<article><h1>heading<div>hey</div></h1></article>"
     val (result, status) = HTMLCleaner.convert(initialContent, defaultImportStatus)
 
@@ -24,7 +24,7 @@ class HTMLCleanerTest extends UnitSuite {
   }
 
   test("That HTMLCleaner unwraps illegal tags") {
-    val initialContent = LanguageContent(nodeId, nodeId, """<article><h1>heading</h1><henriktag>hehe</henriktag></article>""", Some("en"))
+    val initialContent = defaultLanguageContent.copy(content="""<article><h1>heading</h1><henriktag>hehe</henriktag></article>""")
     val expectedResult = "<article><h1>heading</h1>hehe</article>"
     val (result, status) = HTMLCleaner.convert(initialContent, defaultImportStatus)
 
@@ -33,7 +33,7 @@ class HTMLCleanerTest extends UnitSuite {
   }
 
   test("That HTMLCleaner removes comments") {
-    val initialContent = LanguageContent(nodeId, nodeId, """<article><!-- this is a comment --><h1>heading<!-- comment --></h1></article>""", Some("en"))
+    val initialContent = defaultLanguageContent.copy(content="""<article><!-- this is a comment --><h1>heading<!-- comment --></h1></article>""")
     val expectedResult = "<article><h1>heading</h1></article>"
     val (result, status) = HTMLCleaner.convert(initialContent, defaultImportStatus)
 
