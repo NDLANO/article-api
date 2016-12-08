@@ -9,20 +9,19 @@
 
 package no.ndla.articleapi.service
 
-import java.util.Date
-
+import org.mockito.Mockito._
 import no.ndla.articleapi.model.domain._
 import no.ndla.articleapi.{TestEnvironment, UnitSuite}
 import no.ndla.articleapi.ArticleApiProperties.resourceHtmlEmbedTag
-import org.mockito.Mockito._
+import no.ndla.articleapi.SampleArticles
 
 class HtmlTagsUsageTest extends UnitSuite with TestEnvironment {
   val embedUrl = "http://hello.yes.this.is.dog"
   val copyright = Copyright("publicdomain", "", List())
-  val article1 = Article(Some(1), Seq(ArticleTitle("test", Some("en"))), Seq(ArticleContent("<article><div>test</div></article>", None, Some("en"))), copyright, Seq(), Seq(), Seq(), Seq(), new Date(0), new Date(1), "fagstoff")
-  val article2 = Article(Some(2), Seq(ArticleTitle("test", Some("en"))), Seq(ArticleContent("<article><div>test</div><p>paragraph</p></article>", None, Some("en"))), copyright, Seq(), Seq(), Seq(), Seq(), new Date(0), new Date(1), "fagstoff")
-  val article3 = Article(Some(3), Seq(ArticleTitle("test", Some("en"))), Seq(ArticleContent("<article><img></img></article>", None, Some("en"))), copyright, Seq(), Seq(), Seq(), Seq(), new Date(0), new Date(1), "fagstoff")
-  val article4 = Article(Some(4), Seq(ArticleTitle("test", Some("en"))), Seq(ArticleContent(s"""<article><$resourceHtmlEmbedTag data-resource="external" data-url="$embedUrl"" /></article>""", None, Some("en"))), copyright, Seq(), Seq(), Seq(), Seq(), new Date(0), new Date(1), "fagstoff")
+  val article1 = SampleArticles.sampleArticleWithPublicDomain
+  val article2 = SampleArticles.sampleArticleWithPublicDomain.copy(id=Option(2), content=Seq(ArticleContent("<article><div>test</div><p>paragraph</p></article>", None, Some("en"))))
+  val article3 = SampleArticles.sampleArticleWithPublicDomain.copy(id=Option(3), content=Seq(ArticleContent("<article><img></img></article>", None, Some("en"))))
+  val article4 = SampleArticles.sampleArticleWithPublicDomain.copy(id=Option(4), content=Seq(ArticleContent(s"""<article><$resourceHtmlEmbedTag data-resource="external" data-url="$embedUrl"" /></article>""", None, Some("en"))))
 
 
   test("That getHtmlTagsMap counts html elements correctly") {

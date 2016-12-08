@@ -21,12 +21,13 @@ object HTMLCleaner extends ConverterModule with LazyLogging {
 
     wrapStandaloneTextInPTag(element)
 
+    val metaDescription = extractElement(stringToJsoupDocument(content.metaDescription))
     val ingressLanguage = content.ingress match {
-      case Some(ingress) => Some(LanguageIngress(extractIngressText(stringToJsoupDocument(ingress.content))))
+      case Some(ingress) => Some(LanguageIngress(extractElement(stringToJsoupDocument(ingress.content))))
       case None => extractIngress(element)
     }
 
-    (content.copy(content=jsoupDocumentToString(element), ingress=ingressLanguage),
+    (content.copy(content=jsoupDocumentToString(element), ingress=ingressLanguage, metaDescription=metaDescription),
       ImportStatus(importStatus.messages ++ illegalTags ++ illegalAttributes, importStatus.visitedNodes))
   }
 
@@ -94,15 +95,15 @@ object HTMLCleaner extends ConverterModule with LazyLogging {
   }
 
   private def extractIngress(el: Element): (Option[LanguageIngress]) = {
-    val ingressText = getIngressText(el).map(ingress => extractIngressText(ingress))
+    val ingressText = getIngressText(el).map(ingress => extractElement(ingress))
 
     removeEmptyTags(el)
     ingressText.map(text => LanguageIngress(text))
   }
 
-  private def extractIngressText(ingressTextElement: Element): String = {
-    ingressTextElement.remove()
-    ingressTextElement.text()
+  private def extractElement(elementToExtract: Element): String = {
+    elementToExtract.remove()
+    elementToExtract.text()
   }
 
   private def wrapStandaloneTextInPTag (element: Element) : Element = {
