@@ -21,7 +21,7 @@ object HTMLCleaner extends ConverterModule with LazyLogging {
 
     wrapStandaloneTextInPTag(element)
 
-    val metaDescription = extractElement(stringToJsoupDocument(content.metaDescription))
+    val metaDescription = prepareMetaDescription(content.metaDescription)
     val ingressLanguage = content.ingress match {
       case Some(ingress) => Some(LanguageIngress(extractElement(stringToJsoupDocument(ingress.content))))
       case None => extractIngress(element)
@@ -29,6 +29,15 @@ object HTMLCleaner extends ConverterModule with LazyLogging {
 
     (content.copy(content=jsoupDocumentToString(element), ingress=ingressLanguage, metaDescription=metaDescription),
       ImportStatus(importStatus.messages ++ illegalTags ++ illegalAttributes, importStatus.visitedNodes))
+  }
+
+  private def prepareMetaDescription(metaDescription: String): String = {
+    val element = stringToJsoupDocument(metaDescription)
+    for (el <- element.select("embed")) {
+      val caption = el.attr("data-caption")
+      el.replaceWith(new TextNode(caption, ""))
+    }
+    extractElement(element)
   }
 
   private def unwrapIllegalTags(el: Element): Seq[String] = {
