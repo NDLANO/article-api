@@ -82,7 +82,7 @@ case class MigrationMainNodeImport(titles: Seq[MigrationContentTitle], ingresses
     authors.flatMap(x => x.asAuthor),
     tags,
     visualElements.map(_.asVisualElement),
-    contentType.head.`type`,
+    contentType.headOption.getOrElse(MigrationContentType("unknown", None)).`type`,
     contents.minBy(_.created).created,
     contents.maxBy(_.changed).changed)
 
