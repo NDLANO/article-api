@@ -87,7 +87,7 @@ trait ConverterService {
         article.requiredLibraries.map(toApiRequiredLibrary),
         article.visualElement.map(toApiVisualElement),
         article.introduction.map(toApiArticleIntroduction),
-        article.introduction.map(toApiArticleMetaDescription),
+        article.metaDescription.map(toApiArticleMetaDescription),
         article.created,
         article.updated,
         article.contentType

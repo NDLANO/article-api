@@ -22,8 +22,8 @@ class ContentBrowserConverterTest extends UnitSuite with TestEnvironment {
   val sampleContentString = s"[contentbrowser ==nid=$nodeId==imagecache=Fullbredde==width===alt=$sampleAlt==link===node_link=1==link_type=link_to_content==lightbox_size===remove_fields[76661]=1==remove_fields[76663]=1==remove_fields[76664]=1==remove_fields[76666]=1==insertion=inline==link_title_text= ==link_text= ==text_align===css_class=contentbrowser contentbrowser]"
   val sampleContent =  LanguageContent(nodeId, nodeId, s"<article>$sampleContentString</article>", "", Some("en"))
 
-  test("That content-browser strings are replaced") {
-    val expectedResult = s"<article>{Unsupported content unsupported type: ${nodeId}}</article>"
+  test("contentbrowser strings of unsupported types are replaced with an error message") {
+    val expectedResult = s"""<article><$resourceHtmlEmbedTag data-id="1" data-message="Unsupported content (unsupported type): $nodeId" data-resource="error" /></article>"""
 
     when(extractService.getNodeType(nodeId)).thenReturn(Some("unsupported type"))
     val (result, status) = contentBrowserConverter.convert(sampleContent, ImportStatus(Seq(), Seq()))
@@ -134,5 +134,18 @@ class ContentBrowserConverterTest extends UnitSuite with TestEnvironment {
 
     strippedContent should equal (expectedResult)
     status.messages.isEmpty should be (true)
+  }
+
+  test("meta description is converted") {
+    val metaDescription = """<div class="paragraph">   Very important aktualitet text  </div>"""
+    val oppgave = NodeGeneralContent(nodeId, nodeId, "Aktualitet title", metaDescription, "en")
+    val expectedResult = s"""<article>$metaDescription</article>"""
+
+    when(extractService.getNodeType(nodeId)).thenReturn(Some("aktualitet"))
+    when(extractService.getNodeGeneralContent(nodeId)).thenReturn(List(oppgave))
+    val (result, status) = contentBrowserConverter.convert(sampleContent.copy(content="", metaDescription=sampleContent.content), ImportStatus(Seq(), Seq()))
+
+    result.content should equal ("")
+    result.metaDescription should equal (expectedResult)
   }
 }

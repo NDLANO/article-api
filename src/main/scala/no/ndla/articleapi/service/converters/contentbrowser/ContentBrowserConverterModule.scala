@@ -53,3 +53,4 @@ trait ContentBrowserConverterModules
   with MappingApiClient
   with NdlaClient
   with MigrationApiClient
+  with UnsupportedContentConverter
