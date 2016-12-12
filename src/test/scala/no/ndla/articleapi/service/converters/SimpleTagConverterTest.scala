@@ -21,7 +21,7 @@ class SimpleTagConverterTest extends UnitSuite {
     val expectedResult = "<h1>heading</h1><section>I know words, I have the best words.</section>"
     val (result, status) = SimpleTagConverter.convert(initialContent, ImportStatus(Seq(), Seq()))
 
-    result.content.replace("\n", "") should equal (expectedResult)
+    result.content should equal (expectedResult)
     result.requiredLibraries.length should equal (0)
   }
 
@@ -30,7 +30,7 @@ class SimpleTagConverterTest extends UnitSuite {
     val expectedResult = "<article><h1>heading</h1>A small loan of a million dollars</article>"
     val (result, status) = SimpleTagConverter.convert(initialContent, ImportStatus(Seq(), Seq()))
 
-    result.content.replace("\n", "") should equal (expectedResult)
+    result.content should equal (expectedResult)
     result.requiredLibraries.length should equal (0)
   }
 
@@ -39,7 +39,7 @@ class SimpleTagConverterTest extends UnitSuite {
     val expectedResult = "<h1>heading</h1><pre><code>I know words, I have the best words.</code></pre>"
     val (result, status) = SimpleTagConverter.convert(initialContent, ImportStatus(Seq(), Seq()))
 
-    result.content.replace("\n", "") should equal (expectedResult)
+    result.content should equal (expectedResult)
     result.requiredLibraries.length should equal (0)
   }
 
@@ -48,7 +48,7 @@ class SimpleTagConverterTest extends UnitSuite {
     val expectedResult = "<article><h1>heading</h1><blockquote>I know words, I have the best words.</blockquote></article>"
     val (result, status) = SimpleTagConverter.convert(initialContent, ImportStatus(Seq(), Seq()))
 
-    result.content.replace("\n", "") should equal (expectedResult)
+    result.content should equal (expectedResult)
     result.requiredLibraries.length should equal (0)
   }
 
@@ -57,7 +57,7 @@ class SimpleTagConverterTest extends UnitSuite {
     val expectedResult = "<article><aside>I know words, I have the best words.</aside></article>"
     val (result, status) = SimpleTagConverter.convert(initialContent, ImportStatus(Seq(), Seq()))
 
-    result.content.replace("\n", "") should equal (expectedResult)
+    result.content should equal (expectedResult)
     result.requiredLibraries.length should equal (0)
   }
 
@@ -71,7 +71,7 @@ class SimpleTagConverterTest extends UnitSuite {
     val expectedResult = "<details><summary>Eksempel: les mer</summary><p>Hello, this is content</p></details>"
     val (result, status) = SimpleTagConverter.convert(initialContent, ImportStatus(Seq(), Seq()))
 
-    result.content.replace("\n", "") should equal (expectedResult)
+    result.content should equal (expectedResult)
     result.requiredLibraries.length should equal (0)
   }
 
@@ -80,7 +80,7 @@ class SimpleTagConverterTest extends UnitSuite {
     val expectedResult = "<aside>I know words, I have the best words.</aside>"
     val (result, status) = SimpleTagConverter.convert(initialContent, ImportStatus(Seq(), Seq()))
 
-    result.content.replace("\n", "") should equal (expectedResult)
+    result.content should equal (expectedResult)
     result.requiredLibraries.length should equal (0)
   }
 

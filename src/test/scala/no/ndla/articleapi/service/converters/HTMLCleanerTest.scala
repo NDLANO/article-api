@@ -19,7 +19,7 @@ class HTMLCleanerTest extends UnitSuite {
     val expectedResult = "<article><h1>heading<div>hey</div></h1></article>"
     val (result, status) = HTMLCleaner.convert(initialContent, defaultImportStatus)
 
-    result.content.replace("\n", "") should equal (expectedResult)
+    result.content should equal (expectedResult)
     result.requiredLibraries.length should equal (0)
   }
 
@@ -28,7 +28,7 @@ class HTMLCleanerTest extends UnitSuite {
     val expectedResult = "<article><h1>heading</h1>hehe</article>"
     val (result, status) = HTMLCleaner.convert(initialContent, defaultImportStatus)
 
-    result.content.replace("\n", "") should equal (expectedResult)
+    result.content should equal (expectedResult)
     result.requiredLibraries.length should equal (0)
   }
 
@@ -37,7 +37,7 @@ class HTMLCleanerTest extends UnitSuite {
     val expectedResult = "<article><h1>heading</h1></article>"
     val (result, status) = HTMLCleaner.convert(initialContent, defaultImportStatus)
 
-    result.content.replace("\n", "") should equal (expectedResult)
+    result.content should equal (expectedResult)
     result.requiredLibraries.length should equal (0)
   }
 
@@ -46,7 +46,7 @@ class HTMLCleanerTest extends UnitSuite {
     val expectedResult = "<h1>not empty</h1>"
     val (result, status) = HTMLCleaner.convert(initialContent, defaultImportStatus)
 
-    result.content.replace("\n", "") should equal (expectedResult)
+    result.content should equal (expectedResult)
     result.requiredLibraries.length should equal (0)
   }
 
@@ -185,9 +185,10 @@ class HTMLCleanerTest extends UnitSuite {
 
     result.content should equal(expectedContentResult)
     result.ingress should equal(Some(expectedIngressResult))
-    result.ingress should not equal(Some(notExpectedIngressResult))
+    result.ingress should not equal Some(notExpectedIngressResult)
 
   }
+
   test("That HTMLCleaner removes all tags in ingress from seperate table") {
     val content = s"""<section>
                       |<$resourceHtmlEmbedTag data-size="fullbredde" data-url="http://image-api/images/5452" data-align="" data-id="1" data-resource="image" data-alt="Mobiltelefon sender SMS" />
