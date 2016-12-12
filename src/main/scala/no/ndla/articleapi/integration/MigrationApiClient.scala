@@ -94,7 +94,7 @@ case class MigrationMainNodeImport(titles: Seq[MigrationContentTitle], ingresses
         content.content,
         content.metaDescription,
         content.language,
-        ingress = ingresses.find(ingress => ingress.language == content.language && ingress.ingressVisPaaSiden == 1).map(ingress => LanguageIngress(ingress.content.getOrElse(""))))
+        ingress = ingresses.find(ingress => ingress.language == content.language && ingress.ingressVisPaaSiden == 1).map(ingress => ingress.content.getOrElse("")))
     })
   }
 }

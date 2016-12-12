@@ -2,7 +2,7 @@ package no.ndla.articleapi.service.converters
 
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.articleapi.ArticleApiProperties._
-import no.ndla.articleapi.integration.{ConverterModule, LanguageContent, LanguageIngress}
+import no.ndla.articleapi.integration.{ConverterModule, LanguageContent}
 import no.ndla.articleapi.model.domain.ImportStatus
 import org.jsoup.nodes.{TextNode, Element, Node}
 
@@ -23,7 +23,7 @@ object HTMLCleaner extends ConverterModule with LazyLogging {
 
     val metaDescription = prepareMetaDescription(content.metaDescription)
     val ingressLanguage = content.ingress match {
-      case Some(ingress) => Some(LanguageIngress(extractElement(stringToJsoupDocument(ingress.content))))
+      case Some(ingress) => Some(extractElement(stringToJsoupDocument(ingress)))
       case None => extractIngress(element)
     }
 
@@ -103,11 +103,10 @@ object HTMLCleaner extends ConverterModule with LazyLogging {
     }
   }
 
-  private def extractIngress(el: Element): (Option[LanguageIngress]) = {
+  private def extractIngress(el: Element): Option[String] = {
     val ingressText = getIngressText(el).map(ingress => extractElement(ingress))
-
     removeEmptyTags(el)
-    ingressText.map(text => LanguageIngress(text))
+    ingressText
   }
 
   private def extractElement(elementToExtract: Element): String = {

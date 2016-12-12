@@ -75,10 +75,10 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
 
   test("That the ingress is not added to the content") {
     val (nodeId, nodeId2) = ("1234", "4321")
-    val ingressNodeBokmal = LanguageIngress("Hvem er sterkest?")
+    val ingressNodeBokmal = "Hvem er sterkest?"
     val contentNodeBokmal = sampleLanguageContent.copy(content="Nordavinden og sola kranglet en gang om hvem av dem som var den sterkeste")
 
-    val ingressNodeNynorsk = LanguageIngress("Kven er sterkast?")
+    val ingressNodeNynorsk = "Kven er sterkast?"
     val contentNodeNynorsk = sampleLanguageContent.copy(content="Nordavinden og sola krangla ein gong om kven av dei som var den sterkaste")
 
     val node = sampleNode.copy(contents=List(contentNodeBokmal, contentNodeNynorsk))
@@ -111,7 +111,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
 
     val expectedIngressResult = ArticleContentWithLanguage("Hvem er sterkest?", Some("nb"))
 
-    val ingressNodeBokmal = LanguageIngress("Hvem er sterkest?")
+    val ingressNodeBokmal = "Hvem er sterkest?"
     val contentNodeBokmal = sampleLanguageContent.copy(content=content, ingress=Option(ingressNodeBokmal))
 
     val node = sampleNode.copy(contents=List(contentNodeBokmal))
