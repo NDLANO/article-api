@@ -41,6 +41,15 @@ class HTMLCleanerTest extends UnitSuite {
     result.requiredLibraries.length should equal (0)
   }
 
+  test("That HTMLCleaner removes empty p,div,section,aside tags") {
+    val initialContent = LanguageContent(nodeId, nodeId, """<h1>not empty</h1><section><p></p><div></div><aside></aside></section>""", Some("en"))
+    val expectedResult = "<h1>not empty</h1>"
+    val (result, status) = HTMLCleaner.convert(initialContent, defaultImportStatus)
+
+    result.content.replace("\n", "") should equal (expectedResult)
+    result.requiredLibraries.length should equal (0)
+  }
+
   test("ingress is extracted when wrapped in <p> tags") {
     val content = s"""<section>
                    |<$resourceHtmlEmbedTag data-size="fullbredde" data-url="http://image-api/images/5452" data-align="" data-id="1" data-resource="image" data-alt="Mobiltelefon sender SMS" />
@@ -131,6 +140,7 @@ class HTMLCleanerTest extends UnitSuite {
 
     result.content should equal(expectedContentResult)
   }
+
   test("blank standalone text in a section is not wrapped in <p> tags") {
     val content = s"""<section>Medievanene er i endring.<p>Noe innhold</p>  <h2>Mediehverdagen</h2></section>"""
     val expectedContentResult = s"""<section><p>Medievanene er i endring.</p><p>Noe innhold</p>  <h2>Mediehverdagen</h2></section>"""
