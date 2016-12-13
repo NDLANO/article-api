@@ -1,7 +1,7 @@
 import java.util.Properties
 
 val Scalaversion = "2.11.8"
-val Scalatraversion = "2.4.1"
+val Scalatraversion = "2.5.0"
 val SwaggerUIVersion = "2.0.24"
 val ScalaLoggingVersion = "3.1.0"
 val Log4JVersion = "2.6"
@@ -40,7 +40,7 @@ lazy val article_api = (project in file(".")).
       "javax.servlet" % "javax.servlet-api" % "3.1.0" % "container;provided;test",
       "org.scalatra" %% "scalatra-json" % Scalatraversion,
       "org.scalatra" %% "scalatra-scalatest" % Scalatraversion % "test",
-      "org.json4s"   %% "json4s-native" % "3.3.0",
+      "org.json4s"   %% "json4s-native" % "3.5.0",
       "org.scalatra" %% "scalatra-swagger"  % Scalatraversion,
       "com.typesafe.scala-logging" %% "scala-logging" % ScalaLoggingVersion,
       "org.apache.logging.log4j" % "log4j-api" % Log4JVersion,
