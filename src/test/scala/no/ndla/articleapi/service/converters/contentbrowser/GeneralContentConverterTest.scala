@@ -64,9 +64,8 @@ class GeneralContentConverterTest extends UnitSuite with TestEnvironment {
     when(extractService.getNodeGeneralContent(nodeId)).thenReturn(Seq(sampleFagstoff1, sampleFagstoff2))
     when(articleRepository.getIdFromExternalId(nodeId)).thenReturn(Some(1: Long))
     val (result, requiredLibraries, status) = generalContentConverter.convert(content, Seq())
-    val strippedResult = " +".r.replaceAllIn(result.replace("\n", ""), " ")
 
-    strippedResult should equal (expectedResult)
+    result should equal (expectedResult)
     status.messages.isEmpty should equal (true)
     requiredLibraries.isEmpty should equal (true)
   }
@@ -80,9 +79,8 @@ class GeneralContentConverterTest extends UnitSuite with TestEnvironment {
     when(extractService.getNodeGeneralContent(nodeId)).thenReturn(Seq(sampleFagstoff1, sampleFagstoff2))
     when(articleRepository.getIdFromExternalId(nodeId)).thenReturn(Some(1: Long))
     val (result, requiredLibraries, status) = generalContentConverter.convert(content, Seq())
-    val strippedResult = " +".r.replaceAllIn(result.replace("\n", ""), " ")
 
-    strippedResult should equal (expectedResult)
+    result should equal (expectedResult)
     status.messages.isEmpty should equal (true)
     requiredLibraries.isEmpty should equal (true)
   }
@@ -95,9 +93,8 @@ class GeneralContentConverterTest extends UnitSuite with TestEnvironment {
     when(extractService.getNodeGeneralContent(nodeId)).thenReturn(Seq(sampleFagstoff1, sampleFagstoff2))
     when(articleRepository.getIdFromExternalId(nodeId)).thenReturn(Some(1: Long))
     val (result, requiredLibraries, status) = generalContentConverter.convert(content, Seq())
-    val strippedResult = " +".r.replaceAllIn(result.replace("\n", ""), " ")
 
-    strippedResult should equal (expectedResult)
+    result should equal (expectedResult)
     status.messages.nonEmpty should equal (true)
     requiredLibraries.isEmpty should equal (true)
   }
@@ -111,9 +108,8 @@ class GeneralContentConverterTest extends UnitSuite with TestEnvironment {
     when(articleRepository.getIdFromExternalId(nodeId)).thenReturn(Some(1: Long))
 
     val (result, requiredLibraries, status) = generalContentConverter.convert(content, Seq())
-    val strippedResult = " +".r.replaceAllIn(result.replace("\n", ""), " ")
 
-    strippedResult should equal (expectedResult)
+    result should equal (expectedResult)
     status.messages.nonEmpty should equal (true)
     requiredLibraries.isEmpty should equal (true)
   }
@@ -131,9 +127,8 @@ class GeneralContentConverterTest extends UnitSuite with TestEnvironment {
     val languageContent = LanguageContent(nodeId, nodeId, "<div>sample content</div>", Some("en"))
     val nodeToConvert = sampleNodeToConvert.copy(contents = Seq(languageContent))
     val (result, requiredLibraries, status) = generalContentConverter.convert(content, Seq(nodeId2))
-    val strippedResult = " +".r.replaceAllIn(result.replace("\n", ""), " ")
 
-    strippedResult should equal(expectedResult)
+    result should equal(expectedResult)
     status should equal (ImportStatus(List(), List(nodeId2, nodeId)))
   }
 
@@ -150,9 +145,8 @@ class GeneralContentConverterTest extends UnitSuite with TestEnvironment {
     val nodeToConvert = sampleNodeToConvert.copy(contents = Seq(languageContent))
 
     val (result, requiredLibraries, status) = generalContentConverter.convert(content, Seq(nodeId2))
-    val strippedResult = " +".r.replaceAllIn(result.replace("\n", ""), " ")
 
-    strippedResult should equal(expectedResult)
+    result should equal(expectedResult)
     status.visitedNodes should equal (List(nodeId2))
     status.messages.nonEmpty should equal(true)
   }

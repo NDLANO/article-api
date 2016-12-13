@@ -27,9 +27,8 @@ class BiblioConverterTest extends UnitSuite with TestEnvironment {
 
     when(extractService.getBiblioMeta(nodeId)).thenReturn(Some(sampleBiblioMeta))
     val (result, status) = biblioConverter.convert(initialContent, ImportStatus(Seq(), Seq()))
-    val strippedContent = " +".r.replaceAllIn(result.content, " ")
 
-    result.copy(content=strippedContent) should equal (expectedResult)
+    result should equal (expectedResult)
     status.messages.isEmpty should be (true)
   }
 }
