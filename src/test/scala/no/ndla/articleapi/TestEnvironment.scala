@@ -50,6 +50,7 @@ trait TestEnvironment
   with TagsService
   with SearchConverterService
   with ReadService
+  with HtmlTagGenerator
   with HTMLCleaner
   with SequenceGenerator
 {

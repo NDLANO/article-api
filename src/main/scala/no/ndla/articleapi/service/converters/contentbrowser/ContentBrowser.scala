@@ -9,26 +9,26 @@
 
 package no.ndla.articleapi.service.converters.contentbrowser
 
-case class ContentBrowser(contentBrowserString: String, language: Option[String]) {
-  // Extract the contentbrowser variables
-  private val Pattern = """(?s).*\[contentbrowser (.*) ?contentbrowser\].*""".r
-  private val ContentField = contentBrowserString match {
-    case Pattern(group) => group
-    case _ => ""
-  }
+import scala.util.matching.Regex
 
+case class ContentBrowser(textContainingContentBrowser: String, language: Option[String]) {
+  // Extract the contentbrowser variables
+  private val Pattern: Regex = """(?s).*(\[contentbrowser (.*) ?contentbrowser(?:_margin_left)?\]).*""".r
+  val (contentBrowser, contentBrowserData) = textContainingContentBrowser match {
+    case Pattern(contentBrowserString, contentBrowserStringData) => (contentBrowserString, contentBrowserStringData)
+    case _ => ("", "")
+  }
   // Extract every key-value pair and build a map
-  private val KeyVal = ContentField.split("==").map(x => x.stripPrefix("=").split("="))
+  private val KeyVal = contentBrowserData.split("==").map(x => x.stripPrefix("=").split("="))
   private val FieldMap = KeyVal.map(el => el(0) -> (if (el.length > 1) el(1) else "")).toMap
 
   def isContentBrowserField(): Boolean = {
-    contentBrowserString.matches(Pattern.toString)
+    textContainingContentBrowser.matches(Pattern.toString)
   }
 
   def getStartEndIndex(): (Int, Int) = {
-    val (startIdf, endIdf) = ("[contentbrowser ", "contentbrowser]")
-    val a = contentBrowserString.indexOf(ContentField)
-    (a - startIdf.length(), a + ContentField.length() + endIdf.length())
+    val startIndex = textContainingContentBrowser.indexOf(contentBrowser)
+    (startIndex, startIndex + contentBrowser.length)
   }
 
   def get(key: String): String = {

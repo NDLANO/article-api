@@ -24,8 +24,8 @@ class VideoConverterTest extends UnitSuite with TestEnvironment {
     val content = ContentBrowser(contentString, Some("nb"))
     val expectedResult = s"""<$resourceHtmlEmbedTag data-account="$NDLABrightcoveAccountId" data-caption="" data-id="1" data-player="$NDLABrightcovePlayerId" data-resource="brightcove" data-videoid="ref:${content.get("nid")}" />"""
     val (result, requiredLibraries, messages) = VideoConverter.convert(content, Seq())
-    val strippedResult = " +".r.replaceAllIn(result, " ")
-    strippedResult.replace("\n", "") should equal(expectedResult)
+
+    result should equal(expectedResult)
     requiredLibraries.length should equal(1)
   }
 
@@ -33,8 +33,8 @@ class VideoConverterTest extends UnitSuite with TestEnvironment {
     val content = ContentBrowser(contentStringWithCaptions, Some("nb"))
     val expectedResult = s"""<$resourceHtmlEmbedTag data-account="$NDLABrightcoveAccountId" data-caption="$caption" data-id="1" data-player="$NDLABrightcovePlayerId" data-resource="brightcove" data-videoid="ref:${content.get("nid")}" />"""
     val (result, requiredLibraries, messages) = VideoConverter.convert(content, Seq())
-    val strippedResult = " +".r.replaceAllIn(result, " ")
-    strippedResult.replace("\n", "") should equal(expectedResult)
+
+    result should equal(expectedResult)
     requiredLibraries.length should equal(1)
   }
 }
