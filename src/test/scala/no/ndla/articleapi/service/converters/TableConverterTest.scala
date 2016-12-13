@@ -8,13 +8,11 @@
 
 package no.ndla.articleapi.service.converters
 
-import no.ndla.articleapi.UnitSuite
-import no.ndla.articleapi.integration.LanguageContent
+import no.ndla.articleapi.{TestData, UnitSuite}
 import no.ndla.articleapi.model.domain.ImportStatus
 
 class TableConverterTest extends UnitSuite {
   val nodeId = "1234"
-  val sampleLanguageContent = LanguageContent(nodeId, nodeId, "sample content", "meta description", Some("en"))
 
   test("paragraphs are unwrapped if cell contains only one") {
     val table2x3 =
@@ -37,7 +35,7 @@ class TableConverterTest extends UnitSuite {
           |</tbody>
           |</table>""".stripMargin.replace("\n", "")
 
-    val initialContent = sampleLanguageContent.copy(content=table2x3)
+    val initialContent = TestData.sampleContent.copy(content=table2x3)
     val (result, importStatus) = TableConverter.convert(initialContent, ImportStatus(Seq(), Seq()))
 
     result.content should equal(table2x3ExpectedResult)
@@ -64,7 +62,7 @@ class TableConverterTest extends UnitSuite {
           |</tbody>
           |</table>""".stripMargin.replace("\n", "")
 
-    val initialContent = sampleLanguageContent.copy(content=table2x3)
+    val initialContent = TestData.sampleContent.copy(content=table2x3)
     val (result, importStatus) = TableConverter.convert(initialContent, ImportStatus(Seq(), Seq()))
 
     result.content should equal(table2x3ExpectedResult)
@@ -99,7 +97,7 @@ class TableConverterTest extends UnitSuite {
           |</tbody>
           |</table>""".stripMargin.replace("\n", "")
 
-    val initialContent = sampleLanguageContent.copy(content=table2x3)
+    val initialContent = TestData.sampleContent.copy(content=table2x3)
     val (result, importStatus) = TableConverter.convert(initialContent, ImportStatus(Seq(), Seq()))
 
     result.content should equal(table2x3ExpectedResult)

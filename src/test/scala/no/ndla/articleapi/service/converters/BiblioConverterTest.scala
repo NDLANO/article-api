@@ -9,9 +9,8 @@
 
 package no.ndla.articleapi.service.converters
 
-import no.ndla.articleapi.integration._
 import no.ndla.articleapi.model.domain._
-import no.ndla.articleapi.{TestEnvironment, UnitSuite}
+import no.ndla.articleapi.{TestData, TestEnvironment, UnitSuite}
 import org.mockito.Mockito._
 
 class BiblioConverterTest extends UnitSuite with TestEnvironment {
@@ -21,7 +20,7 @@ class BiblioConverterTest extends UnitSuite with TestEnvironment {
   val sampleBiblioMeta = BiblioMeta(sampleBiblio, sampleBiblioAuthors)
 
   test("That BiblioConverter initializes and builds a map of footnote items") {
-    val initialContent = LanguageContent(nodeId, nodeId, s"""<article><a id="biblio-$nodeId"></a><h1>CONTENT</h1>more content</article>""", "metadescription", Some("en"))
+    val initialContent = TestData.sampleContent.copy(content=s"""<article><a id="biblio-$nodeId"></a><h1>CONTENT</h1>more content</article>""")
     val expectedFootNotes = Map("ref_1" -> FootNoteItem(sampleBiblio, sampleBiblioAuthors))
     val expectedResult = initialContent.copy(content=s"""<article><a data-resource="footnote" data-key="ref_1"><sup>1</sup></a><h1>CONTENT</h1>more content</article>""", footNotes=Some(expectedFootNotes))
 

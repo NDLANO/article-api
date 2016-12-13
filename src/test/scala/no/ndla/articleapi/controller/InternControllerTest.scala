@@ -11,26 +11,21 @@ package no.ndla.articleapi.controller
 
 import java.util.Date
 
-import no.ndla.articleapi.integration.LanguageContent
 import no.ndla.articleapi.model.domain._
 import no.ndla.articleapi.{TestEnvironment, UnitSuite}
 import org.json4s.native.Serialization._
 import org.scalatra.test.scalatest.ScalatraFunSuite
 import org.mockito.Mockito._
 import scala.util.{Failure, Try}
+import no.ndla.articleapi.TestData._
 
 class InternControllerTest extends UnitSuite with TestEnvironment with ScalatraFunSuite {
   implicit val formats = org.json4s.DefaultFormats
 
-  val (nodeId, nodeId2) = ("1234", "4321")
-  val sampleTitle = ArticleTitle("title", Some("en"))
-  val sampleContent = LanguageContent(nodeId, nodeId, "content", "metadesc",  Some("en"))
-  val sampleContent2 = LanguageContent(nodeId, nodeId2, "content", "metadesc", Some("en"))
   val author = Author("forfatter", "Henrik")
   val visualElement = VisualElement("http://image-api/1", "image", Some("nb"))
   val sampleNode = NodeToConvert(List(sampleTitle), List(sampleContent), "by-sa", Seq(author), List(ArticleTag(List("tag"), Some("en"))), Seq(visualElement), "fagstoff", new Date(0), new Date(1))
-  val sampleNode2 = sampleNode.copy(contents=List(sampleContent2))
-
+  val sampleNode2 = sampleNode.copy(contents=List(sampleTranslationContent))
   lazy val controller = new InternController
   addServlet(controller, "/*")
 

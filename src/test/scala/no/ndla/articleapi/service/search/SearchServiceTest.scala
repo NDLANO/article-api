@@ -12,7 +12,7 @@ package no.ndla.articleapi.service.search
 import no.ndla.articleapi.integration.JestClientFactory
 import no.ndla.articleapi.model.domain._
 import no.ndla.articleapi.{TestEnvironment, UnitSuite}
-import no.ndla.articleapi.SampleArticles
+import no.ndla.articleapi.TestData
 import org.elasticsearch.common.settings.Settings
 import org.elasticsearch.node.{Node, NodeBuilder}
 import org.joda.time.DateTime
@@ -37,21 +37,21 @@ class SearchServiceTest extends UnitSuite with TestEnvironment {
 
   val today = DateTime.now()
 
-  val article1 = SampleArticles.sampleArticleWithByNcSa.copy(
+  val article1 = TestData.sampleArticleWithByNcSa.copy(
     id=Option(1),
     title=List(ArticleTitle("Batmen er på vift med en bil", Some("nb"))),
     content=List(ArticleContent("Bilde av en <strong>bil</strong> flaggermusmann som vifter med vingene <em>bil</em>.", None, Some("nb"))),
     tags=List(ArticleTag(List("fugl"), Some("nb"))),
     created=today.minusDays(4).toDate,
     updated=today.minusDays(3).toDate)
-  val article2 = SampleArticles.sampleArticleWithPublicDomain.copy(
+  val article2 = TestData.sampleArticleWithPublicDomain.copy(
     id=Option(2),
     title=List(ArticleTitle("Pingvinen er ute og går", Some("nb"))),
     content=List(ArticleContent("<p>Bilde av en</p><p> en <em>pingvin</em> som vagger borover en gate</p>", None, Some("nb"))),
     tags=List(ArticleTag(List("fugl"), Some("nb"))),
     created=today.minusDays(4).toDate,
     updated=today.minusDays(2).toDate)
-  val article3 = SampleArticles.sampleArticleWithPublicDomain.copy(
+  val article3 = TestData.sampleArticleWithPublicDomain.copy(
     id=Option(3),
     title=List(ArticleTitle("Donald Duck kjører bil", Some("nb"))),
     content=List(ArticleContent("<p>Bilde av en en and</p><p> som <strong>kjører</strong> en rød bil.</p>", None, Some("nb"))),
@@ -59,7 +59,7 @@ class SearchServiceTest extends UnitSuite with TestEnvironment {
     created=today.minusDays(4).toDate,
     updated=today.minusDays(1).toDate
   )
-  val article4 = SampleArticles.sampleArticleWithCopyrighted.copy(
+  val article4 = TestData.sampleArticleWithCopyrighted.copy(
     id=Option(4),
     title=List(ArticleTitle("Superman er ute og flyr", Some("nb"))),
     content=List(ArticleContent("<p>Bilde av en flygende mann</p><p> som <strong>har</strong> superkrefter.</p>", None, Some("nb"))),

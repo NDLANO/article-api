@@ -8,10 +8,11 @@
 
 package no.ndla.articleapi
 
+import no.ndla.articleapi.integration.LanguageContent
 import no.ndla.articleapi.model.domain._
 import org.joda.time.DateTime
 
-object SampleArticles {
+object TestData {
   private val publicDomainCopyright= Copyright("publicdomain", "", List())
   private val byNcSaCopyright = Copyright("by-nc-sa", "Gotham City", List(Author("Forfatter", "DC Comics")))
   private val copyrighted = Copyright("copyrighted", "New York", List(Author("Forfatter", "Clark Kent")))
@@ -35,6 +36,11 @@ object SampleArticles {
   val sampleArticleWithByNcSa = sampleArticleWithPublicDomain.copy(copyright=byNcSaCopyright)
   val sampleArticleWithCopyrighted = sampleArticleWithPublicDomain.copy(copyright=copyrighted )
 
+
+  val (nodeId, nodeId2) = ("1234", "4321")
+  val sampleTitle = ArticleTitle("title", Some("en"))
+  val sampleContent = LanguageContent(nodeId, nodeId, "sample content", "metadescription",  Some("en"))
+  val sampleTranslationContent = sampleContent.copy(tnid=nodeId2)
 }
 
 

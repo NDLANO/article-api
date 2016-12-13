@@ -13,7 +13,7 @@ import no.ndla.articleapi.{TestEnvironment, UnitSuite}
 import no.ndla.articleapi.integration.MigrationNodeGeneralContent
 import org.mockito.Mockito._
 
-import scala.util.{Success, Try}
+import scala.util.Success
 
 class ExtractServiceTest extends UnitSuite with TestEnvironment {
   override val extractService = new ExtractService

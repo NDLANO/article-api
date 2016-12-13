@@ -10,17 +10,16 @@
 package no.ndla.articleapi.service.converters.contentbrowser
 
 import no.ndla.articleapi.ArticleApiProperties._
-import no.ndla.articleapi.TestEnvironment
-import no.ndla.articleapi.integration.{ImageCopyright, ImageLicense, ImageMetaInformation, LanguageContent}
-import no.ndla.articleapi.UnitSuite
-import no.ndla.articleapi.model.domain.{Copyright, ImportStatus, NodeGeneralContent}
+import no.ndla.articleapi.{TestData, TestEnvironment, UnitSuite}
+import no.ndla.articleapi.integration.{ImageCopyright, ImageLicense, ImageMetaInformation}
+import no.ndla.articleapi.model.domain.{ImportStatus, NodeGeneralContent}
 import org.mockito.Mockito._
 
 class ContentBrowserConverterTest extends UnitSuite with TestEnvironment {
   val nodeId = "1234"
   val sampleAlt = "Fotografi"
   val sampleContentString = s"[contentbrowser ==nid=$nodeId==imagecache=Fullbredde==width===alt=$sampleAlt==link===node_link=1==link_type=link_to_content==lightbox_size===remove_fields[76661]=1==remove_fields[76663]=1==remove_fields[76664]=1==remove_fields[76666]=1==insertion=inline==link_title_text= ==link_text= ==text_align===css_class=contentbrowser contentbrowser]"
-  val sampleContent =  LanguageContent(nodeId, nodeId, s"<article>$sampleContentString</article>", "", Some("en"))
+  val sampleContent =  TestData.sampleContent.copy(content=s"<article>$sampleContentString</article>")
 
   test("contentbrowser strings of unsupported types are replaced with an error message") {
     val expectedResult = s"""<article><$resourceHtmlEmbedTag data-id="1" data-message="Unsupported content (unsupported type): $nodeId" data-resource="error" /></article>"""
