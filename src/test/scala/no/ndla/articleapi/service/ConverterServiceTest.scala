@@ -47,9 +47,8 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     when(extractConvertStoreContent.processNode("4321")).thenReturn(Try(1: Long, ImportStatus(Seq(), Seq())))
 
     val (result, status) = service.toDomainArticle(node, ImportStatus(Seq(), Seq()))
-    val strippedResult = result.content.head.content.replace("\n", "").replace(" ", "")
 
-    strippedResult should equal (expedtedResult)
+    result.content.head.content should equal (expedtedResult)
   }
 
   test("That content embedded in a node is converted") {
@@ -86,11 +85,11 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     val nynorskExpectedResult = "Nordavinden og sola krangla ein gong om kven av dei som var den sterkaste"
 
     val (result, status) = service.toDomainArticle(node, ImportStatus(Seq(), Seq()))
-    val bokmalStrippedResult = " +".r.replaceAllIn(result.content.head.content, " ")
-    val nynorskStrippedResult = " +".r.replaceAllIn(result.content.last.content, " ")
+    val bokmalResult = result.content.head.content
+    val nynorskResult = result.content.last.content
 
-    bokmalStrippedResult should equal (bokmalExpectedResult)
-    nynorskStrippedResult should equal (nynorskExpectedResult)
+    bokmalResult should equal (bokmalExpectedResult)
+    nynorskResult should equal (nynorskExpectedResult)
     status.messages.isEmpty should equal (true)
     result.requiredLibraries.isEmpty should equal (true)
   }
@@ -154,9 +153,8 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     val expectedResult = """<p>not a comment</p>"""
 
     val (result, status) = service.toDomainArticle(node, ImportStatus(Seq(), Seq()))
-    val strippedResult = " +".r.replaceAllIn(result.content.head.content, " ")
 
-    strippedResult should equal (expectedResult)
+    result.content.head.content should equal (expectedResult)
     status.messages.isEmpty should equal (true)
     result.requiredLibraries.isEmpty should equal (true)
   }
@@ -199,9 +197,8 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     val expectedResult = s"""<article> <$resourceHtmlEmbedTag data-id="1" /></article>"""
 
     val (result, status) = service.toDomainArticle(node, ImportStatus(Seq(), Seq()))
-    val strippedResult = " +".r.replaceAllIn(result.content.head.content.replace("\n", ""), " ")
 
-    strippedResult should equal (expectedResult)
+    result.content.head.content should equal (expectedResult)
     status.messages.isEmpty should equal (true)
     result.requiredLibraries.isEmpty should equal (true)
   }
@@ -242,9 +239,8 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     when(extractService.getNodeType(h5pNodeId)).thenReturn(Some("h5p_content"))
 
     val (result, status) = service.toDomainArticle(node, ImportStatus(Seq(), Seq()))
-    val strippedResult = " +".r.replaceAllIn(result.content.head.content.replace("\n", ""), " ")
 
-    strippedResult should equal (expectedResult)
+    result.content.head.content should equal (expectedResult)
     status.messages.isEmpty should equal (true)
     result.requiredLibraries.isEmpty should equal (true)
   }

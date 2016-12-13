@@ -79,9 +79,12 @@ object HTMLCleaner extends ConverterModule with LazyLogging {
     }
   }
 
+  private def htmlTagIsEmpty(el: Element) =
+    el.select(resourceHtmlEmbedTag).isEmpty && !el.hasText && el.isBlock
+
   private def removeEmptyTags(element: Element): Element = {
-    for (el <- element.select("p,div,section")) {
-      if (el.select(resourceHtmlEmbedTag).isEmpty && !el.hasText && el.isBlock) {
+    for (el <- element.select("p,div,section,aside")) {
+      if (htmlTagIsEmpty(el)) {
         el.remove()
       }
     }

@@ -30,7 +30,7 @@ class AudioConverterTest extends UnitSuite with TestEnvironment {
 
     status.messages.isEmpty should be (true)
     requiredLibraries.isEmpty should be(true)
-    strippedResult.replace("\n", "") should equal (expectedResult)
+    strippedResult should equal (expectedResult)
   }
 
   test("That AudioConverter returns an error if the audio was not found") {
