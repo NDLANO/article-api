@@ -13,7 +13,7 @@ import java.util.Date
 import no.ndla.articleapi.{TestEnvironment, UnitSuite}
 import no.ndla.articleapi.integration._
 import no.ndla.articleapi.model.domain._
-import no.ndla.articleapi.service.converters.TableConverter
+import no.ndla.articleapi.service.converters.{HtmlTagGenerator, TableConverter}
 import no.ndla.articleapi.ArticleApiProperties.resourceHtmlEmbedTag
 import org.mockito.Mockito._
 
@@ -76,10 +76,10 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
 
   test("That the ingress is not added to the content") {
     val (nodeId, nodeId2) = ("1234", "4321")
-    val ingressNodeBokmal = LanguageIngress("Hvem er sterkest?")
+    val ingressNodeBokmal = LanguageIngress("Hvem er sterkest?", None)
     val contentNodeBokmal = LanguageContent(nodeId, nodeId, "Nordavinden og sola kranglet en gang om hvem av dem som var den sterkeste", Some("nb"), ingress = Some(ingressNodeBokmal))
 
-    val ingressNodeNynorsk = LanguageIngress("Kven er sterkast?")
+    val ingressNodeNynorsk = LanguageIngress("Kven er sterkast?", None)
     val contentNodeNynorsk = LanguageContent(nodeId2, nodeId, "Nordavinden og sola krangla ein gong om kven av dei som var den sterkaste", Some("nn"), ingress = Some(ingressNodeNynorsk))
 
     val node = sampleNode.copy(contents=List(contentNodeBokmal, contentNodeNynorsk))
@@ -112,7 +112,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
 
     val expectedIngressResult = ArticleIntroduction("Hvem er sterkest?", Some("nb"))
 
-    val ingressNodeBokmal = LanguageIngress("Hvem er sterkest?")
+    val ingressNodeBokmal = LanguageIngress("Hvem er sterkest?", None)
     val contentNodeBokmal = LanguageContent(nodeId, nodeId, content, Some("nb"), ingress = Some(ingressNodeBokmal))
 
     val node = sampleNode.copy(contents=List(contentNodeBokmal))

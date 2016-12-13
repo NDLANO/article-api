@@ -58,4 +58,4 @@ case class LanguageContent(nid: String, tnid: String, content: String, language:
   def asArticleIntroduction: Option[ArticleIntroduction] = ingress.map(x => ArticleIntroduction(x.content, language))
 }
 
-case class LanguageIngress(content: String)
+case class LanguageIngress(content: String, ingressImage: Option[String])

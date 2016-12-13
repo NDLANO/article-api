@@ -8,13 +8,12 @@
 
 package no.ndla.articleapi.service.converters
 
-import no.ndla.articleapi.UnitSuite
+import no.ndla.articleapi.{TestEnvironment, UnitSuite}
 import no.ndla.articleapi.ArticleApiProperties.resourceHtmlEmbedTag
 
-class HtmlFigureGeneratorTest extends UnitSuite {
+class HtmlFigureGeneratorTest extends UnitSuite with TestEnvironment {
     val sampleDataAttributes = Map(
       "resource" -> "image",
-      "id" -> "1",
       "url" -> "http://localhost/1",
       "caption" -> "Sample image"
     )

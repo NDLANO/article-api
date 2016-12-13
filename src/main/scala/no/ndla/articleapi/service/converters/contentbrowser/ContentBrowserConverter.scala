@@ -35,9 +35,9 @@ trait ContentBrowserConverter {
       BiblioConverter.typeName -> BiblioConverter)
 
     def convert(languageContent: LanguageContent, importStatus: ImportStatus): (LanguageContent, ImportStatus) = {
-      @tailrec def convert(element: Element, languageContent: LanguageContent, importStatus: ImportStatus, contentBrowserIndex: Int): (LanguageContent, ImportStatus) = {
+      @tailrec def convert(element: Element, languageContent: LanguageContent, importStatus: ImportStatus): (LanguageContent, ImportStatus) = {
         val text = element.html()
-        val cont = ContentBrowser(text, languageContent.language, contentBrowserIndex)
+        val cont = ContentBrowser(text, languageContent.language)
 
         if (!cont.isContentBrowserField)
           return (languageContent, importStatus)
@@ -58,11 +58,11 @@ trait ContentBrowserConverter {
 
         val updatedRequiredLibraries = languageContent.requiredLibraries ++ reqLibs
         val updatedImportStatusMessages = importStatus.messages ++ status.messages
-        convert(element, languageContent.copy(requiredLibraries=updatedRequiredLibraries), status.copy(messages=updatedImportStatusMessages), contentBrowserIndex + 1)
+        convert(element, languageContent.copy(requiredLibraries=updatedRequiredLibraries), status.copy(messages=updatedImportStatusMessages))
       }
 
       val element = stringToJsoupDocument(languageContent.content)
-      val (updatedLanguageContent, updatedImportStatus) = convert(element, languageContent, importStatus, 1)
+      val (updatedLanguageContent, updatedImportStatus) = convert(element, languageContent, importStatus)
       (updatedLanguageContent.copy(content=jsoupDocumentToString(element)), updatedImportStatus)
     }
   }

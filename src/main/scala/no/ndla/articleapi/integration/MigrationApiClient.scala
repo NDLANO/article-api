@@ -68,11 +68,11 @@ trait MigrationApiClient {
 }
 
 case class MigrationMainNodeImport(titles: Seq[MigrationContentTitle], ingresses: Seq[MigrationIngress], contents: Seq[MigrationContent],
-                          authors: Seq[MigrationContentAuthor], license: Option[String], nodeType: Option[String],
-                          pageTitles: Seq[MigrationPageTitle], visualElements: Seq[MigrationVisualElement], relatedContents: Seq[MigrationRelatedContents],
-                          editorialKeywords: Seq[MigrationEditorialKeywords], learningResourceType: Seq[MigrationLearningResourceType],
-                          difficulty: Seq[MigrationDifficulty], contentType: Seq[MigrationContentType], innholdAndFag: Seq[MigrationInnholdsKategoriAndFag],
-                          fagressurs: Seq[MigrationFagressurs])
+                                   authors: Seq[MigrationContentAuthor], license: Option[String], nodeType: Option[String], pageTitles: Seq[MigrationPageTitle],
+                                   visualElements: Seq[MigrationVisualElement], relatedContents: Seq[MigrationRelatedContents],
+                                   editorialKeywords: Seq[MigrationEditorialKeywords], learningResourceType: Seq[MigrationLearningResourceType],
+                                   difficulty: Seq[MigrationDifficulty], contentType: Seq[MigrationContentType], innholdAndFag: Seq[MigrationInnholdsKategoriAndFag],
+                                   fagressurs: Seq[MigrationFagressurs])
  {
 
   def asNodeToConvert(nodeId: String, tags: List[ArticleTag]): NodeToConvert = NodeToConvert(
@@ -93,9 +93,13 @@ case class MigrationMainNodeImport(titles: Seq[MigrationContentTitle], ingresses
         content.tnid,
         content.content,
         content.language,
-        ingress = ingresses.find(ingress => ingress.language == content.language && ingress.ingressVisPaaSiden == 1).map(ingress => LanguageIngress(ingress.content.getOrElse(""))))
+        ingress = getIngress(content.language))
     })
   }
+
+   private def getIngress(language: Option[String]) =
+     ingresses.find(ingress => ingress.language == language && ingress.ingressVisPaaSiden == 1)
+       .map(ingress => LanguageIngress(ingress.content.getOrElse(""), ingress.imageNid))
 }
 
 case class MigrationNodeGeneralContent(nid: String, tnid: String, title: String, content: String, language: String) {

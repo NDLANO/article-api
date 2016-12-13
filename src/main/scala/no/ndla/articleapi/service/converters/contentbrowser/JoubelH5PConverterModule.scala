@@ -15,7 +15,7 @@ import no.ndla.articleapi.service.ExtractService
 import no.ndla.articleapi.service.converters.HtmlTagGenerator
 
 trait JoubelH5PConverterModule {
-  this: ExtractService =>
+  this: ExtractService with HtmlTagGenerator =>
 
   object JoubelH5PConverter extends ContentBrowserConverterModule with LazyLogging {
     override val typeName: String = "h5p_content"
@@ -35,7 +35,6 @@ trait JoubelH5PConverterModule {
       logger.info(s"Converting h5p_content with nid $ndlaNodeId")
       val (replacement, embedContentUsageErrors) = HtmlTagGenerator.buildEmbedContent(Map(
         "resource" -> "h5p",
-        "id" -> s"${content.id}",
         "url" -> s"$JoubelH5PBaseUrl/${ValidH5PNodeIds(ndlaNodeId)}") )
       (replacement, Seq(), ImportStatus(embedContentUsageErrors, visitedNodes))
     }
@@ -45,7 +44,7 @@ trait JoubelH5PConverterModule {
       val message = s"H5P node $ndlaNodeId is not yet exported to new H5P service"
       logger.error(message)
 
-      val (replacement, usageErrors) = HtmlTagGenerator.buildErrorContent(message, content.id.toString)
+      val (replacement, usageErrors) = HtmlTagGenerator.buildErrorContent(message)
       (replacement, Seq(), ImportStatus(usageErrors :+ message, visitedNodes))
     }
 

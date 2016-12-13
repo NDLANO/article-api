@@ -9,7 +9,7 @@
 
 package no.ndla.articleapi.service.converters.contentbrowser
 
-case class ContentBrowser(contentBrowserString: String, language: Option[String], id: Int = 1) {
+case class ContentBrowser(contentBrowserString: String, language: Option[String]) {
   // Extract the contentbrowser variables
   private val Pattern = """(?s).*\[contentbrowser (.*) ?contentbrowser\].*""".r
   private val ContentField = contentBrowserString match {

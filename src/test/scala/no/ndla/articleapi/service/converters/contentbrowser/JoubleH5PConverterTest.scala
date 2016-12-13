@@ -21,7 +21,7 @@ class JoubleH5PConverterTest extends UnitSuite with TestEnvironment {
 
   test("Contentbrowser strings of type 'h5p_content' returns a h5p embed-resource") {
     val expectedResult = s"""<$resourceHtmlEmbedTag data-id="1" data-resource="h5p" data-url="${JoubelH5PConverter.JoubelH5PBaseUrl}/$joubelH5PIdId" />"""
-    val content = ContentBrowser(contentStringWithValidNodeId, Some("nb"), 1)
+    val content = ContentBrowser(contentStringWithValidNodeId, Some("nb"))
     val (result, requiredLibraries, errors) = JoubelH5PConverter.convert(content, Seq())
 
     result should equal(expectedResult)
@@ -31,7 +31,7 @@ class JoubleH5PConverterTest extends UnitSuite with TestEnvironment {
 
   test("H5P nodes with an invalid node id returns an error embed-resource") {
     val expectedResult = s"""<$resourceHtmlEmbedTag data-id="1" data-message="H5P node $invalidNodeId is not yet exported to new H5P service" data-resource="error" />"""
-    val content = ContentBrowser(contentStringWithInvalidNodeId, Some("nb"), 1)
+    val content = ContentBrowser(contentStringWithInvalidNodeId, Some("nb"))
     val (result, requiredLibraries, errors) = JoubelH5PConverter.convert(content, Seq())
 
     result should equal(expectedResult)
