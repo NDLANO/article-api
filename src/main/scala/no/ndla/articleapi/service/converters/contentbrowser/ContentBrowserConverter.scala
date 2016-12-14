@@ -40,9 +40,9 @@ trait ContentBrowserConverter {
     }
 
     def convert(languageContent: LanguageContent, importStatus: ImportStatus): (LanguageContent, ImportStatus) = {
-      @tailrec def convert(element: Element, languageContent: LanguageContent, importStatus: ImportStatus, contentBrowserIndex: Int): (LanguageContent, ImportStatus) = {
+      @tailrec def convert(element: Element, languageContent: LanguageContent, importStatus: ImportStatus): (LanguageContent, ImportStatus) = {
         val text = element.html()
-        val cont = ContentBrowser(text, languageContent.language, contentBrowserIndex)
+        val cont = ContentBrowser(text, languageContent.language)
 
         if (!cont.isContentBrowserField)
           return (languageContent, importStatus)
@@ -55,14 +55,14 @@ trait ContentBrowserConverter {
         val updatedRequiredLibraries = languageContent.requiredLibraries ++ reqLibs
         val updatedImportStatusMessages = importStatus.messages ++ status.messages
         convert(element, languageContent.copy(requiredLibraries=updatedRequiredLibraries),
-          status.copy(messages=updatedImportStatusMessages), contentBrowserIndex + 1)
+          status.copy(messages=updatedImportStatusMessages))
       }
 
       val contentElement = stringToJsoupDocument(languageContent.content)
-      val (updatedLanguageContent, updatedImportStatus) = convert(contentElement, languageContent, importStatus, 1)
+      val (updatedLanguageContent, updatedImportStatus) = convert(contentElement, languageContent, importStatus)
 
       val metaDescriptionElement = stringToJsoupDocument(languageContent.metaDescription)
-      val (finalLanguageContent, finalImportStatus) = convert(metaDescriptionElement, updatedLanguageContent, updatedImportStatus, 1)
+      val (finalLanguageContent, finalImportStatus) = convert(metaDescriptionElement, updatedLanguageContent, updatedImportStatus)
 
       (finalLanguageContent.copy(content=jsoupDocumentToString(contentElement), metaDescription=jsoupDocumentToString(metaDescriptionElement)),
         finalImportStatus)

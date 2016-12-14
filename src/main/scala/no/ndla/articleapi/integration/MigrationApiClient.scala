@@ -94,23 +94,23 @@ case class MigrationMainNodeImport(titles: Seq[MigrationContentTitle], ingresses
           content.content,
           getMetaDescription(content),
           content.language,
-          ingress = getIngress(content.language.getOrElse("")))
+          ingress = getIngress(content.language))
       })
     }
 
-     private def getEmneArtikkel(language: String) = emneartikkelData.find(_.language.getOrElse("") == language)
+     private def getEmneArtikkel(language: Option[String]) = emneartikkelData.find(_.language == language)
 
-     private def getIngress(language: String): Option[String] = {
+     private def getIngress(language: Option[String]): Option[LanguageIngress] = {
        getEmneArtikkel(language) match {
-         case Some(data) => Option(data.ingress)
+         case Some(data) => Option(LanguageIngress(data.ingress, None))
          case None =>
-           ingresses.find(ingress => ingress.language.getOrElse("") == language && ingress.ingressVisPaaSiden == 1)
-             .map(ingress => ingress.content.getOrElse(""))
+           ingresses.find(ingress => ingress.language == language && ingress.ingressVisPaaSiden == 1)
+             .map(ingress => LanguageIngress(ingress.content.getOrElse(""), ingress.imageNid))
        }
      }
 
      private def getMetaDescription(content: MigrationContent): String = {
-       getEmneArtikkel(content.language.getOrElse("")) match {
+       getEmneArtikkel(content.language) match {
          case Some(data) => data.metaDescription
          case None => content.metaDescription
        }

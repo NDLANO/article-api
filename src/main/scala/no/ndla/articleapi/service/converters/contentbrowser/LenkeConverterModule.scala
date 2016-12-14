@@ -18,7 +18,7 @@ import no.ndla.articleapi.service.converters.HtmlTagGenerator
 import org.jsoup.Jsoup
 
 trait LenkeConverterModule {
-  this: ExtractService =>
+  this: ExtractService with HtmlTagGenerator =>
 
   object LenkeConverter extends ContentBrowserConverterModule with LazyLogging {
     override val typeName: String = "lenke"
@@ -60,7 +60,7 @@ trait LenkeConverterModule {
 
     private def insertInline(url: String, embedCode: String, cont: ContentBrowser): (String, Option[RequiredLibrary], Seq[String]) = {
       val message = s"External resource to be embedded: $url"
-      val attributes = Map("resource" -> "external", "id" -> s"${cont.id}", "url" -> url)
+      val attributes = Map("resource" -> "external", "url" -> url)
 
       logger.info(message)
       val (extraAttributes, requiredLibs) = getExtraAttributes(url, embedCode, cont)

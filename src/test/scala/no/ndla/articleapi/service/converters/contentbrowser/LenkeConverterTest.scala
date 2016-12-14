@@ -32,7 +32,7 @@ class LenkeConverterTest extends UnitSuite with TestEnvironment {
   test("That LenkeConverter returns an embed code if insertion method is 'inline'") {
     val insertion = "inline"
     val contentString = s"[contentbrowser ==nid=$nodeId==imagecache=Fullbredde==width===alt=$altText==link===node_link=1==link_type=link_to_content==lightbox_size===remove_fields[76661]=1==remove_fields[76663]=1==remove_fields[76664]=1==remove_fields[76666]=1==insertion=$insertion==link_title_text= ==link_text= ==text_align===css_class=contentbrowser contentbrowser]"
-    val content = ContentBrowser(contentString, Some("nb"), 1)
+    val content = ContentBrowser(contentString, Some("nb"))
 
     val (result, requiredLibraries, errors) = LenkeConverter.convert(content, Seq())
     result should equal(linkEmbedCode)
@@ -79,7 +79,7 @@ class LenkeConverterTest extends UnitSuite with TestEnvironment {
   test("That LenkeConverter returns a collapsed embed code if insertion method is 'collapsed_body'") {
     val insertion = "collapsed_body"
     val contentString = s"[contentbrowser ==nid=$nodeId==imagecache=Fullbredde==width===alt=$altText==link===node_link=1==link_type=link_to_content==lightbox_size===remove_fields[76661]=1==remove_fields[76663]=1==remove_fields[76664]=1==remove_fields[76666]=1==insertion=$insertion==link_title_text= ==link_text= ==text_align===css_class=contentbrowser contentbrowser]"
-    val content = ContentBrowser(contentString, Some("nb"), 1)
+    val content = ContentBrowser(contentString, Some("nb"))
     val expectedResult = s"<details><summary>${content.get("link_text")}</summary>$linkEmbedCode</details>"
 
     val (result, requiredLibraries, errors) = LenkeConverter.convert(content, Seq())
@@ -92,7 +92,7 @@ class LenkeConverterTest extends UnitSuite with TestEnvironment {
   test("That LenkeConverter returns inline content with nrk video id") {
     val insertion = "inline"
     val contentString = s"[contentbrowser ==nid=$nodeId==imagecache=Fullbredde==width===alt=$altText==link===node_link=1==link_type=link_to_content==lightbox_size===remove_fields[76661]=1==remove_fields[76663]=1==remove_fields[76664]=1==remove_fields[76666]=1==insertion=$insertion==link_title_text= ==link_text= ==text_align===css_class=contentbrowser contentbrowser]"
-    val content = ContentBrowser(contentString, Some("nb"), 1)
+    val content = ContentBrowser(contentString, Some("nb"))
     val expectedResult = s"""<$resourceHtmlEmbedTag data-id="1" data-nrk-video-id="$nrkVideoId" data-resource="nrk" data-url="$nrkLinkUrl" />"""
 
     when(extractService.getNodeEmbedMeta(nodeId)).thenReturn(Some(MigrationEmbedMeta(Some(nrkLinkUrl), Some(nrkEmbedScript))))

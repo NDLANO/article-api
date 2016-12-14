@@ -1,20 +1,21 @@
 package no.ndla.articleapi.service.converters
 
-import no.ndla.articleapi.{TestData, UnitSuite}
+import no.ndla.articleapi.{TestData, TestEnvironment, UnitSuite}
+import no.ndla.articleapi.integration.LanguageIngress
 import no.ndla.articleapi.ArticleApiProperties.resourceHtmlEmbedTag
 import no.ndla.articleapi.model.domain.ImportStatus
 
-class HTMLCleanerTest extends UnitSuite {
+class HTMLCleanerTest extends UnitSuite with TestEnvironment {
   val nodeId = "1234"
   val defaultImportStatus = ImportStatus(Seq(), Seq())
 
-  val defaultLanguageIngress = "Jeg er en ingress"
-  val defaultLanguageIngressWithHtml = "<p>Jeg er en ingress</p>"
+  val defaultLanguageIngress = LanguageIngress("Jeg er en ingress", None)
+  val defaultLanguageIngressWithHtml = LanguageIngress("<p>Jeg er en ingress</p>", None)
 
   test("That HTMLCleaner unwraps illegal attributes") {
     val initialContent = TestData.sampleContent.copy(content="""<body><article><h1 class="useless">heading<div style="width='0px'">hey</div></h1></article></body>""")
     val expectedResult = "<article><h1>heading<div>hey</div></h1></article>"
-    val (result, status) = HTMLCleaner.convert(initialContent, defaultImportStatus)
+    val (result, status) = htmlCleaner.convert(initialContent, defaultImportStatus)
 
     result.content should equal (expectedResult)
     result.requiredLibraries.length should equal (0)
@@ -23,7 +24,7 @@ class HTMLCleanerTest extends UnitSuite {
   test("That HTMLCleaner unwraps illegal tags") {
     val initialContent = TestData.sampleContent.copy(content="""<article><h1>heading</h1><henriktag>hehe</henriktag></article>""")
     val expectedResult = "<article><h1>heading</h1>hehe</article>"
-    val (result, status) = HTMLCleaner.convert(initialContent, defaultImportStatus)
+    val (result, status) = htmlCleaner.convert(initialContent, defaultImportStatus)
 
     result.content should equal (expectedResult)
     result.requiredLibraries.length should equal (0)
@@ -32,7 +33,7 @@ class HTMLCleanerTest extends UnitSuite {
   test("That HTMLCleaner removes comments") {
     val initialContent = TestData.sampleContent.copy(content="""<article><!-- this is a comment --><h1>heading<!-- comment --></h1></article>""")
     val expectedResult = "<article><h1>heading</h1></article>"
-    val (result, status) = HTMLCleaner.convert(initialContent, defaultImportStatus)
+    val (result, status) = htmlCleaner.convert(initialContent, defaultImportStatus)
 
     result.content should equal (expectedResult)
     result.requiredLibraries.length should equal (0)
@@ -41,7 +42,7 @@ class HTMLCleanerTest extends UnitSuite {
   test("That HTMLCleaner removes empty p,div,section,aside tags") {
     val initialContent = TestData.sampleContent.copy(content="""<h1>not empty</h1><section><p></p><div></div><aside></aside></section>""")
     val expectedResult = "<h1>not empty</h1>"
-    val (result, status) = HTMLCleaner.convert(initialContent, defaultImportStatus)
+    val (result, status) = htmlCleaner.convert(initialContent, defaultImportStatus)
 
     result.content should equal (expectedResult)
     result.requiredLibraries.length should equal (0)
@@ -63,9 +64,9 @@ class HTMLCleanerTest extends UnitSuite {
          |<section>
          |<h2>Mediehverdagen</h2>
          |</section>""".stripMargin.replace("\n", "")
-    val expectedIngressResult = "Medievanene er i endring."
+    val expectedIngressResult = LanguageIngress("Medievanene er i endring.", None)
 
-    val (result, status) = HTMLCleaner.convert(TestData.sampleContent.copy(content=content), defaultImportStatus)
+    val (result, status) = htmlCleaner.convert(TestData.sampleContent.copy(content=content), defaultImportStatus)
 
     result.content should equal(expectedContentResult)
     result.ingress should equal(Some(expectedIngressResult))
@@ -82,7 +83,7 @@ class HTMLCleanerTest extends UnitSuite {
          |<h2>Mediehverdagen</h2>
          |</section>""".stripMargin.replace("\n", "")
     val expectedIngressResult = None
-    val (result, status) = HTMLCleaner.convert(TestData.sampleContent.copy(content=content), defaultImportStatus)
+    val (result, status) = htmlCleaner.convert(TestData.sampleContent.copy(content=content), defaultImportStatus)
 
     result.content should equal(expectedContentResult)
     result.ingress should equal(expectedIngressResult)
@@ -99,8 +100,8 @@ class HTMLCleanerTest extends UnitSuite {
         |</section>
       """.stripMargin.replace("\n", "")
     val expectedContentResult = """<section><ul><li><a href="#" title="Snopes">Snopes</a></li></ul></section>"""
-    val expectedIngressResult = "Du har sikkert opplevd rykter og usannheter"
-    val (result, status) = HTMLCleaner.convert(TestData.sampleContent.copy(content=content), defaultImportStatus)
+    val expectedIngressResult = LanguageIngress("Du har sikkert opplevd rykter og usannheter", None)
+    val (result, status) = htmlCleaner.convert(TestData.sampleContent.copy(content=content), defaultImportStatus)
     result.content should equal(expectedContentResult)
     result.ingress should equal(Some(expectedIngressResult))
     result.requiredLibraries.length should equal (0)
@@ -116,8 +117,8 @@ class HTMLCleanerTest extends UnitSuite {
       s"""<section>
         |<$resourceHtmlEmbedTag data-size="fullbredde" data-url="http://image-api/images/5452" data-align="" data-id="1" data-resource="image" data-alt="Mobiltelefon sender SMS" />
         |<h2>Mediehverdagen</h2></section>""".stripMargin.replace("\n", "")
-    val expectedIngressResult = "Medievanene er i endring."
-    val (result, status) = HTMLCleaner.convert(TestData.sampleContent.copy(content=content), defaultImportStatus)
+    val expectedIngressResult = LanguageIngress("Medievanene er i endring.", None)
+    val (result, status) = htmlCleaner.convert(TestData.sampleContent.copy(content=content), defaultImportStatus)
 
     result.content should equal(expectedContentResult)
     result.ingress should equal(Some(expectedIngressResult))
@@ -133,7 +134,7 @@ class HTMLCleanerTest extends UnitSuite {
                       |<h2>Mediehverdagen</h2>
                       |</section>""".stripMargin.replace("\n", "")
 
-    val (result, status) = HTMLCleaner.convert(TestData.sampleContent.copy(content=content), defaultImportStatus)
+    val (result, status) = htmlCleaner.convert(TestData.sampleContent.copy(content=content), defaultImportStatus)
 
     result.content should equal(expectedContentResult)
   }
@@ -142,7 +143,7 @@ class HTMLCleanerTest extends UnitSuite {
     val content = s"""<section>Medievanene er i endring.<p>Noe innhold</p>  <h2>Mediehverdagen</h2></section>"""
     val expectedContentResult = s"""<section><p>Medievanene er i endring.</p><p>Noe innhold</p>  <h2>Mediehverdagen</h2></section>"""
 
-    val (result, status) = HTMLCleaner.convert(TestData.sampleContent.copy(content=content), defaultImportStatus)
+    val (result, status) = htmlCleaner.convert(TestData.sampleContent.copy(content=content), defaultImportStatus)
 
     result.content should equal(expectedContentResult)
   }
@@ -175,10 +176,10 @@ class HTMLCleanerTest extends UnitSuite {
           |<h2>Mediehverdagen</h2>
           |</section>""".stripMargin.replace("\n", "")
 
-    val notExpectedIngressResult = "Medievanene er i endring."
-    val expectedIngressResult = "Jeg er en ingress"
+    val notExpectedIngressResult = LanguageIngress("Medievanene er i endring.", None)
+    val expectedIngressResult = LanguageIngress("Jeg er en ingress", None)
 
-    val (result, status) = HTMLCleaner.convert(TestData.sampleContent.copy(content=content, ingress=Some(defaultLanguageIngress)), defaultImportStatus)
+    val (result, status) = htmlCleaner.convert(TestData.sampleContent.copy(content=content, ingress=Some(defaultLanguageIngress)), defaultImportStatus)
 
     result.content should equal(expectedContentResult)
     result.ingress should equal(Some(expectedIngressResult))
@@ -198,9 +199,9 @@ class HTMLCleanerTest extends UnitSuite {
                                     |<h2>Mediehverdagen</h2>
                                     |</section>""".stripMargin.replace("\n", "")
 
-    val expectedIngressResult = "Jeg er en ingress"
+    val expectedIngressResult = LanguageIngress("Jeg er en ingress", None)
 
-    val (result, status) = HTMLCleaner.convert(TestData.sampleContent.copy(content=content, ingress=Some(defaultLanguageIngressWithHtml)), defaultImportStatus)
+    val (result, status) = htmlCleaner.convert(TestData.sampleContent.copy(content=content, ingress=Some(defaultLanguageIngressWithHtml)), defaultImportStatus)
 
     result.content should equal(expectedContentResult)
     result.ingress should equal(Some(expectedIngressResult))
@@ -208,7 +209,7 @@ class HTMLCleanerTest extends UnitSuite {
 
   test("elements are replaced with data-caption text in meta description") {
     val content = TestData.sampleContent.copy(content="", metaDescription=s"""Look at this image <$resourceHtmlEmbedTag data-resource="image" data-caption="image caption" />""")
-    val (result, status) = HTMLCleaner.convert(content, defaultImportStatus)
+    val (result, status) = htmlCleaner.convert(content, defaultImportStatus)
 
     result.metaDescription should equal ("Look at this image image caption")
   }

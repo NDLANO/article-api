@@ -13,7 +13,7 @@ import java.util.Date
 import no.ndla.articleapi.{TestData, TestEnvironment, UnitSuite}
 import no.ndla.articleapi.integration._
 import no.ndla.articleapi.model.domain._
-import no.ndla.articleapi.service.converters.TableConverter
+import no.ndla.articleapi.service.converters.{HtmlTagGenerator, TableConverter}
 import no.ndla.articleapi.ArticleApiProperties.resourceHtmlEmbedTag
 import org.mockito.Mockito._
 
@@ -74,11 +74,11 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
 
   test("That the ingress is not added to the content") {
     val (nodeId, nodeId2) = ("1234", "4321")
-    val ingressNodeBokmal = "Hvem er sterkest?"
-    val contentNodeBokmal = sampleLanguageContent.copy(content="Nordavinden og sola kranglet en gang om hvem av dem som var den sterkeste")
+    val ingressNodeBokmal = LanguageIngress("Hvem er sterkest?", None)
+    val contentNodeBokmal = TestData.sampleContent.copy(content="Nordavinden og sola kranglet en gang om hvem av dem som var den sterkeste", ingress=Some(ingressNodeBokmal))
 
-    val ingressNodeNynorsk = "Kven er sterkast?"
-    val contentNodeNynorsk = sampleLanguageContent.copy(content="Nordavinden og sola krangla ein gong om kven av dei som var den sterkaste")
+    val ingressNodeNynorsk = LanguageIngress("Kven er sterkast?", None)
+    val contentNodeNynorsk = TestData.sampleContent.copy(content="Nordavinden og sola krangla ein gong om kven av dei som var den sterkaste", ingress=Some(ingressNodeNynorsk))
 
     val node = sampleNode.copy(contents=List(contentNodeBokmal, contentNodeNynorsk))
     val bokmalExpectedResult = "Nordavinden og sola kranglet en gang om hvem av dem som var den sterkeste"
@@ -110,8 +110,8 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
 
     val expectedIngressResult = ArticleContentWithLanguage("Hvem er sterkest?", Some("nb"))
 
-    val ingressNodeBokmal = "Hvem er sterkest?"
-    val contentNodeBokmal = sampleLanguageContent.copy(content=content, ingress=Option(ingressNodeBokmal))
+    val ingressNodeBokmal = LanguageIngress("Hvem er sterkest?", None)
+    val contentNodeBokmal = sampleLanguageContent.copy(content=content, ingress=Some(ingressNodeBokmal))
 
     val node = sampleNode.copy(contents=List(contentNodeBokmal))
     val (result, status) = service.toDomainArticle(node, ImportStatus(Seq(), Seq()))

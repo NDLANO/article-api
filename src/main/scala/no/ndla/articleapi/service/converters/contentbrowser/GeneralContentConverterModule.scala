@@ -19,7 +19,7 @@ import no.ndla.articleapi.service.{ExtractConvertStoreContent, ExtractService}
 import scala.util.{Failure, Success}
 
 trait GeneralContentConverterModule {
-  this: ExtractService with ArticleRepository with ExtractConvertStoreContent =>
+  this: ExtractService with ArticleRepository with ExtractConvertStoreContent with HtmlTagGenerator =>
 
   abstract class GeneralContentConverter extends ContentBrowserConverterModule with LazyLogging {
     override def convert(contentBrowser: ContentBrowser, visitedNodes: Seq[String]): (String, Seq[RequiredLibrary], ImportStatus) = {
@@ -61,7 +61,6 @@ trait GeneralContentConverterModule {
         case Some(id) => {
           val (embedContent, embedUsageErrors) = HtmlTagGenerator.buildEmbedContent(Map(
             "resource" -> "content-link",
-            "id" -> s"${contentBrowser.id}",
             "content-id" -> id.toString,
             "link-text" -> contentBrowser.get("link_text")
           ))

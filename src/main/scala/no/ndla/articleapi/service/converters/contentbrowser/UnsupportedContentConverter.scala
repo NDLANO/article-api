@@ -14,7 +14,7 @@ import no.ndla.articleapi.service.ExtractService
 import no.ndla.articleapi.service.converters.HtmlTagGenerator
 
 trait UnsupportedContentConverter {
-  this: ExtractService =>
+  this: ExtractService with HtmlTagGenerator =>
 
   object UnsupportedContentConverter extends ContentBrowserConverterModule with LazyLogging {
     override val typeName: String = "unsupported content"
@@ -24,7 +24,7 @@ trait UnsupportedContentConverter {
       val errorMessage = s"""Unsupported content ($nodeType): ${content.get("nid")}"""
 
       logger.warn(errorMessage)
-      val (convertedContent, usageErrors) = HtmlTagGenerator.buildErrorContent(errorMessage, content.id.toString)
+      val (convertedContent, usageErrors) = HtmlTagGenerator.buildErrorContent(errorMessage)
       (convertedContent, Seq(), ImportStatus(usageErrors :+ errorMessage, visitedNodes))
     }
   }
