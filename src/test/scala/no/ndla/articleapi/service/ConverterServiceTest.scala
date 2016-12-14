@@ -108,7 +108,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
          |</section>
          |<section> <p>Det som kan gi helse- og sikkerhetsproblemer på en dataarbeidsplass, er:</p></section>""".stripMargin.replace("\n", ""), None, Some("nb"))
 
-    val expectedIngressResult = ArticleContentWithLanguage("Hvem er sterkest?", Some("nb"))
+    val expectedIngressResult = ArticleIntroduction("Hvem er sterkest?", Some("nb"))
 
     val ingressNodeBokmal = LanguageIngress("Hvem er sterkest?", None)
     val contentNodeBokmal = sampleLanguageContent.copy(content=content, ingress=Some(ingressNodeBokmal))

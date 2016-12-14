@@ -138,11 +138,11 @@ trait ConverterService {
       api.VisualElement(visual.resource, visual.`type`, visual.language)
     }
 
-    def toApiArticleIntroduction(intro: domain.ArticleContentWithLanguage): api.ArticleIntroduction = {
-      api.ArticleIntroduction(intro.content, intro.language)
+    def toApiArticleIntroduction(intro: domain.ArticleIntroduction): api.ArticleIntroduction = {
+      api.ArticleIntroduction(intro.introduction, intro.language)
     }
 
-    def toApiArticleMetaDescription(metaDescription: domain.ArticleContentWithLanguage): api.ArticleMetaDescription= {
+    def toApiArticleMetaDescription(metaDescription: domain.ArticleMetaDescription): api.ArticleMetaDescription= {
       api.ArticleMetaDescription(metaDescription.content, metaDescription.language)
     }
 

@@ -55,8 +55,8 @@ case class LanguageContent(nid: String, tnid: String, content: String, metaDescr
   def isTranslation = !isMainNode
 
   def asContent: ArticleContent = ArticleContent(content, footNotes, language)
-  def asArticleIntroduction: Option[ArticleContentWithLanguage] = ingress.map(x => ArticleContentWithLanguage(x.content, language))
-  def asArticleMetaDescription: ArticleContentWithLanguage = ArticleContentWithLanguage(metaDescription, language)
+  def asArticleIntroduction: Option[ArticleIntroduction] = ingress.map(x => ArticleIntroduction(x.content, language))
+  def asArticleMetaDescription: ArticleMetaDescription = ArticleMetaDescription(metaDescription, language)
 }
 
 case class LanguageIngress(content: String, ingressImage: Option[String])

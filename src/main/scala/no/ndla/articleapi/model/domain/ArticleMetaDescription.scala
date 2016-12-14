@@ -12,5 +12,5 @@ import org.scalatra.swagger.annotations.{ApiModel, ApiModelProperty}
 
 import scala.annotation.meta.field
 
-case class ArticleContentWithLanguage(content: String,
-                                      language: Option[String])
+case class ArticleMetaDescription(content: String,
+                                  language: Option[String])
