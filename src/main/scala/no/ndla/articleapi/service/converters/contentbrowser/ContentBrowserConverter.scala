@@ -34,6 +34,11 @@ trait ContentBrowserConverter {
       AudioConverter.typeName -> AudioConverter,
       BiblioConverter.typeName -> BiblioConverter)
 
+    private def getConverterModule(contentBrowser: ContentBrowser) = {
+      val nodeType = extractService.getNodeType(contentBrowser.get("nid")).getOrElse(NonExistentNodeConverter.typeName)
+      contentBrowserModules.getOrElse(nodeType, UnsupportedContentConverter)
+    }
+
     def convert(languageContent: LanguageContent, importStatus: ImportStatus): (LanguageContent, ImportStatus) = {
       @tailrec def convert(element: Element, languageContent: LanguageContent, importStatus: ImportStatus): (LanguageContent, ImportStatus) = {
         val text = element.html()
@@ -42,28 +47,25 @@ trait ContentBrowserConverter {
         if (!cont.isContentBrowserField)
           return (languageContent, importStatus)
 
-        val nodeType = extractService.getNodeType(cont.get("nid")).getOrElse(NonExistentNodeConverter.typeName)
-
-        val (newContent, reqLibs, status) = contentBrowserModules.get(nodeType) match {
-          case Some(module) => module.convert(cont, importStatus.visitedNodes)
-          case None => {
-            val errorString = s"{Unsupported content $nodeType: ${cont.get("nid")}}"
-            logger.warn(errorString)
-            (errorString, List(), ImportStatus(List(errorString), importStatus.visitedNodes))
-          }
-        }
+        val (newContent, reqLibs, status) = getConverterModule(cont).convert(cont, importStatus.visitedNodes)
 
         val (start, end) = cont.getStartEndIndex()
         element.html(text.substring(0, start) + newContent + text.substring(end))
 
         val updatedRequiredLibraries = languageContent.requiredLibraries ++ reqLibs
         val updatedImportStatusMessages = importStatus.messages ++ status.messages
-        convert(element, languageContent.copy(requiredLibraries=updatedRequiredLibraries), status.copy(messages=updatedImportStatusMessages))
+        convert(element, languageContent.copy(requiredLibraries=updatedRequiredLibraries),
+          status.copy(messages=updatedImportStatusMessages))
       }
 
-      val element = stringToJsoupDocument(languageContent.content)
-      val (updatedLanguageContent, updatedImportStatus) = convert(element, languageContent, importStatus)
-      (updatedLanguageContent.copy(content=jsoupDocumentToString(element)), updatedImportStatus)
+      val contentElement = stringToJsoupDocument(languageContent.content)
+      val (updatedLanguageContent, updatedImportStatus) = convert(contentElement, languageContent, importStatus)
+
+      val metaDescriptionElement = stringToJsoupDocument(languageContent.metaDescription)
+      val (finalLanguageContent, finalImportStatus) = convert(metaDescriptionElement, updatedLanguageContent, updatedImportStatus)
+
+      (finalLanguageContent.copy(content=jsoupDocumentToString(contentElement), metaDescription=jsoupDocumentToString(metaDescriptionElement)),
+        finalImportStatus)
     }
   }
 }

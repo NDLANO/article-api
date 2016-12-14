@@ -24,16 +24,17 @@ trait HTMLCleaner {
       removeEmptyTags(element)
       wrapStandaloneTextInPTag(element)
 
+      val metaDescription = prepareMetaDescription(content.metaDescription)
       val ingress = getIngress(content, element)
 
-      (content.copy(content=jsoupDocumentToString(element), ingress=ingress),
+      (content.copy(content=jsoupDocumentToString(element), ingress=ingress, metaDescription=metaDescription),
         ImportStatus(importStatus.messages ++ illegalTags ++ illegalAttributes, importStatus.visitedNodes))
     }
 
 
     private def getIngress(content: LanguageContent, element: Element): Option[LanguageIngress] = {
       content.ingress match {
-        case None => extractIngress(element)
+        case None => extractIngress(element).map(LanguageIngress(_, None))
         case Some(ingress) =>
           val (imageEmbedHtml) = ingress.ingressImage.flatMap(imageApiClient.importOrGetMetaByExternId)
             .map(imageMetaData => HtmlTagGenerator.buildImageEmbedContent(
@@ -45,19 +46,28 @@ trait HTMLCleaner {
 
           imageEmbedHtml.map(x => element.prepend(x._1))
 
-          Some(LanguageIngress(extractIngressText(stringToJsoupDocument(ingress.content)), None))
+          Some(LanguageIngress(extractElement(stringToJsoupDocument(ingress.content)), None))
       }
     }
 
     private def unwrapIllegalTags(el: Element): Seq[String] = {
-      el.select("*").toList.
-        filter(x => !HTMLCleaner.isTagValid(x.tagName))
-        .map(x => {
-          val tagName = x.tagName
-          x.unwrap()
+      el.select("*").toList
+        .filter(htmlTag => !HTMLCleaner.isTagValid(htmlTag.tagName))
+        .map(illegalHtmlTag => {
+          val tagName = illegalHtmlTag.tagName
+          illegalHtmlTag.unwrap()
           tagName
         })
         .distinct
+    }
+
+    private def prepareMetaDescription(metaDescription: String): String = {
+      val element = stringToJsoupDocument(metaDescription)
+      for (el <- element.select("embed")) {
+        val caption = el.attr("data-caption")
+        el.replaceWith(new TextNode(caption, ""))
+      }
+      extractElement(element)
     }
 
     private def removeAttributes(el: Element): Seq[String] = {
@@ -68,7 +78,7 @@ trait HTMLCleaner {
             val keyName = illegalAttribute.getKey
             tag.removeAttr(keyName)
             keyName
-        })
+          })
       })
     }
 
@@ -88,15 +98,16 @@ trait HTMLCleaner {
       }
     }
 
-  private def htmlTagIsEmpty(el: Element) =
-    el.select(resourceHtmlEmbedTag).isEmpty && !el.hasText && el.isBlock
-
-  private def removeEmptyTags(element: Element): Element = {
-    for (el <- element.select("p,div,section,aside")) {
-      if (htmlTagIsEmpty(el)) {
-        el.remove()
-      }
+    private def htmlTagIsEmpty(el: Element) = {
+      el.select(resourceHtmlEmbedTag).isEmpty && !el.hasText && el.isBlock
     }
+
+    private def removeEmptyTags(element: Element): Element = {
+      for (el <- element.select("p,div,section,aside")) {
+        if (htmlTagIsEmpty(el)) {
+          el.remove()
+        }
+      }
 
       element
     }
@@ -115,16 +126,15 @@ trait HTMLCleaner {
       }
     }
 
-    private def extractIngress(el: Element): (Option[LanguageIngress]) = {
-      val ingressText = getIngressText(el).map(ingress => extractIngressText(ingress))
-
+    private def extractIngress(el: Element): Option[String] = {
+      val ingressText = getIngressText(el).map(ingress => extractElement(ingress))
       removeEmptyTags(el)
-      ingressText.map(text => LanguageIngress(text, None))
+      ingressText
     }
 
-    private def extractIngressText(ingressTextElement: Element): String = {
-      ingressTextElement.remove()
-      ingressTextElement.text()
+    private def extractElement(elementToExtract: Element): String = {
+      elementToExtract.remove()
+      elementToExtract.text()
     }
 
     private def wrapStandaloneTextInPTag (element: Element) : Element = {

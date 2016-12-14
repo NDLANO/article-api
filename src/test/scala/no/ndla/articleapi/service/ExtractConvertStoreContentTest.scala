@@ -11,9 +11,9 @@ package no.ndla.articleapi.service
 
 import java.util.Date
 
-import no.ndla.articleapi.integration.{LanguageIngress, LicenseDefinition, LanguageContent, MigrationSubjectMeta}
+import no.ndla.articleapi.integration.{LanguageIngress, LicenseDefinition, MigrationSubjectMeta}
 import no.ndla.articleapi.model.domain._
-import no.ndla.articleapi.{TestEnvironment, UnitSuite}
+import no.ndla.articleapi.{TestData, TestEnvironment, UnitSuite}
 import org.mockito.Mockito._
 import org.mockito.Matchers._
 import scalikejdbc.DBSession
@@ -26,7 +26,7 @@ class ExtractConvertStoreContentTest extends UnitSuite with TestEnvironment {
   val sampleTitle = ArticleTitle("title", Some("en"))
   val sampleIngress =  LanguageIngress("ingress here", None)
   val contentString = s"[contentbrowser ==nid=$nodeId2==imagecache=Fullbredde==width===alt=alttext==link===node_link=1==link_type=link_to_content==lightbox_size===remove_fields[76661]=1==remove_fields[76663]=1==remove_fields[76664]=1==remove_fields[76666]=1==insertion=link==link_title_text===link_text=Tittel==text_align===css_class=contentbrowser contentbrowser]"
-  val sampleContent = LanguageContent(nodeId, nodeId, contentString, Some("en"))
+  val sampleContent = TestData.sampleContent.copy(content=contentString)
   val author = Author("forfatter", "Henrik")
   val visualElement = VisualElement("http://image-api/1", "image", Some("nb"))
 

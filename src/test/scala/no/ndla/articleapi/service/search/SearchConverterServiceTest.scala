@@ -13,12 +13,13 @@ import java.util.Date
 import no.ndla.articleapi.model.domain._
 import no.ndla.articleapi.model.search._
 import no.ndla.articleapi.{TestEnvironment, UnitSuite}
+import no.ndla.articleapi.TestData
 
 class SearchConverterServiceTest extends UnitSuite with TestEnvironment {
 
   override val searchConverterService = new SearchConverterService
+  val sampleArticle = TestData.sampleArticleWithPublicDomain.copy()
 
-  val byNcSa = Copyright("by-nc-sa", "Gotham City", List(Author("Forfatter", "DC Comics")))
 
   val titles = List(
     ArticleTitle("Bokmål tittel", Some("nb")), ArticleTitle("Nynorsk tittel", Some("nn")),
@@ -41,28 +42,28 @@ class SearchConverterServiceTest extends UnitSuite with TestEnvironment {
   )
 
   test("That asSearchableArticle converts titles with correct language") {
-    val article = Article(Some(1), titles, Seq(), byNcSa, Seq(), Seq(), Seq(), Seq(), new Date(0), new Date(1), "fagstoff")
+    val article = TestData.sampleArticleWithByNcSa.copy(title=titles)
     val searchableArticle = searchConverterService.asSearchableArticle(article)
     verifyTitles(searchableArticle)
   }
 
 
   test("That asSearchable converts articles with correct language") {
-    val article = Article(Some(1), Seq(), articles, byNcSa, Seq(), Seq(), Seq(), Seq(), new Date(0), new Date(1), "fagstoff")
+    val article = TestData.sampleArticleWithByNcSa.copy(content=articles)
     val searchableArticle = searchConverterService.asSearchableArticle(article)
     verifyArticles(searchableArticle)
   }
 
 
   test("That asSearchable converts tags with correct language") {
-    val article = Article(Some(1), Seq(), Seq(), byNcSa, articleTags, Seq(), Seq(), Seq(), new Date(0), new Date(1), "fagstoff")
+    val article = TestData.sampleArticleWithByNcSa.copy(tags=articleTags)
     val searchableArticle = searchConverterService.asSearchableArticle(article)
     verifyTags(searchableArticle)
   }
 
 
   test("That asSearchable converts all fields with correct language") {
-    val article = Article(Some(1), titles, articles, byNcSa, articleTags, Seq(), Seq(), Seq(), new Date(0), new Date(1), "fagstoff")
+    val article = TestData.sampleArticleWithByNcSa.copy(title=titles, content=articles, tags=articleTags)
     val searchableArticle = searchConverterService.asSearchableArticle(article)
 
     verifyTitles(searchableArticle)
@@ -71,7 +72,7 @@ class SearchConverterServiceTest extends UnitSuite with TestEnvironment {
   }
 
   test("That asArticleSummary converts all fields with correct language") {
-    val article = Article(Some(1), titles, articles, byNcSa, articleTags, Seq(), Seq(), Seq(), new Date(0), new Date(1), "fagstoff")
+    val article = TestData.sampleArticleWithByNcSa.copy(title=titles, content=articles, tags=articleTags)
     val searchableArticle = searchConverterService.asSearchableArticle(article)
     val articleSummary = searchConverterService.asArticleSummary(searchableArticle)
 

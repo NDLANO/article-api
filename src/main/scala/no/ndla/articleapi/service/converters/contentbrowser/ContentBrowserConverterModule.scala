@@ -56,3 +56,4 @@ trait ContentBrowserConverterModules
   with MigrationApiClient
   with HtmlTagGenerator
   with SequenceGenerator
+  with UnsupportedContentConverter
