@@ -2,7 +2,7 @@ package no.ndla.articleapi.service.converters
 
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.articleapi.ArticleApiProperties._
-import no.ndla.articleapi.integration.{ConverterModule, LanguageContent, LanguageIngress}
+import no.ndla.articleapi.integration.{ConverterModule, LanguageContent}
 import no.ndla.articleapi.model.domain.ImportStatus
 import org.jsoup.nodes.{TextNode, Element, Node}
 
@@ -21,13 +21,23 @@ object HTMLCleaner extends ConverterModule with LazyLogging {
 
     wrapStandaloneTextInPTag(element)
 
+    val metaDescription = prepareMetaDescription(content.metaDescription)
     val ingressLanguage = content.ingress match {
-      case Some(ingress) => Some(LanguageIngress(extractIngressText(stringToJsoupDocument(ingress.content))))
+      case Some(ingress) => Some(extractElement(stringToJsoupDocument(ingress)))
       case None => extractIngress(element)
     }
 
-    (content.copy(content=jsoupDocumentToString(element), ingress=ingressLanguage),
+    (content.copy(content=jsoupDocumentToString(element), ingress=ingressLanguage, metaDescription=metaDescription),
       ImportStatus(importStatus.messages ++ illegalTags ++ illegalAttributes, importStatus.visitedNodes))
+  }
+
+  private def prepareMetaDescription(metaDescription: String): String = {
+    val element = stringToJsoupDocument(metaDescription)
+    for (el <- element.select("embed")) {
+      val caption = el.attr("data-caption")
+      el.replaceWith(new TextNode(caption, ""))
+    }
+    extractElement(element)
   }
 
   private def unwrapIllegalTags(el: Element): Seq[String] = {
@@ -96,16 +106,15 @@ object HTMLCleaner extends ConverterModule with LazyLogging {
     }
   }
 
-  private def extractIngress(el: Element): (Option[LanguageIngress]) = {
-    val ingressText = getIngressText(el).map(ingress => extractIngressText(ingress))
-
+  private def extractIngress(el: Element): Option[String] = {
+    val ingressText = getIngressText(el).map(ingress => extractElement(ingress))
     removeEmptyTags(el)
-    ingressText.map(text => LanguageIngress(text))
+    ingressText
   }
 
-  private def extractIngressText(ingressTextElement: Element): String = {
-    ingressTextElement.remove()
-    ingressTextElement.text()
+  private def extractElement(elementToExtract: Element): String = {
+    elementToExtract.remove()
+    elementToExtract.text()
   }
 
   private def wrapStandaloneTextInPTag (element: Element) : Element = {

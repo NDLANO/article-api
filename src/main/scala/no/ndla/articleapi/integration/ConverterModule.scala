@@ -47,15 +47,14 @@ trait ConverterModule {
   }
 }
 
-case class LanguageContent(nid: String, tnid: String, content: String, language: Option[String],
+case class LanguageContent(nid: String, tnid: String, content: String, metaDescription: String, language: Option[String],
                            requiredLibraries: Seq[RequiredLibrary] = List[RequiredLibrary](),
                            footNotes: Option[Map[String, FootNoteItem]] = None,
-                           ingress: Option[LanguageIngress] = None) {
+                           ingress: Option[String] = None) {
   def isMainNode = nid == tnid || tnid == "0"
   def isTranslation = !isMainNode
 
   def asContent: ArticleContent = ArticleContent(content, footNotes, language)
-  def asArticleIntroduction: Option[ArticleIntroduction] = ingress.map(x => ArticleIntroduction(x.content, language))
+  def asArticleIntroduction: Option[ArticleContentWithLanguage] = ingress.map(ArticleContentWithLanguage(_, language))
+  def asArticleMetaDescription: ArticleContentWithLanguage = ArticleContentWithLanguage(metaDescription, language)
 }
-
-case class LanguageIngress(content: String)
