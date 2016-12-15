@@ -55,6 +55,7 @@ trait ConverterService {
       val requiredLibraries = nodeToConvert.contents.flatMap(_.requiredLibraries).distinct
 
       val ingresses = nodeToConvert.contents.flatMap(content => content.asArticleIntroduction)
+      val metaDescriptions = nodeToConvert
 
       domain.Article(None,
         nodeToConvert.titles,
@@ -64,6 +65,7 @@ trait ConverterService {
         requiredLibraries,
         nodeToConvert.visualElements,
         ingresses,
+        nodeToConvert.contents.map(_.asArticleMetaDescription),
         nodeToConvert.created,
         nodeToConvert.updated,
         nodeToConvert.contentType)
@@ -85,6 +87,7 @@ trait ConverterService {
         article.requiredLibraries.map(toApiRequiredLibrary),
         article.visualElement.map(toApiVisualElement),
         article.introduction.map(toApiArticleIntroduction),
+        article.metaDescription.map(toApiArticleMetaDescription),
         article.created,
         article.updated,
         article.contentType
@@ -137,6 +140,10 @@ trait ConverterService {
 
     def toApiArticleIntroduction(intro: domain.ArticleIntroduction): api.ArticleIntroduction = {
       api.ArticleIntroduction(intro.introduction, intro.language)
+    }
+
+    def toApiArticleMetaDescription(metaDescription: domain.ArticleMetaDescription): api.ArticleMetaDescription= {
+      api.ArticleMetaDescription(metaDescription.content, metaDescription.language)
     }
 
   }

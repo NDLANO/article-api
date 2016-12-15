@@ -15,6 +15,7 @@ import no.ndla.articleapi.model.domain.{ImportStatus, RequiredLibrary}
 import no.ndla.articleapi.service.converters.HtmlTagGenerator
 
 trait VideoConverterModule {
+  this: HtmlTagGenerator =>
 
   object VideoConverter extends ContentBrowserConverterModule with LazyLogging {
     override val typeName: String = "video"
@@ -23,7 +24,6 @@ trait VideoConverterModule {
       val requiredLibrary = RequiredLibrary("text/javascript", "Brightcove video", s"http://players.brightcove.net/$NDLABrightcoveAccountId/${NDLABrightcovePlayerId}_default/index.min.js")
       val (embedVideoMeta, errors) = HtmlTagGenerator.buildEmbedContent(Map(
         "resource" -> "brightcove",
-        "id" -> s"${content.id.toString}",
         "caption" -> content.get("link_text"),
         "videoid" -> s"ref:${content.get("nid")}",
         "account" -> s"$NDLABrightcoveAccountId",

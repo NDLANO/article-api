@@ -12,7 +12,6 @@ package no.ndla.articleapi.service.converters.contentbrowser
 import no.ndla.articleapi.model.domain.Author
 import no.ndla.articleapi.integration._
 import no.ndla.articleapi.{TestEnvironment, UnitSuite}
-import no.ndla.articleapi.service._
 import no.ndla.articleapi.ArticleApiProperties.resourceHtmlEmbedTag
 import org.mockito.Mockito._
 
@@ -23,7 +22,7 @@ class ImageConverterTest extends UnitSuite with TestEnvironment {
   val contentString = s"[contentbrowser ==nid=$nodeId==imagecache=Fullbredde==width===alt=$altText==link===node_link=1==link_type=link_to_content==lightbox_size===remove_fields[76661]=1==remove_fields[76663]=1==remove_fields[76664]=1==remove_fields[76666]=1==insertion===link_title_text= ==link_text=$caption==text_align===css_class=contentbrowser contentbrowser]"
   val contentStringWithLeftMargin = s"[contentbrowser ==nid=$nodeId==imagecache=Fullbredde==width===alt=$altText==link===node_link=1==link_type=link_to_content==lightbox_size===remove_fields[76661]=1==remove_fields[76663]=1==remove_fields[76664]=1==remove_fields[76666]=1==insertion===link_title_text= ==link_text=$caption==text_align===css_class=contentbrowser contentbrowser_margin_left contentbrowser]"
   val contentStringEmptyCaption = s"[contentbrowser ==nid=$nodeId==imagecache=Fullbredde==width===alt=$altText==link===node_link=1==link_type=link_to_content==lightbox_size===remove_fields[76661]=1==remove_fields[76663]=1==remove_fields[76664]=1==remove_fields[76666]=1==insertion===link_title_text= ==link_text===text_align===css_class=contentbrowser contentbrowser]"
-  val content = ContentBrowser(contentString, Some("nb"), 1)
+  val content = ContentBrowser(contentString, Some("nb"))
   val license = ImageLicense("licence", "description", Some("http://"))
   val author = Author("forfatter", "Henrik")
   val copyright = ImageCopyright(license, "", List(author))
@@ -45,7 +44,7 @@ class ImageConverterTest extends UnitSuite with TestEnvironment {
     val expectedResult = s"""<$resourceHtmlEmbedTag data-align="" data-alt="$altText" data-caption="" data-id="1" data-resource="image" data-size="fullbredde" data-url="http://localhost/images/$nodeId" />"""
 
     when(imageApiClient.importOrGetMetaByExternId(nodeId)).thenReturn(Some(image))
-    val (result, requiredLibraries, errors) = ImageConverter.convert(ContentBrowser(contentStringEmptyCaption, Some("nb"), 1), Seq())
+    val (result, requiredLibraries, errors) = ImageConverter.convert(ContentBrowser(contentStringEmptyCaption, Some("nb")), Seq())
 
     result should equal (expectedResult)
     errors.messages.length should equal(0)
@@ -69,7 +68,7 @@ class ImageConverterTest extends UnitSuite with TestEnvironment {
     val expectedResult = s"""<$resourceHtmlEmbedTag data-align="right" data-alt="$altText" data-caption="$caption" data-id="1" data-resource="image" data-size="fullbredde" data-url="http://localhost/images/$nodeId" />"""
 
     when(imageApiClient.importOrGetMetaByExternId(nodeId)).thenReturn(Some(image))
-    val (result, requiredLibraries, errors) = ImageConverter.convert(ContentBrowser(contentStringWithLeftMargin, Some("nb"), 1), Seq())
+    val (result, requiredLibraries, errors) = ImageConverter.convert(ContentBrowser(contentStringWithLeftMargin, Some("nb")), Seq())
 
     result should equal (expectedResult)
     errors.messages.length should equal(0)

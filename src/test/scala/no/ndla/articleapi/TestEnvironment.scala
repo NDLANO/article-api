@@ -50,6 +50,9 @@ trait TestEnvironment
   with TagsService
   with SearchConverterService
   with ReadService
+  with HtmlTagGenerator
+  with HTMLCleaner
+  with SequenceGenerator
 {
 
   val searchService = mock[SearchService]
@@ -69,11 +72,13 @@ trait TestEnvironment
 
   val migrationApiClient = mock[MigrationApiClient]
   val extractService = mock[ExtractService]
+
   val converterService = new ConverterService
   val contentBrowserConverter = new ContentBrowserConverter
   val biblioConverter = new BiblioConverter
+  val htmlCleaner = new HTMLCleaner
   val converterModules = List(SimpleTagConverter, biblioConverter, DivTableConverter, contentBrowserConverter)
-  val postProcessorModules = List(TableConverter, HTMLCleaner)
+  val postProcessorModules = List(TableConverter, htmlCleaner)
   val attachmentStorageService = mock[AmazonStorageService]
   val readService = mock[ReadService]
 
@@ -84,4 +89,6 @@ trait TestEnvironment
   val jestClient = mock[JestClient]
   val audioApiClient = mock[AudioApiClient]
   val imageApiClient = mock[ImageApiClient]
+
+  override def nextNumberInSequence = "1"
 }

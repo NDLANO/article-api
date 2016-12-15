@@ -16,7 +16,7 @@ import no.ndla.articleapi.integration.ImageApiClient
 import no.ndla.articleapi.service.converters.HtmlTagGenerator
 
 trait ImageConverterModule {
-  this: ImageApiClient =>
+  this: ImageApiClient with HtmlTagGenerator =>
 
   object ImageConverter extends ContentBrowserConverterModule with LazyLogging {
     override val typeName: String = "image"
@@ -29,19 +29,13 @@ trait ImageConverterModule {
 
     def getImage(cont: ContentBrowser): (String, Seq[String]) = {
       val alignment = getImageAlignment(cont)
-      val figureDataAttributes = Map(
-        "resource" -> "image",
-        "size" -> cont.get("imagecache").toLowerCase,
-        "alt" -> cont.get("alt"),
-        "caption" -> cont.get("link_text"),
-        "id" -> s"${cont.id}",
-        "align" -> alignment.getOrElse("")
-      )
-
       imageApiClient.importOrGetMetaByExternId(cont.get("nid")) match {
-        case Some(image) =>
-          HtmlTagGenerator.buildEmbedContent(figureDataAttributes + ("url" -> s"$externalImageApiUrl/${image.id}"))
-
+        case Some(image) => HtmlTagGenerator.buildImageEmbedContent(
+          caption=cont.get("link_text"),
+          imageId=image.id,
+          align=alignment.getOrElse(""),
+          size=cont.get("imagecache").toLowerCase,
+          altText=cont.get("alt"))
         case None =>
           (s"<img src='stock.jpeg' alt='The image with id ${cont.get("nid")} was not not found' />",
             Seq(s"Image with id ${cont.get("nid")} was not found"))
@@ -50,7 +44,7 @@ trait ImageConverterModule {
 
     private def getImageAlignment(cont: ContentBrowser): Option[String] = {
       val marginCssClass = cont.get("css_class").split(" ").find(_.contains("margin"))
-      val margin = marginCssClass.flatMap(margin =>"""contentbrowser_margin_(left|right)$""".r.findFirstMatchIn(margin).map(_.group(1)))
+      val margin = marginCssClass.flatMap(margin => """contentbrowser_margin_(left|right)$""".r.findFirstMatchIn(margin).map(_.group(1)))
 
       // right margin = left alignment, left margin = right alignment
       margin match {

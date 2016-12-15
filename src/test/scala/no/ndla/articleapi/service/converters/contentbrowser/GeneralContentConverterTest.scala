@@ -11,8 +11,7 @@ package no.ndla.articleapi.service.converters.contentbrowser
 
 import java.util.Date
 
-import no.ndla.articleapi.{TestEnvironment, UnitSuite}
-import no.ndla.articleapi.integration.LanguageContent
+import no.ndla.articleapi.{TestData, TestEnvironment, UnitSuite}
 import no.ndla.articleapi.ArticleApiProperties.resourceHtmlEmbedTag
 import no.ndla.articleapi.model.api.NodeNotFoundException
 import no.ndla.articleapi.model.domain._
@@ -29,6 +28,7 @@ class GeneralContentConverterTest extends UnitSuite with TestEnvironment {
   val sampleFagstoff2 = NodeGeneralContent(nodeId, nodeId2, "Tittel", "Innhald", "nn")
   val sampleArticleSummary = ArticleSummary(1, Seq(ArticleTitle("title", Some("nb"))), "http://url", "publicdomain")
   val sampleNodeToConvert = NodeToConvert(Seq(ArticleTitle("title", Some("en"))), Seq(), "publicdomain", Seq(), Seq(), Seq(), "fagstoff", new Date(0), new Date(1))
+  val sampleContent = TestData.sampleContent.copy(content="<div>sample content</div>")
 
   val generalContentConverter = new GeneralContentConverter {
     override val typeName: String = "test"
@@ -124,7 +124,7 @@ class GeneralContentConverterTest extends UnitSuite with TestEnvironment {
     when(articleRepository.getIdFromExternalId(nodeId)).thenReturn(None)
     when(extractConvertStoreContent.processNode(nodeId, ImportStatus(Seq(), Seq(nodeId2)))).thenReturn(Try((newNodeid, ImportStatus(Seq(), Seq(nodeId2, nodeId)))))
 
-    val languageContent = LanguageContent(nodeId, nodeId, "<div>sample content</div>", Some("en"))
+    val languageContent = sampleContent.copy(content="<div>sample content</div>")
     val nodeToConvert = sampleNodeToConvert.copy(contents = Seq(languageContent))
     val (result, requiredLibraries, status) = generalContentConverter.convert(content, Seq(nodeId2))
 
@@ -141,7 +141,7 @@ class GeneralContentConverterTest extends UnitSuite with TestEnvironment {
     when(articleRepository.getIdFromExternalId(nodeId)).thenReturn(None)
     when(extractConvertStoreContent.processNode(nodeId, ImportStatus(Seq(), Seq(nodeId2)))).thenReturn(Failure(NodeNotFoundException("Node was not found")))
 
-    val languageContent = LanguageContent(nodeId, nodeId2, "<div>sample content</div>", Some("en"))
+    val languageContent = sampleContent.copy(tnid=nodeId2, content="<div>sample content</div>")
     val nodeToConvert = sampleNodeToConvert.copy(contents = Seq(languageContent))
 
     val (result, requiredLibraries, status) = generalContentConverter.convert(content, Seq(nodeId2))

@@ -68,34 +68,53 @@ trait MigrationApiClient {
 }
 
 case class MigrationMainNodeImport(titles: Seq[MigrationContentTitle], ingresses: Seq[MigrationIngress], contents: Seq[MigrationContent],
-                          authors: Seq[MigrationContentAuthor], license: Option[String], nodeType: Option[String],
-                          pageTitles: Seq[MigrationPageTitle], visualElements: Seq[MigrationVisualElement], relatedContents: Seq[MigrationRelatedContents],
-                          editorialKeywords: Seq[MigrationEditorialKeywords], learningResourceType: Seq[MigrationLearningResourceType],
-                          difficulty: Seq[MigrationDifficulty], contentType: Seq[MigrationContentType], innholdAndFag: Seq[MigrationInnholdsKategoriAndFag],
-                          fagressurs: Seq[MigrationFagressurs])
+                                   authors: Seq[MigrationContentAuthor], license: Option[String], nodeType: Option[String],
+                                   pageTitles: Seq[MigrationPageTitle], visualElements: Seq[MigrationVisualElement], relatedContents: Seq[MigrationRelatedContents],
+                                   editorialKeywords: Seq[MigrationEditorialKeywords], learningResourceType: Seq[MigrationLearningResourceType],
+                                   difficulty: Seq[MigrationDifficulty], contentType: Seq[MigrationContentType], innholdAndFag: Seq[MigrationInnholdsKategoriAndFag],
+                                   fagressurs: Seq[MigrationFagressurs], emneartikkelData: Seq[MigrationEmneArtikkelData])
  {
 
-  def asNodeToConvert(nodeId: String, tags: List[ArticleTag]): NodeToConvert = NodeToConvert(
-    titles.map(x => x.asContentTitle),
-    asLanguageContents,
-    license.getOrElse(""),
-    authors.flatMap(x => x.asAuthor),
-    tags,
-    visualElements.map(_.asVisualElement),
-    contentType.head.`type`,
-    contents.minBy(_.created).created,
-    contents.maxBy(_.changed).changed)
+    def asNodeToConvert(nodeId: String, tags: List[ArticleTag]): NodeToConvert = NodeToConvert(
+      titles.map(x => x.asContentTitle),
+      asLanguageContents,
+      license.getOrElse(""),
+      authors.flatMap(x => x.asAuthor),
+      tags,
+      visualElements.map(_.asVisualElement),
+      contentType.headOption.getOrElse(MigrationContentType("unknown", None)).`type`,
+      contents.minBy(_.created).created,
+      contents.maxBy(_.changed).changed)
 
-  def asLanguageContents: Seq[LanguageContent] = {
-    contents.map(content => {
-      LanguageContent(
-        content.nid,
-        content.tnid,
-        content.content,
-        content.language,
-        ingress = ingresses.find(ingress => ingress.language == content.language && ingress.ingressVisPaaSiden == 1).map(ingress => LanguageIngress(ingress.content.getOrElse(""))))
-    })
-  }
+    def asLanguageContents: Seq[LanguageContent] = {
+      contents.map(content => {
+        LanguageContent(
+          content.nid,
+          content.tnid,
+          content.content,
+          getMetaDescription(content),
+          content.language,
+          ingress = getIngress(content.language))
+      })
+    }
+
+     private def getEmneArtikkel(language: Option[String]) = emneartikkelData.find(_.language == language)
+
+     private def getIngress(language: Option[String]): Option[LanguageIngress] = {
+       getEmneArtikkel(language) match {
+         case Some(data) => Option(LanguageIngress(data.ingress, None))
+         case None =>
+           ingresses.find(ingress => ingress.language == language && ingress.ingressVisPaaSiden == 1)
+             .map(ingress => LanguageIngress(ingress.content.getOrElse(""), ingress.imageNid))
+       }
+     }
+
+     private def getMetaDescription(content: MigrationContent): String = {
+       getEmneArtikkel(content.language) match {
+         case Some(data) => data.metaDescription
+         case None => content.metaDescription
+       }
+     }
 }
 
 case class MigrationNodeGeneralContent(nid: String, tnid: String, title: String, content: String, language: String) {
@@ -117,7 +136,7 @@ case class MigrationContentTitle(title: String, language: Option[String]) {
 
 case class MigrationIngress(nid: String, content: Option[String], imageNid: Option[String], ingressVisPaaSiden: Int, language: Option[String])
 
-case class MigrationContent(nid: String, tnid: String, content: String, language: Option[String], created: Date, changed: Date)
+case class MigrationContent(nid: String, tnid: String, content: String, metaDescription: String, language: Option[String], created: Date, changed: Date)
 
 case class MigrationNodeType(nodeType: String)
 
@@ -154,3 +173,4 @@ case class MigrationContentType(`type`: String, language: Option[String])
 case class MigrationInnholdsKategoriAndFag(innhold: String, fag: String, language: Option[String])
 case class MigrationFagressurs(fagressursType: String, velgFagressurs: String, language: Option[String])
 case class MigrationSubjectMeta(nid: String, title: String)
+case class MigrationEmneArtikkelData(ingress: String, metaDescription: String, language: Option[String])

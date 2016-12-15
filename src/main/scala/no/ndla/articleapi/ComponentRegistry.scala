@@ -49,6 +49,9 @@ object ComponentRegistry
   with MigrationApiClient
   with SearchConverterService
   with ReadService
+  with HTMLCleaner
+  with HtmlTagGenerator
+  with SequenceGenerator
 {
   implicit val swagger = new ArticleSwagger
 
@@ -86,11 +89,12 @@ object ComponentRegistry
   lazy val tagsService = new TagsService
   lazy val searchConverterService = new SearchConverterService
   lazy val readService = new ReadService
-
   lazy val contentBrowserConverter = new ContentBrowserConverter
   lazy val biblioConverter = new BiblioConverter
+  lazy val htmlCleaner = new HTMLCleaner
   lazy val converterModules = List(SimpleTagConverter, biblioConverter, DivTableConverter, contentBrowserConverter)
-  lazy val postProcessorModules = List(TableConverter, HTMLCleaner)
+  lazy val postProcessorModules = List(TableConverter, htmlCleaner)
+
   lazy val jestClient: JestClient = JestClientFactory.getClient()
   lazy val audioApiClient = new AudioApiClient
   lazy val imageApiClient = new ImageApiClient
