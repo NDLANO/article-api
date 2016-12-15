@@ -17,7 +17,7 @@ import no.ndla.articleapi.model.domain.{ImportStatus, RequiredLibrary}
 import no.ndla.articleapi.service.converters.HtmlTagGenerator
 
 trait AudioConverterModule  {
-  this: ExtractService with AttachmentStorageService with AudioApiClient =>
+  this: ExtractService with AttachmentStorageService with AudioApiClient with HtmlTagGenerator =>
 
   object AudioConverter extends ContentBrowserConverterModule with LazyLogging {
     override val typeName: String = "audio"
