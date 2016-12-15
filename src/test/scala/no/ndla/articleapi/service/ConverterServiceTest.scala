@@ -33,10 +33,6 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
   val sampleNode = NodeToConvert(List(contentTitle), Seq(), "by-sa", Seq(author), List(tag), Seq(visualElement), "fagstoff", new Date(0), new Date(1))
   val sampleLanguageContent = TestData.sampleContent.copy(content=sampleContentString, language=Some("nb"))
 
-  override def beforeEach = {
-    when(mappingApiClient.getLicenseDefinition("by-sa")).thenReturn(Some(LicenseDefinition("by-sa", "Creative Commons Attribution-ShareAlike 2.0 Generic", None)))
-  }
-
   test("That the document is wrapped in an article tag") {
     val nodeId = "1"
     val initialContent = "<h1>Heading</h1>"

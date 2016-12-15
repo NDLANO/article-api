@@ -45,7 +45,6 @@ object ComponentRegistry
   with ArticleContentInformation
   with ExtractConvertStoreContent
   with NdlaClient
-  with MappingApiClient
   with TagsService
   with MigrationApiClient
   with SearchConverterService
@@ -87,7 +86,6 @@ object ComponentRegistry
   lazy val converterService = new ConverterService
 
   lazy val ndlaClient = new NdlaClient
-  lazy val mappingApiClient = new MappingApiClient
   lazy val tagsService = new TagsService
   lazy val searchConverterService = new SearchConverterService
   lazy val readService = new ReadService

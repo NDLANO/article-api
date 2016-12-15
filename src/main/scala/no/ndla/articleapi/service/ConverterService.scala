@@ -10,15 +10,15 @@
 package no.ndla.articleapi.service
 
 import com.typesafe.scalalogging.LazyLogging
+import scala.annotation.tailrec
 import no.ndla.articleapi.ArticleApiProperties.maxConvertionRounds
-import no.ndla.articleapi.integration.{ImageApiClient, MappingApiClient}
+import no.ndla.articleapi.integration.ImageApiClient
 import no.ndla.articleapi.model.domain._
 import no.ndla.articleapi.model.{api, domain}
-
-import scala.annotation.tailrec
+import no.ndla.mapping.License.getLicense
 
 trait ConverterService {
-  this: ConverterModules with ExtractConvertStoreContent with ImageApiClient with MappingApiClient =>
+  this: ConverterModules with ExtractConvertStoreContent with ImageApiClient =>
   val converterService: ConverterService
 
   class ConverterService extends LazyLogging {
@@ -118,8 +118,10 @@ trait ConverterService {
     }
 
     def toApiLicense(shortLicense: String): api.License = {
-      val license = mappingApiClient.getLicenseDefinition(shortLicense).get
-      api.License(license.license, license.description, license.url)
+      getLicense(shortLicense) match {
+        case Some(l) => api.License(l.license, l.description, l.url)
+        case None => api.License("unknown", "", None)
+      }
     }
 
     def toApiAuthor(author: domain.Author): api.Author = {
