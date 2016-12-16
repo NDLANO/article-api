@@ -46,5 +46,10 @@ trait InternController {
     get("/embedurls/:external_subject_id") {
       ArticleContentInformation.getExternalEmbedResources(params("external_subject_id"))
     }
+
+    get("/imagesinarticle/:article_id") {
+      val id = long("article_id")
+      ArticleContentInformation.getEmbedImageWithParentHtml(id)
+    }
   }
 }
