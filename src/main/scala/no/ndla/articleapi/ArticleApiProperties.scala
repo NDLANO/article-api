@@ -74,7 +74,6 @@ object ArticleApiProperties extends LazyLogging {
   lazy val CMPassword = get("CM_PASSWORD")
 
   lazy val AudioHost = get("AUDIO_HOST")
-  lazy val MappingHost = get("MAPPING_HOST")
   val ApiClientsCacheAgeInMs: Long = 1000 * 60 * 60 // 1 hour caching
   val TopicAPIUrl = "http://api.topic.ndla.no/rest/v1/keywords/?filter[node]=ndlanode_"
 
