@@ -13,8 +13,10 @@ import java.util.Date
 import no.ndla.articleapi.{TestData, TestEnvironment, UnitSuite}
 import no.ndla.articleapi.integration._
 import no.ndla.articleapi.model.domain._
-import no.ndla.articleapi.service.converters.{HtmlTagGenerator, TableConverter}
+import no.ndla.articleapi.model.api
+import no.ndla.articleapi.service.converters.TableConverter
 import no.ndla.articleapi.ArticleApiProperties.resourceHtmlEmbedTag
+import org.joda.time.DateTime
 import org.mockito.Mockito._
 
 import scala.util.Try
@@ -239,6 +241,47 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     result.content.head.content should equal (expectedResult)
     status.messages.isEmpty should equal (true)
     result.requiredLibraries.isEmpty should equal (true)
+  }
+
+  test("toApiLicense defaults to unknown if the license was not found") {
+    service.toApiLicense("invalid") should equal(api.License("unknown", "", None))
+  }
+
+  test("toApiLicense converts a short license string to a license object with description and url") {
+    service.toApiLicense("by") should equal(api.License("by", "Creative Commons Attribution 2.0 Generic", Some("https://creativecommons.org/licenses/by/2.0/")))
+  }
+
+  test("toApiArticle converts a domain.Article to an api.Article") {
+    val today = new DateTime().toDate
+    val domainArticle = Article(
+      Option(1),
+      Seq(ArticleTitle("title", Option("nb"))),
+      Seq(ArticleContent("content", None, Option("nb"))),
+      Copyright("by", "", Seq()),
+      Seq(),
+      Seq(),
+      Seq(),
+      Seq(ArticleIntroduction("introduction", Option("nb"))),
+      Seq(ArticleMetaDescription("meta description", Option("nb"))),
+      today,
+      today,
+      "fagstoff")
+
+    val apiArticle = api.Article(
+      "1",
+      Seq(api.ArticleTitle("title", Option("nb"))),
+      Seq(api.ArticleContent("content", None, Option("nb"))),
+      api.Copyright(api.License("by", "Creative Commons Attribution 2.0 Generic", Some("https://creativecommons.org/licenses/by/2.0/")), "", Seq()),
+      Seq(),
+      Seq(),
+      Seq(),
+      Seq(api.ArticleIntroduction("introduction", Option("nb"))),
+      Seq(api.ArticleMetaDescription("meta description", Option("nb"))),
+      today,
+      today,
+      "fagstoff")
+
+    service.toApiArticle(domainArticle) should equal(apiArticle)
   }
 
 }
