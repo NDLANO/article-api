@@ -11,7 +11,7 @@ package no.ndla.articleapi.service
 
 import java.util.Date
 
-import no.ndla.articleapi.integration.{LanguageIngress, LicenseDefinition, MigrationSubjectMeta}
+import no.ndla.articleapi.integration.{LanguageIngress, MigrationSubjectMeta}
 import no.ndla.articleapi.model.domain._
 import no.ndla.articleapi.{TestData, TestEnvironment, UnitSuite}
 import org.mockito.Mockito._
@@ -35,7 +35,6 @@ class ExtractConvertStoreContentTest extends UnitSuite with TestEnvironment {
   val eCSService = new ExtractConvertStoreContent
 
   override def beforeEach = {
-    when(mappingApiClient.getLicenseDefinition("by-sa")).thenReturn(Some(LicenseDefinition("by-sa", "Creative Commons Attribution-ShareAlike 2.0 Generic", None)))
     when(extractService.getNodeData(nodeId)).thenReturn(sampleNode)
     when(extractService.getNodeType(nodeId2)).thenReturn(Some("fagstoff"))
     when(extractService.getNodeGeneralContent(nodeId2)).thenReturn(Seq(NodeGeneralContent(nodeId2, nodeId2, "title", "content", "en")))

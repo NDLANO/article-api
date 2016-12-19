@@ -11,17 +11,15 @@ package no.ndla.articleapi.integration
 
 import java.net.URL
 import java.util.Date
-
+import scala.util.Try
+import scalaj.http.Http
 import no.ndla.articleapi.ArticleApiProperties
 import no.ndla.articleapi.model.domain._
 import no.ndla.articleapi.service.TagsService
 import no.ndla.network.NdlaClient
 
-import scala.util.Try
-import scalaj.http.Http
-
 trait MigrationApiClient {
-  this: NdlaClient with TagsService with MappingApiClient =>
+  this: NdlaClient with TagsService =>
 
   val migrationApiClient: MigrationApiClient
 
