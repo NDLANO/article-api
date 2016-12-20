@@ -19,6 +19,7 @@ trait HTMLCleaner {
       val illegalTags = unwrapIllegalTags(element).map(x => s"Illegal tag(s) removed: $x").distinct
       val illegalAttributes = removeAttributes(element).map(x => s"Illegal attribute(s) removed: $x").distinct
 
+      moveImagesOutOfPTags(element)
       removeComments(element)
       removeNbsp(element)
       removeEmptyTags(element)
@@ -31,6 +32,12 @@ trait HTMLCleaner {
         ImportStatus(importStatus.messages ++ illegalTags ++ illegalAttributes, importStatus.visitedNodes))
     }
 
+    private def moveImagesOutOfPTags(element: Element) {
+      for (el <- element.select("p").select("""embed[data-resource=image]""")) {
+        el.parent.before(el.outerHtml())
+        el.remove()
+      }
+    }
 
     private def getIngress(content: LanguageContent, element: Element): Option[LanguageIngress] = {
       content.ingress match {
