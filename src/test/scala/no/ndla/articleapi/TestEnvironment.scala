@@ -75,8 +75,8 @@ trait TestEnvironment
   val contentBrowserConverter = new ContentBrowserConverter
   val biblioConverter = new BiblioConverter
   val htmlCleaner = new HTMLCleaner
-  val converterModules = List(SimpleTagConverter, biblioConverter, DivTableConverter, contentBrowserConverter)
-  val postProcessorModules = List(TableConverter, htmlCleaner)
+  val converterModules = List(contentBrowserConverter)
+  val postProcessorModules = List(SimpleTagConverter, biblioConverter, DivTableConverter, TableConverter, htmlCleaner)
   val storageService = mock[AmazonStorageService]
   val readService = mock[ReadService]
 
