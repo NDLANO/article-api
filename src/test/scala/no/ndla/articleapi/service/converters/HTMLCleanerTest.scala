@@ -215,7 +215,7 @@ class HTMLCleanerTest extends UnitSuite with TestEnvironment {
   }
 
   test("an embed-image as the first element inside p tags are moved out of p tag") {
-    val image1 = """<embed data-resource="image" data-url="http://some.url.org/img.jpg" />"""
+    val image1 = s"""<$resourceHtmlEmbedTag data-resource="image" data-url="http://some.url.org/img.jpg" />"""
     val content = TestData.sampleContent.copy(content=s"""<section><p>${image1}sample text</p></section>""")
 
     val expectedResult = s"""<section>$image1<p>sample text</p></section>"""
@@ -224,7 +224,7 @@ class HTMLCleanerTest extends UnitSuite with TestEnvironment {
   }
 
   test("an embed-image inside p tags are moved out of p tag") {
-    val image1 = """<embed data-resource="image" data-url="http://some.url.org/img.jpg" />"""
+    val image1 = s"""<$resourceHtmlEmbedTag data-resource="image" data-url="http://some.url.org/img.jpg" />"""
     val content = TestData.sampleContent.copy(content=s"""<section><p><br />${image1}sample text</p></section>""")
 
     val expectedResult = s"""<section>$image1<p><br />sample text</p></section>"""
@@ -233,7 +233,7 @@ class HTMLCleanerTest extends UnitSuite with TestEnvironment {
   }
 
   test("an embed-image inside p tags with br are moved out of p tag and p tag is removed") {
-    val image1 = """<embed data-resource="image" data-url="http://some.url.org/img.jpg" />"""
+    val image1 = s"""<$resourceHtmlEmbedTag data-resource="image" data-url="http://some.url.org/img.jpg" />"""
     val content = TestData.sampleContent.copy(content=s"""<section><p><br />$image1</p></section>""")
 
     val expectedResult = s"""<section>$image1</section>"""
@@ -242,9 +242,9 @@ class HTMLCleanerTest extends UnitSuite with TestEnvironment {
   }
 
   test("embed-images inside p tags are moved out of p tag and p is removed if empty") {
-    val image1 = """<embed data-resource="image" data-url="http://some.url.org/img1.jpg" />"""
-    val image2 = """<embed data-resource="image" data-url="http://some.url.org/img2.jpg" />"""
-    val image3 = """<embed data-resource="image" data-url="http://some.url.org/img3.jpg" />"""
+    val image1 = s"""<$resourceHtmlEmbedTag data-resource="image" data-url="http://some.url.org/img1.jpg" />"""
+    val image2 = s"""<$resourceHtmlEmbedTag data-resource="image" data-url="http://some.url.org/img2.jpg" />"""
+    val image3 = s"""<$resourceHtmlEmbedTag data-resource="image" data-url="http://some.url.org/img3.jpg" />"""
     val content = TestData.sampleContent.copy(content=s"""<section><p>$image1$image2 $image3</p></section>""")
 
     val expectedResult = s"""<section>$image1$image2$image3</section>"""

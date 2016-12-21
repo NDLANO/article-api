@@ -33,7 +33,7 @@ trait HTMLCleaner {
     }
 
     private def moveImagesOutOfPTags(element: Element) {
-      for (el <- element.select("p").select("""embed[data-resource=image]""")) {
+      for (el <- element.select("p").select(s"""$resourceHtmlEmbedTag[data-resource=image]""")) {
         el.parent.before(el.outerHtml())
         el.remove()
       }
