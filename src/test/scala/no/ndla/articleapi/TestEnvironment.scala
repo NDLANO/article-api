@@ -19,8 +19,7 @@ import no.ndla.articleapi.service.converters.contentbrowser._
 import no.ndla.articleapi.service.converters._
 import no.ndla.articleapi.service.search.{IndexService, SearchConverterService, SearchIndexService, SearchService}
 import no.ndla.network.NdlaClient
-import org.scalatest.mock.MockitoSugar
-
+import org.scalatest.mockito.MockitoSugar
 
 trait TestEnvironment
   extends ElasticClient
@@ -46,7 +45,6 @@ trait TestEnvironment
   with ArticleContentInformation
   with ExtractConvertStoreContent
   with NdlaClient
-  with MappingApiClient
   with TagsService
   with SearchConverterService
   with ReadService
@@ -77,13 +75,12 @@ trait TestEnvironment
   val contentBrowserConverter = new ContentBrowserConverter
   val biblioConverter = new BiblioConverter
   val htmlCleaner = new HTMLCleaner
-  val converterModules = List(SimpleTagConverter, biblioConverter, DivTableConverter, contentBrowserConverter)
-  val postProcessorModules = List(TableConverter, htmlCleaner)
+  val converterModules = List(contentBrowserConverter)
+  val postProcessorModules = List(SimpleTagConverter, biblioConverter, DivTableConverter, TableConverter, htmlCleaner)
   val attachmentStorageService = mock[AmazonStorageService]
   val readService = mock[ReadService]
 
   val ndlaClient = mock[NdlaClient]
-  val mappingApiClient = mock[MappingApiClient]
   val tagsService = mock[TagsService]
   val searchConverterService = mock[SearchConverterService]
   val jestClient = mock[JestClient]

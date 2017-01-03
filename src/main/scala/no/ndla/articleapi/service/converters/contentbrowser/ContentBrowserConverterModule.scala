@@ -51,7 +51,6 @@ trait ContentBrowserConverterModules
   with VeiledningConverterModule
   with BiblioConverterModule
   with TagsService
-  with MappingApiClient
   with NdlaClient
   with MigrationApiClient
   with HtmlTagGenerator
