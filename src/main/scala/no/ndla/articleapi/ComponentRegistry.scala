@@ -44,7 +44,6 @@ object ComponentRegistry
   with ArticleContentInformation
   with ExtractConvertStoreContent
   with NdlaClient
-  with MappingApiClient
   with TagsService
   with MigrationApiClient
   with SearchConverterService
@@ -85,15 +84,14 @@ object ComponentRegistry
   lazy val converterService = new ConverterService
 
   lazy val ndlaClient = new NdlaClient
-  lazy val mappingApiClient = new MappingApiClient
   lazy val tagsService = new TagsService
   lazy val searchConverterService = new SearchConverterService
   lazy val readService = new ReadService
   lazy val contentBrowserConverter = new ContentBrowserConverter
   lazy val biblioConverter = new BiblioConverter
   lazy val htmlCleaner = new HTMLCleaner
-  lazy val converterModules = List(SimpleTagConverter, biblioConverter, DivTableConverter, contentBrowserConverter)
-  lazy val postProcessorModules = List(TableConverter, htmlCleaner)
+  lazy val converterModules = List(contentBrowserConverter)
+  lazy val postProcessorModules = List(SimpleTagConverter, biblioConverter, DivTableConverter, TableConverter, htmlCleaner)
 
   lazy val jestClient: JestClient = JestClientFactory.getClient()
   lazy val audioApiClient = new AudioApiClient
