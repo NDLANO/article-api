@@ -29,7 +29,7 @@ class ImageConverterTest extends UnitSuite with TestEnvironment {
 
   test("That a contentbrowser string of type 'image' returns an HTML img-tag with path to image") {
     val image = ImageMetaInformation("1234", List(ImageTitle("", Some("nb"))), List(ImageAltText("", Some("nb"))), "full.jpg", 1024, "", copyright, List(ImageTag(List(""), Some(""))))
-    val expectedResult = s"""<$resourceHtmlEmbedTag data-align="" data-alt="$altText" data-caption="$caption" data-id="1" data-resource="image" data-size="fullbredde" data-url="http://localhost/images/$nodeId" />"""
+    val expectedResult = s"""<$resourceHtmlEmbedTag data-align="" data-alt="$altText" data-caption="$caption" data-id="1" data-resource="image" data-size="fullbredde" data-url="http://localhost/image-api/v1/images/$nodeId" />"""
 
     when(imageApiClient.importOrGetMetaByExternId(nodeId)).thenReturn(Some(image))
 
@@ -41,7 +41,7 @@ class ImageConverterTest extends UnitSuite with TestEnvironment {
 
   test("That the the data-captions attribute is empty if no captions exist") {
     val image = ImageMetaInformation("1234", List(ImageTitle("", Some("nb"))), List(ImageAltText("", Some("nb"))), "full.jpg", 1024, "", copyright, List(ImageTag(List(""), Some(""))))
-    val expectedResult = s"""<$resourceHtmlEmbedTag data-align="" data-alt="$altText" data-caption="" data-id="1" data-resource="image" data-size="fullbredde" data-url="http://localhost/images/$nodeId" />"""
+    val expectedResult = s"""<$resourceHtmlEmbedTag data-align="" data-alt="$altText" data-caption="" data-id="1" data-resource="image" data-size="fullbredde" data-url="http://localhost/image-api/v1/images/$nodeId" />"""
 
     when(imageApiClient.importOrGetMetaByExternId(nodeId)).thenReturn(Some(image))
     val (result, requiredLibraries, errors) = ImageConverter.convert(ContentBrowser(contentStringEmptyCaption, Some("nb")), Seq())
@@ -65,7 +65,7 @@ class ImageConverterTest extends UnitSuite with TestEnvironment {
 
   test("That a the html tag contains an alignment attribute with the correct value") {
     val image = ImageMetaInformation("1234", List(ImageTitle("", Some("nb"))), List(ImageAltText("", Some("nb"))), "full.jpg", 1024, "", copyright, List(ImageTag(List(""), Some(""))))
-    val expectedResult = s"""<$resourceHtmlEmbedTag data-align="right" data-alt="$altText" data-caption="$caption" data-id="1" data-resource="image" data-size="fullbredde" data-url="http://localhost/images/$nodeId" />"""
+    val expectedResult = s"""<$resourceHtmlEmbedTag data-align="right" data-alt="$altText" data-caption="$caption" data-id="1" data-resource="image" data-size="fullbredde" data-url="http://localhost/image-api/v1/images/$nodeId" />"""
 
     when(imageApiClient.importOrGetMetaByExternId(nodeId)).thenReturn(Some(image))
     val (result, requiredLibraries, errors) = ImageConverter.convert(ContentBrowser(contentStringWithLeftMargin, Some("nb")), Seq())
