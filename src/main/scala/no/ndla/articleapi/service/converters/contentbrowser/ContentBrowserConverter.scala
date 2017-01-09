@@ -58,13 +58,13 @@ trait ContentBrowserConverter {
           status.copy(messages=updatedImportStatusMessages))
       }
 
-      val contentElement = stringToJsoupDocument(languageContent.content)
+      val contentElement = ConverterModule.stringToJsoupDocument(languageContent.content)
       val (updatedLanguageContent, updatedImportStatus) = convert(contentElement, languageContent, importStatus)
 
-      val metaDescriptionElement = stringToJsoupDocument(languageContent.metaDescription)
+      val metaDescriptionElement = ConverterModule.stringToJsoupDocument(languageContent.metaDescription)
       val (finalLanguageContent, finalImportStatus) = convert(metaDescriptionElement, updatedLanguageContent, updatedImportStatus)
 
-      (finalLanguageContent.copy(content=jsoupDocumentToString(contentElement), metaDescription=jsoupDocumentToString(metaDescriptionElement)),
+      (finalLanguageContent.copy(content=ConverterModule.jsoupDocumentToString(contentElement), metaDescription=ConverterModule.jsoupDocumentToString(metaDescriptionElement)),
         finalImportStatus)
     }
   }

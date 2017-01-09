@@ -16,7 +16,7 @@ import scala.collection.JavaConversions._
 
 object DivTableConverter extends ConverterModule {
   def convert(content: LanguageContent, importStatus: ImportStatus): (LanguageContent, ImportStatus) = {
-    val element = stringToJsoupDocument(content.content)
+    val element = ConverterModule.stringToJsoupDocument(content.content)
     for (div <- element.select("div.ndla_table, div.ndla_table_row, div.ndla_table_cell, div.ndla_table_cell_content")) {
 
       div.classNames() match {
@@ -36,6 +36,6 @@ object DivTableConverter extends ConverterModule {
       }
     }
 
-    (content.copy(content=jsoupDocumentToString(element)), importStatus)
+    (content.copy(content=ConverterModule.jsoupDocumentToString(element)), importStatus)
   }
 }

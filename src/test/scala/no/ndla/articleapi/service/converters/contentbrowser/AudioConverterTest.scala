@@ -10,7 +10,7 @@
 package no.ndla.articleapi.service.converters.contentbrowser
 
 import no.ndla.articleapi.{TestEnvironment, UnitSuite}
-import no.ndla.articleapi.ArticleApiProperties.{resourceHtmlEmbedTag, externalAudioApiUrl}
+import no.ndla.articleapi.ArticleApiProperties.resourceHtmlEmbedTag
 import org.mockito.Mockito._
 
 class AudioConverterTest extends UnitSuite with TestEnvironment {

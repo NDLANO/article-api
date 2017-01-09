@@ -11,7 +11,6 @@ package no.ndla.articleapi.service.converters.contentbrowser
 
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.articleapi.service.{ExtractService, AttachmentStorageService}
-import no.ndla.articleapi.ArticleApiProperties.externalAudioApiUrl
 import no.ndla.articleapi.integration.AudioApiClient
 import no.ndla.articleapi.model.domain.{ImportStatus, RequiredLibrary}
 import no.ndla.articleapi.service.converters.HtmlTagGenerator

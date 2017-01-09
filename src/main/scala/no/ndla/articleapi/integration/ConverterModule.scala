@@ -16,16 +16,6 @@ import org.jsoup.nodes.Entities.EscapeMode
 import scala.annotation.tailrec
 
 trait ConverterModule {
-  def stringToJsoupDocument(htmlString: String): Element = {
-    val document = Jsoup.parseBodyFragment(htmlString)
-    document.outputSettings().escapeMode(EscapeMode.xhtml).prettyPrint(false)
-    document.select("body").first()
-  }
-
-  def jsoupDocumentToString(element: Element): String = {
-    element.select("body").html()
-  }
-
   def convert(content: LanguageContent, importStatus: ImportStatus): (LanguageContent, ImportStatus)
 
   def convert(nodeToConvert: NodeToConvert, importStatus: ImportStatus): (NodeToConvert, ImportStatus) = {
@@ -44,6 +34,18 @@ trait ConverterModule {
 
 
     (nodeToConvert.copy(contents=convertedContent), contentImportStatus)
+  }
+}
+
+object ConverterModule {
+  def stringToJsoupDocument(htmlString: String): Element = {
+    val document = Jsoup.parseBodyFragment(htmlString)
+    document.outputSettings().escapeMode(EscapeMode.xhtml).prettyPrint(false)
+    document.select("body").first()
+  }
+
+  def jsoupDocumentToString(element: Element): String = {
+    element.select("body").html()
   }
 }
 

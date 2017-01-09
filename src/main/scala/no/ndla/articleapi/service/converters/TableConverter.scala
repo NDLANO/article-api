@@ -16,12 +16,12 @@ import scala.collection.JavaConversions._
 
 object TableConverter extends ConverterModule {
   override def convert(content: LanguageContent, importStatus: ImportStatus): (LanguageContent, ImportStatus) = {
-    val element = stringToJsoupDocument(content.content)
+    val element = ConverterModule.stringToJsoupDocument(content.content)
 
     stripParagraphTag(element)
     convertFirstTrToTh(element)
 
-    (content.copy(content=jsoupDocumentToString(element)), importStatus)
+    (content.copy(content=ConverterModule.jsoupDocumentToString(element)), importStatus)
   }
 
   def stripParagraphTag(el: Element) = {

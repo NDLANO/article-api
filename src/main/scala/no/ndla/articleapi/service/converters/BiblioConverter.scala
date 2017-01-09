@@ -24,7 +24,7 @@ trait BiblioConverter {
 
   class BiblioConverter extends ConverterModule with LazyLogging {
     def convert(content: LanguageContent, importStatus: ImportStatus): (LanguageContent, ImportStatus) = {
-      val element = stringToJsoupDocument(content.content)
+      val element = ConverterModule.stringToJsoupDocument(content.content)
 
       val references = buildReferences(element)
       val (map, messages) = references.isEmpty match {
@@ -33,7 +33,7 @@ trait BiblioConverter {
       }
 
       val finalImportStatus = ImportStatus(importStatus.messages ++ messages, importStatus.visitedNodes)
-      (content.copy(content=jsoupDocumentToString(element), footNotes=Some(content.footNotes.getOrElse(map))), finalImportStatus)
+      (content.copy(content=ConverterModule.jsoupDocumentToString(element), footNotes=Some(content.footNotes.getOrElse(map))), finalImportStatus)
     }
 
     def buildReferences(element: Element): Seq[String] = {
