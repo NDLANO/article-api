@@ -29,12 +29,20 @@ trait HtmlTagGenerator {
     def buildImageEmbedContent(caption: String, imageId: String, align: String, size: String, altText: String) = {
       val dataAttributes = Map(
         "resource" -> "image",
+        "resourceId" -> imageId,
         "size" -> size,
         "alt" -> altText,
         "caption" -> caption,
-        "align" -> align,
-        "url" -> s"$externalImageApiUrl/$imageId")
+        "align" -> align)
 
+      buildEmbedContent(dataAttributes)
+    }
+
+    def buildAudioEmbedContent(audioId: String) = {
+      val dataAttributes = Map(
+        "resource" -> "audio",
+        "resourceId" -> audioId
+      )
       buildEmbedContent(dataAttributes)
     }
 

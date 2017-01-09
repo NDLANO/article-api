@@ -41,11 +41,7 @@ trait AudioConverterModule  {
     }
 
     private def insertAudio(content: ContentBrowser, id: Long): (String, ImportStatus) = {
-      val resourceAttributes = Map(
-        "resource" -> "audio",
-        "url" -> s"$externalAudioApiUrl/$id"
-      )
-      val (resource, errors) = HtmlTagGenerator.buildEmbedContent(resourceAttributes)
+      val (resource, errors) = HtmlTagGenerator.buildAudioEmbedContent(id.toString)
       (resource, ImportStatus(errors, Seq()))
     }
 
