@@ -11,6 +11,7 @@ package no.ndla.articleapi.service.converters
 
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.articleapi.integration.{ConverterModule, LanguageContent}
+import no.ndla.articleapi.integration.ConverterModule.{stringToJsoupDocument, jsoupDocumentToString}
 import no.ndla.articleapi.model.domain.{ImportStatus, FootNoteItem}
 import no.ndla.articleapi.service.ExtractService
 import org.jsoup.nodes.Element
@@ -24,7 +25,7 @@ trait BiblioConverter {
 
   class BiblioConverter extends ConverterModule with LazyLogging {
     def convert(content: LanguageContent, importStatus: ImportStatus): (LanguageContent, ImportStatus) = {
-      val element = ConverterModule.stringToJsoupDocument(content.content)
+      val element = stringToJsoupDocument(content.content)
 
       val references = buildReferences(element)
       val (map, messages) = references.isEmpty match {
@@ -33,7 +34,7 @@ trait BiblioConverter {
       }
 
       val finalImportStatus = ImportStatus(importStatus.messages ++ messages, importStatus.visitedNodes)
-      (content.copy(content=ConverterModule.jsoupDocumentToString(element), footNotes=Some(content.footNotes.getOrElse(map))), finalImportStatus)
+      (content.copy(content=jsoupDocumentToString(element), footNotes=Some(content.footNotes.getOrElse(map))), finalImportStatus)
     }
 
     def buildReferences(element: Element): Seq[String] = {

@@ -15,6 +15,7 @@ import scala.annotation.tailrec
 import no.ndla.articleapi.integration.{ConverterModule, LanguageContent}
 import no.ndla.articleapi.model.domain.ImportStatus
 import no.ndla.articleapi.ArticleApiProperties.EnableJoubelH5POembed
+import no.ndla.articleapi.integration.ConverterModule.{stringToJsoupDocument, jsoupDocumentToString}
 
 trait ContentBrowserConverter {
   this: ContentBrowserConverterModules =>
@@ -58,13 +59,13 @@ trait ContentBrowserConverter {
           status.copy(messages=updatedImportStatusMessages))
       }
 
-      val contentElement = ConverterModule.stringToJsoupDocument(languageContent.content)
+      val contentElement = stringToJsoupDocument(languageContent.content)
       val (updatedLanguageContent, updatedImportStatus) = convert(contentElement, languageContent, importStatus)
 
-      val metaDescriptionElement = ConverterModule.stringToJsoupDocument(languageContent.metaDescription)
+      val metaDescriptionElement = stringToJsoupDocument(languageContent.metaDescription)
       val (finalLanguageContent, finalImportStatus) = convert(metaDescriptionElement, updatedLanguageContent, updatedImportStatus)
 
-      (finalLanguageContent.copy(content=ConverterModule.jsoupDocumentToString(contentElement), metaDescription=ConverterModule.jsoupDocumentToString(metaDescriptionElement)),
+      (finalLanguageContent.copy(content=jsoupDocumentToString(contentElement), metaDescription=jsoupDocumentToString(metaDescriptionElement)),
         finalImportStatus)
     }
   }

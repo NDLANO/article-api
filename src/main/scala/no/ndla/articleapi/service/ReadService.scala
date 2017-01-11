@@ -11,7 +11,7 @@ package no.ndla.articleapi.service
 import no.ndla.articleapi.model.{api, domain}
 import no.ndla.articleapi.repository.ArticleRepository
 import no.ndla.articleapi.ArticleApiProperties.{externalApiUrls, resourceHtmlEmbedTag}
-import no.ndla.articleapi.integration.ConverterModule
+import no.ndla.articleapi.integration.ConverterModule.{stringToJsoupDocument, jsoupDocumentToString}
 
 import scala.collection.JavaConversions._
 
@@ -31,7 +31,7 @@ trait ReadService {
     }
 
     private[service] def addUrlOnResource(content: domain.ArticleContent): domain.ArticleContent = {
-      val doc = ConverterModule.stringToJsoupDocument(content.content)
+      val doc = stringToJsoupDocument(content.content)
       val resourceIdAttrName = "data-resource_id"
 
       for (el <- doc.select(s"""$resourceHtmlEmbedTag[$resourceIdAttrName]""")) {
@@ -40,7 +40,7 @@ trait ReadService {
         el.attr("data-url", s"${externalApiUrls(resourceType)}/$id")
       }
 
-      content.copy(content = ConverterModule.jsoupDocumentToString(doc))
+      content.copy(content = jsoupDocumentToString(doc))
     }
 
   }

@@ -5,6 +5,7 @@ import no.ndla.articleapi.ArticleApiProperties._
 import no.ndla.articleapi.integration.{ConverterModule, ImageApiClient, LanguageContent, LanguageIngress}
 import no.ndla.articleapi.model.domain.ImportStatus
 import org.jsoup.nodes.{Element, Node, TextNode}
+import no.ndla.articleapi.integration.ConverterModule.{stringToJsoupDocument, jsoupDocumentToString}
 
 import scala.collection.JavaConversions._
 
@@ -15,7 +16,7 @@ trait HTMLCleaner {
   class HTMLCleaner extends ConverterModule with LazyLogging {
 
     override def convert(content: LanguageContent, importStatus: ImportStatus): (LanguageContent, ImportStatus) = {
-      val element = ConverterModule.stringToJsoupDocument(content.content)
+      val element = stringToJsoupDocument(content.content)
       val illegalTags = unwrapIllegalTags(element).map(x => s"Illegal tag(s) removed: $x").distinct
       val illegalAttributes = removeAttributes(element).map(x => s"Illegal attribute(s) removed: $x").distinct
 
@@ -28,7 +29,7 @@ trait HTMLCleaner {
       val metaDescription = prepareMetaDescription(content.metaDescription)
       val ingress = getIngress(content, element)
 
-      (content.copy(content=ConverterModule.jsoupDocumentToString(element), ingress=ingress, metaDescription=metaDescription),
+      (content.copy(content=jsoupDocumentToString(element), ingress=ingress, metaDescription=metaDescription),
         ImportStatus(importStatus.messages ++ illegalTags ++ illegalAttributes, importStatus.visitedNodes))
     }
 
@@ -53,7 +54,7 @@ trait HTMLCleaner {
 
           imageEmbedHtml.map(x => element.prepend(x._1))
 
-          Some(LanguageIngress(extractElement(ConverterModule.stringToJsoupDocument(ingress.content)), None))
+          Some(LanguageIngress(extractElement(stringToJsoupDocument(ingress.content)), None))
       }
     }
 
@@ -69,7 +70,7 @@ trait HTMLCleaner {
     }
 
     private def prepareMetaDescription(metaDescription: String): String = {
-      val element = ConverterModule.stringToJsoupDocument(metaDescription)
+      val element = stringToJsoupDocument(metaDescription)
       for (el <- element.select("embed")) {
         val caption = el.attr("data-caption")
         el.replaceWith(new TextNode(caption, ""))

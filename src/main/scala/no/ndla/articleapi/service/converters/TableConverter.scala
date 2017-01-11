@@ -9,6 +9,7 @@
 package no.ndla.articleapi.service.converters
 
 import no.ndla.articleapi.integration.{ConverterModule, LanguageContent}
+import no.ndla.articleapi.integration.ConverterModule.{stringToJsoupDocument, jsoupDocumentToString}
 import no.ndla.articleapi.model.domain.ImportStatus
 import org.jsoup.nodes.Element
 
@@ -16,12 +17,12 @@ import scala.collection.JavaConversions._
 
 object TableConverter extends ConverterModule {
   override def convert(content: LanguageContent, importStatus: ImportStatus): (LanguageContent, ImportStatus) = {
-    val element = ConverterModule.stringToJsoupDocument(content.content)
+    val element = stringToJsoupDocument(content.content)
 
     stripParagraphTag(element)
     convertFirstTrToTh(element)
 
-    (content.copy(content=ConverterModule.jsoupDocumentToString(element)), importStatus)
+    (content.copy(content=jsoupDocumentToString(element)), importStatus)
   }
 
   def stripParagraphTag(el: Element) = {
