@@ -24,11 +24,11 @@ trait HtmlTagGenerator {
     }
 
     def buildErrorContent(message: String): (String, Seq[String]) =
-      buildEmbedContent(Map("resource" -> "error", "message" -> message))
+      buildEmbedContent(Map("resource" -> ResourceType.Error, "message" -> message))
 
     def buildImageEmbedContent(caption: String, imageId: String, align: String, size: String, altText: String) = {
       val dataAttributes = Map(
-        "resource" -> "image",
+        "resource" -> ResourceType.Image,
         "resource_id" -> imageId,
         "size" -> size,
         "alt" -> altText,
@@ -39,9 +39,47 @@ trait HtmlTagGenerator {
     }
 
     def buildAudioEmbedContent(audioId: String) = {
+      val dataAttributes = Map("resource" -> ResourceType.Audio, "resource_id" -> audioId)
+      buildEmbedContent(dataAttributes)
+    }
+
+    def buildH5PEmbedContent(url: String) = {
+      val dataAttributes = Map("resource" -> ResourceType.H5P, "url" -> url)
+      buildEmbedContent(dataAttributes)
+    }
+
+    def buildBrightCoveEmbedContent(caption: String, videoId: String, account: String, player: String) = {
       val dataAttributes = Map(
-        "resource" -> "audio",
-        "resource_id" -> audioId
+        "resource" -> ResourceType.Brightcove,
+        "caption" -> caption,
+        "videoid" -> videoId,
+        "account" -> account,
+        "player" -> player
+      )
+      buildEmbedContent(dataAttributes)
+    }
+
+    def buildLinkEmbedContent(contentId: String, linkText: String) = {
+      val dataAttributes = Map(
+        "resource" -> ResourceType.ContentLink,
+        "content-id" -> contentId,
+        "link-text" -> linkText)
+      buildEmbedContent(dataAttributes)
+    }
+
+    def buildExternalInlineEmbedContent(url: String) = {
+      val dataAttributes = Map(
+        "resource" -> ResourceType.ExternalContent,
+        "url" -> url
+      )
+      buildEmbedContent(dataAttributes)
+    }
+
+    def buildNRKInlineVideoContent(nrkVideoId: String, url: String) = {
+      val dataAttributes = Map(
+        "resource" -> ResourceType.NRKContent,
+        "nrk-video-id" -> nrkVideoId,
+        "url" -> url
       )
       buildEmbedContent(dataAttributes)
     }
@@ -68,4 +106,15 @@ trait HtmlTagGenerator {
 
   }
 
+}
+
+object ResourceType {
+  val Error = "error"
+  val Image = "image"
+  val Audio = "audio"
+  val H5P = "h5p"
+  val Brightcove = "brightcove"
+  val ContentLink = "content-link"
+  val ExternalContent = "external"
+  val NRKContent = "nrk"
 }

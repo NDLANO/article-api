@@ -60,27 +60,28 @@ trait LenkeConverterModule {
 
     private def insertInline(url: String, embedCode: String, cont: ContentBrowser): (String, Option[RequiredLibrary], Seq[String]) = {
       val message = s"External resource to be embedded: $url"
-      val attributes = Map("resource" -> "external", "url" -> url)
-
       logger.info(message)
-      val (extraAttributes, requiredLibs) = getExtraAttributes(url, embedCode, cont)
-      val (figureTag, errors) = HtmlTagGenerator.buildEmbedContent(attributes ++ extraAttributes)
-      (figureTag, requiredLibs, errors :+ message)
+
+      val ((embedTag, errors), requiredLibs) = isNRKLink(url) match {
+        case false => (HtmlTagGenerator.buildExternalInlineEmbedContent(url), None)
+        case true => getNrkEmbedTag(embedCode, url)
+      }
+      (embedTag, requiredLibs, errors :+ message)
     }
 
-    private def getExtraAttributes(url: String, embedCode: String, cont: ContentBrowser): (Map[String, String], Option[RequiredLibrary]) = {
+    private def isNRKLink(url: String): Boolean = {
       val NRKUrlPattern = """(.*nrk.no)""".r
       url.host.getOrElse("") match {
-        case NRKUrlPattern(_) => extraNrkAttributes(embedCode)
-        case _ => (Map(), None)
+        case NRKUrlPattern(_) => true
+        case _ => false
       }
     }
 
-    def extraNrkAttributes(embedCode: String): (Map[String, String], Option[RequiredLibrary]) = {
+    def getNrkEmbedTag(embedCode: String, url: String): ((String, Seq[String]), Option[RequiredLibrary]) = {
       val doc = Jsoup.parseBodyFragment(embedCode)
-      val (videoId, requiredLibrary) = (doc.select("div[data-nrk-id]").attr("data-nrk-id"), doc.select("script").attr("src"))
-      (Map("nrk-video-id" -> videoId, "resource" -> "nrk"),
-        Some(RequiredLibrary("text/javascript", "NRK video embed", requiredLibrary)))
+      val (videoId, requiredLibraryUrl) = (doc.select("div[data-nrk-id]").attr("data-nrk-id"), doc.select("script").attr("src"))
+      val requiredLibrary = RequiredLibrary("text/javascript", "NRK video embed", requiredLibraryUrl)
+      (HtmlTagGenerator.buildNRKInlineVideoContent(videoId, url), Some(requiredLibrary))
     }
 
     private def insertDetailSummary(url: String, embedCode: String, cont: ContentBrowser): (String, Option[RequiredLibrary], Seq[String]) = {

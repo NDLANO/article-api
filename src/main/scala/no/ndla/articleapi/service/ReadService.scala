@@ -34,7 +34,7 @@ trait ReadService {
       val doc = stringToJsoupDocument(content.content)
       val resourceIdAttrName = "data-resource_id"
 
-      for (el <- doc.select(s"""$resourceHtmlEmbedTag[$resourceIdAttrName]""")) {
+      for (el <- doc.select(s"$resourceHtmlEmbedTag[$resourceIdAttrName]")) {
         val (resourceType, id) = (el.attr("data-resource"), el.attr(resourceIdAttrName))
         el.removeAttr(resourceIdAttrName)
         el.attr("data-url", s"${externalApiUrls(resourceType)}/$id")

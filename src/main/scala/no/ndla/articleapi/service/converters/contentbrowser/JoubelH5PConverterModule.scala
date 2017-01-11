@@ -33,9 +33,7 @@ trait JoubelH5PConverterModule {
     private def validH5PResource(joubelH5PNodeId: String, content: ContentBrowser, visitedNodes: Seq[String]) = {
       val ndlaNodeId = content.get("nid")
       logger.info(s"Converting h5p_content with nid $ndlaNodeId")
-      val (replacement, embedContentUsageErrors) = HtmlTagGenerator.buildEmbedContent(Map(
-        "resource" -> "h5p",
-        "url" -> s"$JoubelH5PBaseUrl/${ValidH5PNodeIds(ndlaNodeId)}") )
+      val (replacement, embedContentUsageErrors) = HtmlTagGenerator.buildH5PEmbedContent(s"$JoubelH5PBaseUrl/${ValidH5PNodeIds(ndlaNodeId)}")
       (replacement, Seq(), ImportStatus(embedContentUsageErrors, visitedNodes))
     }
 
