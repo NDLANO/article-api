@@ -67,7 +67,7 @@ object ArticleApiProperties extends LazyLogging {
   lazy val Domain = Map(
     "local" -> "http://localhost",
     "prod" -> "http://api.ndla.no"
-  ).getOrElse(Environment, s"http://api.$Environment.ndla.no")
+  ).getOrElse(Environment, s"http://$Environment.api.ndla.no")
 
   val externalImageApiUrl = s"$Domain/image-api/v1/images"
   val externalAudioApiUrl = s"$Domain/audio-api/v1/audio"
