@@ -117,4 +117,5 @@ object ResourceType {
   val ContentLink = "content-link"
   val ExternalContent = "external"
   val NRKContent = "nrk"
+  val FootNote = "footnote"
 }

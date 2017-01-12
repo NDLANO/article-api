@@ -46,7 +46,7 @@ trait BiblioConverter {
         val nodeId = id.substring(id.indexOf("-") + 1)
 
         references.head.removeAttr("id")
-        references.head.attr("data-resource", "footnote")
+        references.head.attr("data-resource", ResourceType.FootNote)
         references.head.attr("data-key", s"ref_$index")
         references.head.html(s"<sup>$index</sup>")
 
