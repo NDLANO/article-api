@@ -67,10 +67,10 @@ trait GeneralContentConverterModule {
           (s" $embedContent", importStatus ++ ImportStatus(embedUsageErrors, Seq()))
         }
         case None => {
-          val warnMessage = s"""Link to old ndla.no ($ndlaBaseHost/node/${contentBrowser.get("nid")})"""
+          val warnMessage = s"""Link to old ndla.no (http://ndla.no/node/${contentBrowser.get("nid")})"""
           logger.warn(warnMessage)
 
-          val href = s"$ndlaBaseHost/node/${contentBrowser.get("nid")}"
+          val href = s"http://ndla.no/node/${contentBrowser.get("nid")}"
           val linkText = contentBrowser.get("link_text")
           val (anchor, usageErrors) = HtmlTagGenerator.buildAnchor(href, linkText)
 

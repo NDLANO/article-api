@@ -11,7 +11,7 @@ package no.ndla.articleapi.service.search
 
 import no.ndla.articleapi.integration.JestClientFactory
 import no.ndla.articleapi.model.domain._
-import no.ndla.articleapi.{TestEnvironment, UnitSuite}
+import no.ndla.articleapi.{ArticleApiProperties, TestEnvironment, UnitSuite}
 import no.ndla.articleapi.TestData
 import org.elasticsearch.common.settings.Settings
 import org.elasticsearch.node.{Node, NodeBuilder}
@@ -75,6 +75,7 @@ class SearchServiceTest extends UnitSuite with TestEnvironment {
       .put("index.number_of_shards", "1")
       .put("index.number_of_replicas", "0")
       .put("http.port", esHttpPort)
+      .put("cluster.name", getClass.getName)
       .build()
 
     esNode = new NodeBuilder().settings(settings).node()
@@ -97,24 +98,23 @@ class SearchServiceTest extends UnitSuite with TestEnvironment {
 
 
   test("That getStartAtAndNumResults returns default values for None-input") {
-    searchService.getStartAtAndNumResults(None, None) should equal((0, DEFAULT_PAGE_SIZE))
+    searchService.getStartAtAndNumResults(None, None) should equal((0, ArticleApiProperties.DefaultPageSize))
   }
 
   test("That getStartAtAndNumResults returns SEARCH_MAX_PAGE_SIZE for value greater than SEARCH_MAX_PAGE_SIZE") {
-    searchService.getStartAtAndNumResults(None, Some(1000)) should equal((0, MAX_PAGE_SIZE))
+    searchService.getStartAtAndNumResults(None, Some(1000)) should equal((0, ArticleApiProperties.MaxPageSize))
   }
 
   test("That getStartAtAndNumResults returns the correct calculated start at for page and page-size with default page-size") {
     val page = 74
-    val expectedStartAt = (page - 1) * DEFAULT_PAGE_SIZE
-    searchService.getStartAtAndNumResults(Some(page), None) should equal((expectedStartAt, DEFAULT_PAGE_SIZE))
+    val expectedStartAt = (page - 1) * ArticleApiProperties.DefaultPageSize
+    searchService.getStartAtAndNumResults(Some(page), None) should equal((expectedStartAt, ArticleApiProperties.DefaultPageSize))
   }
 
   test("That getStartAtAndNumResults returns the correct calculated start at for page and page-size") {
     val page = 123
-    val pageSize = 321
-    val expectedStartAt = (page - 1) * pageSize
-    searchService.getStartAtAndNumResults(Some(page), Some(pageSize)) should equal((expectedStartAt, pageSize))
+    val expectedStartAt = (page - 1) * ArticleApiProperties.DefaultPageSize
+    searchService.getStartAtAndNumResults(Some(page), Some(ArticleApiProperties.DefaultPageSize)) should equal((expectedStartAt, ArticleApiProperties.DefaultPageSize))
   }
 
   test("That all returns all documents ordered by title ascending") {

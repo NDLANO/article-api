@@ -64,7 +64,7 @@ trait ArticleRepository {
     }
 
     private def minMaxId(implicit session: DBSession = AutoSession): (Long, Long) = {
-      sql"select min(id) as mi, max(id) as ma from ${Article.table}".map(rs => {
+      sql"select coalesce(MIN(id),0) as mi, coalesce(MAX(id),0) as ma from ${Article.table}".map(rs => {
         (rs.long("mi"), rs.long("ma"))
       }).single().apply() match {
         case Some(minmax) => minmax
@@ -74,7 +74,7 @@ trait ArticleRepository {
 
     def applyToAll(func: (List[Article]) => Unit)(implicit session: DBSession = AutoSession): Unit = {
       val (minId, maxId) = minMaxId
-      val groupRanges = Seq.range(minId, maxId + 1).grouped(ArticleApiProperties.IndexBulkSize).map(group => (group.head, group.last))
+      val groupRanges = Seq.range(minId, maxId).grouped(ArticleApiProperties.IndexBulkSize).map(group => (group.head, group.last + 1))
       val ar = Article.syntax("ar")
 
       groupRanges.foreach(range => {
