@@ -40,7 +40,7 @@ object SimpleTagConverter extends ConverterModule {
 
   private def convertPres(el: Element) {
     for (el <- el.select("pre")) {
-      el.html("<code>" + el.html() + "</code")
+      el.html("<code>" + el.html() + "</code>")
     }
   }
 
