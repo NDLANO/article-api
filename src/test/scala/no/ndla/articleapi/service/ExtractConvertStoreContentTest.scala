@@ -42,7 +42,7 @@ class ExtractConvertStoreContentTest extends UnitSuite with TestEnvironment {
     when(migrationApiClient.getSubjectForNode(nodeId)).thenReturn(Try(Seq(MigrationSubjectMeta("52", "helsearbeider vg2"))))
 
     when(articleRepository.exists(sampleNode.contents.head.nid)).thenReturn(false)
-    when(articleRepository.insert(any[Article], any[String], any[Seq[String]])(any[DBSession])).thenReturn(newNodeid)
+    when(articleRepository.insertWithExternalIds(any[Article], any[String], any[Seq[String]])(any[DBSession])).thenReturn(newNodeid)
     when(extractConvertStoreContent.processNode("9876")).thenReturn(Try(1: Long, ImportStatus(Seq(), Seq())))
   }
 

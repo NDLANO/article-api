@@ -18,7 +18,7 @@ import no.ndla.network.{ApplicationUrl, CorrelationID}
 import org.apache.logging.log4j.ThreadContext
 import org.elasticsearch.index.IndexNotFoundException
 import org.json4s.{DefaultFormats, Formats}
-import org.scalatra.ScalatraServlet
+import org.scalatra.{BadRequest, InternalServerError, ScalatraServlet}
 import org.scalatra.json.NativeJsonSupport
 
 abstract class NdlaController extends ScalatraServlet with NativeJsonSupport with LazyLogging {
@@ -39,11 +39,11 @@ abstract class NdlaController extends ScalatraServlet with NativeJsonSupport wit
   }
 
   error {
-    case v: ValidationException => halt(status = 500, body = Error.VALIDATION)
-    case e: IndexNotFoundException => halt(status = 500, body = Error.IndexMissingError)
+    case v: ValidationException => BadRequest(body=v.getMessage) // TODO: better exception handling. return json doc like learningpath api
+    case e: IndexNotFoundException => InternalServerError(body=Error.IndexMissingError)
     case t: Throwable => {
       logger.error(Error.GenericError.toString, t)
-      halt(status = 500, body = Error.GenericError)
+      InternalServerError(body=Error.GenericError)
     }
   }
 

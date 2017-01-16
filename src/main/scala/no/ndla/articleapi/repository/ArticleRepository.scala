@@ -25,7 +25,18 @@ trait ArticleRepository {
     implicit val formats = org.json4s.DefaultFormats + Article.JSonSerializer
     ConnectionPool.singleton(new DataSourceConnectionPool(dataSource))
 
-    def insert(article: Article, externalId: String, externalSubjectId: Seq[String])(implicit session: DBSession = AutoSession): Long = {
+    def insert(article: Article)(implicit session: DBSession = AutoSession) = {
+      val dataObject = new PGobject()
+      dataObject.setType("jsonb")
+      dataObject.setValue(write(article))
+
+      val articleId: Long = sql"insert into ${Article.table} (document) values (${dataObject})".updateAndReturnGeneratedKey().apply
+
+      logger.info(s"Inserted new article: $articleId")
+      article.copy(id=Some(articleId))
+    }
+
+    def insertWithExternalIds(article: Article, externalId: String, externalSubjectId: Seq[String])(implicit session: DBSession = AutoSession): Long = {
       val dataObject = new PGobject()
       dataObject.setType("jsonb")
       dataObject.setValue(write(article))

@@ -19,7 +19,7 @@ import scala.util.{Failure, Success}
 object ArticleApiProperties extends LazyLogging {
   val SecretsFile = "article-api.secrets"
 
-  val ArticleContentXSDSchema = "./some.schema.xsd" // TODO: create first validation schema
+  val ArticleContentXSDSchema: String = "/article-schema.xsd" // TODO: create first validation schema
 
   val ApplicationPort = 80
   val ContactEmail = "christergundersen@ndla.no"

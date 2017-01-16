@@ -54,7 +54,7 @@ trait ExtractConvertStoreContent {
       val subjectIds = getSubjectIds(mainNodeNid)
       articleRepository.exists(mainNodeNid) match {
         case true => articleRepository.update(article, mainNodeNid)
-        case false => articleRepository.insert(article, mainNodeNid, subjectIds)
+        case false => articleRepository.insertWithExternalIds(article, mainNodeNid, subjectIds)
       }
     }
 

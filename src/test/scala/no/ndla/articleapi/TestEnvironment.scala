@@ -48,6 +48,7 @@ trait TestEnvironment
   with TagsService
   with SearchConverterService
   with ReadService
+  with UpdateService
   with HtmlTagGenerator
   with HTMLCleaner
   with SequenceGenerator
@@ -79,6 +80,7 @@ trait TestEnvironment
   val postProcessorModules = List(SimpleTagConverter, biblioConverter, DivTableConverter, TableConverter, htmlCleaner)
   val attachmentStorageService = mock[AmazonStorageService]
   val readService = mock[ReadService]
+  val updateService = mock[UpdateService]
 
   val ndlaClient = mock[NdlaClient]
   val tagsService = mock[TagsService]
