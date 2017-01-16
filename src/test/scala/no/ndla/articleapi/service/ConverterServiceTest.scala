@@ -244,11 +244,11 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
   }
 
   test("toApiLicense defaults to unknown if the license was not found") {
-    service.toApiLicense("invalid") should equal(api.License("unknown", "", None))
+    service.toApiLicense("invalid") should equal(api.License("unknown", None, None))
   }
 
   test("toApiLicense converts a short license string to a license object with description and url") {
-    service.toApiLicense("by") should equal(api.License("by", "Creative Commons Attribution 2.0 Generic", Some("https://creativecommons.org/licenses/by/2.0/")))
+    service.toApiLicense("by") should equal(api.License("by", Some("Creative Commons Attribution 2.0 Generic"), Some("https://creativecommons.org/licenses/by/2.0/")))
   }
 
   test("toApiArticle converts a domain.Article to an api.Article") {
@@ -271,7 +271,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
       "1",
       Seq(api.ArticleTitle("title", Option("nb"))),
       Seq(api.ArticleContent("content", None, Option("nb"))),
-      api.Copyright(api.License("by", "Creative Commons Attribution 2.0 Generic", Some("https://creativecommons.org/licenses/by/2.0/")), "", Seq()),
+      api.Copyright(api.License("by", Some("Creative Commons Attribution 2.0 Generic"), Some("https://creativecommons.org/licenses/by/2.0/")), "", Seq()),
       Seq(),
       Seq(),
       Seq(),

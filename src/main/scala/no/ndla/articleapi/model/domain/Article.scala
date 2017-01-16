@@ -16,7 +16,8 @@ import org.json4s.FieldSerializer._
 import org.json4s.native.Serialization._
 import scalikejdbc._
 
-case class Article(id: Option[Long], title: Seq[ArticleTitle],
+case class Article(id: Option[Long],
+                   title: Seq[ArticleTitle],
                    content: Seq[ArticleContent],
                    copyright: Copyright,
                    tags: Seq[ArticleTag],
