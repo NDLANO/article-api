@@ -10,12 +10,14 @@
 package no.ndla.articleapi.service
 
 import com.typesafe.scalalogging.LazyLogging
+
 import scala.annotation.tailrec
 import no.ndla.articleapi.ArticleApiProperties.maxConvertionRounds
 import no.ndla.articleapi.integration.ImageApiClient
 import no.ndla.articleapi.model.domain._
 import no.ndla.articleapi.model.{api, domain}
 import no.ndla.mapping.License.getLicense
+import org.joda.time.DateTime
 
 trait ConverterService {
   this: ConverterModules with ExtractConvertStoreContent with ImageApiClient =>
@@ -77,6 +79,51 @@ trait ConverterService {
       Copyright(license, origin, authorsExcludingOrigin)
     }
 
+    def toDomainArticle(newArticle: api.NewArticle): domain.Article = {
+      domain.Article(
+        id=None,
+        title=newArticle.title.map(toDomainTitle),
+        content=newArticle.content.map(toDomainContent),
+        copyright=toDomainCopyright(newArticle.copyright),
+        tags=newArticle.tags.map(toDomainTag),
+        requiredLibraries=newArticle.requiredLibraries.getOrElse(Seq()).map(toDomainRequiredLibraries),
+        visualElement=Seq(),
+        introduction=newArticle.introduction.getOrElse(Seq()).map(toDomainIntroduction),
+        metaDescription=Seq(),
+        created=new DateTime().toDate,
+        updated=new DateTime().toDate,
+        contentType=newArticle.contentType
+      )
+    }
+
+    def toDomainTitle(articleTitle: api.ArticleTitle): domain.ArticleTitle = {
+      domain.ArticleTitle(articleTitle.title, articleTitle.language)
+    }
+
+    def toDomainContent(articleContent: api.ArticleContent): domain.ArticleContent = {
+      domain.ArticleContent(articleContent.content, None, articleContent.language) // TODO: footnotes
+    }
+
+    def toDomainCopyright(copyright: api.Copyright): domain.Copyright = {
+      domain.Copyright(copyright.license.license, copyright.origin, copyright.authors.map(toDomainAuthor))
+    }
+
+    def toDomainAuthor(author: api.Author): domain.Author = {
+      domain.Author(author.`type`, author.name)
+    }
+
+    def toDomainTag(tag: api.ArticleTag): domain.ArticleTag = {
+      domain.ArticleTag(tag.tags, tag.language)
+    }
+
+    def toDomainRequiredLibraries(requiredLibs: api.RequiredLibrary): domain.RequiredLibrary = {
+      domain.RequiredLibrary(requiredLibs.mediaType, requiredLibs.name, requiredLibs.url)
+    }
+
+    def toDomainIntroduction(intro: api.ArticleIntroduction): domain.ArticleIntroduction = {
+      domain.ArticleIntroduction(intro.introduction, intro.language)
+    }
+
     def toApiArticle(article: domain.Article): api.Article = {
       api.Article(
         article.id.get.toString,
@@ -119,8 +166,8 @@ trait ConverterService {
 
     def toApiLicense(shortLicense: String): api.License = {
       getLicense(shortLicense) match {
-        case Some(l) => api.License(l.license, l.description, l.url)
-        case None => api.License("unknown", "", None)
+        case Some(l) => api.License(l.license, Option(l.description), l.url)
+        case None => api.License("unknown", None, None)
       }
     }
 
