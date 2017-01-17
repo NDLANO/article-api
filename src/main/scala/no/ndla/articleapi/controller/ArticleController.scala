@@ -16,7 +16,7 @@ import no.ndla.articleapi.service.search.SearchService
 import org.json4s.native.Serialization.read
 import org.json4s.{DefaultFormats, Formats}
 import org.scalatra.Created
-import org.scalatra.swagger.{Swagger, SwaggerSupport}
+import org.scalatra.swagger.{ResponseMessage, Swagger, SwaggerSupport}
 
 import scala.util.{Failure, Success, Try}
 
@@ -27,6 +27,12 @@ trait ArticleController {
   class ArticleController(implicit val swagger: Swagger) extends NdlaController with SwaggerSupport {
     protected implicit override val jsonFormats: Formats = DefaultFormats
     protected val applicationDescription = "API for accessing images from ndla.no."
+
+    // Additional models used in error responses
+    registerModel[ValidationError]()
+    registerModel[Error]()
+
+    val response400 = ResponseMessage(400, "Validation Error", Some("ValidationError"))
 
     val getAllArticles =
       (apiOperation[List[SearchResult]]("getAllArticles")
@@ -65,7 +71,8 @@ trait ArticleController {
           headerParam[Option[String]]("X-Correlation-ID").description("User supplied correlation-id"),
           headerParam[Option[String]]("app-key").description("Your app-key"),
           bodyParam[NewArticle]
-        ))
+        )
+        responseMessages(response400))
 
     get("/", operation(getAllArticles)) {
       val query = paramOrNone("query")
@@ -115,7 +122,7 @@ trait ArticleController {
       } match {
         case Failure(e) => {
           logger.error(e.getMessage, e)
-          throw new ValidationException(e.getMessage)
+          throw new ValidationException(errors=Seq(ValidationMessage("body", e.getMessage)))
         }
         case Success(data) => data
       }

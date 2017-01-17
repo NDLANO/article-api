@@ -49,6 +49,7 @@ object ComponentRegistry
   with SearchConverterService
   with ReadService
   with UpdateService
+  with ValidationService
   with HTMLCleaner
   with HtmlTagGenerator
   with SequenceGenerator
@@ -83,6 +84,7 @@ object ComponentRegistry
   lazy val migrationApiClient = new MigrationApiClient
   lazy val extractService = new ExtractService
   lazy val converterService = new ConverterService
+  lazy val validationService = new ValidationService
 
   lazy val ndlaClient = new NdlaClient
   lazy val tagsService = new TagsService

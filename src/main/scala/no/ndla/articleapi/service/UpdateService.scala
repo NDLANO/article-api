@@ -13,13 +13,13 @@ import no.ndla.articleapi.repository.ArticleRepository
 
 
 trait UpdateService {
-  this: ArticleRepository with ConverterService =>
+  this: ArticleRepository with ConverterService with ValidationService =>
   val updateService: UpdateService
 
   class UpdateService {
     def newArticle(newArticle: api.NewArticle) = {
       val domainArticle = converterService.toDomainArticle(newArticle)
-      ValidationService.validateArticle(domainArticle)
+      validationService.validateArticle(domainArticle)
       converterService.toApiArticle(articleRepository.insert(domainArticle))
     }
 

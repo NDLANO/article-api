@@ -49,6 +49,7 @@ trait TestEnvironment
   with SearchConverterService
   with ReadService
   with UpdateService
+  with ValidationService
   with HtmlTagGenerator
   with HTMLCleaner
   with SequenceGenerator
@@ -81,6 +82,7 @@ trait TestEnvironment
   val attachmentStorageService = mock[AmazonStorageService]
   val readService = mock[ReadService]
   val updateService = mock[UpdateService]
+  val validationService = mock[ValidationService]
 
   val ndlaClient = mock[NdlaClient]
   val tagsService = mock[TagsService]
