@@ -9,7 +9,10 @@
 
 package no.ndla.articleapi.service
 
+import scala.util.Try
+import java.net.URL
 import scala.io.Source
+
 import scala.util.matching.Regex
 import no.ndla.articleapi.ArticleApiProperties.TopicAPIUrl
 import no.ndla.articleapi.model.domain.ArticleTag
@@ -21,22 +24,20 @@ trait TagsService {
   val pattern = new Regex("http:\\/\\/psi\\..*\\/#(.+)")
 
   class TagsService {
-    def forContent(nid: String): List[ArticleTag] = {
-      import org.json4s.native.JsonMethods._
+    def forContent(nid: String): Try[List[ArticleTag]] = {
       import org.json4s.native.Serialization.read
       implicit val formats = org.json4s.DefaultFormats
 
-      val jsonString = Source.fromURL(TopicAPIUrl + nid).mkString
-      val json = parse(jsonString)
-
-      read[Keywords](jsonString)
-        .keyword
-        .flatMap(_.names)
-        .flatMap(_.data)
-        .flatMap(_.toIterable)
-        .map(t => (getISO639(t._1), t._2.trim.toLowerCase))
-        .groupBy(_._1).map(entry => (entry._1, entry._2.map(_._2)))
-        .map(t => ArticleTag(t._2, t._1)).toList
+      Try(new URL(TopicAPIUrl + nid).openStream).map(stream => {
+       read[Keywords](Source.fromInputStream(stream).mkString)
+         .keyword
+         .flatMap(_.names)
+         .flatMap(_.data)
+         .flatMap(_.toIterable)
+         .map(t => (getISO639(t._1), t._2.trim.toLowerCase))
+         .groupBy(_._1).map(entry => (entry._1, entry._2.map(_._2)))
+         .map(t => ArticleTag(t._2, t._1)).toList
+     })
     }
 
     def getISO639(languageUrl:String): Option[String] = {
