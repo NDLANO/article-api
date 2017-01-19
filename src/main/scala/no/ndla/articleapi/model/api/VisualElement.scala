@@ -15,7 +15,7 @@ import org.scalatra.swagger.runtime.annotations.ApiModelProperty
 import scala.annotation.meta.field
 
 @ApiModel(description = "Description of a foot note item")
-case class VisualElement(@(ApiModelProperty@field)(description = "The resource identifier") resource: String,
+case class VisualElement(@(ApiModelProperty@field)(description = "The resource identifier") resourceId: String,
                          @(ApiModelProperty@field)(description = "The type of visual element (can be an image, a video or a presentation)") `type`: String,
                          @(ApiModelProperty@field)(description = "The ISO 639-1 language code describing which article translation this visual element belongs to") language: Option[String])
 

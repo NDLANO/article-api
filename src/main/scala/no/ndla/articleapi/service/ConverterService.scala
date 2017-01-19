@@ -79,7 +79,16 @@ trait ConverterService {
       Copyright(license, origin, authorsExcludingOrigin)
     }
 
+    def toDomainVisualElement(visual: api.VisualElement): domain.VisualElement = {
+      domain.VisualElement(visual.resourceId, visual.`type`, visual.language)
+    }
+
+    def toDomainMetaDescription(meta: api.ArticleMetaDescription): domain.ArticleMetaDescription = {
+      domain.ArticleMetaDescription(meta.metaDescription, meta.language)
+    }
+
     def toDomainArticle(newArticle: api.NewArticle): domain.Article = {
+      // TODO: add meta image to description
       domain.Article(
         id=None,
         title=newArticle.title.map(toDomainTitle),
@@ -87,9 +96,9 @@ trait ConverterService {
         copyright=toDomainCopyright(newArticle.copyright),
         tags=newArticle.tags.map(toDomainTag),
         requiredLibraries=newArticle.requiredLibraries.getOrElse(Seq()).map(toDomainRequiredLibraries),
-        visualElement=Seq(),
+        visualElement=newArticle.visualElement.getOrElse(Seq()).map(toDomainVisualElement),
         introduction=newArticle.introduction.getOrElse(Seq()).map(toDomainIntroduction),
-        metaDescription=Seq(),
+        metaDescription=newArticle.metaDescription.getOrElse(Seq()).map(toDomainMetaDescription),
         created=new DateTime().toDate,
         updated=new DateTime().toDate,
         contentType=newArticle.contentType
