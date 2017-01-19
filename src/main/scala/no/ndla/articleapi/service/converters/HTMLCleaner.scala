@@ -166,8 +166,8 @@ object HTMLCleaner {
       "mlabeledtr", "mlongdiv", "mmultiscripts", "mn", "mo", "mover", "mpadded", "mphantom", "mroot", "mrow", "ms", "mscarries",
       "mscarry", "msgroup", "msline", "mspace", "msqrt", "msrow", "mstack", "mstyle", "msub", "msup", "msubsup", "mtable", "mtd",
       "mtext", "mtr", "munder", "munderover", "semantics", "annotation", "annotation-xml")
-    val tags = Set("article", "section", "table", "tr", "td", "li", "a", "button", "div", "p", "pre", "code", "sup",
-      "h1", "h2", "h3", "h4", "h5", "h6", "aside", "strong", "ul", "br", "ol", "i", "em", "b", "th", "tbody", "blockquote",
+    val tags = Set("article", "section", "tr", "td", "li", "a", "button", "div", "p", "pre", "code", "sup",
+      "h1", "h2", "h3", "h4", "h5", "h6", "aside", "strong", "ul", "br", "ol", "i", "em", "b", "th", "blockquote",
       "details", "summary", "table", "thead", "tfoot", "tbody", "caption", "audio", "figcaption", resourceHtmlEmbedTag) ++ mathJaxTags
 
     val legalAttributesForAll = Set("href", "title")

@@ -8,41 +8,39 @@
 
 package no.ndla.articleapi.service
 
-import java.io._
-import javax.xml.XMLConstants
-import javax.xml.transform.stream.StreamSource
-import javax.xml.validation.SchemaFactory
-
-import no.ndla.articleapi.model.domain.{Article, ArticleContent}
-import no.ndla.articleapi.ArticleApiProperties.ArticleContentXSDSchema
 import no.ndla.articleapi.model.api.{ValidationException, ValidationMessage}
+import no.ndla.articleapi.model.domain.{Article, ArticleContent}
+import no.ndla.articleapi.service.converters.HTMLCleaner
+import org.jsoup.Jsoup
+import org.jsoup.nodes.Element
+import org.jsoup.nodes.Entities.EscapeMode
 
-import scala.util.{Failure, Try}
+import scala.collection.JavaConversions._
 
 trait ValidationService {
   val validationService: ValidationService
 
   class ValidationService {
     def validateArticle(article: Article) = {
-      article.content.foreach(validateArticleContent)
+      val validationErrors = article.content.flatMap(validateContent)
+      if (validationErrors.nonEmpty)
+        throw new ValidationException(errors=validationErrors)
     }
 
-    private def validateArticleContent(content: ArticleContent) = {
-      val contentWithRootElement = s"<body>${content.content}</body>"
-      validateHTML(getClass.getResourceAsStream(ArticleContentXSDSchema), new ByteArrayInputStream(contentWithRootElement.getBytes)) match {
-        case Failure(e) =>
-          throw new ValidationException(errors = Seq(ValidationMessage("content", e.getMessage)))
-        case _ =>
-      }
+    def validateContent(content: ArticleContent) = {
+      val illegalTags = getIllegalTags(stringToJsoupDocument(content.content))
+      illegalTags.map(illegalTag => ValidationMessage("content", s"Article contains illegal tag $illegalTag")).toSeq
     }
 
-    private[service] def validateHTML(xsdStream: InputStream, htmlFile: InputStream) = {
-      Try {
-        SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI)
-          .newSchema(new StreamSource(xsdStream))
-          .newValidator()
-          .validate(new StreamSource(htmlFile))
-      }
+    def stringToJsoupDocument(htmlString: String): Element = {
+      val document = Jsoup.parseBodyFragment(htmlString)
+      document.outputSettings().escapeMode(EscapeMode.xhtml).prettyPrint(false)
+      document.select("body").first()
+    }
+
+    private def getIllegalTags(el: Element) = {
+      el.children().select("*").map(_.tagName)
+        .filter(htmlTag => !HTMLCleaner.isTagValid(htmlTag)).toSet
     }
 
   }
