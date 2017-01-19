@@ -29,6 +29,7 @@ object TestData {
     Seq(),
     Seq(),
     Seq(),
+    None,
     DateTime.now().minusDays(4).toDate,
     DateTime.now().minusDays(2).toDate,
     "fagstoff")

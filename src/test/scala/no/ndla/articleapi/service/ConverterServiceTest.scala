@@ -263,6 +263,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
       Seq(),
       Seq(ArticleIntroduction("introduction", Option("nb"))),
       Seq(ArticleMetaDescription("meta description", Option("nb"))),
+      None,
       today,
       today,
       "fagstoff")

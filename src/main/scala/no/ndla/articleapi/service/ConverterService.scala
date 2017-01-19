@@ -57,7 +57,6 @@ trait ConverterService {
       val requiredLibraries = nodeToConvert.contents.flatMap(_.requiredLibraries).distinct
 
       val ingresses = nodeToConvert.contents.flatMap(content => content.asArticleIntroduction)
-      val metaDescriptions = nodeToConvert
 
       domain.Article(None,
         nodeToConvert.titles,
@@ -68,6 +67,7 @@ trait ConverterService {
         nodeToConvert.visualElements,
         ingresses,
         nodeToConvert.contents.map(_.asArticleMetaDescription),
+        None,
         nodeToConvert.created,
         nodeToConvert.updated,
         nodeToConvert.contentType)
@@ -88,7 +88,6 @@ trait ConverterService {
     }
 
     def toDomainArticle(newArticle: api.NewArticle): domain.Article = {
-      // TODO: add meta image to description
       domain.Article(
         id=None,
         title=newArticle.title.map(toDomainTitle),
@@ -99,6 +98,7 @@ trait ConverterService {
         visualElement=newArticle.visualElement.getOrElse(Seq()).map(toDomainVisualElement),
         introduction=newArticle.introduction.getOrElse(Seq()).map(toDomainIntroduction),
         metaDescription=newArticle.metaDescription.getOrElse(Seq()).map(toDomainMetaDescription),
+        metaImageId=newArticle.metaImageId,
         created=new DateTime().toDate,
         updated=new DateTime().toDate,
         contentType=newArticle.contentType

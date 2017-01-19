@@ -25,6 +25,7 @@ case class Article(id: Option[Long],
                    visualElement: Seq[VisualElement],
                    introduction: Seq[ArticleIntroduction],
                    metaDescription: Seq[ArticleMetaDescription],
+                   metaImageId: Option[String],
                    created: Date,
                    updated: Date,
                    contentType: String)
@@ -39,7 +40,7 @@ object Article extends SQLSyntaxSupport[Article] {
   def apply(lp: ResultName[Article])(rs: WrappedResultSet): Article = {
     val meta = read[Article](rs.string(lp.c("document")))
     Article(Some(rs.long(lp.c("id"))), meta.title, meta.content, meta.copyright, meta.tags, meta.requiredLibraries,
-      meta.visualElement, meta.introduction, meta.metaDescription, meta.created, meta.updated, meta.contentType)
+      meta.visualElement, meta.introduction, meta.metaDescription, meta.metaImageId, meta.created, meta.updated, meta.contentType)
   }
 
   val JSonSerializer = FieldSerializer[Article](
