@@ -10,6 +10,7 @@
 package no.ndla.articleapi
 
 import com.typesafe.scalalogging.LazyLogging
+import no.ndla.articleapi.service.converters.ResourceType
 import no.ndla.network.secrets.PropertyKeys
 import no.ndla.network.secrets.Secrets.readSecrets
 
@@ -69,8 +70,10 @@ object ArticleApiProperties extends LazyLogging {
     "prod" -> "http://api.ndla.no"
   ).getOrElse(Environment, s"http://$Environment.api.ndla.no")
 
-  val externalImageApiUrl = s"$Domain/image-api/v1/images"
-  val externalAudioApiUrl = s"$Domain/audio-api/v1/audio"
+  val externalApiUrls = Map(
+    ResourceType.Image -> s"$Domain/image-api/v1/images",
+    ResourceType.Audio -> s"$Domain/audio-api/v1/audio"
+  )
 
   val resourceHtmlEmbedTag = "embed"
 

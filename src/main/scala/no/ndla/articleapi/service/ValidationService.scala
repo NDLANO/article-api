@@ -8,12 +8,10 @@
 
 package no.ndla.articleapi.service
 
+import no.ndla.articleapi.integration.ConverterModule.stringToJsoupDocument
 import no.ndla.articleapi.model.api.{ValidationException, ValidationMessage}
-import no.ndla.articleapi.model.domain.{Article, ArticleContent}
+import no.ndla.articleapi.model.domain._
 import no.ndla.articleapi.service.converters.HTMLCleaner
-import org.jsoup.Jsoup
-import org.jsoup.nodes.Element
-import org.jsoup.nodes.Entities.EscapeMode
 
 import scala.collection.JavaConversions._
 
@@ -22,25 +20,38 @@ trait ValidationService {
 
   class ValidationService {
     def validateArticle(article: Article) = {
-      val validationErrors = article.content.flatMap(validateContent)
+      val validationErrors = article.content.flatMap(validateContent) ++
+        article.introduction.flatMap(validateIntroduction) ++
+        article.metaDescription.flatMap(validateMetaDescription) ++
+        article.title.flatMap(validateTitle)
+
       if (validationErrors.nonEmpty)
         throw new ValidationException(errors=validationErrors)
     }
 
     def validateContent(content: ArticleContent) = {
-      val illegalTags = getIllegalTags(stringToJsoupDocument(content.content))
-      illegalTags.map(illegalTag => ValidationMessage("content", s"Article contains illegal tag $illegalTag")).toSeq
+      getIllegalTags(content.content)
+        .map(illegalTag => ValidationMessage("content", s"Article contains illegal tag $illegalTag")).toSeq
     }
 
-    def stringToJsoupDocument(htmlString: String): Element = {
-      val document = Jsoup.parseBodyFragment(htmlString)
-      document.outputSettings().escapeMode(EscapeMode.xhtml).prettyPrint(false)
-      document.select("body").first()
+    def validateIntroduction(content: ArticleIntroduction): Option[ValidationMessage] = {
+      getTags(content.introduction).headOption.map(_ => ValidationMessage("metaDescription", "Meta introduction can not include HTML tags"))
     }
 
-    private def getIllegalTags(el: Element) = {
-      el.children().select("*").map(_.tagName)
-        .filter(htmlTag => !HTMLCleaner.isTagValid(htmlTag)).toSet
+    def validateMetaDescription(content: ArticleMetaDescription): Option[ValidationMessage] = {
+      getTags(content.content).headOption.map(_ => ValidationMessage("metaDescription", "Meta introduction can not include HTML tags"))
+    }
+
+    def validateTitle(content: ArticleTitle): Option[ValidationMessage] = {
+      getTags(content.title).headOption.map(_ => ValidationMessage("title", "Meta introduction can not include HTML tags"))
+    }
+
+    private def getTags(content: String) = {
+      stringToJsoupDocument(content).children.select("*").map(_.tagName)
+    }
+
+    private def getIllegalTags(content: String) = {
+        getTags(content).filter(htmlTag => !HTMLCleaner.isTagValid(htmlTag)).toSet
     }
 
   }

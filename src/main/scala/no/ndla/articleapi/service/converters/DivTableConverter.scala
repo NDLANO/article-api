@@ -10,6 +10,7 @@
 package no.ndla.articleapi.service.converters
 
 import no.ndla.articleapi.integration.{ConverterModule, LanguageContent}
+import no.ndla.articleapi.integration.ConverterModule.{stringToJsoupDocument, jsoupDocumentToString}
 import no.ndla.articleapi.model.domain.ImportStatus
 
 import scala.collection.JavaConversions._
