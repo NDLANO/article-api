@@ -11,6 +11,7 @@ package no.ndla.articleapi.service.converters
 
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.articleapi.integration.{ConverterModule, LanguageContent}
+import no.ndla.articleapi.integration.ConverterModule.{stringToJsoupDocument, jsoupDocumentToString}
 import no.ndla.articleapi.model.domain.{ImportStatus, FootNoteItem}
 import no.ndla.articleapi.service.ExtractService
 import org.jsoup.nodes.Element
@@ -45,7 +46,7 @@ trait BiblioConverter {
         val nodeId = id.substring(id.indexOf("-") + 1)
 
         references.head.removeAttr("id")
-        references.head.attr("data-resource", "footnote")
+        references.head.attr("data-resource", ResourceType.FootNote)
         references.head.attr("data-key", s"ref_$index")
         references.head.html(s"<sup>$index</sup>")
 

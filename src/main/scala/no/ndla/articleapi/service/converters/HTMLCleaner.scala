@@ -5,6 +5,7 @@ import no.ndla.articleapi.ArticleApiProperties._
 import no.ndla.articleapi.integration.{ConverterModule, ImageApiClient, LanguageContent, LanguageIngress}
 import no.ndla.articleapi.model.domain.ImportStatus
 import org.jsoup.nodes.{Element, Node, TextNode}
+import no.ndla.articleapi.integration.ConverterModule.{stringToJsoupDocument, jsoupDocumentToString}
 
 import scala.collection.JavaConversions._
 
@@ -174,7 +175,7 @@ object HTMLCleaner {
     val tagAttributes = Map(
       "td" -> Set("align", "valign"),
       "th" -> Set("align", "valign"),
-      resourceHtmlEmbedTag -> Set("data-resource", "data-id", "data-content-id", "data-link-text", "data-url",
+      resourceHtmlEmbedTag -> Set("data-resource", "data-resource_id", "data-id", "data-content-id", "data-link-text", "data-url",
         "data-size", "data-videoid", "data-account", "data-player", "data-key", "data-alt", "data-caption", "data-align",
         "data-audio-id", "data-nrk-video-id", "data-message")
     )

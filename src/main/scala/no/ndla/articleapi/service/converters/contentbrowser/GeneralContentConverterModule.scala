@@ -59,11 +59,7 @@ trait GeneralContentConverterModule {
 
       contentId match {
         case Some(id) => {
-          val (embedContent, embedUsageErrors) = HtmlTagGenerator.buildEmbedContent(Map(
-            "resource" -> "content-link",
-            "content-id" -> id.toString,
-            "link-text" -> contentBrowser.get("link_text")
-          ))
+          val (embedContent, embedUsageErrors) = HtmlTagGenerator.buildLinkEmbedContent(id.toString, contentBrowser.get("link_text"))
           (s" $embedContent", importStatus ++ ImportStatus(embedUsageErrors, Seq()))
         }
         case None => {
