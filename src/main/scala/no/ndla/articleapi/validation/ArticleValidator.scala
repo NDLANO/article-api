@@ -6,21 +6,21 @@
  *
  */
 
-package no.ndla.articleapi.service
+package no.ndla.articleapi.validation
 
+import no.ndla.articleapi.ArticleApiProperties.{H5PResizerScriptUrl, NDLABrightcoveVideoScriptUrl, NRKVideoScriptUrl, resourceHtmlEmbedTag}
 import no.ndla.articleapi.model.api.{ValidationException, ValidationMessage}
 import no.ndla.articleapi.model.domain._
 import no.ndla.articleapi.service.converters.HTMLCleaner
-import no.ndla.mapping.License.getLicense
 import no.ndla.mapping.ISO639.get6391CodeFor6392CodeMappings
-import no.ndla.articleapi.ArticleApiProperties.{NDLABrightcoveVideoScriptUrl, H5PResizerScriptUrl}
+import no.ndla.mapping.License.getLicense
 import org.jsoup.Jsoup
 import org.jsoup.safety.Whitelist
 
-trait ValidationService {
-  val validationService: ValidationService
+trait ArticleValidator {
+  val validationService: ArticleValidator
 
-  class ValidationService {
+  class ArticleValidator {
     def validateArticle(article: Article) = {
       val validationErrors = article.content.flatMap(validateContent) ++
         article.introduction.flatMap(validateIntroduction) ++
@@ -44,12 +44,12 @@ trait ValidationService {
     }
 
     def validateIntroduction(content: ArticleIntroduction): Seq[ValidationMessage] = {
-      validateOnlyPermittedHtmlTags("introduction.introduction", content.introduction).toList ++
+      validateNoHtmlTags("introduction.introduction", content.introduction).toList ++
         validateLanguage("introduction.language", content.language)
     }
 
     def validateMetaDescription(content: ArticleMetaDescription): Seq[ValidationMessage] = {
-      validateOnlyPermittedHtmlTags("metaDescription.metaDescription", content.content).toList ++
+      validateNoHtmlTags("metaDescription.metaDescription", content.content).toList ++
         validateLanguage("metaDescription.language", content.language)
     }
 
@@ -86,7 +86,7 @@ trait ValidationService {
     }
 
     def validateRequiredLibrary(requiredLibrary: RequiredLibrary): Option[ValidationMessage] = {
-      val permittedLibraries = Seq(NDLABrightcoveVideoScriptUrl, H5PResizerScriptUrl)
+      val permittedLibraries = Seq(NDLABrightcoveVideoScriptUrl, H5PResizerScriptUrl, NRKVideoScriptUrl) // TODO find better way of generating this list. (avoid hardcoding list)
       permittedLibraries.contains(requiredLibrary.url) match {
         case false => Some(ValidationMessage("requiredLibraries.url", s"${requiredLibrary.url} is not a permitted script. Allowed scripts are: ${permittedLibraries.mkString(",")}"))
         case true => None
@@ -100,6 +100,7 @@ trait ValidationService {
     def validateContentType(contentType: String): Option[ValidationMessage] = {
       validateNoHtmlTags("contentType", contentType)
     }
+
 
     private def validateOnlyPermittedHtmlTags(fieldPath: String, text: String): Option[ValidationMessage] = {
       text.isEmpty match {

@@ -44,7 +44,7 @@ trait HTMLCleaner {
       content.ingress match {
         case None => extractIngress(element).map(LanguageIngress(_, None))
         case Some(ingress) =>
-          val (imageEmbedHtml) = ingress.ingressImage.flatMap(imageApiClient.importOrGetMetaByExternId)
+          val imageEmbedHtml = ingress.ingressImage.flatMap(imageApiClient.importOrGetMetaByExternId)
             .map(imageMetaData => HtmlTagGenerator.buildImageEmbedContent(
               caption="",
               imageId=imageMetaData.id.toString,
@@ -52,7 +52,7 @@ trait HTMLCleaner {
               size="",
               altText=imageMetaData.alttexts.find(_.language==content.language).map(_.alttext).getOrElse("")))
 
-          imageEmbedHtml.map(x => element.prepend(x._1))
+          imageEmbedHtml.map(html => element.prepend(html))
 
           Some(LanguageIngress(extractElement(stringToJsoupDocument(ingress.content)), None))
       }
@@ -171,19 +171,19 @@ object HTMLCleaner {
       "h1", "h2", "h3", "h4", "h5", "h6", "aside", "strong", "ul", "br", "ol", "i", "em", "b", "th", "blockquote",
       "details", "summary", "table", "thead", "tfoot", "tbody", "caption", "audio", "figcaption", resourceHtmlEmbedTag) ++ mathJaxTags
 
-    val legalAttributesForAll = Set("href", "title")
+    import Attributes._
+    val legalAttributesForAll = Set(Href, Title)
     val tagAttributes = Map(
-      "td" -> Set("align", "valign"),
-      "th" -> Set("align", "valign"),
-      resourceHtmlEmbedTag -> Set("data-resource", "data-resource_id", "data-id", "data-content-id", "data-link-text", "data-url",
-        "data-size", "data-videoid", "data-account", "data-player", "data-key", "data-alt", "data-caption", "data-align",
-        "data-audio-id", "data-nrk-video-id", "data-message")
+      "td" -> Set(Align, Valign),
+      "th" -> Set(Align, Valign),
+      resourceHtmlEmbedTag -> Set(DataResource, DataResource_Id, DataId, DataContentId, DataLinkText, DataUrl,
+        DataSize, DataVideoId, DataAccount, DataPlayer, DataKey, DataAlt, DataCaption, DataAlign,
+        DataAudioId, DataNRKVideoId, DataMessage)
     )
   }
 
   def isAttributeKeyValid(attributeKey: String, tagName: String): Boolean = {
-    val legalAttributesForTag = PermittedHTML.tagAttributes.getOrElse(tagName, Set())
-    (legalAttributesForTag ++ PermittedHTML.legalAttributesForAll).contains(attributeKey)
+    legalAttributesForTag(tagName).map(_.toString).contains(attributeKey)
   }
 
   def isTagValid(tagName: String): Boolean = {
@@ -191,4 +191,9 @@ object HTMLCleaner {
   }
 
   def legalTags = PermittedHTML.tags
+
+  def legalAttributesForTag(tagName: String): Set[Attributes.Value] = {
+    val legalAttributesForTag = PermittedHTML.tagAttributes.getOrElse(tagName, Set())
+    legalAttributesForTag ++ PermittedHTML.legalAttributesForAll
+  }
 }

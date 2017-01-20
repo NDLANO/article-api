@@ -14,7 +14,7 @@ import com.typesafe.scalalogging.LazyLogging
 import no.ndla.articleapi.integration.MigrationEmbedMeta
 import no.ndla.articleapi.model.domain.{ImportStatus, RequiredLibrary}
 import no.ndla.articleapi.service.ExtractService
-import no.ndla.articleapi.service.converters.HtmlTagGenerator
+import no.ndla.articleapi.service.converters.{Attributes, HtmlTagGenerator}
 import org.jsoup.Jsoup
 
 trait LenkeConverterModule {
@@ -62,11 +62,11 @@ trait LenkeConverterModule {
       val message = s"External resource to be embedded: $url"
       logger.info(message)
 
-      val ((embedTag, errors), requiredLibs) = isNRKLink(url) match {
+      val (embedTag, requiredLibs) = isNRKLink(url) match {
         case false => (HtmlTagGenerator.buildExternalInlineEmbedContent(url), None)
         case true => getNrkEmbedTag(embedCode, url)
       }
-      (embedTag, requiredLibs, errors :+ message)
+      (embedTag, requiredLibs, message :: Nil)
     }
 
     private def isNRKLink(url: String): Boolean = {
@@ -77,7 +77,7 @@ trait LenkeConverterModule {
       }
     }
 
-    def getNrkEmbedTag(embedCode: String, url: String): ((String, Seq[String]), Option[RequiredLibrary]) = {
+    def getNrkEmbedTag(embedCode: String, url: String): (String, Option[RequiredLibrary]) = {
       val doc = Jsoup.parseBodyFragment(embedCode)
       val (videoId, requiredLibraryUrl) = (doc.select("div[data-nrk-id]").attr("data-nrk-id"), doc.select("script").attr("src"))
       val requiredLibrary = RequiredLibrary("text/javascript", "NRK video embed", requiredLibraryUrl)
@@ -90,8 +90,8 @@ trait LenkeConverterModule {
     }
 
     private def insertAnchor(url: String, cont: ContentBrowser): (String, Option[RequiredLibrary], Seq[String]) = {
-      val (htmlTag, errors) = HtmlTagGenerator.buildAnchor(url, cont.get("link_text"), Map("title" -> cont.get("link_title_text")))
-      (s" $htmlTag", None, errors)
+      val htmlTag = HtmlTagGenerator.buildAnchor(url, cont.get("link_text"), cont.get("link_title_text"))
+      (s" $htmlTag", None, Seq())
     }
 
     private def insertUnhandled(url: String, cont: ContentBrowser): (String, Option[RequiredLibrary], Seq[String]) = {

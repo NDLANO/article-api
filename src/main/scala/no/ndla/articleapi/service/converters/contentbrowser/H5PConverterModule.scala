@@ -26,8 +26,8 @@ trait H5PConverterModule {
 
       logger.info(s"Converting h5p_content with nid $nodeId")
       val requiredLibraries = List(RequiredLibrary("text/javascript", "H5P-Resizer", H5PResizerScriptUrl))
-      val (replacement, figureUsageErrors) = HtmlTagGenerator.buildH5PEmbedContent(s"http://ndla.no/h5p/embed/$nodeId")
-      (replacement, requiredLibraries, ImportStatus(figureUsageErrors, visitedNodes))
+      val replacement = HtmlTagGenerator.buildH5PEmbedContent(s"http://ndla.no/h5p/embed/$nodeId")
+      (replacement, requiredLibraries, ImportStatus(Seq(), visitedNodes))
     }
   }
 }

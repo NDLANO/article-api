@@ -12,8 +12,8 @@ import no.ndla.articleapi.model.api.ValidationException
 import no.ndla.articleapi.model.domain.{ArticleContent, ArticleIntroduction, ArticleMetaDescription, ArticleTitle}
 import no.ndla.articleapi.{TestData, TestEnvironment, UnitSuite}
 
-class ValidationServiceTest extends UnitSuite with TestEnvironment {
-  override val validationService = new ValidationService
+class ArticleValidatorTest extends UnitSuite with TestEnvironment {
+  override val validationService = new ArticleValidator
   val validDocument = """<h1>heisann</h1><h2>heia</h2>"""
   val invalidDocument = """<article><invalid></invalid></article>"""
 

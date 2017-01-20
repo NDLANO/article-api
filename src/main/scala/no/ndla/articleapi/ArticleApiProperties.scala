@@ -67,8 +67,8 @@ object ArticleApiProperties extends LazyLogging {
   ).getOrElse(Environment, s"http://$Environment.api.ndla.no")
 
   val externalApiUrls = Map(
-    ResourceType.Image -> s"$Domain/image-api/v1/images",
-    ResourceType.Audio -> s"$Domain/audio-api/v1/audio"
+    ResourceType.Image.toString -> s"$Domain/image-api/v1/images",
+    ResourceType.Audio.toString -> s"$Domain/audio-api/v1/audio"
   )
 
   val resourceHtmlEmbedTag = "embed"
@@ -79,6 +79,7 @@ object ArticleApiProperties extends LazyLogging {
 
   val H5PResizerScriptUrl = "http://ndla.no/sites/all/modules/h5p/library/js/h5p-resizer.js"
   val NDLABrightcoveVideoScriptUrl = s"http://players.brightcove.net/$NDLABrightcoveAccountId/${NDLABrightcovePlayerId}_default/index.min.js"
+  val NRKVideoScriptUrl = "http://www.nrk.no/serum/latest/js/video_embed.js"
 
   lazy val secrets = readSecrets(SecretsFile) match {
      case Success(values) => values

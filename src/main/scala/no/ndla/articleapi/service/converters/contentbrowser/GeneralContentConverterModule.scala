@@ -59,8 +59,8 @@ trait GeneralContentConverterModule {
 
       contentId match {
         case Some(id) => {
-          val (embedContent, embedUsageErrors) = HtmlTagGenerator.buildLinkEmbedContent(id.toString, contentBrowser.get("link_text"))
-          (s" $embedContent", importStatus ++ ImportStatus(embedUsageErrors, Seq()))
+          val embedContent = HtmlTagGenerator.buildLinkEmbedContent(id.toString, contentBrowser.get("link_text"))
+          (s" $embedContent", importStatus)
         }
         case None => {
           val warnMessage = s"""Link to old ndla.no (http://ndla.no/node/${contentBrowser.get("nid")})"""
@@ -68,9 +68,10 @@ trait GeneralContentConverterModule {
 
           val href = s"http://ndla.no/node/${contentBrowser.get("nid")}"
           val linkText = contentBrowser.get("link_text")
-          val (anchor, usageErrors) = HtmlTagGenerator.buildAnchor(href, linkText)
+          val linkTitle = contentBrowser.get("link_title_text")
+          val anchor = HtmlTagGenerator.buildAnchor(href, linkText, linkTitle)
 
-          (s" $anchor", importStatus.copy(messages=importStatus.messages ++ usageErrors ++ Seq(warnMessage)))
+          (s" $anchor", importStatus.copy(messages=importStatus.messages ++ Seq(warnMessage)))
         }
       }
     }

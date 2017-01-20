@@ -10,10 +10,11 @@ package no.ndla.articleapi.service
 
 import no.ndla.articleapi.model.api
 import no.ndla.articleapi.repository.ArticleRepository
+import no.ndla.articleapi.validation.ArticleValidator
 
 
 trait UpdateService {
-  this: ArticleRepository with ConverterService with ValidationService =>
+  this: ArticleRepository with ConverterService with ArticleValidator =>
   val updateService: UpdateService
 
   class UpdateService {

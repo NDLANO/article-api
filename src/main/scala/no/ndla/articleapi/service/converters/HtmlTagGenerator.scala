@@ -10,112 +10,134 @@ package no.ndla.articleapi.service.converters
 
 import no.ndla.articleapi.ArticleApiProperties._
 import no.ndla.articleapi.service.SequenceGenerator
-import no.ndla.articleapi.service.converters.HTMLCleaner.isAttributeKeyValid
 
 trait HtmlTagGenerator {
   this: SequenceGenerator =>
 
   object HtmlTagGenerator {
-    def buildEmbedContent(dataAttributes: Map[String, String]): (String, Seq[String]) = {
-      val attributesWithPrefix = prefixKeyWith(dataAttributes + ("id" -> nextNumberInSequence), "data-")
-      val errorMessages = verifyAttributeKeys(attributesWithPrefix.keySet, resourceHtmlEmbedTag)
-
-      (s"<$resourceHtmlEmbedTag ${buildAttributesString(attributesWithPrefix)} />", errorMessages)
+    def buildEmbedContent(dataAttributes: Map[Attributes.Value, String]): String = {
+      val attributesWithPrefix = dataAttributes + (Attributes.DataId -> nextNumberInSequence)
+      s"<$resourceHtmlEmbedTag ${buildAttributesString(attributesWithPrefix)} />"
     }
 
-    def buildErrorContent(message: String): (String, Seq[String]) =
-      buildEmbedContent(Map("resource" -> ResourceType.Error, "message" -> message))
+    def buildErrorContent(message: String): String =
+      buildEmbedContent(Map(Attributes.DataResource -> ResourceType.Error.toString, Attributes.DataMessage -> message))
 
     def buildImageEmbedContent(caption: String, imageId: String, align: String, size: String, altText: String) = {
       val dataAttributes = Map(
-        "resource" -> ResourceType.Image,
-        "resource_id" -> imageId,
-        "size" -> size,
-        "alt" -> altText,
-        "caption" -> caption,
-        "align" -> align)
+        Attributes.DataResource -> ResourceType.Image.toString,
+        Attributes.DataResource_Id -> imageId,
+        Attributes.DataSize -> size,
+        Attributes.DataAlt -> altText,
+        Attributes.DataCaption -> caption,
+        Attributes.DataAlign -> align)
 
       buildEmbedContent(dataAttributes)
     }
 
     def buildAudioEmbedContent(audioId: String) = {
-      val dataAttributes = Map("resource" -> ResourceType.Audio, "resource_id" -> audioId)
+      val dataAttributes = Map(Attributes.DataResource -> ResourceType.Audio.toString, Attributes.DataResource_Id -> audioId)
       buildEmbedContent(dataAttributes)
     }
 
     def buildH5PEmbedContent(url: String) = {
-      val dataAttributes = Map("resource" -> ResourceType.H5P, "url" -> url)
+      val dataAttributes = Map(Attributes.DataResource -> ResourceType.H5P.toString, Attributes.DataUrl -> url)
       buildEmbedContent(dataAttributes)
     }
 
     def buildBrightCoveEmbedContent(caption: String, videoId: String, account: String, player: String) = {
       val dataAttributes = Map(
-        "resource" -> ResourceType.Brightcove,
-        "caption" -> caption,
-        "videoid" -> videoId,
-        "account" -> account,
-        "player" -> player
+        Attributes.DataResource -> ResourceType.Brightcove.toString,
+        Attributes.DataCaption -> caption,
+        Attributes.DataVideoId -> videoId,
+        Attributes.DataAccount -> account,
+        Attributes.DataPlayer -> player
       )
       buildEmbedContent(dataAttributes)
     }
 
     def buildLinkEmbedContent(contentId: String, linkText: String) = {
       val dataAttributes = Map(
-        "resource" -> ResourceType.ContentLink,
-        "content-id" -> contentId,
-        "link-text" -> linkText)
+        Attributes.DataResource -> ResourceType.ContentLink.toString,
+        Attributes.DataContentId -> contentId,
+        Attributes.DataLinkText -> linkText)
       buildEmbedContent(dataAttributes)
     }
 
     def buildExternalInlineEmbedContent(url: String) = {
       val dataAttributes = Map(
-        "resource" -> ResourceType.ExternalContent,
-        "url" -> url
+        Attributes.DataResource -> ResourceType.ExternalContent.toString,
+        Attributes.DataUrl -> url
       )
       buildEmbedContent(dataAttributes)
     }
 
     def buildNRKInlineVideoContent(nrkVideoId: String, url: String) = {
       val dataAttributes = Map(
-        "resource" -> ResourceType.NRKContent,
-        "nrk-video-id" -> nrkVideoId,
-        "url" -> url
+        Attributes.DataResource -> ResourceType.NRKContent.toString,
+        Attributes.DataNRKVideoId -> nrkVideoId,
+        Attributes.DataUrl -> url
       )
       buildEmbedContent(dataAttributes)
     }
 
-    def buildAnchor(href: String, anchorText: String, extraAttributes: Map[String, String] = Map()): (String, Seq[String]) = {
-      val attributes = extraAttributes + ("href" -> href)
-      val errorMessages = verifyAttributeKeys(attributes.keySet, "a")
-      (s"<a ${buildAttributesString(attributes)}>$anchorText</a>", errorMessages)
+    def buildAnchor(href: String, anchorText: String, title: String): String = {
+      val attributes = Map(Attributes.Href -> href, Attributes.Title -> title)
+      s"<a ${buildAttributesString(attributes)}>$anchorText</a>"
     }
 
-    private def prefixKeyWith(attributeMap: Map[String, String], prefix: String): Map[String, String] =
-      attributeMap.map { case (key, value) => s"$prefix$key" -> value }
+    private def buildAttributesString(figureDataAttributeMap: Map[Attributes.Value, String]): String =
+      figureDataAttributeMap.toList.sortBy(_._1.toString).map { case (key, value) => s"""$key="${value.trim}"""" }.mkString(" ")
 
-    private def buildAttributesString(figureDataAttributeMap: Map[String, String]): String =
-      figureDataAttributeMap.toList.sortBy(_._1).map { case (key, value) => s"""$key="${value.trim}"""" }.mkString(" ")
-
-    private def verifyAttributeKeys(attributeKeys: Set[String], tagName: String): Seq[String] =
-      attributeKeys.flatMap(attributeKey => {
-        isAttributeKeyValid(attributeKey, tagName) match {
-          case true => None
-          case false => Some(s"This is a BUG: Trying to use illegal attribute $attributeKey!")
-        }
-      }).toSeq
-
+    private def verifyAttributeKeys(attributeKeys: Set[Attributes.Value], tagName: String): Option[String] = {
+      val legalAttributes = HTMLCleaner.legalAttributesForTag(tagName)
+      attributeKeys.subsetOf(legalAttributes) match {
+        case true => None
+        case false => Some(s"This is a BUG: Trying to use illegal attribute(s) ${attributeKeys.diff(legalAttributes)}!")
+      }
+    }
   }
 
 }
 
-object ResourceType {
-  val Error = "error"
-  val Image = "image"
-  val Audio = "audio"
-  val H5P = "h5p"
-  val Brightcove = "brightcove"
-  val ContentLink = "content-link"
-  val ExternalContent = "external"
-  val NRKContent = "nrk"
-  val FootNote = "footnote"
+object ResourceType extends Enumeration {
+  val Error = Value("error")
+  val Image = Value("image")
+  val Audio = Value("audio")
+  val H5P = Value("h5p")
+  val Brightcove = Value("brightcove")
+  val ContentLink = Value("content-link")
+  val ExternalContent = Value("external")
+  val NRKContent = Value("nrk")
+  val FootNote = Value("footnote")
+
+  def all: Set[String] = ResourceType.values.map(_.toString)
 }
+
+object Attributes extends Enumeration {
+  val DataId = Value("data-id")
+  val DataUrl = Value("data-url")
+  val DataKey = Value("data-key")
+  val DataAlt = Value("data-alt")
+  val DataSize = Value("data-size")
+  val DataAlign = Value("data-align")
+  val DataPlayer = Value("data-player")
+  val DataMessage = Value("data-message")
+  val DataAudioId = Value("data-audio-id")
+  val DataCaption = Value("data-caption")
+  val DataAccount = Value("data-account")
+  val DataVideoId = Value("data-videoid")
+  val DataResource = Value("data-resource")
+  val DataLinkText = Value("data-link-text")
+  val DataContentId = Value("data-content-id")
+  val DataNRKVideoId = Value("data-nrk-video-id")
+  val DataResource_Id = Value("data-resource_id")
+
+  val Href = Value("href")
+  val Title = Value("title")
+  val Align = Value("align")
+  val Valign = Value("valign")
+
+  def all: Set[String] = Attributes.values.map(_.toString)
+}
+
