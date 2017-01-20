@@ -9,8 +9,6 @@ import org.jsoup.nodes.Element
 import scala.collection.JavaConversions._
 
 class EmbedTagValidator {
-  private val NoHtmlValidator = new TextValidator(allowHtml=false)
-
   def validate(fieldName: String, content: String): Seq[ValidationMessage] = {
     val document = ConverterModule.stringToJsoupDocument(content)
     document.select(s"$resourceHtmlEmbedTag").flatMap(validateEmbedTag(fieldName, _)).toList
@@ -54,7 +52,7 @@ class EmbedTagValidator {
 
   private def attributesContainsNoHtml(fieldName: String, attributes: Map[Attributes.Value, String]): Option[ValidationMessage] = {
     val attributesWithHtml = attributes.toList.filter{ case (_, value) =>
-      NoHtmlValidator.validate(fieldName, value).isDefined
+     new TextValidator(allowHtml=false).validate(fieldName, value).nonEmpty
     }.toMap.keySet
 
     if (attributesWithHtml.nonEmpty) {

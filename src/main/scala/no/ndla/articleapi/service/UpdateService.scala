@@ -20,7 +20,7 @@ trait UpdateService {
   class UpdateService {
     def newArticle(newArticle: api.NewArticle) = {
       val domainArticle = converterService.toDomainArticle(newArticle)
-      validationService.validateArticle(domainArticle)
+      articleValidator.validateArticle(domainArticle)
       converterService.toApiArticle(articleRepository.insert(domainArticle))
     }
 

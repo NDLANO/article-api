@@ -15,12 +15,11 @@ import no.ndla.mapping.ISO639.get6391CodeFor6392CodeMappings
 import no.ndla.mapping.License.getLicense
 
 trait ArticleValidator {
-  val validationService: ArticleValidator
+  val articleValidator: ArticleValidator
 
   class ArticleValidator {
     private val NoHtmlValidator = new TextValidator(allowHtml=false)
-    private val BasicHtmlValidator = new TextValidator(allowHtml=true)
-    private val EmbedTagValidator = new EmbedTagValidator
+    private val HtmlValidator = new TextValidator(allowHtml=true)
 
     def validateArticle(article: Article) = {
       val validationErrors = article.content.flatMap(validateContent) ++
@@ -39,14 +38,12 @@ trait ArticleValidator {
     }
 
     def validateContent(content: ArticleContent): Seq[ValidationMessage] = {
-      BasicHtmlValidator.validate("content.content", content.content).toList ++
-        EmbedTagValidator.validate("content.content", content.content) ++
+      HtmlValidator.validate("content.content", content.content).toList ++
         validateLanguage("content.language", content.language)
     }
 
     def validateVisualElement(content: VisualElement): Seq[ValidationMessage] = {
-      BasicHtmlValidator.validate("visualElement.content", content.resource).toList ++
-        EmbedTagValidator.validate("visualElement.content", content.resource) ++
+      HtmlValidator.validate("visualElement.content", content.resource).toList ++
         validateLanguage("visualElement.language", content.language)
     }
 
@@ -75,7 +72,7 @@ trait ArticleValidator {
 
     def validateLicense(license: String): Seq[ValidationMessage] = {
       getLicense(license) match {
-        case None => Seq(new ValidationMessage("license.license", s"$license is not a valid license"))
+        case None => Seq(ValidationMessage("license.license", s"$license is not a valid license"))
         case _ => Seq()
       }
     }
@@ -93,7 +90,7 @@ trait ArticleValidator {
     }
 
     def validateRequiredLibrary(requiredLibrary: RequiredLibrary): Option[ValidationMessage] = {
-      val permittedLibraries = Seq(NDLABrightcoveVideoScriptUrl, H5PResizerScriptUrl, NRKVideoScriptUrl) // TODO find better way of generating this list. (avoid hardcoding list)
+      val permittedLibraries = Seq(NDLABrightcoveVideoScriptUrl, H5PResizerScriptUrl, NRKVideoScriptUrl) // TODO find better way of generating this list. (avoid hardcoding list?)
       permittedLibraries.contains(requiredLibrary.url) match {
         case false => Some(ValidationMessage("requiredLibraries.url", s"${requiredLibrary.url} is not a permitted script. Allowed scripts are: ${permittedLibraries.mkString(",")}"))
         case true => None
@@ -101,10 +98,14 @@ trait ArticleValidator {
     }
 
     def validateMetaImageId(metaImageId: String): Option[ValidationMessage] = {
-      NoHtmlValidator.validate("metaImageId", metaImageId)
+      def isAllDigits(x: String) = x forall Character.isDigit
+      isAllDigits(metaImageId) match {
+        case true => None
+        case false => Some(ValidationMessage("metaImageId", "Meta image ID must be a number"))
+      }
     }
 
-    def validateContentType(contentType: String): Option[ValidationMessage] = {
+    def validateContentType(contentType: String): Seq[ValidationMessage] = {
       NoHtmlValidator.validate("contentType", contentType)
     }
 

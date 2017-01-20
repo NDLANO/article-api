@@ -190,7 +190,7 @@ object HTMLCleaner {
     PermittedHTML.tags.contains(tagName)
   }
 
-  def legalTags = PermittedHTML.tags
+  def allLegalTags = PermittedHTML.tags
 
   def legalAttributesForTag(tagName: String): Set[Attributes.Value] = {
     val legalAttributesForTag = PermittedHTML.tagAttributes.getOrElse(tagName, Set())
