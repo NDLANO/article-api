@@ -8,12 +8,14 @@
 
 package no.ndla.articleapi.service
 
-import no.ndla.articleapi.integration.ConverterModule.stringToJsoupDocument
 import no.ndla.articleapi.model.api.{ValidationException, ValidationMessage}
 import no.ndla.articleapi.model.domain._
 import no.ndla.articleapi.service.converters.HTMLCleaner
-
-import scala.collection.JavaConversions._
+import no.ndla.mapping.License.getLicense
+import no.ndla.mapping.ISO639.get6391CodeFor6392CodeMappings
+import no.ndla.articleapi.ArticleApiProperties.{NDLABrightcoveVideoScriptUrl, H5PResizerScriptUrl}
+import org.jsoup.Jsoup
+import org.jsoup.safety.Whitelist
 
 trait ValidationService {
   val validationService: ValidationService
@@ -23,36 +25,110 @@ trait ValidationService {
       val validationErrors = article.content.flatMap(validateContent) ++
         article.introduction.flatMap(validateIntroduction) ++
         article.metaDescription.flatMap(validateMetaDescription) ++
-        article.title.flatMap(validateTitle)
+        article.title.flatMap(validateTitle) ++
+        validateCopyright(article.copyright) ++
+        validateTags(article.tags) ++
+        article.requiredLibraries.flatMap(validateRequiredLibrary) ++
+        article.metaImageId.flatMap(validateMetaImageId) ++
+        validateContentType(article.contentType)
+
+      // TODO: how to validate visualElement: Answer: embed tag validator
 
       if (validationErrors.nonEmpty)
         throw new ValidationException(errors=validationErrors)
     }
 
-    def validateContent(content: ArticleContent) = {
-      getIllegalTags(content.content)
-        .map(illegalTag => ValidationMessage("content", s"Article contains illegal tag $illegalTag")).toSeq
+    def validateContent(content: ArticleContent): Seq[ValidationMessage] = {
+      validateOnlyPermittedHtmlTags("content.content", content.content).toList ++
+        validateLanguage("content.language", content.language)
     }
 
-    def validateIntroduction(content: ArticleIntroduction): Option[ValidationMessage] = {
-      getTags(content.introduction).headOption.map(_ => ValidationMessage("metaDescription", "Meta introduction can not include HTML tags"))
+    def validateIntroduction(content: ArticleIntroduction): Seq[ValidationMessage] = {
+      validateOnlyPermittedHtmlTags("introduction.introduction", content.introduction).toList ++
+        validateLanguage("introduction.language", content.language)
     }
 
-    def validateMetaDescription(content: ArticleMetaDescription): Option[ValidationMessage] = {
-      getTags(content.content).headOption.map(_ => ValidationMessage("metaDescription", "Meta introduction can not include HTML tags"))
+    def validateMetaDescription(content: ArticleMetaDescription): Seq[ValidationMessage] = {
+      validateOnlyPermittedHtmlTags("metaDescription.metaDescription", content.content).toList ++
+        validateLanguage("metaDescription.language", content.language)
     }
 
-    def validateTitle(content: ArticleTitle): Option[ValidationMessage] = {
-      getTags(content.title).headOption.map(_ => ValidationMessage("title", "Meta introduction can not include HTML tags"))
+    def validateTitle(content: ArticleTitle): Seq[ValidationMessage] = {
+      validateNoHtmlTags("title.title", content.title).toList ++
+        validateLanguage("title.language", content.language)
     }
 
-    private def getTags(content: String) = {
-      stringToJsoupDocument(content).children.select("*").map(_.tagName)
+    def validateCopyright(copyright: Copyright): Seq[ValidationMessage] = {
+      val licenseMessage = validateLicense(copyright.license)
+      val contributorsMessages = copyright.authors.flatMap(validateAuthor)
+      val originMessage = validateNoHtmlTags("copyright.origin", copyright.origin)
+
+      licenseMessage ++ contributorsMessages ++ originMessage
     }
 
-    private def getIllegalTags(content: String) = {
-        getTags(content).filter(htmlTag => !HTMLCleaner.isTagValid(htmlTag)).toSet
+    def validateLicense(license: String): Seq[ValidationMessage] = {
+      getLicense(license) match {
+        case None => Seq(new ValidationMessage("license.license", s"$license is not a valid license"))
+        case _ => Seq()
+      }
     }
 
+    def validateAuthor(author: Author): Seq[ValidationMessage] = {
+      validateNoHtmlTags("author.type", author.`type`).toList ++
+        validateNoHtmlTags("author.name", author.name).toList
+    }
+
+    def validateTags(tags: Seq[ArticleTag]): Seq[ValidationMessage] = {
+      tags.flatMap(tagList => {
+        tagList.tags.flatMap(validateNoHtmlTags("tags.tags", _)).toList :::
+          validateLanguage("tags.language", tagList.language).toList
+      })
+    }
+
+    def validateRequiredLibrary(requiredLibrary: RequiredLibrary): Option[ValidationMessage] = {
+      val permittedLibraries = Seq(NDLABrightcoveVideoScriptUrl, H5PResizerScriptUrl)
+      permittedLibraries.contains(requiredLibrary.url) match {
+        case false => Some(ValidationMessage("requiredLibraries.url", s"${requiredLibrary.url} is not a permitted script. Allowed scripts are: ${permittedLibraries.mkString(",")}"))
+        case true => None
+      }
+    }
+
+    def validateMetaImageId(metaImageId: String): Option[ValidationMessage] = {
+      validateNoHtmlTags("metaImageId", metaImageId)
+    }
+
+    def validateContentType(contentType: String): Option[ValidationMessage] = {
+      validateNoHtmlTags("contentType", contentType)
+    }
+
+    private def validateOnlyPermittedHtmlTags(fieldPath: String, text: String): Option[ValidationMessage] = {
+      text.isEmpty match {
+        case true => Some(ValidationMessage(fieldPath, "Required field is empty"))
+        case false => {
+          Jsoup.isValid(text, new Whitelist().addTags(HTMLCleaner.legalTags.toList: _*)) match {
+            case true => None
+            case false => Some(ValidationMessage(fieldPath, s"The content contains illegal tags. Allowed html tags are: ${HTMLCleaner.legalTags.mkString(",")}"))
+          }
+        }
+      }
+    }
+
+    private def validateNoHtmlTags(fieldPath: String, text: String): Option[ValidationMessage] = {
+      Jsoup.isValid(text, Whitelist.none()) match {
+        case true => None
+        case false => Some(ValidationMessage(fieldPath, "No html is allowed in this field"))
+      }
+    }
+
+    private def validateLanguage(fieldPath: String, languageCode: Option[String]): Option[ValidationMessage] = {
+      languageCode.flatMap(lang =>
+        languageCodeSupported6391(lang) match {
+          case true => None
+          case false => Some(ValidationMessage(fieldPath, s"Language '$languageCode' is not a supported value."))
+        })
+    }
+
+    private def languageCodeSupported6391(languageCode: String): Boolean =
+      get6391CodeFor6392CodeMappings.exists(_._2 == languageCode)
   }
 }

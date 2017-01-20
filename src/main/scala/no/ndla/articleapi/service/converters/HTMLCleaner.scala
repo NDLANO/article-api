@@ -190,4 +190,5 @@ object HTMLCleaner {
     PermittedHTML.tags.contains(tagName)
   }
 
+  def legalTags = PermittedHTML.tags
 }

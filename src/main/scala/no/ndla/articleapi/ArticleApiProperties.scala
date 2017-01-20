@@ -24,8 +24,6 @@ object ArticleApiProperties extends LazyLogging {
   val ContactEmail = "christergundersen@ndla.no"
   val Environment = propOrElse("NDLA_ENVIRONMENT", "local")
 
-  val EnableJoubelH5POembed = booleanProp("ENABLE_JOUBEL_H5P_OEMBED")
-
   val MetaUserName = prop(PropertyKeys.MetaUserNameKey)
   val MetaPassword = prop(PropertyKeys.MetaPasswordKey)
   val MetaResource = prop(PropertyKeys.MetaResourceKey)
@@ -58,8 +56,6 @@ object ArticleApiProperties extends LazyLogging {
   val internalImageApiUrl = "image-api.ndla-local"
   val ApiClientsCacheAgeInMs: Long = 1000 * 60 * 60 // 1 hour caching
 
-  val NDLABrightcoveAccountId = prop("NDLA_BRIGHTCOVE_ACCOUNT_ID")
-  val NDLABrightcovePlayerId = prop("NDLA_BRIGHTCOVE_PLAYER_ID")
 
   // When converting a content node, the converter may run several times over the content to make sure
   // everything is converted. This value defines a maximum number of times the converter runs on a node
@@ -76,6 +72,13 @@ object ArticleApiProperties extends LazyLogging {
   )
 
   val resourceHtmlEmbedTag = "embed"
+
+  val NDLABrightcoveAccountId = prop("NDLA_BRIGHTCOVE_ACCOUNT_ID")
+  val NDLABrightcovePlayerId = prop("NDLA_BRIGHTCOVE_PLAYER_ID")
+  val EnableJoubelH5POembed = booleanProp("ENABLE_JOUBEL_H5P_OEMBED")
+
+  val H5PResizerScriptUrl = "http://ndla.no/sites/all/modules/h5p/library/js/h5p-resizer.js"
+  val NDLABrightcoveVideoScriptUrl = s"http://players.brightcove.net/$NDLABrightcoveAccountId/${NDLABrightcovePlayerId}_default/index.min.js"
 
   lazy val secrets = readSecrets(SecretsFile) match {
      case Success(values) => values
