@@ -159,7 +159,7 @@ case class MigrationEmbedMeta(url: Option[String], embedCode: Option[String])
 case class MigrationPageTitle(title: String, `type`: String, language: Option[String])
 
 case class MigrationVisualElement(element: String, `type`: String, language: Option[String]) {
-  def asVisualElement: VisualElement = VisualElement(element, `type`: String, language)
+  def asVisualElement: VisualElement = VisualElement(element, language)
 }
 
 case class MigrationRelatedContents(related: Seq[MigrationRelatedContent], language: Option[String])

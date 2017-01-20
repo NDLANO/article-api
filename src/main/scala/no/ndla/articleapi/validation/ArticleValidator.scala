@@ -8,19 +8,20 @@
 
 package no.ndla.articleapi.validation
 
-import no.ndla.articleapi.ArticleApiProperties.{H5PResizerScriptUrl, NDLABrightcoveVideoScriptUrl, NRKVideoScriptUrl, resourceHtmlEmbedTag}
+import no.ndla.articleapi.ArticleApiProperties.{H5PResizerScriptUrl, NDLABrightcoveVideoScriptUrl, NRKVideoScriptUrl}
 import no.ndla.articleapi.model.api.{ValidationException, ValidationMessage}
 import no.ndla.articleapi.model.domain._
-import no.ndla.articleapi.service.converters.HTMLCleaner
 import no.ndla.mapping.ISO639.get6391CodeFor6392CodeMappings
 import no.ndla.mapping.License.getLicense
-import org.jsoup.Jsoup
-import org.jsoup.safety.Whitelist
 
 trait ArticleValidator {
   val validationService: ArticleValidator
 
   class ArticleValidator {
+    private val NoHtmlValidator = new TextValidator(allowHtml=false)
+    private val BasicHtmlValidator = new TextValidator(allowHtml=true)
+    private val EmbedTagValidator = new EmbedTagValidator
+
     def validateArticle(article: Article) = {
       val validationErrors = article.content.flatMap(validateContent) ++
         article.introduction.flatMap(validateIntroduction) ++
@@ -30,38 +31,44 @@ trait ArticleValidator {
         validateTags(article.tags) ++
         article.requiredLibraries.flatMap(validateRequiredLibrary) ++
         article.metaImageId.flatMap(validateMetaImageId) ++
+        article.visualElement.flatMap(validateVisualElement) ++
         validateContentType(article.contentType)
-
-      // TODO: how to validate visualElement: Answer: embed tag validator
 
       if (validationErrors.nonEmpty)
         throw new ValidationException(errors=validationErrors)
     }
 
     def validateContent(content: ArticleContent): Seq[ValidationMessage] = {
-      validateOnlyPermittedHtmlTags("content.content", content.content).toList ++
+      BasicHtmlValidator.validate("content.content", content.content).toList ++
+        EmbedTagValidator.validate("content.content", content.content) ++
         validateLanguage("content.language", content.language)
     }
 
+    def validateVisualElement(content: VisualElement): Seq[ValidationMessage] = {
+      BasicHtmlValidator.validate("visualElement.content", content.resource).toList ++
+        EmbedTagValidator.validate("visualElement.content", content.resource) ++
+        validateLanguage("visualElement.language", content.language)
+    }
+
     def validateIntroduction(content: ArticleIntroduction): Seq[ValidationMessage] = {
-      validateNoHtmlTags("introduction.introduction", content.introduction).toList ++
+      NoHtmlValidator.validate("introduction.introduction", content.introduction).toList ++
         validateLanguage("introduction.language", content.language)
     }
 
     def validateMetaDescription(content: ArticleMetaDescription): Seq[ValidationMessage] = {
-      validateNoHtmlTags("metaDescription.metaDescription", content.content).toList ++
+      NoHtmlValidator.validate("metaDescription.metaDescription", content.content).toList ++
         validateLanguage("metaDescription.language", content.language)
     }
 
     def validateTitle(content: ArticleTitle): Seq[ValidationMessage] = {
-      validateNoHtmlTags("title.title", content.title).toList ++
+      NoHtmlValidator.validate("title.title", content.title).toList ++
         validateLanguage("title.language", content.language)
     }
 
     def validateCopyright(copyright: Copyright): Seq[ValidationMessage] = {
       val licenseMessage = validateLicense(copyright.license)
       val contributorsMessages = copyright.authors.flatMap(validateAuthor)
-      val originMessage = validateNoHtmlTags("copyright.origin", copyright.origin)
+      val originMessage = NoHtmlValidator.validate("copyright.origin", copyright.origin)
 
       licenseMessage ++ contributorsMessages ++ originMessage
     }
@@ -74,13 +81,13 @@ trait ArticleValidator {
     }
 
     def validateAuthor(author: Author): Seq[ValidationMessage] = {
-      validateNoHtmlTags("author.type", author.`type`).toList ++
-        validateNoHtmlTags("author.name", author.name).toList
+      NoHtmlValidator.validate("author.type", author.`type`).toList ++
+        NoHtmlValidator.validate("author.name", author.name).toList
     }
 
     def validateTags(tags: Seq[ArticleTag]): Seq[ValidationMessage] = {
       tags.flatMap(tagList => {
-        tagList.tags.flatMap(validateNoHtmlTags("tags.tags", _)).toList :::
+        tagList.tags.flatMap(NoHtmlValidator.validate("tags.tags", _)).toList :::
           validateLanguage("tags.language", tagList.language).toList
       })
     }
@@ -94,31 +101,11 @@ trait ArticleValidator {
     }
 
     def validateMetaImageId(metaImageId: String): Option[ValidationMessage] = {
-      validateNoHtmlTags("metaImageId", metaImageId)
+      NoHtmlValidator.validate("metaImageId", metaImageId)
     }
 
     def validateContentType(contentType: String): Option[ValidationMessage] = {
-      validateNoHtmlTags("contentType", contentType)
-    }
-
-
-    private def validateOnlyPermittedHtmlTags(fieldPath: String, text: String): Option[ValidationMessage] = {
-      text.isEmpty match {
-        case true => Some(ValidationMessage(fieldPath, "Required field is empty"))
-        case false => {
-          Jsoup.isValid(text, new Whitelist().addTags(HTMLCleaner.legalTags.toList: _*)) match {
-            case true => None
-            case false => Some(ValidationMessage(fieldPath, s"The content contains illegal tags. Allowed html tags are: ${HTMLCleaner.legalTags.mkString(",")}"))
-          }
-        }
-      }
-    }
-
-    private def validateNoHtmlTags(fieldPath: String, text: String): Option[ValidationMessage] = {
-      Jsoup.isValid(text, Whitelist.none()) match {
-        case true => None
-        case false => Some(ValidationMessage(fieldPath, "No html is allowed in this field"))
-      }
+      NoHtmlValidator.validate("contentType", contentType)
     }
 
     private def validateLanguage(fieldPath: String, languageCode: Option[String]): Option[ValidationMessage] = {

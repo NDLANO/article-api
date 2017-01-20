@@ -80,7 +80,7 @@ trait ConverterService {
     }
 
     def toDomainVisualElement(visual: api.VisualElement): domain.VisualElement = {
-      domain.VisualElement(visual.resourceId, visual.`type`, visual.language)
+      domain.VisualElement(visual.content, visual.language)
     }
 
     def toDomainMetaDescription(meta: api.ArticleMetaDescription): domain.ArticleMetaDescription = {
@@ -193,7 +193,7 @@ trait ConverterService {
     }
 
     def toApiVisualElement(visual: domain.VisualElement): api.VisualElement = {
-      api.VisualElement(visual.resource, visual.`type`, visual.language)
+      api.VisualElement(visual.resource, visual.language)
     }
 
     def toApiArticleIntroduction(intro: domain.ArticleIntroduction): api.ArticleIntroduction = {

@@ -9,9 +9,7 @@
 
 package no.ndla.articleapi.model.domain
 
-case class VisualElement(resource: String,
-                         `type`: String,
-                         language: Option[String])
+case class VisualElement(resource: String, language: Option[String])
 
 
 

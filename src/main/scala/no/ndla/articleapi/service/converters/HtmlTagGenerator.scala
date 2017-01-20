@@ -109,9 +109,12 @@ object ResourceType extends Enumeration {
   val ContentLink = Value("content-link")
   val ExternalContent = Value("external")
   val NRKContent = Value("nrk")
-  val FootNote = Value("footnote")
 
   def all: Set[String] = ResourceType.values.map(_.toString)
+
+  def valueOf(s: String): Option[ResourceType.Value] = {
+    ResourceType.values.find(_.toString == s)
+  }
 }
 
 object Attributes extends Enumeration {
@@ -139,5 +142,9 @@ object Attributes extends Enumeration {
   val Valign = Value("valign")
 
   def all: Set[String] = Attributes.values.map(_.toString)
+
+  def valueOf(s: String): Option[Attributes.Value] = {
+    Attributes.values.find(_.toString == s)
+  }
 }
 

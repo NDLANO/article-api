@@ -10,6 +10,7 @@ package no.ndla.articleapi
 
 import no.ndla.articleapi.integration.LanguageContent
 import no.ndla.articleapi.model.domain._
+import no.ndla.articleapi.ArticleApiProperties.resourceHtmlEmbedTag
 import org.joda.time.DateTime
 
 object TestData {
@@ -42,6 +43,8 @@ object TestData {
   val sampleTitle = ArticleTitle("title", Some("en"))
   val sampleContent = LanguageContent(nodeId, nodeId, "sample content", "metadescription",  Some("en"))
   val sampleTranslationContent = sampleContent.copy(tnid=nodeId2)
+
+  val visualElement = VisualElement(s"""<$resourceHtmlEmbedTag  data-align="" data-alt="" data-caption="" data-id="1" data-resource="image" data-resource-id="1" data-size="" />""", Some("nb"))
 }
 
 
