@@ -13,6 +13,7 @@ import com.typesafe.scalalogging.LazyLogging
 import no.ndla.articleapi.service.converters.ResourceType
 import no.ndla.network.secrets.PropertyKeys
 import no.ndla.network.secrets.Secrets.readSecrets
+import no.ndla.network.Domains
 
 import scala.util.Properties._
 import scala.util.{Failure, Success}
@@ -65,10 +66,7 @@ object ArticleApiProperties extends LazyLogging {
   // everything is converted. This value defines a maximum number of times the converter runs on a node
   val maxConvertionRounds = 5
 
-  lazy val Domain = Map(
-    "local" -> "http://localhost",
-    "prod" -> "http://api.ndla.no"
-  ).getOrElse(Environment, s"http://$Environment.api.ndla.no")
+  lazy val Domain = Domains.get(Environment)
 
   val externalApiUrls = Map(
     ResourceType.Image -> s"$Domain/image-api/v1/images",
