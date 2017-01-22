@@ -23,19 +23,9 @@ class EmbedTagValidator {
 
     val validationErrors = attributesAreLegal(fieldName, allAttributesOnTag) ++
       attributesContainsNoHtml(fieldName, legalAttributes) ++
-      verifyAttributeResource(fieldName, legalAttributes) ++
-      hasNoChildren(fieldName, embed)
-
+      verifyAttributeResource(fieldName, legalAttributes)
 
     validationErrors.toList
-  }
-
-  private def hasNoChildren(fieldName: String, embed: Element): Option[ValidationMessage] = {
-    if (embed.children.isEmpty) {
-      None
-    } else {
-      Some(ValidationMessage(fieldName, s"$resourceHtmlEmbedTag can not have any children"))
-    }
   }
 
   private def attributesAreLegal(fieldName: String, attributes: Map[String, String]): Option[ValidationMessage] = {
@@ -69,7 +59,7 @@ class EmbedTagValidator {
     }
 
     if (!ResourceType.all.contains(attributes(Attributes.DataResource))) {
-      return Seq(ValidationMessage(fieldName, s"The ${Attributes.DataResource} attribute can only contain one of the following values: ${ResourceType.all}"))
+      return Seq(ValidationMessage(fieldName, s"The ${Attributes.DataResource} attribute can only contain one of the following values: ${ResourceType.all.mkString(",")}"))
     }
 
     val resourceType = ResourceType.valueOf(attributes(Attributes.DataResource)).get
@@ -84,7 +74,7 @@ class EmbedTagValidator {
       ResourceType.NRKContent -> requiredAttributesForNrkContent
     ).getOrElse(resourceType, Set())
 
-    verifyEmbedTagBasedOnResourceType(fieldName, requiredAttributesForResourceType, attributeKeys)
+    verifyEmbedTagBasedOnResourceType(fieldName, requiredAttributesForResourceType, attributeKeys, resourceType)
   }
 
   private val requiredAttributesForAllResourceTypes = Set(Attributes.DataResource, Attributes.DataId)
@@ -123,13 +113,13 @@ class EmbedTagValidator {
       Attributes.DataNRKVideoId,
       Attributes.DataUrl)
 
-  private def verifyEmbedTagBasedOnResourceType(fieldName: String, requiredAttributes: Set[Attributes.Value], actualAttributes: Set[Attributes.Value]): Seq[ValidationMessage] = {
+  private def verifyEmbedTagBasedOnResourceType(fieldName: String, requiredAttributes: Set[Attributes.Value], actualAttributes: Set[Attributes.Value], resourceType: ResourceType.Value): Seq[ValidationMessage] = {
     val missingAttributes = getMissingAttributes(requiredAttributes, actualAttributes)
     val illegalAttributes = getMissingAttributes(actualAttributes, requiredAttributes)
 
-    val partialErrorMessage = s"A $resourceHtmlEmbedTag HTML tag with ${Attributes.DataResource}=${actualAttributes(Attributes.DataResource)}"
-    missingAttributes.map(missingAttributes => ValidationMessage(fieldName,  s"$partialErrorMessage must contain the following attributes: $requiredAttributes. Missing: ${missingAttributes.mkString(",")}")).toList ++
-    illegalAttributes.map(illegalAttributes => ValidationMessage(fieldName, s"$partialErrorMessage can not contain any of the following attributes: $illegalAttributes"))
+    val partialErrorMessage = s"An $resourceHtmlEmbedTag HTML tag with ${Attributes.DataResource}=$resourceType"
+    missingAttributes.map(missingAttributes => ValidationMessage(fieldName,  s"$partialErrorMessage must contain the following attributes: ${requiredAttributes.mkString(",")}. Missing: ${missingAttributes.mkString(",")}")).toList ++
+    illegalAttributes.map(illegalAttributes => ValidationMessage(fieldName, s"$partialErrorMessage can not contain any of the following attributes: ${illegalAttributes.mkString(",")}"))
   }
 
   private def getMissingAttributes(requiredAttributes: Set[Attributes.Value], attributeKeys: Set[Attributes.Value]) = {

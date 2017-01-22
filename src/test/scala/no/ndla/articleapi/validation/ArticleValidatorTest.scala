@@ -6,12 +6,12 @@
  *
  */
 
-package no.ndla.articleapi.service
+package no.ndla.articleapi.validation
 
+import no.ndla.articleapi.ArticleApiProperties.H5PResizerScriptUrl
 import no.ndla.articleapi.model.api.ValidationException
 import no.ndla.articleapi.model.domain._
 import no.ndla.articleapi.{TestData, TestEnvironment, UnitSuite}
-import no.ndla.articleapi.ArticleApiProperties.H5PResizerScriptUrl
 
 class ArticleValidatorTest extends UnitSuite with TestEnvironment {
   override val articleValidator = new ArticleValidator
