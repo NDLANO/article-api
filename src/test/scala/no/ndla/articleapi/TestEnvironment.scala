@@ -54,8 +54,8 @@ trait TestEnvironment
   with HtmlTagGenerator
   with HTMLCleaner
   with SequenceGenerator
+  with Clock
 {
-
   val searchService = mock[SearchService]
   val indexService = mock[IndexService]
   val searchIndexService = mock[SearchIndexService]
@@ -91,6 +91,8 @@ trait TestEnvironment
   val jestClient = mock[JestClient]
   val audioApiClient = mock[AudioApiClient]
   val imageApiClient = mock[ImageApiClient]
+
+  val clock = mock[SystemClock]
 
   override def nextNumberInSequence = "1"
 }

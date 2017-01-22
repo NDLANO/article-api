@@ -29,6 +29,7 @@ trait ContentBrowserConverterModules
   with AmazonClient
   with ConverterModules
   with ConverterService
+  with Clock
   with DataSource
   with ArticleRepository
   with ExtractConvertStoreContent

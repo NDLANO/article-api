@@ -54,6 +54,7 @@ object ComponentRegistry
   with HTMLCleaner
   with HtmlTagGenerator
   with SequenceGenerator
+  with Clock
 {
   implicit val swagger = new ArticleSwagger
 
@@ -101,4 +102,6 @@ object ComponentRegistry
   lazy val jestClient: JestClient = JestClientFactory.getClient()
   lazy val audioApiClient = new AudioApiClient
   lazy val imageApiClient = new ImageApiClient
+
+  lazy val clock = new SystemClock
 }

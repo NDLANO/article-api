@@ -20,7 +20,7 @@ import no.ndla.mapping.License.getLicense
 import org.joda.time.DateTime
 
 trait ConverterService {
-  this: ConverterModules with ExtractConvertStoreContent with ImageApiClient =>
+  this: ConverterModules with ExtractConvertStoreContent with ImageApiClient with Clock =>
   val converterService: ConverterService
 
   class ConverterService extends LazyLogging {
@@ -99,8 +99,8 @@ trait ConverterService {
         introduction=newArticle.introduction.getOrElse(Seq()).map(toDomainIntroduction),
         metaDescription=newArticle.metaDescription.getOrElse(Seq()).map(toDomainMetaDescription),
         metaImageId=newArticle.metaImageId,
-        created=new DateTime().toDate,
-        updated=new DateTime().toDate,
+        created=clock.now(),
+        updated=clock.now(),
         contentType=newArticle.contentType
       )
     }
@@ -117,8 +117,8 @@ trait ConverterService {
         introduction=newArticle.introduction.getOrElse(Seq()).map(toDomainIntroduction),
         metaDescription=newArticle.metaDescription.getOrElse(Seq()).map(toDomainMetaDescription),
         metaImageId=newArticle.metaImageId,
-        created=new DateTime().toDate,
-        updated=new DateTime().toDate,
+        created=clock.now(),
+        updated=clock.now(),
         contentType=newArticle.contentType
       )
     }
