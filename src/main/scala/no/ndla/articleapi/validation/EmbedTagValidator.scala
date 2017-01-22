@@ -85,7 +85,7 @@ class EmbedTagValidator {
     verifyEmbedTagBasedOnResourceType(fieldName, requiredAttributesForResourceType, attributeKeys, resourceType)
   }
 
-  private val requiredAttributesForAllResourceTypes = Set(Attributes.DataResource, Attributes.DataId)
+  private val requiredAttributesForAllResourceTypes = Set(Attributes.DataResource)
 
   private val requiredAttributesForImageEmbedTag =
     Set(Attributes.DataResource_Id,
@@ -117,8 +117,7 @@ class EmbedTagValidator {
     Set(Attributes.DataUrl)
 
   private val requiredAttributesForNrkContent =
-    Set(Attributes.DataId,
-      Attributes.DataNRKVideoId,
+    Set(Attributes.DataNRKVideoId,
       Attributes.DataUrl)
 
   private def verifyEmbedTagBasedOnResourceType(fieldName: String, requiredAttributes: Set[Attributes.Value], actualAttributes: Set[Attributes.Value], resourceType: ResourceType.Value): Seq[ValidationMessage] = {
