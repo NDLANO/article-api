@@ -94,13 +94,13 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
   test("ingress is extracted when wrapped in <p> tags") {
     val content =
       s"""<section>
-        |<$resourceHtmlEmbedTag data-size="fullbredde" data-url="http://image-api/images/5359" data-align="" data-id="9" data-resource="image" data-alt="To personer" data-caption="capt." />
+        |<$resourceHtmlEmbedTag data-size="fullbredde" data-url="http://image-api/images/5359" data-align="" data-resource="image" data-alt="To personer" data-caption="capt." />
         |<p><strong>Når man driver med medieproduksjon, er det mye arbeid som må gjøres<br /></strong></p>
         |</section>
         |<section> <p>Det som kan gi helse- og sikkerhetsproblemer på en dataarbeidsplass, er:</section>""".stripMargin.replace("\n", "")
     val expectedContentResult = ArticleContent(
       s"""<section>
-         |<$resourceHtmlEmbedTag data-size="fullbredde" data-url="http://image-api/images/5359" data-align="" data-id="9" data-resource="image" data-alt="To personer" data-caption="capt." />
+         |<$resourceHtmlEmbedTag data-size="fullbredde" data-url="http://image-api/images/5359" data-align="" data-resource="image" data-alt="To personer" data-caption="capt." />
          |<p><strong>Når man driver med medieproduksjon, er det mye arbeid som må gjøres<br /></strong></p>
          |</section>
          |<section> <p>Det som kan gi helse- og sikkerhetsproblemer på en dataarbeidsplass, er:</p></section>""".stripMargin.replace("\n", ""), None, Some("nb"))
@@ -164,7 +164,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     val imageMeta = ImageMetaInformation(newId, List(), List(), imageUrl, 256, "", ImageCopyright(ImageLicense("", "", Some("")), "", List()), List())
     val expectedResult =
       s"""|<article>
-          |<$resourceHtmlEmbedTag data-align="" data-alt="$sampleAlt" data-caption="" data-id="1" data-resource="image" data-resource_id="1" data-size="fullbredde" />
+          |<$resourceHtmlEmbedTag data-align="" data-alt="$sampleAlt" data-caption="" data-resource="image" data-resource_id="1" data-size="fullbredde" />
           |</article>""".stripMargin.replace("\n", "")
 
     when(extractService.getNodeType(nodeId)).thenReturn(Some("image"))
@@ -189,9 +189,9 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
   }
 
   test("That empty html tags are removed") {
-    val contentNodeBokmal = sampleLanguageContent.copy(content=s"""<article> <div></div><p><div></div></p><$resourceHtmlEmbedTag data-id="1"></$resourceHtmlEmbedTag></article>""")
+    val contentNodeBokmal = sampleLanguageContent.copy(content=s"""<article> <div></div><p><div></div></p><$resourceHtmlEmbedTag ></$resourceHtmlEmbedTag></article>""")
     val node = sampleNode.copy(contents=List(contentNodeBokmal))
-    val expectedResult = s"""<article> <$resourceHtmlEmbedTag data-id="1" /></article>"""
+    val expectedResult = s"""<article> <$resourceHtmlEmbedTag /></article>"""
 
     val (result, status) = service.toDomainArticle(node, ImportStatus(Seq(), Seq()))
 
@@ -228,7 +228,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
   test("JoubelH5PConverter is used when ENABLE_JOUBEL_H5P_OEMBED is true") {
     val h5pNodeId = "160303"
     val contentStringWithValidNodeId = s"[contentbrowser ==nid=$h5pNodeId==imagecache=Fullbredde==width===alt=$sampleAlt==link===node_link=1==link_type=link_to_content==lightbox_size===remove_fields[76661]=1==remove_fields[76663]=1==remove_fields[76664]=1==remove_fields[76666]=1==insertion===link_title_text= ==link_text= ==text_align===css_class=contentbrowser contentbrowser]"
-    val expectedResult = s"""<$resourceHtmlEmbedTag data-id="1" data-resource="h5p" data-url="${JoubelH5PConverter.JoubelH5PBaseUrl}/1" />"""
+    val expectedResult = s"""<$resourceHtmlEmbedTag data-resource="h5p" data-url="${JoubelH5PConverter.JoubelH5PBaseUrl}/1" />"""
 
     val contentNodeBokmal = sampleLanguageContent.copy(content=contentStringWithValidNodeId)
     val node = sampleNode.copy(contents=List(contentNodeBokmal))

@@ -22,7 +22,7 @@ class VideoConverterTest extends UnitSuite with TestEnvironment {
 
   test("That VideoConverter converts a ContentBrowser to html code") {
     val content = ContentBrowser(contentString, Some("nb"))
-    val expectedResult = s"""<$resourceHtmlEmbedTag data-account="$NDLABrightcoveAccountId" data-caption="" data-id="1" data-player="$NDLABrightcovePlayerId" data-resource="brightcove" data-videoid="ref:${content.get("nid")}" />"""
+    val expectedResult = s"""<$resourceHtmlEmbedTag data-account="$NDLABrightcoveAccountId" data-caption="" data-player="$NDLABrightcovePlayerId" data-resource="brightcove" data-videoid="ref:${content.get("nid")}" />"""
     val (result, requiredLibraries, messages) = VideoConverter.convert(content, Seq())
 
     result should equal(expectedResult)
@@ -31,7 +31,7 @@ class VideoConverterTest extends UnitSuite with TestEnvironment {
 
   test("Captions are added as video metadata") {
     val content = ContentBrowser(contentStringWithCaptions, Some("nb"))
-    val expectedResult = s"""<$resourceHtmlEmbedTag data-account="$NDLABrightcoveAccountId" data-caption="$caption" data-id="1" data-player="$NDLABrightcovePlayerId" data-resource="brightcove" data-videoid="ref:${content.get("nid")}" />"""
+    val expectedResult = s"""<$resourceHtmlEmbedTag data-account="$NDLABrightcoveAccountId" data-caption="$caption" data-player="$NDLABrightcovePlayerId" data-resource="brightcove" data-videoid="ref:${content.get("nid")}" />"""
     val (result, requiredLibraries, messages) = VideoConverter.convert(content, Seq())
 
     result should equal(expectedResult)

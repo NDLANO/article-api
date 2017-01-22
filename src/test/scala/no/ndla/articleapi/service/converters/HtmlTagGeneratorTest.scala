@@ -20,7 +20,7 @@ class HtmlTagGeneratorTest extends UnitSuite with TestEnvironment {
 
   test("A correctly formatted figure tag is returned") {
     val figureString: String = HtmlTagGenerator.buildEmbedContent(sampleDataAttributes)
-    val expected = s"""<$resourceHtmlEmbedTag data-caption="Sample image" data-id="1" data-resource="image" data-url="http://localhost/1" />"""
+    val expected = s"""<$resourceHtmlEmbedTag data-caption="Sample image" data-resource="image" data-url="http://localhost/1" />"""
 
     figureString should equal(expected)
   }

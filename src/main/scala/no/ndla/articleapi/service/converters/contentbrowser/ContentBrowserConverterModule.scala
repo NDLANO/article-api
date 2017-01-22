@@ -55,5 +55,4 @@ trait ContentBrowserConverterModules
   with NdlaClient
   with MigrationApiClient
   with HtmlTagGenerator
-  with SequenceGenerator
   with UnsupportedContentConverter

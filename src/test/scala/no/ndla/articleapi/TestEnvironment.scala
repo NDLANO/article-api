@@ -53,7 +53,6 @@ trait TestEnvironment
   with ArticleValidator
   with HtmlTagGenerator
   with HTMLCleaner
-  with SequenceGenerator
   with Clock
 {
   val searchService = mock[SearchService]
@@ -93,6 +92,4 @@ trait TestEnvironment
   val imageApiClient = mock[ImageApiClient]
 
   val clock = mock[SystemClock]
-
-  override def nextNumberInSequence = "1"
 }

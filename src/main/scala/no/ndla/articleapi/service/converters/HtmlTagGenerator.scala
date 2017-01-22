@@ -9,15 +9,12 @@
 package no.ndla.articleapi.service.converters
 
 import no.ndla.articleapi.ArticleApiProperties._
-import no.ndla.articleapi.service.SequenceGenerator
 
 trait HtmlTagGenerator {
-  this: SequenceGenerator =>
 
   object HtmlTagGenerator {
     def buildEmbedContent(dataAttributes: Map[Attributes.Value, String]): String = {
-      val attributesWithPrefix = dataAttributes + (Attributes.DataId -> nextNumberInSequence)
-      s"<$resourceHtmlEmbedTag ${buildAttributesString(attributesWithPrefix)} />"
+      s"<$resourceHtmlEmbedTag ${buildAttributesString(dataAttributes)} />"
     }
 
     def buildErrorContent(message: String): String =

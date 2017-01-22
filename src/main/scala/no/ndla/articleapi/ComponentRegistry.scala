@@ -53,7 +53,6 @@ object ComponentRegistry
   with ArticleValidator
   with HTMLCleaner
   with HtmlTagGenerator
-  with SequenceGenerator
   with Clock
 {
   implicit val swagger = new ArticleSwagger
