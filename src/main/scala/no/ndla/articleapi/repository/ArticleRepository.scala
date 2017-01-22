@@ -36,6 +36,20 @@ trait ArticleRepository {
       article.copy(id=Some(articleId))
     }
 
+    def update(article: Article)(implicit session: DBSession = AutoSession): Option[Article] = {
+      val dataObject = new PGobject()
+      dataObject.setType("jsonb")
+      dataObject.setValue(write(article))
+
+      val count = sql"update ${Article.table} set document=${dataObject} where id=${article.id}".update().apply
+      if (count != 1) {
+        None
+      } else {
+        logger.info(s"Updated article ${article.id}")
+        Some(article)
+      }
+    }
+
     def insertWithExternalIds(article: Article, externalId: String, externalSubjectId: Seq[String])(implicit session: DBSession = AutoSession): Long = {
       val dataObject = new PGobject()
       dataObject.setType("jsonb")
@@ -47,7 +61,7 @@ trait ArticleRepository {
       articleId
     }
 
-    def update(article: Article, externalId: String)(implicit session: DBSession = AutoSession): Long = {
+    def updateWithExternalId(article: Article, externalId: String)(implicit session: DBSession = AutoSession): Long = {
       val dataObject = new PGobject()
       dataObject.setType("jsonb")
       dataObject.setValue(write(article))

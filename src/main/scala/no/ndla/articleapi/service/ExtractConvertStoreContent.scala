@@ -53,7 +53,7 @@ trait ExtractConvertStoreContent {
     private def store(article: Article, mainNodeNid: String): Long = {
       val subjectIds = getSubjectIds(mainNodeNid)
       articleRepository.exists(mainNodeNid) match {
-        case true => articleRepository.update(article, mainNodeNid)
+        case true => articleRepository.updateWithExternalId(article, mainNodeNid)
         case false => articleRepository.insertWithExternalIds(article, mainNodeNid, subjectIds)
       }
     }

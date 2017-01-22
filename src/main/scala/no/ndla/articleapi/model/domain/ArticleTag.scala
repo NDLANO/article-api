@@ -12,5 +12,4 @@ import org.scalatra.swagger.annotations.{ApiModel, ApiModelProperty}
 
 import scala.annotation.meta.field
 
-case class ArticleTag(tags: Seq[String],
-                      language: Option[String])
+case class ArticleTag(tags: Seq[String],  language: Option[String])

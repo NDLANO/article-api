@@ -105,6 +105,24 @@ trait ConverterService {
       )
     }
 
+    def toDomainArticle(newArticle: api.UpdatedArticle): domain.Article = {
+      domain.Article(
+        id=None,
+        title=newArticle.title.map(toDomainTitle),
+        content=newArticle.content.map(toDomainContent),
+        copyright=toDomainCopyright(newArticle.copyright),
+        tags=newArticle.tags.map(toDomainTag),
+        requiredLibraries=newArticle.requiredLibraries.getOrElse(Seq()).map(toDomainRequiredLibraries),
+        visualElement=newArticle.visualElement.getOrElse(Seq()).map(toDomainVisualElement),
+        introduction=newArticle.introduction.getOrElse(Seq()).map(toDomainIntroduction),
+        metaDescription=newArticle.metaDescription.getOrElse(Seq()).map(toDomainMetaDescription),
+        metaImageId=newArticle.metaImageId,
+        created=new DateTime().toDate,
+        updated=new DateTime().toDate,
+        contentType=newArticle.contentType
+      )
+    }
+
     def toDomainTitle(articleTitle: api.ArticleTitle): domain.ArticleTitle = {
       domain.ArticleTitle(articleTitle.title, articleTitle.language)
     }

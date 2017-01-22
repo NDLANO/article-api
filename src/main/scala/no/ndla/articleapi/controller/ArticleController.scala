@@ -15,7 +15,7 @@ import no.ndla.articleapi.service.{ReadService, UpdateService}
 import no.ndla.articleapi.service.search.SearchService
 import org.json4s.native.Serialization.read
 import org.json4s.{DefaultFormats, Formats}
-import org.scalatra.Created
+import org.scalatra.{Created, Ok}
 import org.scalatra.swagger.{ResponseMessage, Swagger, SwaggerSupport}
 
 import scala.util.{Failure, Success, Try}
@@ -74,6 +74,18 @@ trait ArticleController {
         )
         responseMessages(response400))
 
+    val updateArticle =
+      (apiOperation[Article]("updateArticle")
+        summary "Update an existing article"
+        notes "Update an existing article"
+        parameters(
+          headerParam[Option[String]]("X-Correlation-ID").description("User supplied correlation-id"),
+          headerParam[Option[String]]("app-key").description("Your app-key"),
+          bodyParam[UpdatedArticle]
+        )
+        responseMessages(response400))
+
+
     get("/", operation(getAllArticles)) {
       val query = paramOrNone("query")
       val language = paramOrNone("language")
@@ -112,8 +124,16 @@ trait ArticleController {
     post("/", operation(newArticle)) {
       val newArticle = extract[NewArticle](request.body)
       val article = updateService.newArticle(newArticle)
-      logger.info(s"CREATED article with ID =  ${article.id}")
+      logger.info(s"CREATED article with ID = ${article.id}")
       Created(body=article)
+    }
+
+    patch("/:article_id", operation(updateArticle)) {
+      val articleId = long("article_id")
+      val updatedArticle = extract[UpdatedArticle](request.body)
+      val article = updateService.updateArticle(articleId, updatedArticle)
+      logger.info(s"UPDATED article with ID = $articleId")
+      Ok(body=article)
     }
 
     def extract[T](json: String)(implicit mf: scala.reflect.Manifest[T]): T = {

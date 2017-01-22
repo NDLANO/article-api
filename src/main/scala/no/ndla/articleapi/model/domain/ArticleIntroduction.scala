@@ -8,5 +8,6 @@
 
 package no.ndla.articleapi.model.domain
 
-case class ArticleIntroduction(introduction: String,
-                               language: Option[String])
+case class ArticleIntroduction(introduction: String, language: Option[String]) extends LanguageField {
+  override def value: String = introduction
+}
