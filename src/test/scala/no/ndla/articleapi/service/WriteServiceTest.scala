@@ -13,6 +13,7 @@ import no.ndla.articleapi.{TestData, TestEnvironment, UnitSuite}
 import org.joda.time.DateTime
 import org.mockito.Mockito._
 import org.mockito.Matchers._
+import org.mockito.Mockito
 import scalikejdbc.DBSession
 
 import scala.util.Success
@@ -26,6 +27,10 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
   val article: Article = TestData.sampleArticleWithPublicDomain.copy(id=Some(articleId), created=yesterday, updated=yesterday)
   val updatedArticle = TestData.updatedArticle
   val newArticle = TestData.newArticle
+
+  override def beforeEach() = {
+    Mockito.reset(indexService, articleRepository)
+  }
 
   test("newArticle should insert a given article") {
     when(articleRepository.insert(any[Article])(any[DBSession])).thenReturn(article)
