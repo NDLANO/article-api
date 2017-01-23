@@ -18,10 +18,10 @@ import scalikejdbc.DBSession
 
 import scala.util.{Failure, Success}
 
-class UpdateServiceTest extends UnitSuite with TestEnvironment {
+class WriteServiceTest extends UnitSuite with TestEnvironment {
   val today = DateTime.now().toDate
   val yesterday = DateTime.now().minusDays(1).toDate
-  val service = new UpdateService()
+  val service = new WriteService()
 
   val articleId = 13
   val article: Article = TestData.sampleArticleWithPublicDomain.copy(id=Some(articleId), created=yesterday, updated=yesterday)

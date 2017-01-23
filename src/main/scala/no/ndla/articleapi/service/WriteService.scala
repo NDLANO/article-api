@@ -17,11 +17,11 @@ import no.ndla.articleapi.validation.ArticleValidator
 
 import scala.util.{Failure, Try}
 
-trait UpdateService {
+trait WriteService {
   this: ArticleRepository with ConverterService with ArticleValidator with Clock =>
-  val updateService: UpdateService
+  val writeService: WriteService
 
-  class UpdateService {
+  class WriteService {
     def newArticle(newArticle: api.NewArticle) = {
       val domainArticle = converterService.toDomainArticle(newArticle)
       articleValidator.validateArticle(domainArticle)

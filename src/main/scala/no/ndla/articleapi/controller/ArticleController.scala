@@ -11,7 +11,7 @@ package no.ndla.articleapi.controller
 
 import no.ndla.articleapi.model.api._
 import no.ndla.articleapi.model.domain.Sort
-import no.ndla.articleapi.service.{ReadService, UpdateService}
+import no.ndla.articleapi.service.{ReadService, WriteService}
 import no.ndla.articleapi.service.search.SearchService
 import org.json4s.native.Serialization.read
 import org.json4s.{DefaultFormats, Formats}
@@ -21,7 +21,7 @@ import org.scalatra.swagger.{ResponseMessage, Swagger, SwaggerSupport}
 import scala.util.{Failure, Success, Try}
 
 trait ArticleController {
-  this: ReadService with UpdateService with SearchService =>
+  this: ReadService with WriteService with SearchService =>
   val articleController: ArticleController
 
   class ArticleController(implicit val swagger: Swagger) extends NdlaController with SwaggerSupport {
@@ -130,7 +130,7 @@ trait ArticleController {
 
     post("/", operation(newArticle)) {
       val newArticle = extract[NewArticle](request.body)
-      val article = updateService.newArticle(newArticle)
+      val article = writeService.newArticle(newArticle)
       logger.info(s"CREATED article with ID = ${article.id}")
       Created(body=article)
     }
@@ -138,7 +138,7 @@ trait ArticleController {
     patch("/:article_id", operation(updateArticle)) {
       val articleId = long("article_id")
       val updatedArticle = extract[UpdatedArticle](request.body)
-      val article = updateService.updateArticle(articleId, updatedArticle).get
+      val article = writeService.updateArticle(articleId, updatedArticle).get
       logger.info(s"UPDATED article with ID = $articleId")
       Ok(body=article)
     }

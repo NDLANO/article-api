@@ -49,7 +49,7 @@ object ComponentRegistry
   with MigrationApiClient
   with SearchConverterService
   with ReadService
-  with UpdateService
+  with WriteService
   with ArticleValidator
   with HTMLCleaner
   with HtmlTagGenerator
@@ -91,7 +91,7 @@ object ComponentRegistry
   lazy val tagsService = new TagsService
   lazy val searchConverterService = new SearchConverterService
   lazy val readService = new ReadService
-  lazy val updateService = new UpdateService
+  lazy val writeService = new WriteService
   lazy val contentBrowserConverter = new ContentBrowserConverter
   lazy val biblioConverter = new BiblioConverter
   lazy val htmlCleaner = new HTMLCleaner
