@@ -44,6 +44,7 @@ class ExtractConvertStoreContentTest extends UnitSuite with TestEnvironment {
     when(articleRepository.exists(sampleNode.contents.head.nid)).thenReturn(false)
     when(articleRepository.insert(any[Article], any[String], any[Seq[String]])(any[DBSession])).thenReturn(newNodeid)
     when(extractConvertStoreContent.processNode("9876")).thenReturn(Try(1: Long, ImportStatus(Seq(), Seq())))
+    when(searchIndexService.indexDocument(any[Article])).thenReturn(Success())
   }
 
   test("That ETL extracts, translates and loads a node correctly") {

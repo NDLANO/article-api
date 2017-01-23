@@ -14,12 +14,12 @@ import no.ndla.articleapi.integration.MigrationApiClient
 import no.ndla.articleapi.model.api.NodeNotFoundException
 import no.ndla.articleapi.model.domain.{Article, ImportStatus, NodeToConvert}
 import no.ndla.articleapi.repository.ArticleRepository
-import no.ndla.articleapi.service.search.IndexService
+import no.ndla.articleapi.service.search.SearchIndexService
 
 import scala.util.{Failure, Success, Try}
 
 trait ExtractConvertStoreContent {
-  this: ExtractService with MigrationApiClient with ConverterService with ArticleRepository with IndexService =>
+  this: ExtractService with MigrationApiClient with ConverterService with ArticleRepository with SearchIndexService =>
 
   val extractConvertStoreContent: ExtractConvertStoreContent
 
@@ -59,7 +59,7 @@ trait ExtractConvertStoreContent {
     }
 
     private def indexArticle(article: Article): Seq[String] = {
-      Try(indexService.indexDocument(article)) match {
+      searchIndexService.indexDocument(article) match {
         case Failure(f) => Seq(s"Failed to index article with id ${article.id}: ${f.getMessage}")
         case Success(_) => Seq()
       }

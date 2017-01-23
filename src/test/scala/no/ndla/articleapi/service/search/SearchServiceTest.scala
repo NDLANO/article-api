@@ -82,7 +82,7 @@ class SearchServiceTest extends UnitSuite with TestEnvironment {
     esNode.start()
 
 
-    val indexName = indexService.createIndex()
+    val indexName = indexService.createIndex().get
     indexService.updateAliasTarget(None, indexName)
     indexService.indexDocuments(List(article1, article2), indexName)
     indexService.indexDocument(article3)
