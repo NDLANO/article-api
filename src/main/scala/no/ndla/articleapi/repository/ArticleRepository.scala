@@ -12,10 +12,13 @@ package no.ndla.articleapi.repository
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.articleapi.ArticleApiProperties
 import no.ndla.articleapi.integration.DataSource
+import no.ndla.articleapi.model.api.NotFoundException
 import no.ndla.articleapi.model.domain.Article
 import org.postgresql.util.PGobject
-import scalikejdbc.{ConnectionPool, DB, DataSourceConnectionPool, _}
+import scalikejdbc.{ConnectionPool, DataSourceConnectionPool, _}
 import org.json4s.native.Serialization.write
+
+import scala.util.{Failure, Success, Try}
 
 trait ArticleRepository {
   this: DataSource =>
@@ -36,17 +39,19 @@ trait ArticleRepository {
       article.copy(id=Some(articleId))
     }
 
-    def update(article: Article)(implicit session: DBSession = AutoSession): Option[Article] = {
+    def update(article: Article)(implicit session: DBSession = AutoSession): Try[Article] = {
       val dataObject = new PGobject()
       dataObject.setType("jsonb")
       dataObject.setValue(write(article))
 
       val count = sql"update ${Article.table} set document=${dataObject} where id=${article.id}".update().apply
       if (count != 1) {
-        None
+        val message = s"Could not find article with id ${article.id}"
+        logger.info(message)
+        Failure(NotFoundException(message))
       } else {
         logger.info(s"Updated article ${article.id}")
-        Some(article)
+        Success(article)
       }
     }
 

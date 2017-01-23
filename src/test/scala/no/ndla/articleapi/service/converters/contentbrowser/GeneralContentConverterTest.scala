@@ -13,7 +13,7 @@ import java.util.Date
 
 import no.ndla.articleapi.{TestData, TestEnvironment, UnitSuite}
 import no.ndla.articleapi.ArticleApiProperties.resourceHtmlEmbedTag
-import no.ndla.articleapi.model.api.NodeNotFoundException
+import no.ndla.articleapi.model.api.NotFoundException
 import no.ndla.articleapi.model.domain._
 import org.mockito.Mockito._
 
@@ -139,7 +139,7 @@ class GeneralContentConverterTest extends UnitSuite with TestEnvironment {
 
     when(extractService.getNodeGeneralContent(nodeId)).thenReturn(Seq(sampleFagstoff1, sampleFagstoff2))
     when(articleRepository.getIdFromExternalId(nodeId)).thenReturn(None)
-    when(extractConvertStoreContent.processNode(nodeId, ImportStatus(Seq(), Seq(nodeId2)))).thenReturn(Failure(NodeNotFoundException("Node was not found")))
+    when(extractConvertStoreContent.processNode(nodeId, ImportStatus(Seq(), Seq(nodeId2)))).thenReturn(Failure(NotFoundException("Node was not found")))
 
     val languageContent = sampleContent.copy(tnid=nodeId2, content="<div>sample content</div>")
     val nodeToConvert = sampleNodeToConvert.copy(contents = Seq(languageContent))

@@ -9,10 +9,13 @@
 package no.ndla.articleapi.service
 
 import no.ndla.articleapi.model.api
+import no.ndla.articleapi.model.api.NotFoundException
 import no.ndla.articleapi.model.domain
 import no.ndla.articleapi.model.domain.LanguageField
 import no.ndla.articleapi.repository.ArticleRepository
 import no.ndla.articleapi.validation.ArticleValidator
+
+import scala.util.{Failure, Try}
 
 trait UpdateService {
   this: ArticleRepository with ConverterService with ArticleValidator with Clock =>
@@ -36,10 +39,10 @@ trait UpdateService {
       (toKeep ++ updated).filterNot(_.tags.isEmpty)
     }
 
-    def updateArticle(articleId: Long, updatedApiArticle: api.UpdatedArticle): Option[api.Article] = {
+    def updateArticle(articleId: Long, updatedApiArticle: api.UpdatedArticle): Try[api.Article] = {
       articleRepository.withId(articleId) match {
-        case None => None
-        case Some(existing) =>
+        case None => Failure(NotFoundException(s"Article with id $articleId does not exist"))
+        case Some(existing) => {
           val updatedArticle = converterService.toDomainArticle(updatedApiArticle)
           val toUpdate = existing.copy(
             title = mergeLanguageFields(existing.title, updatedArticle.title),
@@ -56,6 +59,7 @@ trait UpdateService {
           )
           articleValidator.validateArticle(toUpdate)
           articleRepository.update(toUpdate).map(converterService.toApiArticle)
+         }
       }
     }
 

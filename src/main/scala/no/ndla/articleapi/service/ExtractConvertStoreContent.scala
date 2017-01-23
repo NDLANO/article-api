@@ -11,7 +11,7 @@ package no.ndla.articleapi.service
 
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.articleapi.integration.MigrationApiClient
-import no.ndla.articleapi.model.api.NodeNotFoundException
+import no.ndla.articleapi.model.api.NotFoundException
 import no.ndla.articleapi.model.domain.{Article, ImportStatus, NodeToConvert}
 import no.ndla.articleapi.repository.ArticleRepository
 import no.ndla.articleapi.service.search.IndexService
@@ -28,7 +28,7 @@ trait ExtractConvertStoreContent {
       if (importStatus.visitedNodes.contains(externalId))
         return articleRepository.getIdFromExternalId(externalId) match {
           case Some(id) => Success(id, importStatus)
-          case None => Failure(NodeNotFoundException(s"Content with external id $externalId was not found"))
+          case None => Failure(NotFoundException(s"Content with external id $externalId was not found"))
         }
 
       extract(externalId) map { case (node, mainNodeId) =>
@@ -42,7 +42,7 @@ trait ExtractConvertStoreContent {
     private def extract(externalId: String): Try[(NodeToConvert, String)] = {
       val node = extractService.getNodeData(externalId)
       node.contents.find(_.isMainNode) match {
-        case None => Failure(NodeNotFoundException(s"$externalId is a translation; Could not find main node"))
+        case None => Failure(NotFoundException(s"$externalId is a translation; Could not find main node"))
         case Some(mainNode) => Success(node, mainNode.nid)
       }
     }

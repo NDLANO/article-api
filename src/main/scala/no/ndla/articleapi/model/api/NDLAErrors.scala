@@ -34,5 +34,5 @@ object Error {
   val IndexMissingError = Error(INDEX_MISSING, INDEX_MISSING_DESCRIPTION)
 }
 
-case class NodeNotFoundException(message: String) extends Exception(message)
+case class NotFoundException(message: String) extends RuntimeException(message)
 class ValidationException(message: String = "Validation Error", val errors: Seq[ValidationMessage]) extends RuntimeException(message)

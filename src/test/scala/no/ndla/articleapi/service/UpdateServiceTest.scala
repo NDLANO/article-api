@@ -8,12 +8,15 @@
 
 package no.ndla.articleapi.service
 
+import no.ndla.articleapi.model.api.NotFoundException
 import no.ndla.articleapi.model.domain.{Article, ArticleContent, ArticleTitle}
 import no.ndla.articleapi.{TestData, TestEnvironment, UnitSuite}
 import org.joda.time.DateTime
 import org.mockito.Mockito._
 import org.mockito.Matchers._
 import scalikejdbc.DBSession
+
+import scala.util.{Failure, Success}
 
 class UpdateServiceTest extends UnitSuite with TestEnvironment {
   val today = DateTime.now().toDate
@@ -32,16 +35,16 @@ class UpdateServiceTest extends UnitSuite with TestEnvironment {
     verify(articleRepository, times(1)).insert(any[Article])
   }
 
-  test("updateArticle should return None when trying to update a non-existing article") {
+  test("updateArticle should return Failure when trying to update a non-existing article") {
     when(articleRepository.withId(articleId)).thenReturn(None)
-    service.updateArticle(articleId, updatedArticle) should equal(None)
+    service.updateArticle(articleId, updatedArticle).isFailure should equal(true)
     verify(articleRepository, times(0)).update(any[Article])
   }
 
   test("updateArticle should update the updated field of an article") {
     val expectedUpdatedArticle = article.copy(updated=today)
     when(articleRepository.withId(articleId)).thenReturn(Some(article))
-    when(articleRepository.update(any[Article])(any[DBSession])).thenReturn(Some(expectedUpdatedArticle))
+    when(articleRepository.update(any[Article])(any[DBSession])).thenReturn(Success(expectedUpdatedArticle))
     when(clock.now()).thenReturn(today)
 
     service.updateArticle(articleId, updatedArticle)
