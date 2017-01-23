@@ -105,7 +105,7 @@ class ArticleValidatorTest extends UnitSuite with TestEnvironment {
     a [ValidationException] should be thrownBy articleValidator.validateArticle(article)
   }
 
-  test("validateArticle does not throw an exception on an article with a llegal required library") {
+  test("validateArticle does not throw an exception on an article with a legal required library") {
     val illegalRequiredLib = RequiredLibrary("text/javascript", "h5p", H5PResizerScriptUrl)
     val article = TestData.sampleArticleWithByNcSa.copy(requiredLibraries=Seq(illegalRequiredLib))
     noException should be thrownBy articleValidator.validateArticle(article)

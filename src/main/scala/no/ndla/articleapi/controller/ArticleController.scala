@@ -26,7 +26,7 @@ trait ArticleController {
 
   class ArticleController(implicit val swagger: Swagger) extends NdlaController with SwaggerSupport {
     protected implicit override val jsonFormats: Formats = DefaultFormats
-    protected val applicationDescription = "API for accessing images from ndla.no."
+    protected val applicationDescription = "API for accessing articles from ndla.no."
 
     // Additional models used in error responses
     registerModel[ValidationError]()
@@ -81,6 +81,7 @@ trait ArticleController {
         parameters(
           headerParam[Option[String]]("X-Correlation-ID").description("User supplied correlation-id"),
           headerParam[Option[String]]("app-key").description("Your app-key"),
+          pathParam[Long]("article_id").description("Id of the article that is to be updated"),
           bodyParam[UpdatedArticle]
         )
         responseMessages(response400))
