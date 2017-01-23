@@ -13,20 +13,22 @@ import no.ndla.articleapi.model.api.NotFoundException
 import no.ndla.articleapi.model.domain
 import no.ndla.articleapi.model.domain.LanguageField
 import no.ndla.articleapi.repository.ArticleRepository
+import no.ndla.articleapi.service.search.IndexService
 import no.ndla.articleapi.validation.ArticleValidator
 
 import scala.util.{Failure, Try}
 
 trait WriteService {
-  this: ArticleRepository with ConverterService with ArticleValidator with Clock =>
+  this: ArticleRepository with ConverterService with ArticleValidator with IndexService with Clock =>
   val writeService: WriteService
 
   class WriteService {
     def newArticle(newArticle: api.NewArticle) = {
       val domainArticle = converterService.toDomainArticle(newArticle)
       articleValidator.validateArticle(domainArticle)
-      val res = articleRepository.insert(domainArticle)
-      converterService.toApiArticle(res)
+      val article = articleRepository.insert(domainArticle)
+      indexService.indexDocument(article)
+      converterService.toApiArticle(article)
     }
 
     private[service] def mergeLanguageFields[A <: LanguageField](existing: Seq[A], updated: Seq[A]): Seq[A] = {
@@ -58,7 +60,10 @@ trait WriteService {
             contentType = updatedArticle.contentType
           )
           articleValidator.validateArticle(toUpdate)
-          articleRepository.update(toUpdate).map(converterService.toApiArticle)
+          for {
+            article <- articleRepository.update(toUpdate)
+            x <- indexService.indexDocument(article)
+          } yield converterService.toApiArticle(article)
          }
       }
     }

@@ -54,8 +54,9 @@ trait IndexService {
       }
     }
 
-    def indexDocument(article: Article): Unit =
-      executeIndexRequest(createIndexRequest(article, ArticleApiProperties.SearchIndex))
+    def indexDocument(article: Article): Try[_] = {
+      Success(executeIndexRequest(createIndexRequest(article, ArticleApiProperties.SearchIndex)))
+    }
 
     def indexDocuments(articles: List[Article], indexName: String): Int = {
       val bulkBuilder = new Bulk.Builder()

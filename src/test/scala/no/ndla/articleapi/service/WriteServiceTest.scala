@@ -8,7 +8,6 @@
 
 package no.ndla.articleapi.service
 
-import no.ndla.articleapi.model.api.NotFoundException
 import no.ndla.articleapi.model.domain.{Article, ArticleContent, ArticleTitle}
 import no.ndla.articleapi.{TestData, TestEnvironment, UnitSuite}
 import org.joda.time.DateTime
@@ -16,7 +15,7 @@ import org.mockito.Mockito._
 import org.mockito.Matchers._
 import scalikejdbc.DBSession
 
-import scala.util.{Failure, Success}
+import scala.util.Success
 
 class WriteServiceTest extends UnitSuite with TestEnvironment {
   val today = DateTime.now().toDate
@@ -33,12 +32,14 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
 
     service.newArticle(newArticle).id should equal(article.id.get.toString)
     verify(articleRepository, times(1)).insert(any[Article])
+    verify(indexService, times(1)).indexDocument(any[Article])
   }
 
   test("updateArticle should return Failure when trying to update a non-existing article") {
     when(articleRepository.withId(articleId)).thenReturn(None)
     service.updateArticle(articleId, updatedArticle).isFailure should equal(true)
     verify(articleRepository, times(0)).update(any[Article])
+    verify(indexService, times(0)).indexDocument(any[Article])
   }
 
   test("updateArticle should update the updated field of an article") {
@@ -49,6 +50,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
 
     service.updateArticle(articleId, updatedArticle)
     verify(articleRepository, times(1)).update(expectedUpdatedArticle)
+    verify(indexService, times(1)).indexDocument(any[Article])
   }
 
 
