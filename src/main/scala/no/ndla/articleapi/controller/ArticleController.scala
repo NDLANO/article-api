@@ -33,10 +33,8 @@ trait ArticleController {
     registerModel[Error]()
 
     val response400 = ResponseMessage(400, "Validation Error", Some("ValidationError"))
-    val response403 = ResponseMessage(403, "Access not granted", Some("Error"))
     val response404 = ResponseMessage(404, "Not found", Some("Error"))
     val response500 = ResponseMessage(500, "Unknown error", Some("Error"))
-    val response502 = ResponseMessage(502, "Remote error", Some("Error"))
 
     val getAllArticles =
       (apiOperation[List[SearchResult]]("getAllArticles")
@@ -131,16 +129,16 @@ trait ArticleController {
     post("/", operation(newArticle)) {
       val newArticle = extract[NewArticle](request.body)
       val article = writeService.newArticle(newArticle)
-      logger.info(s"CREATED article with ID = ${article.id}")
       Created(body=article)
     }
 
     patch("/:article_id", operation(updateArticle)) {
       val articleId = long("article_id")
       val updatedArticle = extract[UpdatedArticle](request.body)
-      val article = writeService.updateArticle(articleId, updatedArticle).get
-      logger.info(s"UPDATED article with ID = $articleId")
-      Ok(body=article)
+      writeService.updateArticle(articleId, updatedArticle) match {
+        case Success(article) => Ok(body=article)
+        case Failure(exception) => errorHandler(exception)
+      }
     }
 
     def extract[T](json: String)(implicit mf: scala.reflect.Manifest[T]): T = {
