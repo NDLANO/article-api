@@ -12,7 +12,4 @@ import org.scalatra.swagger.annotations.{ApiModel, ApiModelProperty}
 
 import scala.annotation.meta.field
 
-case class ArticleSummary(id: Long,
-                          title: Seq[ArticleTitle],
-                          url: String,
-                          license: String)
+case class ArticleSummary(id: Long, title: Seq[ArticleTitle], url: String, license: String)

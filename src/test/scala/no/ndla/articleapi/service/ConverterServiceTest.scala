@@ -27,12 +27,11 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
   val contentTitle = ArticleTitle("", Some(""))
   val author = Author("forfatter", "Henrik")
   val tag = ArticleTag(List("asdf"), Some("nb"))
-  val visualElement = VisualElement("http://image-api/1", "image", Some("nb"))
   val requiredLibrary = RequiredLibrary("", "", "")
   val nodeId = "1234"
   val sampleAlt = "Fotografi"
   val sampleContentString = s"[contentbrowser ==nid=$nodeId==imagecache=Fullbredde==width===alt=$sampleAlt==link===node_link=1==link_type=link_to_content==lightbox_size===remove_fields[76661]=1==remove_fields[76663]=1==remove_fields[76664]=1==remove_fields[76666]=1==insertion===link_title_text= ==link_text= ==text_align===css_class=contentbrowser contentbrowser]"
-  val sampleNode = NodeToConvert(List(contentTitle), Seq(), "by-sa", Seq(author), List(tag), Seq(visualElement), "fagstoff", new Date(0), new Date(1))
+  val sampleNode = NodeToConvert(List(contentTitle), Seq(), "by-sa", Seq(author), List(tag), Seq(TestData.visualElement), "fagstoff", new Date(0), new Date(1))
   val sampleLanguageContent = TestData.sampleContent.copy(content=sampleContentString, language=Some("nb"))
 
   test("That the document is wrapped in an article tag") {
@@ -95,13 +94,13 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
   test("ingress is extracted when wrapped in <p> tags") {
     val content =
       s"""<section>
-        |<$resourceHtmlEmbedTag data-size="fullbredde" data-url="http://image-api/images/5359" data-align="" data-id="9" data-resource="image" data-alt="To personer" data-caption="capt." />
+        |<$resourceHtmlEmbedTag data-size="fullbredde" data-url="http://image-api/images/5359" data-align="" data-resource="image" data-alt="To personer" data-caption="capt." />
         |<p><strong>Når man driver med medieproduksjon, er det mye arbeid som må gjøres<br /></strong></p>
         |</section>
         |<section> <p>Det som kan gi helse- og sikkerhetsproblemer på en dataarbeidsplass, er:</section>""".stripMargin.replace("\n", "")
     val expectedContentResult = ArticleContent(
       s"""<section>
-         |<$resourceHtmlEmbedTag data-size="fullbredde" data-url="http://image-api/images/5359" data-align="" data-id="9" data-resource="image" data-alt="To personer" data-caption="capt." />
+         |<$resourceHtmlEmbedTag data-size="fullbredde" data-url="http://image-api/images/5359" data-align="" data-resource="image" data-alt="To personer" data-caption="capt." />
          |<p><strong>Når man driver med medieproduksjon, er det mye arbeid som må gjøres<br /></strong></p>
          |</section>
          |<section> <p>Det som kan gi helse- og sikkerhetsproblemer på en dataarbeidsplass, er:</p></section>""".stripMargin.replace("\n", ""), None, Some("nb"))
@@ -165,7 +164,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     val imageMeta = ImageMetaInformation(newId, List(), List(), imageUrl, 256, "", ImageCopyright(ImageLicense("", "", Some("")), "", List()), List())
     val expectedResult =
       s"""|<article>
-          |<$resourceHtmlEmbedTag data-align="" data-alt="$sampleAlt" data-caption="" data-id="1" data-resource="image" data-resource_id="1" data-size="fullbredde" />
+          |<$resourceHtmlEmbedTag data-align="" data-alt="$sampleAlt" data-caption="" data-resource="image" data-resource_id="1" data-size="fullbredde" />
           |</article>""".stripMargin.replace("\n", "")
 
     when(extractService.getNodeType(nodeId)).thenReturn(Some("image"))
@@ -190,9 +189,9 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
   }
 
   test("That empty html tags are removed") {
-    val contentNodeBokmal = sampleLanguageContent.copy(content=s"""<article> <div></div><p><div></div></p><$resourceHtmlEmbedTag data-id="1"></$resourceHtmlEmbedTag></article>""")
+    val contentNodeBokmal = sampleLanguageContent.copy(content=s"""<article> <div></div><p><div></div></p><$resourceHtmlEmbedTag ></$resourceHtmlEmbedTag></article>""")
     val node = sampleNode.copy(contents=List(contentNodeBokmal))
-    val expectedResult = s"""<article> <$resourceHtmlEmbedTag data-id="1" /></article>"""
+    val expectedResult = s"""<article> <$resourceHtmlEmbedTag /></article>"""
 
     val (result, status) = service.toDomainArticle(node, ImportStatus(Seq(), Seq()))
 
@@ -229,7 +228,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
   test("JoubelH5PConverter is used when ENABLE_JOUBEL_H5P_OEMBED is true") {
     val h5pNodeId = "160303"
     val contentStringWithValidNodeId = s"[contentbrowser ==nid=$h5pNodeId==imagecache=Fullbredde==width===alt=$sampleAlt==link===node_link=1==link_type=link_to_content==lightbox_size===remove_fields[76661]=1==remove_fields[76663]=1==remove_fields[76664]=1==remove_fields[76666]=1==insertion===link_title_text= ==link_text= ==text_align===css_class=contentbrowser contentbrowser]"
-    val expectedResult = s"""<$resourceHtmlEmbedTag data-id="1" data-resource="h5p" data-url="${JoubelH5PConverter.JoubelH5PBaseUrl}/1" />"""
+    val expectedResult = s"""<$resourceHtmlEmbedTag data-resource="h5p" data-url="${JoubelH5PConverter.JoubelH5PBaseUrl}/1" />"""
 
     val contentNodeBokmal = sampleLanguageContent.copy(content=contentStringWithValidNodeId)
     val node = sampleNode.copy(contents=List(contentNodeBokmal))
@@ -244,11 +243,11 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
   }
 
   test("toApiLicense defaults to unknown if the license was not found") {
-    service.toApiLicense("invalid") should equal(api.License("unknown", "", None))
+    service.toApiLicense("invalid") should equal(api.License("unknown", None, None))
   }
 
   test("toApiLicense converts a short license string to a license object with description and url") {
-    service.toApiLicense("by") should equal(api.License("by", "Creative Commons Attribution 2.0 Generic", Some("https://creativecommons.org/licenses/by/2.0/")))
+    service.toApiLicense("by") should equal(api.License("by", Some("Creative Commons Attribution 2.0 Generic"), Some("https://creativecommons.org/licenses/by/2.0/")))
   }
 
   test("toApiArticle converts a domain.Article to an api.Article") {
@@ -263,6 +262,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
       Seq(),
       Seq(ArticleIntroduction("introduction", Option("nb"))),
       Seq(ArticleMetaDescription("meta description", Option("nb"))),
+      None,
       today,
       today,
       "fagstoff")
@@ -271,7 +271,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
       "1",
       Seq(api.ArticleTitle("title", Option("nb"))),
       Seq(api.ArticleContent("content", None, Option("nb"))),
-      api.Copyright(api.License("by", "Creative Commons Attribution 2.0 Generic", Some("https://creativecommons.org/licenses/by/2.0/")), "", Seq()),
+      api.Copyright(api.License("by", Some("Creative Commons Attribution 2.0 Generic"), Some("https://creativecommons.org/licenses/by/2.0/")), "", Seq()),
       Seq(),
       Seq(),
       Seq(),

@@ -10,15 +10,17 @@
 package no.ndla.articleapi.service
 
 import com.typesafe.scalalogging.LazyLogging
+
 import scala.annotation.tailrec
 import no.ndla.articleapi.ArticleApiProperties.maxConvertionRounds
 import no.ndla.articleapi.integration.ImageApiClient
 import no.ndla.articleapi.model.domain._
 import no.ndla.articleapi.model.{api, domain}
 import no.ndla.mapping.License.getLicense
+import org.joda.time.DateTime
 
 trait ConverterService {
-  this: ConverterModules with ExtractConvertStoreContent with ImageApiClient =>
+  this: ConverterModules with ExtractConvertStoreContent with ImageApiClient with Clock =>
   val converterService: ConverterService
 
   class ConverterService extends LazyLogging {
@@ -55,7 +57,6 @@ trait ConverterService {
       val requiredLibraries = nodeToConvert.contents.flatMap(_.requiredLibraries).distinct
 
       val ingresses = nodeToConvert.contents.flatMap(content => content.asArticleIntroduction)
-      val metaDescriptions = nodeToConvert
 
       domain.Article(None,
         nodeToConvert.titles,
@@ -66,6 +67,7 @@ trait ConverterService {
         nodeToConvert.visualElements,
         ingresses,
         nodeToConvert.contents.map(_.asArticleMetaDescription),
+        None,
         nodeToConvert.created,
         nodeToConvert.updated,
         nodeToConvert.contentType)
@@ -75,6 +77,78 @@ trait ConverterService {
       val origin = authors.find(author => author.`type`.toLowerCase == "opphavsmann").map(_.name).getOrElse("")
       val authorsExcludingOrigin = authors.filterNot(x => x.name != origin && x.`type` == "opphavsmann")
       Copyright(license, origin, authorsExcludingOrigin)
+    }
+
+    def toDomainVisualElement(visual: api.VisualElement): domain.VisualElement = {
+      domain.VisualElement(visual.content, visual.language)
+    }
+
+    def toDomainMetaDescription(meta: api.ArticleMetaDescription): domain.ArticleMetaDescription = {
+      domain.ArticleMetaDescription(meta.metaDescription, meta.language)
+    }
+
+    def toDomainArticle(newArticle: api.NewArticle): domain.Article = {
+      domain.Article(
+        id=None,
+        title=newArticle.title.map(toDomainTitle),
+        content=newArticle.content.map(toDomainContent),
+        copyright=toDomainCopyright(newArticle.copyright),
+        tags=newArticle.tags.map(toDomainTag),
+        requiredLibraries=newArticle.requiredLibraries.getOrElse(Seq()).map(toDomainRequiredLibraries),
+        visualElement=newArticle.visualElement.getOrElse(Seq()).map(toDomainVisualElement),
+        introduction=newArticle.introduction.getOrElse(Seq()).map(toDomainIntroduction),
+        metaDescription=newArticle.metaDescription.getOrElse(Seq()).map(toDomainMetaDescription),
+        metaImageId=newArticle.metaImageId,
+        created=clock.now(),
+        updated=clock.now(),
+        contentType=newArticle.contentType
+      )
+    }
+
+    def toDomainArticle(newArticle: api.UpdatedArticle): domain.Article = {
+      domain.Article(
+        id=None,
+        title=newArticle.title.map(toDomainTitle),
+        content=newArticle.content.map(toDomainContent),
+        copyright=toDomainCopyright(newArticle.copyright),
+        tags=newArticle.tags.map(toDomainTag),
+        requiredLibraries=newArticle.requiredLibraries.getOrElse(Seq()).map(toDomainRequiredLibraries),
+        visualElement=newArticle.visualElement.getOrElse(Seq()).map(toDomainVisualElement),
+        introduction=newArticle.introduction.getOrElse(Seq()).map(toDomainIntroduction),
+        metaDescription=newArticle.metaDescription.getOrElse(Seq()).map(toDomainMetaDescription),
+        metaImageId=newArticle.metaImageId,
+        created=clock.now(),
+        updated=clock.now(),
+        contentType=newArticle.contentType
+      )
+    }
+
+    def toDomainTitle(articleTitle: api.ArticleTitle): domain.ArticleTitle = {
+      domain.ArticleTitle(articleTitle.title, articleTitle.language)
+    }
+
+    def toDomainContent(articleContent: api.ArticleContent): domain.ArticleContent = {
+      domain.ArticleContent(articleContent.content, None, articleContent.language) // TODO: footnotes
+    }
+
+    def toDomainCopyright(copyright: api.Copyright): domain.Copyright = {
+      domain.Copyright(copyright.license.license, copyright.origin, copyright.authors.map(toDomainAuthor))
+    }
+
+    def toDomainAuthor(author: api.Author): domain.Author = {
+      domain.Author(author.`type`, author.name)
+    }
+
+    def toDomainTag(tag: api.ArticleTag): domain.ArticleTag = {
+      domain.ArticleTag(tag.tags, tag.language)
+    }
+
+    def toDomainRequiredLibraries(requiredLibs: api.RequiredLibrary): domain.RequiredLibrary = {
+      domain.RequiredLibrary(requiredLibs.mediaType, requiredLibs.name, requiredLibs.url)
+    }
+
+    def toDomainIntroduction(intro: api.ArticleIntroduction): domain.ArticleIntroduction = {
+      domain.ArticleIntroduction(intro.introduction, intro.language)
     }
 
     def toApiArticle(article: domain.Article): api.Article = {
@@ -119,8 +193,8 @@ trait ConverterService {
 
     def toApiLicense(shortLicense: String): api.License = {
       getLicense(shortLicense) match {
-        case Some(l) => api.License(l.license, l.description, l.url)
-        case None => api.License("unknown", "", None)
+        case Some(l) => api.License(l.license, Option(l.description), l.url)
+        case None => api.License("unknown", None, None)
       }
     }
 
@@ -137,7 +211,7 @@ trait ConverterService {
     }
 
     def toApiVisualElement(visual: domain.VisualElement): api.VisualElement = {
-      api.VisualElement(visual.resource, visual.`type`, visual.language)
+      api.VisualElement(visual.resource, visual.language)
     }
 
     def toApiArticleIntroduction(intro: domain.ArticleIntroduction): api.ArticleIntroduction = {

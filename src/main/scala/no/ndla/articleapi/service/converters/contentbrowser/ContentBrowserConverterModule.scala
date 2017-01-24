@@ -29,6 +29,7 @@ trait ContentBrowserConverterModules
   with AmazonClient
   with ConverterModules
   with ConverterService
+  with Clock
   with DataSource
   with ArticleRepository
   with ExtractConvertStoreContent
@@ -55,5 +56,4 @@ trait ContentBrowserConverterModules
   with NdlaClient
   with MigrationApiClient
   with HtmlTagGenerator
-  with SequenceGenerator
   with UnsupportedContentConverter

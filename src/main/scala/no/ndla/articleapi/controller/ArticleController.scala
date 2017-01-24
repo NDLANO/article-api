@@ -9,49 +9,87 @@
 
 package no.ndla.articleapi.controller
 
-import no.ndla.articleapi.model.api.{Article, Error, SearchResult}
+import no.ndla.articleapi.model.api._
 import no.ndla.articleapi.model.domain.Sort
-import no.ndla.articleapi.service.ReadService
+import no.ndla.articleapi.service.{ReadService, WriteService}
 import no.ndla.articleapi.service.search.SearchService
-import org.scalatra.swagger.{Swagger, SwaggerSupport}
+import org.json4s.native.Serialization.read
+import org.json4s.{DefaultFormats, Formats}
+import org.scalatra.{Created, NotFound, Ok}
+import org.scalatra.swagger.{ResponseMessage, Swagger, SwaggerSupport}
 
-import scala.util.Try
+import scala.util.{Failure, Success, Try}
 
 trait ArticleController {
-  this: ReadService with SearchService =>
+  this: ReadService with WriteService with SearchService =>
   val articleController: ArticleController
 
   class ArticleController(implicit val swagger: Swagger) extends NdlaController with SwaggerSupport {
-    protected val applicationDescription = "API for accessing images from ndla.no."
+    protected implicit override val jsonFormats: Formats = DefaultFormats
+    protected val applicationDescription = "API for accessing articles from ndla.no."
+
+    // Additional models used in error responses
+    registerModel[ValidationError]()
+    registerModel[Error]()
+
+    val response400 = ResponseMessage(400, "Validation Error", Some("ValidationError"))
+    val response404 = ResponseMessage(404, "Not found", Some("Error"))
+    val response500 = ResponseMessage(500, "Unknown error", Some("Error"))
 
     val getAllArticles =
       (apiOperation[List[SearchResult]]("getAllArticles")
         summary "Show all articles"
         notes "Shows all articles. You can search it too."
         parameters(
-        headerParam[Option[String]]("X-Correlation-ID").description("User supplied correlation-id. May be omitted."),
-        headerParam[Option[String]]("app-key").description("Your app-key. May be omitted to access api anonymously, but rate limiting applies on anonymous access."),
-        queryParam[Option[String]]("query").description("Return only articles with content matching the specified query."),
-        queryParam[Option[String]]("language").description("The ISO 639-1 language code describing language used in query-params."),
-        queryParam[Option[String]]("license").description("Return only articles with provided license."),
-        queryParam[Option[Int]]("page").description("The page number of the search hits to display."),
-        queryParam[Option[Int]]("page-size").description("The number of search hits to display for each page."),
-        queryParam[Option[String]]("sort").description(
-          """The sorting used on results.
-           Default is by -relevance (desc) when querying.
-           When browsing, the default is title (asc).
-           The following are supported: relevance, -relevance, title, -title, lastUpdated, -lastUpdated""".stripMargin)
-        ))
+          headerParam[Option[String]]("X-Correlation-ID").description("User supplied correlation-id. May be omitted."),
+          headerParam[Option[String]]("app-key").description("Your app-key. May be omitted to access api anonymously, but rate limiting applies on anonymous access."),
+          queryParam[Option[String]]("query").description("Return only articles with content matching the specified query."),
+          queryParam[Option[String]]("language").description("The ISO 639-1 language code describing language used in query-params."),
+          queryParam[Option[String]]("license").description("Return only articles with provided license."),
+          queryParam[Option[Int]]("page").description("The page number of the search hits to display."),
+          queryParam[Option[Int]]("page-size").description("The number of search hits to display for each page."),
+          queryParam[Option[String]]("sort").description(
+            """The sorting used on results.
+             Default is by -relevance (desc) when querying.
+             When browsing, the default is title (asc).
+             The following are supported: relevance, -relevance, title, -title, lastUpdated, -lastUpdated""".stripMargin)
+        )
+        responseMessages(response500))
 
     val getArticleById =
       (apiOperation[List[Article]]("getArticleById")
         summary "Show article with a specified Id"
         notes "Shows the article for the specified id."
         parameters(
-        headerParam[Option[String]]("X-Correlation-ID").description("User supplied correlation-id. May be omitted."),
-        headerParam[Option[String]]("app-key").description("Your app-key. May be omitted to access api anonymously, but rate limiting applies on anonymous access."),
-        pathParam[Long]("article_id").description("Id of the article that is to be returned")
-        ))
+          headerParam[Option[String]]("X-Correlation-ID").description("User supplied correlation-id. May be omitted."),
+          headerParam[Option[String]]("app-key").description("Your app-key. May be omitted to access api anonymously, but rate limiting applies on anonymous access."),
+          pathParam[Long]("article_id").description("Id of the article that is to be returned")
+        )
+        responseMessages(response404, response500))
+
+    val newArticle =
+      (apiOperation[Article]("newArticle")
+        summary "Create a new article"
+        notes "Creates a new article"
+        parameters(
+          headerParam[Option[String]]("X-Correlation-ID").description("User supplied correlation-id"),
+          headerParam[Option[String]]("app-key").description("Your app-key"),
+          bodyParam[NewArticle]
+        )
+        responseMessages(response400, response500))
+
+    val updateArticle =
+      (apiOperation[Article]("updateArticle")
+        summary "Update an existing article"
+        notes "Update an existing article"
+        parameters(
+          headerParam[Option[String]]("X-Correlation-ID").description("User supplied correlation-id"),
+          headerParam[Option[String]]("app-key").description("Your app-key"),
+          pathParam[Long]("article_id").description("Id of the article that is to be updated"),
+          bodyParam[UpdatedArticle]
+        )
+        responseMessages(response400, response404, response500))
+
 
     get("/", operation(getAllArticles)) {
       val query = paramOrNone("query")
@@ -84,10 +122,36 @@ trait ArticleController {
 
       readService.withId(articleId) match {
         case Some(image) => image
-        case None => halt(status = 404, body = Error(Error.NOT_FOUND, s"No article with id $articleId found"))
+        case None => NotFound(body = Error(Error.NOT_FOUND, s"No article with id $articleId found"))
       }
-
     }
-  }
 
+    post("/", operation(newArticle)) {
+      val newArticle = extract[NewArticle](request.body)
+      val article = writeService.newArticle(newArticle)
+      Created(body=article)
+    }
+
+    patch("/:article_id", operation(updateArticle)) {
+      val articleId = long("article_id")
+      val updatedArticle = extract[UpdatedArticle](request.body)
+      writeService.updateArticle(articleId, updatedArticle) match {
+        case Success(article) => Ok(body=article)
+        case Failure(exception) => errorHandler(exception)
+      }
+    }
+
+    def extract[T](json: String)(implicit mf: scala.reflect.Manifest[T]): T = {
+      Try {
+        read[T](json)
+      } match {
+        case Failure(e) => {
+          logger.error(e.getMessage, e)
+          throw new ValidationException(errors=Seq(ValidationMessage("body", e.getMessage)))
+        }
+        case Success(data) => data
+      }
+    }
+
+  }
 }

@@ -24,8 +24,8 @@ trait UnsupportedContentConverter {
       val errorMessage = s"""Unsupported content ($nodeType): ${content.get("nid")}"""
 
       logger.warn(errorMessage)
-      val (convertedContent, usageErrors) = HtmlTagGenerator.buildErrorContent(errorMessage)
-      (convertedContent, Seq(), ImportStatus(usageErrors :+ errorMessage, visitedNodes))
+      val convertedContent = HtmlTagGenerator.buildErrorContent(errorMessage)
+      (convertedContent, Seq(), ImportStatus(errorMessage, visitedNodes))
     }
   }
 

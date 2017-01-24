@@ -12,10 +12,13 @@ package no.ndla.articleapi.repository
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.articleapi.ArticleApiProperties
 import no.ndla.articleapi.integration.DataSource
+import no.ndla.articleapi.model.api.NotFoundException
 import no.ndla.articleapi.model.domain.Article
 import org.json4s.native.Serialization.write
 import org.postgresql.util.PGobject
 import scalikejdbc.{ConnectionPool, DataSourceConnectionPool, _}
+
+import scala.util.{Failure, Success, Try}
 
 trait ArticleRepository {
   this: DataSource =>
@@ -25,7 +28,34 @@ trait ArticleRepository {
     implicit val formats = org.json4s.DefaultFormats + Article.JSonSerializer
     ConnectionPool.singleton(new DataSourceConnectionPool(dataSource))
 
-    def insert(article: Article, externalId: String, externalSubjectId: Seq[String])(implicit session: DBSession = AutoSession): Long = {
+    def insert(article: Article)(implicit session: DBSession = AutoSession) = {
+      val dataObject = new PGobject()
+      dataObject.setType("jsonb")
+      dataObject.setValue(write(article))
+
+      val articleId: Long = sql"insert into ${Article.table} (document) values (${dataObject})".updateAndReturnGeneratedKey().apply
+
+      logger.info(s"Inserted new article: $articleId")
+      article.copy(id=Some(articleId))
+    }
+
+    def update(article: Article)(implicit session: DBSession = AutoSession): Try[Article] = {
+      val dataObject = new PGobject()
+      dataObject.setType("jsonb")
+      dataObject.setValue(write(article))
+
+      val count = sql"update ${Article.table} set document=${dataObject} where id=${article.id}".update().apply
+      if (count != 1) {
+        val message = s"Could not find article with id ${article.id}"
+        logger.info(message)
+        Failure(NotFoundException(message))
+      } else {
+        logger.info(s"Updated article ${article.id}")
+        Success(article)
+      }
+    }
+
+    def insertWithExternalIds(article: Article, externalId: String, externalSubjectId: Seq[String])(implicit session: DBSession = AutoSession): Long = {
       val dataObject = new PGobject()
       dataObject.setType("jsonb")
       dataObject.setValue(write(article))
@@ -36,7 +66,7 @@ trait ArticleRepository {
       articleId
     }
 
-    def update(article: Article, externalId: String)(implicit session: DBSession = AutoSession): Long = {
+    def updateWithExternalId(article: Article, externalId: String)(implicit session: DBSession = AutoSession): Long = {
       val dataObject = new PGobject()
       dataObject.setType("jsonb")
       dataObject.setValue(write(article))

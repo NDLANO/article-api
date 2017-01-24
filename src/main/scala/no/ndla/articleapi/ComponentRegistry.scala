@@ -19,6 +19,7 @@ import no.ndla.articleapi.service._
 import no.ndla.articleapi.service.converters._
 import no.ndla.articleapi.service.converters.contentbrowser._
 import no.ndla.articleapi.service.search.{IndexService, SearchConverterService, SearchIndexService, SearchService}
+import no.ndla.articleapi.validation.ArticleValidator
 import no.ndla.network.NdlaClient
 import org.postgresql.ds.PGPoolingDataSource
 
@@ -48,9 +49,11 @@ object ComponentRegistry
   with MigrationApiClient
   with SearchConverterService
   with ReadService
+  with WriteService
+  with ArticleValidator
   with HTMLCleaner
   with HtmlTagGenerator
-  with SequenceGenerator
+  with Clock
 {
   implicit val swagger = new ArticleSwagger
 
@@ -82,11 +85,13 @@ object ComponentRegistry
   lazy val migrationApiClient = new MigrationApiClient
   lazy val extractService = new ExtractService
   lazy val converterService = new ConverterService
+  lazy val articleValidator = new ArticleValidator
 
   lazy val ndlaClient = new NdlaClient
   lazy val tagsService = new TagsService
   lazy val searchConverterService = new SearchConverterService
   lazy val readService = new ReadService
+  lazy val writeService = new WriteService
   lazy val contentBrowserConverter = new ContentBrowserConverter
   lazy val biblioConverter = new BiblioConverter
   lazy val htmlCleaner = new HTMLCleaner
@@ -96,4 +101,6 @@ object ComponentRegistry
   lazy val jestClient: NdlaJestClient = JestClientFactory.getClient()
   lazy val audioApiClient = new AudioApiClient
   lazy val imageApiClient = new ImageApiClient
+
+  lazy val clock = new SystemClock
 }

@@ -21,7 +21,7 @@ class AudioConverterTest extends UnitSuite with TestEnvironment {
 
   test("That AudioConverter returns a embed resource string if the audio was imported") {
     val audioId: Long = 123
-    val expectedResult = s"""<$resourceHtmlEmbedTag data-id="1" data-resource="audio" data-resource_id="123" />"""
+    val expectedResult = s"""<$resourceHtmlEmbedTag data-resource="audio" data-resource_id="123" />"""
 
     when(audioApiClient.getOrImportAudio(nodeId)).thenReturn(Some(audioId))
 

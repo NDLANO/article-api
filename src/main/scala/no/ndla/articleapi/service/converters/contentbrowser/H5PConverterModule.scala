@@ -13,6 +13,7 @@ import com.typesafe.scalalogging.LazyLogging
 import no.ndla.articleapi.model.domain.{ImportStatus, RequiredLibrary}
 import no.ndla.articleapi.service.ExtractService
 import no.ndla.articleapi.service.converters.HtmlTagGenerator
+import no.ndla.articleapi.ArticleApiProperties.H5PResizerScriptUrl
 
 trait H5PConverterModule {
   this: ExtractService with HtmlTagGenerator =>
@@ -24,9 +25,9 @@ trait H5PConverterModule {
       val nodeId = content.get("nid")
 
       logger.info(s"Converting h5p_content with nid $nodeId")
-      val requiredLibraries = List(RequiredLibrary("text/javascript", "H5P-Resizer", "http://ndla.no/sites/all/modules/h5p/library/js/h5p-resizer.js"))
-      val (replacement, figureUsageErrors) = HtmlTagGenerator.buildH5PEmbedContent(s"http://ndla.no/h5p/embed/$nodeId")
-      (replacement, requiredLibraries, ImportStatus(figureUsageErrors, visitedNodes))
+      val requiredLibraries = List(RequiredLibrary("text/javascript", "H5P-Resizer", H5PResizerScriptUrl))
+      val replacement = HtmlTagGenerator.buildH5PEmbedContent(s"http://ndla.no/h5p/embed/$nodeId")
+      (replacement, requiredLibraries, ImportStatus(Seq(), visitedNodes))
     }
   }
 }

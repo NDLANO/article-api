@@ -28,9 +28,8 @@ class ExtractConvertStoreContentTest extends UnitSuite with TestEnvironment {
   val contentString = s"[contentbrowser ==nid=$nodeId2==imagecache=Fullbredde==width===alt=alttext==link===node_link=1==link_type=link_to_content==lightbox_size===remove_fields[76661]=1==remove_fields[76663]=1==remove_fields[76664]=1==remove_fields[76666]=1==insertion=link==link_title_text===link_text=Tittel==text_align===css_class=contentbrowser contentbrowser]"
   val sampleContent = TestData.sampleContent.copy(content=contentString)
   val author = Author("forfatter", "Henrik")
-  val visualElement = VisualElement("http://image-api/1", "image", Some("nb"))
 
-  val sampleNode = NodeToConvert(List(sampleTitle), List(sampleContent), "by-sa", Seq(author), List(ArticleTag(List("tag"), Some("en"))), Seq(visualElement), "fagstoff", new Date(0), new Date(1))
+  val sampleNode = NodeToConvert(List(sampleTitle), List(sampleContent), "by-sa", Seq(author), List(ArticleTag(List("tag"), Some("en"))), Seq(TestData.visualElement), "fagstoff", new Date(0), new Date(1))
 
   val eCSService = new ExtractConvertStoreContent
 
@@ -42,7 +41,7 @@ class ExtractConvertStoreContentTest extends UnitSuite with TestEnvironment {
     when(migrationApiClient.getSubjectForNode(nodeId)).thenReturn(Try(Seq(MigrationSubjectMeta("52", "helsearbeider vg2"))))
 
     when(articleRepository.exists(sampleNode.contents.head.nid)).thenReturn(false)
-    when(articleRepository.insert(any[Article], any[String], any[Seq[String]])(any[DBSession])).thenReturn(newNodeid)
+    when(articleRepository.insertWithExternalIds(any[Article], any[String], any[Seq[String]])(any[DBSession])).thenReturn(newNodeid)
     when(extractConvertStoreContent.processNode("9876")).thenReturn(Try(1: Long, ImportStatus(Seq(), Seq())))
     when(searchIndexService.indexDocument(any[Article])).thenReturn(Success())
   }

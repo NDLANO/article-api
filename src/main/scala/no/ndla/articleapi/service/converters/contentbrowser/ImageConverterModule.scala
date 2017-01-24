@@ -29,12 +29,12 @@ trait ImageConverterModule {
     def getImage(cont: ContentBrowser): (String, Seq[String]) = {
       val alignment = getImageAlignment(cont)
       imageApiClient.importOrGetMetaByExternId(cont.get("nid")) match {
-        case Some(image) => HtmlTagGenerator.buildImageEmbedContent(
+        case Some(image) => (HtmlTagGenerator.buildImageEmbedContent(
           caption=cont.get("link_text"),
           imageId=image.id,
           align=alignment.getOrElse(""),
           size=cont.get("imagecache").toLowerCase,
-          altText=cont.get("alt"))
+          altText=cont.get("alt")), Seq())
         case None =>
           (s"<img src='stock.jpeg' alt='The image with id ${cont.get("nid")} was not not found' />",
             Seq(s"Image with id ${cont.get("nid")} was not found"))

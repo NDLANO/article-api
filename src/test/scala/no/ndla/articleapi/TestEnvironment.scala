@@ -18,6 +18,7 @@ import no.ndla.articleapi.service._
 import no.ndla.articleapi.service.converters.contentbrowser._
 import no.ndla.articleapi.service.converters._
 import no.ndla.articleapi.service.search.{IndexService, SearchConverterService, SearchIndexService, SearchService}
+import no.ndla.articleapi.validation.ArticleValidator
 import no.ndla.network.NdlaClient
 import org.scalatest.mockito.MockitoSugar
 
@@ -48,11 +49,12 @@ trait TestEnvironment
   with TagsService
   with SearchConverterService
   with ReadService
+  with WriteService
+  with ArticleValidator
   with HtmlTagGenerator
   with HTMLCleaner
-  with SequenceGenerator
+  with Clock
 {
-
   val searchService = mock[SearchService]
   val indexService = mock[IndexService]
   val searchIndexService = mock[SearchIndexService]
@@ -79,6 +81,8 @@ trait TestEnvironment
   val postProcessorModules = List(SimpleTagConverter, biblioConverter, DivTableConverter, TableConverter, htmlCleaner)
   val attachmentStorageService = mock[AmazonStorageService]
   val readService = mock[ReadService]
+  val writeService = mock[WriteService]
+  val articleValidator = mock[ArticleValidator]
 
   val ndlaClient = mock[NdlaClient]
   val tagsService = mock[TagsService]
@@ -87,5 +91,5 @@ trait TestEnvironment
   val audioApiClient = mock[AudioApiClient]
   val imageApiClient = mock[ImageApiClient]
 
-  override def nextNumberInSequence = "1"
+  val clock = mock[SystemClock]
 }
