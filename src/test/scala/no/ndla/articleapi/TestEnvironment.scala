@@ -87,7 +87,7 @@ trait TestEnvironment
   val ndlaClient = mock[NdlaClient]
   val tagsService = mock[TagsService]
   val searchConverterService = mock[SearchConverterService]
-  val jestClient = mock[JestClient]
+  val jestClient = mock[NdlaJestClient]
   val audioApiClient = mock[AudioApiClient]
   val imageApiClient = mock[ImageApiClient]
 

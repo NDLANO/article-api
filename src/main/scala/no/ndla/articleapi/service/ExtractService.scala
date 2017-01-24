@@ -9,6 +9,7 @@
 
 package no.ndla.articleapi.service
 
+import com.typesafe.scalalogging.LazyLogging
 import no.ndla.articleapi.integration._
 import no.ndla.articleapi.model.domain.{BiblioMeta, ContentFilMeta, NodeGeneralContent, NodeToConvert}
 
@@ -19,10 +20,17 @@ trait ExtractService {
 
   val extractService: ExtractService
 
-  class ExtractService {
+  class ExtractService extends LazyLogging {
     def getNodeData(nodeId: String): NodeToConvert = {
+      val tagsForNode = tagsService.forContent(nodeId) match {
+        case Failure(e) =>
+          logger.warn(s"Could not import tags for node $nodeId", e)
+          List()
+        case Success(tags) => tags
+      }
+
       migrationApiClient.getContentNodeData(nodeId) match {
-        case Success(data) => data.asNodeToConvert(nodeId, tagsService.forContent(nodeId))
+        case Success(data) => data.asNodeToConvert(nodeId, tagsForNode)
         case Failure(ex) => throw ex
       }
     }
