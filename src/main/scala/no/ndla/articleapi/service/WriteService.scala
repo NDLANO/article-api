@@ -47,6 +47,7 @@ trait WriteService {
         case Some(existing) => {
           val updatedArticle = converterService.toDomainArticle(updatedApiArticle)
           val toUpdate = existing.copy(
+            revision = updatedArticle.revision,
             title = mergeLanguageFields(existing.title, updatedArticle.title),
             content = mergeLanguageFields(existing.content, updatedArticle.content),
             copyright = updatedArticle.copyright,
