@@ -254,6 +254,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     val today = new DateTime().toDate
     val domainArticle = Article(
       Option(1),
+      Option(2),
       Seq(ArticleTitle("title", Option("nb"))),
       Seq(ArticleContent("content", None, Option("nb"))),
       Copyright("by", "", Seq()),
@@ -269,6 +270,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
 
     val apiArticle = api.Article(
       "1",
+      2,
       Seq(api.ArticleTitle("title", Option("nb"))),
       Seq(api.ArticleContent("content", None, Option("nb"))),
       api.Copyright(api.License("by", Some("Creative Commons Attribution 2.0 Generic"), Some("https://creativecommons.org/licenses/by/2.0/")), "", Seq()),

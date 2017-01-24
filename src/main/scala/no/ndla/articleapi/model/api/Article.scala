@@ -16,6 +16,7 @@ import scala.annotation.meta.field
 
 @ApiModel(description = "Information about the article")
 case class Article(@(ApiModelProperty@field)(description = "The unique id of the article") id: String,
+                   @(ApiModelProperty@field)(description = "The revision number for the article") revision: Int,
                    @(ApiModelProperty@field)(description = "Available titles for the article") title: Seq[ArticleTitle],
                    @(ApiModelProperty@field)(description = "The content of the article in available languages") content: Seq[ArticleContent],
                    @(ApiModelProperty@field)(description = "Describes the copyright information for the article") copyright: Copyright,

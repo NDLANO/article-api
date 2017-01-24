@@ -17,6 +17,7 @@ import org.json4s.native.Serialization._
 import scalikejdbc._
 
 case class Article(id: Option[Long],
+                   revision: Option[Int],
                    title: Seq[ArticleTitle],
                    content: Seq[ArticleContent],
                    copyright: Copyright,
@@ -39,7 +40,7 @@ object Article extends SQLSyntaxSupport[Article] {
   def apply(lp: SyntaxProvider[Article])(rs:WrappedResultSet): Article = apply(lp.resultName)(rs)
   def apply(lp: ResultName[Article])(rs: WrappedResultSet): Article = {
     val meta = read[Article](rs.string(lp.c("document")))
-    Article(Some(rs.long(lp.c("id"))), meta.title, meta.content, meta.copyright, meta.tags, meta.requiredLibraries,
+    Article(Some(rs.long(lp.c("id"))), rs.intOpt("revision"), meta.title, meta.content, meta.copyright, meta.tags, meta.requiredLibraries,
       meta.visualElement, meta.introduction, meta.metaDescription, meta.metaImageId, meta.created, meta.updated, meta.contentType)
   }
 
