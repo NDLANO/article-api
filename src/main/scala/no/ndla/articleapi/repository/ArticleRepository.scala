@@ -13,9 +13,9 @@ import com.typesafe.scalalogging.LazyLogging
 import no.ndla.articleapi.ArticleApiProperties
 import no.ndla.articleapi.integration.DataSource
 import no.ndla.articleapi.model.domain.Article
-import org.postgresql.util.PGobject
-import scalikejdbc.{ConnectionPool, DB, DataSourceConnectionPool, _}
 import org.json4s.native.Serialization.write
+import org.postgresql.util.PGobject
+import scalikejdbc.{ConnectionPool, DataSourceConnectionPool, _}
 
 trait ArticleRepository {
   this: DataSource =>
@@ -63,7 +63,7 @@ trait ArticleRepository {
         .map(rs => rs.string("external_id")).single.apply()
     }
 
-    private def minMaxId(implicit session: DBSession = AutoSession): (Long, Long) = {
+    def minMaxId(implicit session: DBSession = AutoSession): (Long, Long) = {
       sql"select coalesce(MIN(id),0) as mi, coalesce(MAX(id),0) as ma from ${Article.table}".map(rs => {
         (rs.long("mi"), rs.long("ma"))
       }).single().apply() match {
@@ -91,6 +91,8 @@ trait ArticleRepository {
 
     def allWithExternalSubjectId(externalSubjectId: String): Seq[Article] =
       articlesWhere(sqls"$externalSubjectId=ANY(ar.external_subject_id)")
+
+    def articlesWithIdBetween(min: Long, max: Long): List[Article] = articlesWhere(sqls"ar.id between $min and $max").toList
 
     private def articleWhere(whereClause: SQLSyntax)(implicit session: DBSession = ReadOnlyAutoSession): Option[Article] = {
       val ar = Article.syntax("ar")

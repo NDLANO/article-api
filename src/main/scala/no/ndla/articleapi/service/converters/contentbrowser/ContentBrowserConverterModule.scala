@@ -14,7 +14,7 @@ import no.ndla.articleapi.model.domain.{ImportStatus, RequiredLibrary}
 import no.ndla.articleapi.repository.ArticleRepository
 import no.ndla.articleapi.service._
 import no.ndla.articleapi.service.converters.HtmlTagGenerator
-import no.ndla.articleapi.service.search.{IndexService, SearchConverterService}
+import no.ndla.articleapi.service.search.{IndexService, SearchConverterService, SearchIndexService}
 import no.ndla.network.NdlaClient
 
 
@@ -33,6 +33,7 @@ trait ContentBrowserConverterModules
   with ArticleRepository
   with ExtractConvertStoreContent
   with IndexService
+  with SearchIndexService
   with ElasticClient
   with SearchConverterService
   with ImageConverterModule

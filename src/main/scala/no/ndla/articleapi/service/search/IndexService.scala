@@ -22,15 +22,13 @@ import io.searchbox.indices.mapping.PutMapping
 import io.searchbox.indices.{CreateIndex, DeleteIndex, IndicesExists}
 import no.ndla.articleapi.ArticleApiProperties
 import no.ndla.articleapi.integration.ElasticClient
-import no.ndla.articleapi.model.domain.Article
 import no.ndla.articleapi.model.domain.Language.languageAnalyzers
+import no.ndla.articleapi.model.domain.{Article, NdlaSearchException}
 import no.ndla.articleapi.model.search.SearchableLanguageFormats
 import org.elasticsearch.ElasticsearchException
 import org.json4s.native.Serialization.write
 
 import scala.util.{Failure, Success, Try}
-import io.searchbox.action.Action
-import io.searchbox.client.JestResult
 
 trait IndexService {
   this: ElasticClient with SearchConverterService =>
@@ -40,49 +38,39 @@ trait IndexService {
 
     private def createIndexRequest(article: Article, indexName: String) = {
       implicit val formats = SearchableLanguageFormats.JSonFormats
-      val source= write(searchConverterService.asSearchableArticle(article))
+      val source = write(searchConverterService.asSearchableArticle(article))
       new Index.Builder(source).index(indexName).`type`(ArticleApiProperties.SearchDocument).id(article.id.get.toString).build
     }
 
-    private def executeIndexRequest[T <: JestResult](indexRequest: Action[T]) = {
-      Try(jestClient.execute(indexRequest)) match {
-        case Success(response) =>
-          if (!response.isSucceeded)
-            throw new ElasticsearchException(s"Unable to index article(s) to ${ArticleApiProperties.SearchIndex}. ErrorMessage: {}", response.getErrorMessage)
-        case Failure(f) =>
-          throw new ElasticsearchException(s"Failed to execute index request. Try recreating the index. The error was ${f.getMessage}")
-      }
+    def indexDocument(article: Article): Try[Article] = {
+      val result = jestClient.execute(createIndexRequest(article, ArticleApiProperties.SearchIndex))
+      result.map(_ => article)
     }
 
-    def indexDocument(article: Article): Unit =
-      executeIndexRequest(createIndexRequest(article, ArticleApiProperties.SearchIndex))
-
-    def indexDocuments(articles: List[Article], indexName: String): Int = {
+    def indexDocuments(articles: List[Article], indexName: String): Try[Int] = {
       val bulkBuilder = new Bulk.Builder()
       articles.foreach(article => bulkBuilder.addAction(createIndexRequest(article, indexName)))
-      executeIndexRequest(bulkBuilder.build())
 
-      logger.info(s"Indexed ${articles.size} documents")
-      articles.size
+      val response = jestClient.execute(bulkBuilder.build())
+      response.map(_ => {
+        logger.info(s"Indexed ${articles.size} documents")
+        articles.size
+      })
     }
 
-    def createIndex(): String = {
+    def createIndex(): Try[String] = {
       val indexName = ArticleApiProperties.SearchIndex + "_" + getTimestamp
-      if (!indexExists(indexName)) {
+      if (indexExists(indexName).getOrElse(false)) {
+        Success(indexName)
+      } else {
         val createIndexResponse = jestClient.execute(new CreateIndex.Builder(indexName).build())
-        createIndexResponse.isSucceeded match {
-          case false => throw new ElasticsearchException(s"Unable to create index $indexName. ErrorMessage: {}", createIndexResponse.getErrorMessage)
-          case true => createMapping(indexName)
-        }
+        createIndexResponse.map(_ => createMapping(indexName)).map(_ => indexName)
       }
-      indexName
     }
 
-    def createMapping(indexName: String) = {
+    def createMapping(indexName: String): Try[String] = {
       val mappingResponse = jestClient.execute(new PutMapping.Builder(indexName, ArticleApiProperties.SearchDocument, buildMapping()).build())
-      if (!mappingResponse.isSucceeded) {
-        throw new ElasticsearchException(s"Unable to create mapping for index $indexName. ErrorMessage: {}", mappingResponse.getErrorMessage)
-      }
+      mappingResponse.map(_ => indexName)
     }
 
     def buildMapping(): String = {
@@ -107,23 +95,25 @@ trait IndexService {
       languageSupportedField
     }
 
-    def aliasTarget: Option[String] = {
+    def aliasTarget: Try[Option[String]] = {
       val getAliasRequest = new GetAliases.Builder().addIndex(s"${ArticleApiProperties.SearchIndex}").build()
-      val result = jestClient.execute(getAliasRequest)
-      result.isSucceeded match {
-        case false => None
-        case true => {
+      jestClient.execute(getAliasRequest) match {
+        case Success(result) => {
           val aliasIterator = result.getJsonObject.entrySet().iterator()
           aliasIterator.hasNext match {
-            case true => Some(aliasIterator.next().getKey)
-            case false => None
+            case true => Success(Some(aliasIterator.next().getKey))
+            case false => Success(None)
           }
         }
+        case Failure(_: NdlaSearchException) => Success(None)
+        case Failure(t: Throwable) => Failure(t)
       }
     }
 
-    def updateAliasTarget(oldIndexName: Option[String], newIndexName: String) = {
-      if (indexExists(newIndexName)) {
+    def updateAliasTarget(oldIndexName: Option[String], newIndexName: String): Try[Any] = {
+      if (!indexExists(newIndexName).getOrElse(false)) {
+        Failure(new IllegalArgumentException(s"No such index: $newIndexName"))
+      } else {
         val addAliasDefinition = new AddAliasMapping.Builder(newIndexName, ArticleApiProperties.SearchIndex).build()
         val modifyAliasRequest = oldIndexName match {
           case None => new ModifyAliases.Builder(addAliasDefinition).build()
@@ -134,29 +124,29 @@ trait IndexService {
           }
         }
 
-        val response = jestClient.execute(modifyAliasRequest)
-        if (!response.isSucceeded) {
-          logger.error(response.getErrorMessage)
-          throw new ElasticsearchException(s"Unable to modify alias ${ArticleApiProperties.SearchIndex} -> $oldIndexName to ${ArticleApiProperties.SearchIndex} -> $newIndexName. ErrorMessage: {}", response.getErrorMessage)
-        }
-      } else {
-        throw new IllegalArgumentException(s"No such index: $newIndexName")
+        jestClient.execute(modifyAliasRequest)
       }
     }
 
-    def delete(indexName: String) = {
-      if (indexExists(indexName)) {
-        val response = jestClient.execute(new DeleteIndex.Builder(indexName).build())
-        if (!response.isSucceeded) {
-          throw new ElasticsearchException(s"Unable to delete index $indexName. ErrorMessage: {}", response.getErrorMessage)
+    def delete(optIndexName: Option[String]): Try[_] = {
+      optIndexName match {
+        case None => Success()
+        case Some(indexName) => {
+          if (!indexExists(indexName).getOrElse(false)) {
+            Failure(new IllegalArgumentException(s"No such index: $indexName"))
+          } else {
+            jestClient.execute(new DeleteIndex.Builder(indexName).build())
+          }
         }
-      } else {
-        throw new IllegalArgumentException(s"No such index: $indexName")
       }
     }
 
-    def indexExists(indexName: String): Boolean = {
-      jestClient.execute(new IndicesExists.Builder(indexName).build()).isSucceeded
+    def indexExists(indexName: String): Try[Boolean] = {
+      jestClient.execute(new IndicesExists.Builder(indexName).build()) match {
+        case Success(_) => Success(true)
+        case Failure(_: ElasticsearchException) => Success(false)
+        case Failure(t: Throwable) => Failure(t)
+      }
     }
 
     def getTimestamp: String = {

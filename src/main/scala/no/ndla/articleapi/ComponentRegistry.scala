@@ -93,7 +93,7 @@ object ComponentRegistry
   lazy val converterModules = List(contentBrowserConverter)
   lazy val postProcessorModules = List(SimpleTagConverter, biblioConverter, DivTableConverter, TableConverter, htmlCleaner)
 
-  lazy val jestClient: JestClient = JestClientFactory.getClient()
+  lazy val jestClient: NdlaJestClient = JestClientFactory.getClient()
   lazy val audioApiClient = new AudioApiClient
   lazy val imageApiClient = new ImageApiClient
 }
