@@ -22,6 +22,7 @@ import no.ndla.articleapi.service.search.{IndexService, SearchConverterService, 
 import no.ndla.articleapi.validation.ArticleValidator
 import no.ndla.network.NdlaClient
 import org.postgresql.ds.PGPoolingDataSource
+import scalikejdbc.{ConnectionPool, DataSourceConnectionPool}
 
 object ComponentRegistry
   extends DataSource
@@ -66,6 +67,7 @@ object ComponentRegistry
   dataSource.setInitialConnections(ArticleApiProperties.MetaInitialConnections)
   dataSource.setMaxConnections(ArticleApiProperties.MetaMaxConnections)
   dataSource.setCurrentSchema(ArticleApiProperties.MetaSchema)
+  ConnectionPool.singleton(new DataSourceConnectionPool(dataSource))
 
   lazy val extractConvertStoreContent = new ExtractConvertStoreContent
   lazy val internController = new InternController

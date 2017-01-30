@@ -40,7 +40,7 @@ object Article extends SQLSyntaxSupport[Article] {
   def apply(lp: SyntaxProvider[Article])(rs:WrappedResultSet): Article = apply(lp.resultName)(rs)
   def apply(lp: ResultName[Article])(rs: WrappedResultSet): Article = {
     val meta = read[Article](rs.string(lp.c("document")))
-    Article(rs.longOpt(lp.c("id")), rs.intOpt(lp.c("revision")), meta.title, meta.content, meta.copyright, meta.tags, meta.requiredLibraries,
+    Article(Some(rs.long(lp.c("id"))), Some(rs.int(lp.c("revision"))), meta.title, meta.content, meta.copyright, meta.tags, meta.requiredLibraries,
       meta.visualElement, meta.introduction, meta.metaDescription, meta.metaImageId, meta.created, meta.updated, meta.contentType)
   }
 

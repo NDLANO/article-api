@@ -25,12 +25,12 @@ object ArticleApiProperties extends LazyLogging {
   val ContactEmail = "christergundersen@ndla.no"
   val Environment = propOrElse("NDLA_ENVIRONMENT", "local")
 
-  val MetaUserName = prop(PropertyKeys.MetaUserNameKey)
-  val MetaPassword = prop(PropertyKeys.MetaPasswordKey)
-  val MetaResource = prop(PropertyKeys.MetaResourceKey)
-  val MetaServer = prop(PropertyKeys.MetaServerKey)
-  val MetaPort = prop(PropertyKeys.MetaPortKey).toInt
-  val MetaSchema = prop(PropertyKeys.MetaSchemaKey)
+  lazy val MetaUserName = prop(PropertyKeys.MetaUserNameKey)
+  lazy val MetaPassword = prop(PropertyKeys.MetaPasswordKey)
+  lazy val MetaResource = prop(PropertyKeys.MetaResourceKey)
+  lazy val MetaServer = prop(PropertyKeys.MetaServerKey)
+  lazy val MetaPort = prop(PropertyKeys.MetaPortKey).toInt
+  lazy val MetaSchema = prop(PropertyKeys.MetaSchemaKey)
   val MetaInitialConnections = 3
   val MetaMaxConnections = 20
 

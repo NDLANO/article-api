@@ -26,7 +26,6 @@ trait ArticleRepository {
 
   class ArticleRepository extends LazyLogging {
     implicit val formats = org.json4s.DefaultFormats + Article.JSonSerializer
-    ConnectionPool.singleton(new DataSourceConnectionPool(dataSource))
 
     def insert(article: Article)(implicit session: DBSession = AutoSession): Article = {
       val startRevision = 1
@@ -75,18 +74,23 @@ trait ArticleRepository {
       dataObject.setType("jsonb")
       dataObject.setValue(write(article))
 
-      val revision = article.revision.getOrElse(0) + 1
-      Try(sql"update ${Article.table} set document=${dataObject} where external_id=${externalId} and revision=$revision".updateAndReturnGeneratedKey().apply) match {
+      val expectedArticleRevision = 1
+      Try(sql"update ${Article.table} set document=${dataObject} where external_id=${externalId} and revision=$expectedArticleRevision".updateAndReturnGeneratedKey().apply) match {
         case Success(articleId) => {
           logger.info(s"Updated article with external_id=$externalId, id=$articleId")
           Success(articleId)
         }
         case Failure(ex) => {
-          val message = s"Found revision mismatch when attempting to update article with external id $externalId. The article has been edited on the new NDLA platform"
+          val message = "The revision stored in the database is newer than the one being updated. Please use the latest version from database when updating."
+
           logger.info(message)
           Failure(new OptimisticLockException(message))
         }
       }
+    }
+
+    def delete(articleId: Long)(implicit session: DBSession = AutoSession) = {
+      sql"delete from ${Article.table} where id = $articleId".update().apply
     }
 
     def withId(articleId: Long): Option[Article] =
