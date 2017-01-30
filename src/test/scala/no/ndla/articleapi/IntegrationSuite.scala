@@ -16,7 +16,7 @@ import org.postgresql.ds.PGPoolingDataSource
 abstract class IntegrationSuite extends UnitSuite {
 
   setEnv(PropertyKeys.MetaUserNameKey, "postgres")
-  setEnv(PropertyKeys.MetaPasswordKey, "hemmelig")
+  setEnvIfAbsent(PropertyKeys.MetaPasswordKey, "hemmelig")
   setEnv(PropertyKeys.MetaResourceKey, "postgres")
   setEnv(PropertyKeys.MetaServerKey, "127.0.0.1")
   setEnv(PropertyKeys.MetaPortKey, "5432")
