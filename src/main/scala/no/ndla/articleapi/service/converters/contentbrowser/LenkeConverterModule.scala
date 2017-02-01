@@ -17,6 +17,8 @@ import no.ndla.articleapi.service.ExtractService
 import no.ndla.articleapi.service.converters.{Attributes, HtmlTagGenerator}
 import org.jsoup.Jsoup
 
+import scala.util.Try
+
 trait LenkeConverterModule {
   this: ExtractService with HtmlTagGenerator =>
 
@@ -49,7 +51,7 @@ trait LenkeConverterModule {
       }
 
       val NDLAPattern = """.*(ndla.no).*""".r
-      url.host.getOrElse("") match {
+      Try(url.host.getOrElse("")).getOrElse("") match {
         case NDLAPattern(_) => {
           logger.warn("Link to NDLA resource: '{}'", url)
           (htmlTag, requiredLibrary.toList, errors :+ s"(Warning) Link to NDLA resource '$url'")
