@@ -89,7 +89,7 @@ case class MigrationMainNodeImport(titles: Seq[MigrationContentTitle], ingresses
         LanguageContent(
           content.nid,
           content.tnid,
-          content.content,
+          content.content.getOrElse(""),
           getMetaDescription(content),
           content.language,
           ingress = getIngress(content.language))
@@ -134,7 +134,7 @@ case class MigrationContentTitle(title: String, language: Option[String]) {
 
 case class MigrationIngress(nid: String, content: Option[String], imageNid: Option[String], ingressVisPaaSiden: Int, language: Option[String])
 
-case class MigrationContent(nid: String, tnid: String, content: String, metaDescription: String, language: Option[String], created: Date, changed: Date)
+case class MigrationContent(nid: String, tnid: String, content: Option[String], metaDescription: String, language: Option[String], created: Date, changed: Date)
 
 case class MigrationNodeType(nodeType: String)
 

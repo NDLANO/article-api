@@ -13,7 +13,7 @@ import org.joda.time.DateTime
 
 class MigrationApiClientTest extends UnitSuite with TestEnvironment {
   val migrationIngress = MigrationIngress("123", Option("ingress from  table"), None, 1, Option("nb"))
-  val migrationContent= MigrationContent("124", "124", "content", "metadescription", Option("nb"), DateTime.now().toDate, DateTime.now().toDate)
+  val migrationContent= MigrationContent("124", "124", Some("content"), "metadescription", Option("nb"), DateTime.now().toDate, DateTime.now().toDate)
   val emneArtikkelData = MigrationEmneArtikkelData("ingress from emneartikkel", "metadescription from emneartikkel", Option("nb"))
   val migrationMainNodeImport = MigrationMainNodeImport(Seq(), Seq(migrationIngress), Seq(migrationContent), Seq(), Option("by-sa"),
     Option("emneartikkel"), Seq(), Seq(), Seq(), Seq(), Seq(), Seq(), Seq(), Seq(), Seq(), Seq(emneArtikkelData))
