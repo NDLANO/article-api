@@ -18,8 +18,8 @@ import no.ndla.network.{ApplicationUrl, CorrelationID}
 import org.apache.logging.log4j.ThreadContext
 import org.elasticsearch.index.IndexNotFoundException
 import org.json4s.{DefaultFormats, Formats}
-import org.scalatra.{BadRequest, InternalServerError, NotFound, ScalatraServlet}
 import org.scalatra.json.NativeJsonSupport
+import org.scalatra.{BadRequest, InternalServerError, NotFound, ScalatraServlet}
 
 abstract class NdlaController extends ScalatraServlet with NativeJsonSupport with LazyLogging {
   protected implicit override val jsonFormats: Formats = DefaultFormats
@@ -59,6 +59,19 @@ abstract class NdlaController extends ScalatraServlet with NativeJsonSupport wit
 
   def paramOrNone(paramName: String)(implicit request: HttpServletRequest): Option[String] = {
     params.get(paramName).map(_.trim).filterNot(_.isEmpty())
+  }
+
+  def paramAsListOfLong(paramName: String)(implicit request: HttpServletRequest): List[Long] = {
+    params.get(paramName) match {
+      case None => List()
+      case Some(param) => {
+        val paramAsListOfStrings = param.split(",").toList.map(_.trim)
+        if (!paramAsListOfStrings.forall(entry => entry.forall(_.isDigit))) {
+          throw new ValidationException(errors = List(ValidationMessage(paramName, s"Invalid value for $paramName. Only (list of) digits are allowed.")))
+        }
+        paramAsListOfStrings.map(_.toLong)
+      }
+    }
   }
 }
 

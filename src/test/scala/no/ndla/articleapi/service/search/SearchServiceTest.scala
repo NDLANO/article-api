@@ -121,37 +121,58 @@ class SearchServiceTest extends UnitSuite with TestEnvironment {
     searchService.getStartAtAndNumResults(Some(page), Some(ArticleApiProperties.DefaultPageSize)) should equal((expectedStartAt, ArticleApiProperties.DefaultPageSize))
   }
 
+  test("That all returns all documents ordered by id ascending") {
+    val results = searchService.all(List(), None, None, None, None, Sort.ByIdAsc)
+    results.totalCount should be (3)
+    results.results.head.id should be ("1")
+    results.results.last.id should be ("3")
+  }
+
+  test("That all returns all documents ordered by id descending") {
+    val results = searchService.all(List(), None, None, None, None, Sort.ByIdDesc)
+    results.totalCount should be (3)
+    results.results.head.id should be ("3")
+    results.results.last.id should be ("1")
+  }
+
   test("That all returns all documents ordered by title ascending") {
-    val results = searchService.all(None, None, None, None, Sort.ByTitleAsc)
+    val results = searchService.all(List(), None, None, None, None, Sort.ByTitleAsc)
     results.totalCount should be (3)
     results.results.head.id should be ("1")
     results.results.last.id should be ("2")
   }
 
   test("That all returns all documents ordered by lastUpdated descending") {
-    val results = searchService.all(None, None, None, None, Sort.ByLastUpdatedDesc)
+    val results = searchService.all(List(), None, None, None, None, Sort.ByLastUpdatedDesc)
     results.totalCount should be (3)
     results.results.head.id should be ("3")
     results.results.last.id should be ("1")
   }
 
   test("That all returns all documents ordered by lastUpdated ascending") {
-    val results = searchService.all(None, None, None, None, Sort.ByLastUpdatedAsc)
+    val results = searchService.all(List(), None, None, None, None, Sort.ByLastUpdatedAsc)
     results.totalCount should be (3)
     results.results.head.id should be ("1")
     results.results.last.id should be ("3")
   }
 
   test("That all filtering on license only returns documents with given license") {
-    val results = searchService.all(None, Some("publicdomain"), None, None, Sort.ByTitleAsc)
+    val results = searchService.all(List(), None, Some("publicdomain"), None, None, Sort.ByTitleAsc)
     results.totalCount should be (2)
     results.results.head.id should be ("3")
     results.results.last.id should be ("2")
   }
 
+  test("That all filtered by id only returns documents with the given ids") {
+    val results = searchService.all(List(1,3), None, None, None, None, Sort.ByIdAsc)
+    results.totalCount should be (2)
+    results.results.head.id should be ("1")
+    results.results.last.id should be ("3")
+  }
+
   test("That paging returns only hits on current page and not more than page-size") {
-    val page1 = searchService.all(None, None, Some(1), Some(2), Sort.ByTitleAsc)
-    val page2 = searchService.all(None, None, Some(2), Some(2), Sort.ByTitleAsc)
+    val page1 = searchService.all(List(), None, None, Some(1), Some(2), Sort.ByTitleAsc)
+    val page2 = searchService.all(List(), None, None, Some(2), Some(2), Sort.ByTitleAsc)
     page1.totalCount should be (3)
     page1.page should be (1)
     page1.results.size should be (2)
@@ -164,31 +185,38 @@ class SearchServiceTest extends UnitSuite with TestEnvironment {
   }
 
   test("That search matches title and html-content ordered by relevance descending") {
-    val results = searchService.matchingQuery(Seq("bil"), Some("nb"), None, None, None, Sort.ByRelevanceDesc)
+    val results = searchService.matchingQuery(Seq("bil"), List(), Some("nb"), None, None, None, Sort.ByRelevanceDesc)
     results.totalCount should be (2)
     results.results.head.id should be ("1")
     results.results.last.id should be ("3")
   }
 
+  test("That search combined with filter by id only returns documents matching the query with one of the given ids") {
+    val results = searchService.matchingQuery(Seq("bil"), List(3), Some("nb"), None, None, None, Sort.ByRelevanceDesc)
+    results.totalCount should be (1)
+    results.results.head.id should be ("3")
+    results.results.last.id should be ("3")
+  }
+
   test("That search matches title") {
-    val results = searchService.matchingQuery(Seq("Pingvinen"), Some("nb"), None, None, None, Sort.ByTitleAsc)
+    val results = searchService.matchingQuery(Seq("Pingvinen"), List(), Some("nb"), None, None, None, Sort.ByTitleAsc)
     results.totalCount should be (1)
     results.results.head.id should be ("2")
   }
 
   test("That search matches tags") {
-    val results = searchService.matchingQuery(Seq("and"), Some("nb"), None, None, None, Sort.ByTitleAsc)
+    val results = searchService.matchingQuery(Seq("and"), List(), Some("nb"), None, None, None, Sort.ByTitleAsc)
     results.totalCount should be (1)
     results.results.head.id should be ("3")
   }
 
   test("That search does not return superman since it has license copyrighted and license is not specified") {
-    val results = searchService.matchingQuery(Seq("supermann"), Some("nb"), None, None, None, Sort.ByTitleAsc)
+    val results = searchService.matchingQuery(Seq("supermann"), List(), Some("nb"), None, None, None, Sort.ByTitleAsc)
     results.totalCount should be (0)
   }
 
   test("That search returns superman since license is specified as copyrighted") {
-    val results = searchService.matchingQuery(Seq("supermann"), Some("nb"), Some("copyrighted"), None, None, Sort.ByTitleAsc)
+    val results = searchService.matchingQuery(Seq("supermann"), List(), Some("nb"), Some("copyrighted"), None, None, Sort.ByTitleAsc)
     results.totalCount should be (1)
     results.results.head.id should be ("4")
   }

@@ -63,8 +63,9 @@ trait SearchService {
         hit.get("license").getAsString)
     }
 
-    def all(language: Option[String], license: Option[String], page: Option[Int], pageSize: Option[Int], sort: Sort.Value): SearchResult = {
+    def all(withIdIn: List[Long], language: Option[String], license: Option[String], page: Option[Int], pageSize: Option[Int], sort: Sort.Value): SearchResult = {
       executeSearch(
+        withIdIn,
         language.getOrElse(Language.DefaultLanguage),
         license,
         sort,
@@ -73,7 +74,7 @@ trait SearchService {
         QueryBuilders.boolQuery())
     }
 
-    def matchingQuery(query: Iterable[String], language: Option[String], license: Option[String], page: Option[Int], pageSize: Option[Int], sort: Sort.Value): SearchResult = {
+    def matchingQuery(query: Iterable[String], withIdIn: List[Long], language: Option[String], license: Option[String], page: Option[Int], pageSize: Option[Int], sort: Sort.Value): SearchResult = {
       val searchLanguage = language.getOrElse(Language.DefaultLanguage)
 
       val titleSearch = QueryBuilders.matchQuery(s"title.$searchLanguage", query.mkString(" ")).operator(MatchQueryBuilder.Operator.AND)
@@ -86,16 +87,21 @@ trait SearchService {
           .should(QueryBuilders.nestedQuery("content", contentSearch))
           .should(QueryBuilders.nestedQuery("tags", tagSearch)))
 
-      executeSearch(searchLanguage, license, sort, page, pageSize, fullSearch)
+      executeSearch(withIdIn, searchLanguage, license, sort, page, pageSize, fullSearch)
     }
 
-    def executeSearch(language: String, license: Option[String], sort: Sort.Value, page: Option[Int], pageSize: Option[Int], queryBuilder: BoolQueryBuilder): SearchResult = {
+    def executeSearch(withIdIn: List[Long], language: String, license: Option[String], sort: Sort.Value, page: Option[Int], pageSize: Option[Int], queryBuilder: BoolQueryBuilder): SearchResult = {
       val filteredSearch = license match {
         case None => queryBuilder.filter(noCopyright)
         case Some(lic) => queryBuilder.filter(QueryBuilders.termQuery("license", lic))
       }
 
-      val searchQuery = new SearchSourceBuilder().query(filteredSearch).sort(getSortDefinition(sort, language))
+      val idFilteredSearch = withIdIn match {
+        case head :: tail => filteredSearch.filter(QueryBuilders.idsQuery(ArticleApiProperties.SearchDocument).addIds(head.toString :: tail.map(_.toString):_*))
+        case Nil => filteredSearch
+      }
+
+      val searchQuery = new SearchSourceBuilder().query(idFilteredSearch).sort(getSortDefinition(sort, language))
 
       val (startAt, numResults) = getStartAtAndNumResults(page, pageSize)
       val request = new Search.Builder(searchQuery.toString)
@@ -117,6 +123,8 @@ trait SearchService {
         case (Sort.ByRelevanceDesc) => SortBuilders.fieldSort("_score").order(SortOrder.DESC)
         case (Sort.ByLastUpdatedAsc) => SortBuilders.fieldSort("lastUpdated").order(SortOrder.ASC).missing("_last")
         case (Sort.ByLastUpdatedDesc) => SortBuilders.fieldSort("lastUpdated").order(SortOrder.DESC).missing("_last")
+        case (Sort.ByIdAsc) => SortBuilders.fieldSort("id").order(SortOrder.ASC).missing("_last")
+        case (Sort.ByIdDesc) => SortBuilders.fieldSort("id").order(SortOrder.DESC).missing("_last")
       }
     }
 
