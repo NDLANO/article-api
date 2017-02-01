@@ -15,8 +15,8 @@ import io.searchbox.core.{Count, Search, SearchResult => JestSearchResult}
 import io.searchbox.params.Parameters
 import no.ndla.articleapi.ArticleApiProperties
 import no.ndla.articleapi.integration.ElasticClient
-import no.ndla.articleapi.model.api.{ArticleSummary, ArticleTitle, SearchResult}
-import no.ndla.articleapi.model.domain.{Language, NdlaSearchException, Sort}
+import no.ndla.articleapi.model.api.{ArticleSummary, ArticleTitle, VisualElement, ArticleIntroduction, SearchResult}
+import no.ndla.articleapi.model.domain._
 import no.ndla.network.ApplicationUrl
 import org.elasticsearch.ElasticsearchException
 import org.elasticsearch.index.IndexNotFoundException
@@ -57,6 +57,8 @@ trait SearchService {
       ArticleSummary(
         hit.get("id").getAsString,
         hit.get("title").getAsJsonObject.entrySet().to[Seq].map(entr => ArticleTitle(entr.getValue.getAsString, Some(entr.getKey))),
+        hit.get("visualElement").getAsJsonObject.entrySet().to[Seq].map(entr => VisualElement(entr.getValue.getAsString, Some(entr.getKey))),
+        hit.get("introduction").getAsJsonObject.entrySet().to[Seq].map(entr => ArticleIntroduction(entr.getValue.getAsString, Some(entr.getKey))),
         ApplicationUrl.get + hit.get("id").getAsString,
         hit.get("license").getAsString)
     }

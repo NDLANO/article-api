@@ -40,6 +40,7 @@ class SearchServiceTest extends UnitSuite with TestEnvironment {
   val article1 = TestData.sampleArticleWithByNcSa.copy(
     id=Option(1),
     title=List(ArticleTitle("Batmen er på vift med en bil", Some("nb"))),
+    introduction=List(ArticleIntroduction("Batmen", Some("nb"))),
     content=List(ArticleContent("Bilde av en <strong>bil</strong> flaggermusmann som vifter med vingene <em>bil</em>.", None, Some("nb"))),
     tags=List(ArticleTag(List("fugl"), Some("nb"))),
     created=today.minusDays(4).toDate,
@@ -47,6 +48,7 @@ class SearchServiceTest extends UnitSuite with TestEnvironment {
   val article2 = TestData.sampleArticleWithPublicDomain.copy(
     id=Option(2),
     title=List(ArticleTitle("Pingvinen er ute og går", Some("nb"))),
+    introduction=List(ArticleIntroduction("Pingvinen", Some("nb"))),
     content=List(ArticleContent("<p>Bilde av en</p><p> en <em>pingvin</em> som vagger borover en gate</p>", None, Some("nb"))),
     tags=List(ArticleTag(List("fugl"), Some("nb"))),
     created=today.minusDays(4).toDate,
@@ -54,6 +56,7 @@ class SearchServiceTest extends UnitSuite with TestEnvironment {
   val article3 = TestData.sampleArticleWithPublicDomain.copy(
     id=Option(3),
     title=List(ArticleTitle("Donald Duck kjører bil", Some("nb"))),
+    introduction=List(ArticleIntroduction("Donald Duck", Some("nb"))),
     content=List(ArticleContent("<p>Bilde av en en and</p><p> som <strong>kjører</strong> en rød bil.</p>", None, Some("nb"))),
     tags=List(ArticleTag(List("and"), Some("nb"))),
     created=today.minusDays(4).toDate,
@@ -62,6 +65,7 @@ class SearchServiceTest extends UnitSuite with TestEnvironment {
   val article4 = TestData.sampleArticleWithCopyrighted.copy(
     id=Option(4),
     title=List(ArticleTitle("Superman er ute og flyr", Some("nb"))),
+    introduction=List(ArticleIntroduction("Superman", Some("nb"))),
     content=List(ArticleContent("<p>Bilde av en flygende mann</p><p> som <strong>har</strong> superkrefter.</p>", None, Some("nb"))),
     tags=List(ArticleTag(List("supermann"), Some("nb"))),
     created=today.minusDays(4).toDate,

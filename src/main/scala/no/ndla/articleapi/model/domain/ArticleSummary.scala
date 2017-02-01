@@ -8,8 +8,4 @@
 
 package no.ndla.articleapi.model.domain
 
-import org.scalatra.swagger.annotations.{ApiModel, ApiModelProperty}
-
-import scala.annotation.meta.field
-
-case class ArticleSummary(id: Long, title: Seq[ArticleTitle], url: String, license: String)
+case class ArticleSummary(id: Long, title: Seq[ArticleTitle], visualElement: Seq[VisualElement], introduction: Seq[ArticleIntroduction], url: String, license: String)
