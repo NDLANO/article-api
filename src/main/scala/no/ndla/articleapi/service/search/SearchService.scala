@@ -15,8 +15,8 @@ import io.searchbox.core.{Count, Search, SearchResult => JestSearchResult}
 import io.searchbox.params.Parameters
 import no.ndla.articleapi.ArticleApiProperties
 import no.ndla.articleapi.integration.ElasticClient
-import no.ndla.articleapi.model.api.{ArticleSummary, ArticleTitle, SearchResult}
-import no.ndla.articleapi.model.domain.{Language, NdlaSearchException, Sort}
+import no.ndla.articleapi.model.api.{ArticleSummary, ArticleTitle, VisualElement, ArticleIntroduction, SearchResult}
+import no.ndla.articleapi.model.domain._
 import no.ndla.network.ApplicationUrl
 import org.elasticsearch.ElasticsearchException
 import org.elasticsearch.index.IndexNotFoundException
@@ -57,12 +57,15 @@ trait SearchService {
       ArticleSummary(
         hit.get("id").getAsString,
         hit.get("title").getAsJsonObject.entrySet().to[Seq].map(entr => ArticleTitle(entr.getValue.getAsString, Some(entr.getKey))),
+        hit.get("visualElement").getAsJsonObject.entrySet().to[Seq].map(entr => VisualElement(entr.getValue.getAsString, Some(entr.getKey))),
+        hit.get("introduction").getAsJsonObject.entrySet().to[Seq].map(entr => ArticleIntroduction(entr.getValue.getAsString, Some(entr.getKey))),
         ApplicationUrl.get + hit.get("id").getAsString,
         hit.get("license").getAsString)
     }
 
-    def all(language: Option[String], license: Option[String], page: Option[Int], pageSize: Option[Int], sort: Sort.Value): SearchResult = {
+    def all(withIdIn: List[Long], language: Option[String], license: Option[String], page: Option[Int], pageSize: Option[Int], sort: Sort.Value): SearchResult = {
       executeSearch(
+        withIdIn,
         language.getOrElse(Language.DefaultLanguage),
         license,
         sort,
@@ -71,7 +74,7 @@ trait SearchService {
         QueryBuilders.boolQuery())
     }
 
-    def matchingQuery(query: Iterable[String], language: Option[String], license: Option[String], page: Option[Int], pageSize: Option[Int], sort: Sort.Value): SearchResult = {
+    def matchingQuery(query: Iterable[String], withIdIn: List[Long], language: Option[String], license: Option[String], page: Option[Int], pageSize: Option[Int], sort: Sort.Value): SearchResult = {
       val searchLanguage = language.getOrElse(Language.DefaultLanguage)
 
       val titleSearch = QueryBuilders.matchQuery(s"title.$searchLanguage", query.mkString(" ")).operator(MatchQueryBuilder.Operator.AND)
@@ -84,16 +87,21 @@ trait SearchService {
           .should(QueryBuilders.nestedQuery("content", contentSearch))
           .should(QueryBuilders.nestedQuery("tags", tagSearch)))
 
-      executeSearch(searchLanguage, license, sort, page, pageSize, fullSearch)
+      executeSearch(withIdIn, searchLanguage, license, sort, page, pageSize, fullSearch)
     }
 
-    def executeSearch(language: String, license: Option[String], sort: Sort.Value, page: Option[Int], pageSize: Option[Int], queryBuilder: BoolQueryBuilder): SearchResult = {
+    def executeSearch(withIdIn: List[Long], language: String, license: Option[String], sort: Sort.Value, page: Option[Int], pageSize: Option[Int], queryBuilder: BoolQueryBuilder): SearchResult = {
       val filteredSearch = license match {
         case None => queryBuilder.filter(noCopyright)
         case Some(lic) => queryBuilder.filter(QueryBuilders.termQuery("license", lic))
       }
 
-      val searchQuery = new SearchSourceBuilder().query(filteredSearch).sort(getSortDefinition(sort, language))
+      val idFilteredSearch = withIdIn match {
+        case head :: tail => filteredSearch.filter(QueryBuilders.idsQuery(ArticleApiProperties.SearchDocument).addIds(head.toString :: tail.map(_.toString):_*))
+        case Nil => filteredSearch
+      }
+
+      val searchQuery = new SearchSourceBuilder().query(idFilteredSearch).sort(getSortDefinition(sort, language))
 
       val (startAt, numResults) = getStartAtAndNumResults(page, pageSize)
       val request = new Search.Builder(searchQuery.toString)
@@ -115,6 +123,8 @@ trait SearchService {
         case (Sort.ByRelevanceDesc) => SortBuilders.fieldSort("_score").order(SortOrder.DESC)
         case (Sort.ByLastUpdatedAsc) => SortBuilders.fieldSort("lastUpdated").order(SortOrder.ASC).missing("_last")
         case (Sort.ByLastUpdatedDesc) => SortBuilders.fieldSort("lastUpdated").order(SortOrder.DESC).missing("_last")
+        case (Sort.ByIdAsc) => SortBuilders.fieldSort("id").order(SortOrder.ASC).missing("_last")
+        case (Sort.ByIdDesc) => SortBuilders.fieldSort("id").order(SortOrder.DESC).missing("_last")
       }
     }
 

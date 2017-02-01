@@ -77,8 +77,10 @@ trait IndexService {
       mapping(ArticleApiProperties.SearchDocument).fields(
         "id" typed IntegerType,
         languageSupportedField("title", keepRaw = true),
-        languageSupportedField("content", keepRaw = false),
-        languageSupportedField("tags", keepRaw = false),
+        languageSupportedField("content"),
+        languageSupportedField("visualElement"),
+        languageSupportedField("introduction"),
+        languageSupportedField("tags"),
         "lastUpdated" typed DateType,
         "license" typed StringType index "not_analyzed",
         "authors" typed StringType
