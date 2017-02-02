@@ -131,7 +131,15 @@ trait ConverterService {
     }
 
     def toDomainContent(articleContent: api.ArticleContent): domain.ArticleContent = {
-      domain.ArticleContent(articleContent.content, None, articleContent.language) // TODO: footnotes
+      domain.ArticleContent(articleContent.content, articleContent.footNotes.map(toDomainFootNotes), articleContent.language)
+    }
+
+    def toDomainFootNotes(footNotes: Map[String, api.FootNoteItem]): Map[String, domain.FootNoteItem] = {
+      footNotes map { case (key, value) => key -> toDomainFootNote(value) }
+    }
+
+    def toDomainFootNote(footNote: api.FootNoteItem): domain.FootNoteItem = {
+      domain.FootNoteItem(footNote.title, footNote.`type`, footNote.year, footNote.edition, footNote.publisher, footNote.authors)
     }
 
     def toDomainCopyright(copyright: api.Copyright): domain.Copyright = {
