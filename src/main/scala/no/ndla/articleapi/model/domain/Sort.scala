@@ -15,6 +15,8 @@ object Sort  extends Enumeration {
   val ByTitleAsc = Value("title")
   val ByLastUpdatedDesc = Value("-lastUpdated")
   val ByLastUpdatedAsc = Value("lastUpdated")
+  val ByIdDesc = Value("-id")
+  val ByIdAsc = Value("id")
 
 
   def valueOf(s:String): Option[Sort.Value] = {

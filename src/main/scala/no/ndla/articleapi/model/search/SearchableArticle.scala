@@ -19,6 +19,8 @@ case class SearchableLanguageList(languageValues: Seq[LanguageValue[Seq[String]]
 case class SearchableArticle(id: Long,
                              title: SearchableLanguageValues,
                              content: SearchableLanguageValues,
+                             visualElement: SearchableLanguageValues,
+                             introduction: SearchableLanguageValues,
                              tags: SearchableLanguageList,
                              lastUpdated: Date,
                              license: String,
