@@ -9,20 +9,21 @@
 package no.ndla.articleapi.service.converters
 
 import no.ndla.articleapi.integration.{ConverterModule, LanguageContent}
-import no.ndla.articleapi.integration.ConverterModule.{stringToJsoupDocument, jsoupDocumentToString}
+import no.ndla.articleapi.integration.ConverterModule.{jsoupDocumentToString, stringToJsoupDocument}
 import no.ndla.articleapi.model.domain.ImportStatus
 import org.jsoup.nodes.Element
 
 import scala.collection.JavaConversions._
+import scala.util.{Success, Try}
 
 object TableConverter extends ConverterModule {
-  override def convert(content: LanguageContent, importStatus: ImportStatus): (LanguageContent, ImportStatus) = {
+  override def convert(content: LanguageContent, importStatus: ImportStatus): Try[(LanguageContent, ImportStatus)] = {
     val element = stringToJsoupDocument(content.content)
 
     stripParagraphTag(element)
     convertFirstTrToTh(element)
 
-    (content.copy(content=jsoupDocumentToString(element)), importStatus)
+    Success(content.copy(content=jsoupDocumentToString(element)), importStatus)
   }
 
   def stripParagraphTag(el: Element) = {

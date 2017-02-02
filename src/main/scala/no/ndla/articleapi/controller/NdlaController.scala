@@ -13,12 +13,13 @@ import javax.servlet.http.HttpServletRequest
 
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.articleapi.ArticleApiProperties.{CorrelationIdHeader, CorrelationIdKey}
-import no.ndla.articleapi.model.api.{Error, NotFoundException, ValidationError, ValidationException, ValidationMessage}
+import no.ndla.articleapi.model.api.{Error, ImportExceptions, NotFoundException, ValidationError, ValidationException, ValidationMessage}
+import no.ndla.articleapi.model.domain.ImportError
 import no.ndla.network.{ApplicationUrl, CorrelationID}
 import org.apache.logging.log4j.ThreadContext
 import org.elasticsearch.index.IndexNotFoundException
 import org.json4s.{DefaultFormats, Formats}
-import org.scalatra.{BadRequest, InternalServerError, NotFound, ScalatraServlet}
+import org.scalatra._
 import org.scalatra.json.NativeJsonSupport
 
 abstract class NdlaController extends ScalatraServlet with NativeJsonSupport with LazyLogging {
@@ -42,6 +43,7 @@ abstract class NdlaController extends ScalatraServlet with NativeJsonSupport wit
     case v: ValidationException => BadRequest(body=ValidationError(messages=v.errors))
     case e: IndexNotFoundException => InternalServerError(body=Error.IndexMissingError)
     case n: NotFoundException => NotFound(body=Error(Error.NOT_FOUND, n.getMessage))
+    case i: ImportExceptions => UnprocessableEntity(body=ImportError(i.message, i.errors.map(_.getMessage)))
     case t: Throwable => {
       logger.error(Error.GenericError.toString, t)
       InternalServerError(body=Error.GenericError)

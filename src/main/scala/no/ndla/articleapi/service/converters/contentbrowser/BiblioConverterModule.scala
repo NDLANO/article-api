@@ -13,15 +13,17 @@ import no.ndla.articleapi.model.domain.{ImportStatus, RequiredLibrary}
 import no.ndla.articleapi.repository.ArticleRepository
 import no.ndla.articleapi.service.{ExtractConvertStoreContent, ExtractService}
 
+import scala.util.{Success, Try}
+
 trait BiblioConverterModule {
   this: ExtractService with ExtractConvertStoreContent with ArticleRepository =>
 
   object BiblioConverter extends ContentBrowserConverterModule with LazyLogging {
     override val typeName: String = "biblio"
 
-    override def convert(content: ContentBrowser, visitedNodes: Seq[String]): (String, Seq[RequiredLibrary], ImportStatus) = {
+    override def convert(content: ContentBrowser, visitedNodes: Seq[String]): Try[(String, Seq[RequiredLibrary], ImportStatus)] = {
       val nodeId = content.get("nid")
-      (s"""<a id="biblio-$nodeId"></a>""", List[RequiredLibrary](), ImportStatus(Seq(), visitedNodes))
+      Success(s"""<a id="biblio-$nodeId"></a>""", List[RequiredLibrary](), ImportStatus(Seq(), visitedNodes))
     }
   }
 }

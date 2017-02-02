@@ -10,17 +10,18 @@
 package no.ndla.articleapi.service.converters.contentbrowser
 
 import com.typesafe.scalalogging.LazyLogging
+import no.ndla.articleapi.model.api.ImportException
 import no.ndla.articleapi.model.domain.{ImportStatus, RequiredLibrary}
+
+import scala.util.{Failure, Try}
 
 trait NonExistentNodeConverterModule {
 
   object NonExistentNodeConverter extends ContentBrowserConverterModule with LazyLogging {
     override val typeName: String = "NodeDoesNotExist"
 
-    override def convert(content: ContentBrowser, visitedNodes: Seq[String]): (String, Seq[RequiredLibrary], ImportStatus) = {
-      val message = s"Found nonexistant node with id ${content.get("nid")}"
-      logger.warn(message)
-      ("", List[RequiredLibrary](), ImportStatus(message, visitedNodes))
+    override def convert(content: ContentBrowser, visitedNodes: Seq[String]): Try[(String, Seq[RequiredLibrary], ImportStatus)] = {
+      Failure(ImportException(s"Found nonexistant node with id ${content.get("nid")}"))
     }
   }
 }

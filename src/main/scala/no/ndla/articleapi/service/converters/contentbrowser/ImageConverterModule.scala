@@ -12,7 +12,10 @@ package no.ndla.articleapi.service.converters.contentbrowser
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.articleapi.model.domain.{ImportStatus, RequiredLibrary}
 import no.ndla.articleapi.integration.ImageApiClient
+import no.ndla.articleapi.model.api.ImportException
 import no.ndla.articleapi.service.converters.HtmlTagGenerator
+
+import scala.util.{Failure, Success, Try}
 
 trait ImageConverterModule {
   this: ImageApiClient with HtmlTagGenerator =>
@@ -20,24 +23,26 @@ trait ImageConverterModule {
   object ImageConverter extends ContentBrowserConverterModule with LazyLogging {
     override val typeName: String = "image"
 
-    override def convert(content: ContentBrowser, visitedNodes: Seq[String]): (String, Seq[RequiredLibrary], ImportStatus) = {
-      val (replacement, errors) = getImage(content)
-      logger.info(s"Converting image with nid ${content.get("nid")}")
-      (replacement, List[RequiredLibrary](), ImportStatus(errors, visitedNodes))
+    override def convert(content: ContentBrowser, visitedNodes: Seq[String]): Try[(String, Seq[RequiredLibrary], ImportStatus)] = {
+      val nodeId = content.get("nid")
+      logger.info(s"Converting image with nid $nodeId")
+      getImage(content).map(imageHtml => (imageHtml, Seq(), ImportStatus(Seq(), visitedNodes))) match {
+        case Success(x) => Success(x)
+        case Failure(_) => Failure(ImportException(s"Failed to import image with node id $nodeId"))
+      }
     }
 
-    def getImage(cont: ContentBrowser): (String, Seq[String]) = {
+    def getImage(cont: ContentBrowser): Try[String] = {
       val alignment = getImageAlignment(cont)
       imageApiClient.importOrGetMetaByExternId(cont.get("nid")) match {
-        case Some(image) => (HtmlTagGenerator.buildImageEmbedContent(
+        case Some(image) => Success(HtmlTagGenerator.buildImageEmbedContent(
           caption=cont.get("link_text"),
           imageId=image.id,
           align=alignment.getOrElse(""),
           size=cont.get("imagecache").toLowerCase,
-          altText=cont.get("alt")), Seq())
+          altText=cont.get("alt")))
         case None =>
-          (s"<img src='stock.jpeg' alt='The image with id ${cont.get("nid")} was not not found' />",
-            Seq(s"Image with id ${cont.get("nid")} was not found"))
+          Failure(ImportException(s"Failed to import image with ID ${cont.get("nid")}"))
       }
     }
 

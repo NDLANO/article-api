@@ -15,12 +15,14 @@ import com.typesafe.scalalogging.LazyLogging
 import no.ndla.articleapi.integration.AmazonClient
 import no.ndla.articleapi.model.domain.ContentFilMeta
 
+import scala.util.Try
+
 trait AttachmentStorageService {
   this: AmazonClient =>
   val attachmentStorageService: AmazonStorageService
 
   class AmazonStorageService extends LazyLogging {
-    def uploadFileFromUrl(storageKeyPrefix: String, filMeta: ContentFilMeta): Option[String] = {
+    def uploadFileFromUrl(storageKeyPrefix: String, filMeta: ContentFilMeta): Try[String] = {
       val storageKey = s"$storageKeyPrefix/${filMeta.fileName}"
       val connection = filMeta.url.openConnection()
       val metaData = new ObjectMetadata()
@@ -30,17 +32,8 @@ trait AttachmentStorageService {
       uploadFile(new PutObjectRequest(attachmentStorageName, storageKey, connection.getInputStream, metaData), storageKey)
     }
 
-  def uploadFile(request: PutObjectRequest, storageKey: String): Option[String] = {
-    try {
-      amazonClient.putObject(request)
-      Some(storageKey)
-    } catch {
-      case ace @ (_: AmazonClientException | _: AmazonServiceException) => {
-        logger.warn("Failed to upload file to S3")
-        None
-      }
-    }
-  }
+  def uploadFile(request: PutObjectRequest, storageKey: String): Try[String] =
+    Try(amazonClient.putObject(request)).map(_ => storageKey)
 
     def contains(storageKey: String): Boolean = {
       try {

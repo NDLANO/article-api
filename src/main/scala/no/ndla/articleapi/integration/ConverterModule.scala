@@ -13,27 +13,30 @@ import no.ndla.articleapi.model.domain._
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Element
 import org.jsoup.nodes.Entities.EscapeMode
+
 import scala.annotation.tailrec
+import scala.util.{Failure, Success, Try}
 
 trait ConverterModule {
-  def convert(content: LanguageContent, importStatus: ImportStatus): (LanguageContent, ImportStatus)
+  def convert(content: LanguageContent, importStatus: ImportStatus): Try[(LanguageContent, ImportStatus)]
 
-  def convert(nodeToConvert: NodeToConvert, importStatus: ImportStatus): (NodeToConvert, ImportStatus) = {
-    @tailrec def convertLoop(contents: Seq[LanguageContent], convertedContents: Seq[LanguageContent], importStatus: ImportStatus): (Seq[LanguageContent], ImportStatus) = {
+  def convert(nodeToConvert: NodeToConvert, importStatus: ImportStatus): Try[(NodeToConvert, ImportStatus)] = {
+    @tailrec def convertLoop(contents: Seq[LanguageContent], convertedContents: Seq[LanguageContent], importStatus: ImportStatus): Try[(Seq[LanguageContent], ImportStatus)] = {
       if (contents.isEmpty) {
-        (convertedContents, importStatus)
+        Success(convertedContents, importStatus)
       } else {
         val nodeToConvert = contents.head
-        val (content, status) = convert(nodeToConvert, importStatus)
 
-        convertLoop(contents.tail, convertedContents :+ content, status)
+        convert(nodeToConvert, importStatus) match {
+          case Success((content, status)) => convertLoop(contents.tail, convertedContents :+ content, status)
+          case Failure(x) => Failure(x)
+        }
       }
     }
 
-    val (convertedContent, contentImportStatus) = convertLoop(nodeToConvert.contents, Seq(), importStatus)
-
-
-    (nodeToConvert.copy(contents=convertedContent), contentImportStatus)
+    convertLoop(nodeToConvert.contents, Seq(), importStatus) map { case (convertedContent, contentImportStatus) =>
+      (nodeToConvert.copy(contents=convertedContent), contentImportStatus)
+    }
   }
 }
 
