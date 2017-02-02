@@ -10,6 +10,7 @@
 package no.ndla.articleapi.service.converters.contentbrowser
 
 import com.netaporter.uri.dsl._
+import com.netaporter.uri.Uri.parse
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.articleapi.integration.MigrationEmbedMeta
 import no.ndla.articleapi.model.domain.{ImportStatus, RequiredLibrary}
@@ -17,7 +18,7 @@ import no.ndla.articleapi.service.ExtractService
 import no.ndla.articleapi.service.converters.{Attributes, HtmlTagGenerator}
 import org.jsoup.Jsoup
 
-import scala.util.Try
+import scala.util.{Failure, Success, Try}
 
 trait LenkeConverterModule {
   this: ExtractService with HtmlTagGenerator =>
@@ -51,13 +52,16 @@ trait LenkeConverterModule {
       }
 
       val NDLAPattern = """.*(ndla.no).*""".r
-      Try(url.host.getOrElse("")).getOrElse("") match {
-        case NDLAPattern(_) => {
-          logger.warn("Link to NDLA resource: '{}'", url)
-          (htmlTag, requiredLibrary.toList, errors :+ s"(Warning) Link to NDLA resource '$url'")
+      val warnings =  Try(parse(url)) match {
+        case Success(uri) => uri.host.getOrElse("") match {
+          case NDLAPattern(_) => Seq(s"Link to NDLA old resource: '$url'")
+          case _ => Seq()
         }
-        case _ => (htmlTag, requiredLibrary.toList, errors)
+        case Failure(_) => Seq(s"Link in article is invalid: '$url'")
       }
+
+      warnings.foreach(msg => logger.warn(msg))
+      (htmlTag, requiredLibrary.toList, errors ++ warnings)
     }
 
     private def insertInline(url: String, embedCode: String, cont: ContentBrowser): (String, Option[RequiredLibrary], Seq[String]) = {
