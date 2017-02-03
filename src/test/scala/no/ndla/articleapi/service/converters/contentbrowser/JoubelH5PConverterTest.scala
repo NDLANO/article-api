@@ -12,6 +12,8 @@ package no.ndla.articleapi.service.converters.contentbrowser
 import no.ndla.articleapi.{TestEnvironment, UnitSuite}
 import no.ndla.articleapi.ArticleApiProperties.resourceHtmlEmbedTag
 
+import scala.util.Success
+
 class JoubelH5PConverterTest extends UnitSuite with TestEnvironment {
   val (validNodeId, joubelH5PIdId) = ValidH5PNodeIds.head
   val invalidNodeId = "123123"
@@ -22,7 +24,7 @@ class JoubelH5PConverterTest extends UnitSuite with TestEnvironment {
   test("Contentbrowser strings of type 'h5p_content' returns a h5p embed-resource") {
     val expectedResult = s"""<$resourceHtmlEmbedTag data-resource="h5p" data-url="${JoubelH5PConverter.JoubelH5PBaseUrl}/$joubelH5PIdId" />"""
     val content = ContentBrowser(contentStringWithValidNodeId, Some("nb"))
-    val (result, requiredLibraries, errors) = JoubelH5PConverter.convert(content, Seq())
+    val Success((result, requiredLibraries, errors)) = JoubelH5PConverter.convert(content, Seq())
 
     result should equal(expectedResult)
     errors.messages.length should equal(0)
@@ -32,7 +34,7 @@ class JoubelH5PConverterTest extends UnitSuite with TestEnvironment {
   test("H5P nodes with an invalid node id returns an error embed-resource") {
     val expectedResult = s"""<$resourceHtmlEmbedTag data-message="H5P node $invalidNodeId is not yet exported to new H5P service" data-resource="error" />"""
     val content = ContentBrowser(contentStringWithInvalidNodeId, Some("nb"))
-    val (result, requiredLibraries, errors) = JoubelH5PConverter.convert(content, Seq())
+    val Success((result, requiredLibraries, errors)) = JoubelH5PConverter.convert(content, Seq())
 
     result should equal(expectedResult)
     errors.messages.length should equal(1)

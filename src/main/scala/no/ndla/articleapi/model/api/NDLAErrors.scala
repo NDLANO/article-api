@@ -35,4 +35,7 @@ object Error {
 }
 
 case class NotFoundException(message: String) extends RuntimeException(message)
+case class ImportException(message: String) extends RuntimeException(message)
+
+class ImportExceptions(val message: String, val errors: Seq[Throwable]) extends RuntimeException(message)
 class ValidationException(message: String = "Validation Error", val errors: Seq[ValidationMessage]) extends RuntimeException(message)

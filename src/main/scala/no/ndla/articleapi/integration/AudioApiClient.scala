@@ -23,10 +23,10 @@ trait AudioApiClient {
     private val AudioMetaFromExternalIdEndpoint = s"$AudioMetaInternEndpoint/:external_id"
     private val ImportAudioEndpoint = s"$AudioMetaInternEndpoint/import/:external_id"
 
-    def getOrImportAudio(externalId: String): Option[Long] = {
+    def getOrImportAudio(externalId: String): Try[Long] = {
       getAudioFromExternalId(externalId) match {
-        case Failure(_) => importAudio(externalId).toOption
-        case Success(audio) => Some(audio)
+        case Failure(_) => importAudio(externalId)
+        case Success(audio) => Success(audio)
       }
     }
 

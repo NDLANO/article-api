@@ -10,13 +10,14 @@
 package no.ndla.articleapi.service.converters
 
 import no.ndla.articleapi.integration.{ConverterModule, LanguageContent}
-import no.ndla.articleapi.integration.ConverterModule.{stringToJsoupDocument, jsoupDocumentToString}
+import no.ndla.articleapi.integration.ConverterModule.{jsoupDocumentToString, stringToJsoupDocument}
 import no.ndla.articleapi.model.domain.ImportStatus
 
 import scala.collection.JavaConversions._
+import scala.util.{Success, Try}
 
 object DivTableConverter extends ConverterModule {
-  def convert(content: LanguageContent, importStatus: ImportStatus): (LanguageContent, ImportStatus) = {
+  def convert(content: LanguageContent, importStatus: ImportStatus): Try[(LanguageContent, ImportStatus)] = {
     val element = stringToJsoupDocument(content.content)
     for (div <- element.select("div.ndla_table, div.ndla_table_row, div.ndla_table_cell, div.ndla_table_cell_content")) {
 
@@ -37,6 +38,6 @@ object DivTableConverter extends ConverterModule {
       }
     }
 
-    (content.copy(content=jsoupDocumentToString(element)), importStatus)
+    Success((content.copy(content=jsoupDocumentToString(element)), importStatus))
   }
 }

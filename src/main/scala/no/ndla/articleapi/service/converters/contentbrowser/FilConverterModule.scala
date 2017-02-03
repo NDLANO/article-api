@@ -9,35 +9,29 @@
 
 package no.ndla.articleapi.service.converters.contentbrowser
 import com.typesafe.scalalogging.LazyLogging
+import no.ndla.articleapi.model.api.ImportException
 import no.ndla.articleapi.model.domain.{ImportStatus, RequiredLibrary}
-import no.ndla.articleapi.service.{ExtractService, AttachmentStorageService}
+import no.ndla.articleapi.service.converters.HtmlTagGenerator
+import no.ndla.articleapi.service.{AttachmentStorageService, ExtractService}
+
+import scala.util.{Failure, Success, Try}
 
 trait FilConverterModule {
-  this: ExtractService with AttachmentStorageService =>
+  this: ExtractService with AttachmentStorageService with HtmlTagGenerator =>
 
   object FilConverter extends ContentBrowserConverterModule with LazyLogging {
     override val typeName: String = "fil"
 
-    override def convert(content: ContentBrowser, visitedNodes: Seq[String]): (String, Seq[RequiredLibrary], ImportStatus) = {
+    override def convert(content: ContentBrowser, visitedNodes: Seq[String]): Try[(String, Seq[RequiredLibrary], ImportStatus)] = {
       val nodeId = content.get("nid")
+      val importedFile = for {
+        fileMeta <- extractService.getNodeFilMeta(nodeId)
+        audioPath <- attachmentStorageService.uploadFileFromUrl(nodeId, fileMeta)
+      } yield (HtmlTagGenerator.buildAnchor(audioPath, fileMeta.fileName, fileMeta.fileName), Seq(), ImportStatus(visitedNodes))
 
-      extractService.getNodeFilMeta(nodeId) match {
-        case Some(fileMeta) => {
-          val (filePath, uploadError) = attachmentStorageService.uploadFileFromUrl(nodeId, fileMeta) match {
-            case Some(path) => (path, List())
-            case None => {
-              val msg = s"Failed to upload audio (node $nodeId)"
-              logger.warn(msg)
-              ("", List(msg))
-            }
-          }
-          (s"""<a href="$filePath">${fileMeta.fileName}</a>""", List[RequiredLibrary](), ImportStatus(uploadError, visitedNodes))
-        }
-        case None => {
-          val message = s"File with node ID $nodeId was not found"
-          logger.warn(message)
-          ("", List[RequiredLibrary](), ImportStatus(List(message), visitedNodes))
-        }
+      importedFile match {
+        case Success(x) => Success(x)
+        case Failure(_) => Failure(ImportException(s"Failed to import file with node id $nodeId"))
       }
     }
 

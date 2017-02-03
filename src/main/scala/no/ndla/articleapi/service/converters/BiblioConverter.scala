@@ -11,30 +11,36 @@ package no.ndla.articleapi.service.converters
 
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.articleapi.integration.{ConverterModule, LanguageContent}
-import no.ndla.articleapi.integration.ConverterModule.{stringToJsoupDocument, jsoupDocumentToString}
-import no.ndla.articleapi.model.domain.{ImportStatus, FootNoteItem}
+import no.ndla.articleapi.integration.ConverterModule.{jsoupDocumentToString, stringToJsoupDocument}
+import no.ndla.articleapi.model.api.ImportException
+import no.ndla.articleapi.model.domain.{FootNoteItem, ImportStatus}
 import no.ndla.articleapi.service.ExtractService
 import org.jsoup.nodes.Element
 
 import scala.collection.JavaConversions._
 import scala.annotation.tailrec
+import scala.util.{Failure, Success, Try}
 
 trait BiblioConverter {
   this: ExtractService =>
   val biblioConverter: BiblioConverter
 
   class BiblioConverter extends ConverterModule with LazyLogging {
-    def convert(content: LanguageContent, importStatus: ImportStatus): (LanguageContent, ImportStatus) = {
+    def convert(content: LanguageContent, importStatus: ImportStatus): Try[(LanguageContent, ImportStatus)] = {
       val element = stringToJsoupDocument(content.content)
 
       val references = buildReferences(element)
-      val (map, messages) = references.isEmpty match {
-        case true => return (content, importStatus)
+      val referenceMap = references.isEmpty match {
+        case true => return Success((content, importStatus))
         case false => buildReferenceMap(references)
       }
 
-      val finalImportStatus = ImportStatus(importStatus.messages ++ messages, importStatus.visitedNodes)
-      (content.copy(content=jsoupDocumentToString(element), footNotes=Some(content.footNotes.getOrElse(map))), finalImportStatus)
+      referenceMap match {
+        case Success((map, errors)) =>
+          val finalImportStatus = ImportStatus(importStatus.messages ++ errors, importStatus.visitedNodes)
+          Success((content.copy(content=jsoupDocumentToString(element), footNotes=Some(content.footNotes.getOrElse(map))), finalImportStatus))
+        case Failure(x) => Failure(x)
+      }
     }
 
     def buildReferences(element: Element): Seq[String] = {
@@ -54,17 +60,17 @@ trait BiblioConverter {
       buildReferences(element.select("a[id~=biblio-(.*)]").toList, List(), 1)
     }
 
-    def buildReferenceMap(references: Seq[String]) = {
-      @tailrec def buildReferenceMap(references: Seq[String], biblioMap: Map[String, FootNoteItem], errorList: Seq[String], index: Int): (Map[String, FootNoteItem], Seq[String]) = {
+    def buildReferenceMap(references: Seq[String]): Try[(Map[String, FootNoteItem], Seq[String])] = {
+      @tailrec def buildReferenceMap(references: Seq[String], biblioMap: Map[String, FootNoteItem], errorList: Seq[String], index: Int): Try[(Map[String, FootNoteItem], Seq[String])] = {
         if (references.isEmpty)
-          return (biblioMap, errorList)
+          return Success((biblioMap, errorList))
 
         buildReferenceItem(references.head) match {
           case (Some(fotNote)) => buildReferenceMap(references.tail, biblioMap + (s"ref_$index" -> fotNote), errorList, index + 1)
           case None => {
             val errorMessage = s"Could not find biblio with id ${references.head}"
-            logger.warn(errorMessage)
-            buildReferenceMap(references.tail, biblioMap, errorList :+ errorMessage, index + 1)
+            logger.error(errorMessage)
+            Failure(ImportException(errorMessage))
           }
         }
       }

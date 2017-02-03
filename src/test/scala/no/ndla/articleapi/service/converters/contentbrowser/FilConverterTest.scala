@@ -14,6 +14,8 @@ import no.ndla.articleapi.{TestEnvironment, UnitSuite}
 import org.mockito.Mockito._
 import no.ndla.articleapi.model.domain.ContentFilMeta._
 
+import scala.util.Success
+
 class FilConverterTest extends UnitSuite with TestEnvironment {
   val nodeId = "1234"
   val title = "melon"
@@ -23,11 +25,11 @@ class FilConverterTest extends UnitSuite with TestEnvironment {
     val content = ContentBrowser(contentString, Some("nb"))
     val fileMeta = ContentFilMeta(nodeId, "0", "title", "title.pdf", "http://path/to/title.pdf", "application/pdf", "1024")
     val filePath = s"/some/file/path/to/${fileMeta.fileName}"
-    val expectedResult = s"""<a href="$filePath">${fileMeta.fileName}</a>"""
+    val expectedResult = s"""<a href="$filePath" title="${fileMeta.fileName}">${fileMeta.fileName}</a>"""
 
-    when(extractService.getNodeFilMeta(nodeId)).thenReturn(Some(fileMeta))
-    when(attachmentStorageService.uploadFileFromUrl(nodeId, fileMeta)).thenReturn(Some(filePath))
-    val (result, requiredLibraries, messages) = FilConverter.convert(content, Seq())
+    when(extractService.getNodeFilMeta(nodeId)).thenReturn(Success(fileMeta))
+    when(attachmentStorageService.uploadFileFromUrl(nodeId, fileMeta)).thenReturn(Success(filePath))
+    val Success((result, _, _)) = FilConverter.convert(content, Seq())
 
     result should equal(expectedResult)
     verify(extractService, times(1)).getNodeFilMeta(nodeId)

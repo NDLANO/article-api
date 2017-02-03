@@ -15,19 +15,21 @@ import no.ndla.articleapi.service.ExtractService
 import no.ndla.articleapi.service.converters.HtmlTagGenerator
 import no.ndla.articleapi.ArticleApiProperties.H5PResizerScriptUrl
 
+import scala.util.{Success, Try}
+
 trait H5PConverterModule {
   this: ExtractService with HtmlTagGenerator =>
 
   object H5PConverter extends ContentBrowserConverterModule with LazyLogging {
     override val typeName: String = "h5p_content"
 
-    override def convert(content: ContentBrowser, visitedNodes: Seq[String]): (String, Seq[RequiredLibrary], ImportStatus) = {
+    override def convert(content: ContentBrowser, visitedNodes: Seq[String]): Try[(String, Seq[RequiredLibrary], ImportStatus)] = {
       val nodeId = content.get("nid")
 
       logger.info(s"Converting h5p_content with nid $nodeId")
       val requiredLibraries = List(RequiredLibrary("text/javascript", "H5P-Resizer", H5PResizerScriptUrl))
       val replacement = HtmlTagGenerator.buildH5PEmbedContent(s"http://ndla.no/h5p/embed/$nodeId")
-      (replacement, requiredLibraries, ImportStatus(Seq(), visitedNodes))
+      Success(replacement, requiredLibraries, ImportStatus(Seq(), visitedNodes))
     }
   }
 }

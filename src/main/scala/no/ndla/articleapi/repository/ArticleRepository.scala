@@ -60,7 +60,7 @@ trait ArticleRepository {
       dataObject.setType("jsonb")
       dataObject.setValue(write(article))
 
-      val articleId: Long = sql"insert into ${Article.table} (external_id, external_subject_id, document) values (${externalId}, ARRAY[${externalSubjectId}], ${dataObject})".updateAndReturnGeneratedKey().apply
+      val articleId: Long = sql"insert into ${Article.table} (external_id, external_subject_id, document) values (${externalId}, ARRAY[${externalSubjectId}]::text[], ${dataObject})".updateAndReturnGeneratedKey().apply
 
       logger.info(s"Inserted node $externalId: $articleId")
       articleId

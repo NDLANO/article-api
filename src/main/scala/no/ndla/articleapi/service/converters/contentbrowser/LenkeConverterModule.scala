@@ -10,12 +10,15 @@
 package no.ndla.articleapi.service.converters.contentbrowser
 
 import com.netaporter.uri.dsl._
+import com.netaporter.uri.Uri.parse
 import com.typesafe.scalalogging.LazyLogging
-import no.ndla.articleapi.integration.MigrationEmbedMeta
+import no.ndla.articleapi.model.api.ImportException
 import no.ndla.articleapi.model.domain.{ImportStatus, RequiredLibrary}
 import no.ndla.articleapi.service.ExtractService
-import no.ndla.articleapi.service.converters.{Attributes, HtmlTagGenerator}
+import no.ndla.articleapi.service.converters.HtmlTagGenerator
 import org.jsoup.Jsoup
+
+import scala.util.{Failure, Success, Try}
 
 trait LenkeConverterModule {
   this: ExtractService with HtmlTagGenerator =>
@@ -23,38 +26,41 @@ trait LenkeConverterModule {
   object LenkeConverter extends ContentBrowserConverterModule with LazyLogging {
     override val typeName: String = "lenke"
 
-    override def convert(content: ContentBrowser, visitedNodes: Seq[String]): (String, Seq[RequiredLibrary], ImportStatus) = {
+    override def convert(content: ContentBrowser, visitedNodes: Seq[String]): Try[(String, Seq[RequiredLibrary], ImportStatus)] = {
       logger.info(s"Converting lenke with nid ${content.get("nid")}")
-      val (replacement, requiredLibraries, errors) = convertLink(content)
-      (replacement, requiredLibraries, ImportStatus(errors, visitedNodes))
+
+      convertLink(content) match {
+        case Success((linkHtml, requiredLibraries, errors)) =>
+          Success(linkHtml, requiredLibraries, ImportStatus(errors, visitedNodes))
+        case Failure(x) => Failure(x)
+      }
     }
 
-    def convertLink(cont: ContentBrowser): (String, Seq[RequiredLibrary], Seq[String]) = {
-      val embedMeta = extractService.getNodeEmbedMeta(cont.get("nid")) match {
-        case Some(meta) => meta
-        case _ => {
-          val message = s"Failed to import embed meta (${cont.get("nid")})"
-          logger.warn(message)
-          return ("", Seq(), message :: Nil)
+    def convertLink(cont: ContentBrowser): Try[(String, Seq[RequiredLibrary], Seq[String])] = {
+      extractService.getNodeEmbedMeta(cont.get("nid")).map(meta => {
+        val (url, embedCode) = (meta.url.getOrElse(""), meta.embedCode.getOrElse(""))
+        val (htmlTag, requiredLibrary, errors) = cont.get("insertion") match {
+          case "link" => insertAnchor(url, cont)
+          case "inline" => insertInline(url, embedCode, cont)
+          case "lightbox_large" => insertAnchor(url, cont)
+          case "collapsed_body" => insertDetailSummary(url, embedCode, cont)
+          case _ => insertUnhandled(url, cont)
         }
-      }
 
-      val (url, embedCode) = (embedMeta.url.getOrElse(""), embedMeta.embedCode.getOrElse(""))
-      val (htmlTag, requiredLibrary, errors) = cont.get("insertion") match {
-        case "link" => insertAnchor(url, cont)
-        case "inline" => insertInline(url, embedCode, cont)
-        case "lightbox_large" => insertAnchor(url, cont)
-        case "collapsed_body" => insertDetailSummary(url, embedCode, cont)
-        case _ => insertUnhandled(url, cont)
-      }
-
-      val NDLAPattern = """.*(ndla.no).*""".r
-      url.host.getOrElse("") match {
-        case NDLAPattern(_) => {
-          logger.warn("Link to NDLA resource: '{}'", url)
-          (htmlTag, requiredLibrary.toList, errors :+ s"(Warning) Link to NDLA resource '$url'")
+        val NDLAPattern = """.*(ndla.no).*""".r
+        val warnings =  Try(parse(url)) match {
+          case Success(uri) => uri.host.getOrElse("") match {
+            case NDLAPattern(_) => Seq(s"Link to NDLA old resource: '$url'")
+            case _ => Seq()
+          }
+          case Failure(_) => Seq(s"Link in article is invalid: '$url'")
         }
-        case _ => (htmlTag, requiredLibrary.toList, errors)
+
+        warnings.foreach(msg => logger.warn(msg))
+        (htmlTag, requiredLibrary.toList, errors ++ warnings)
+      }) match {
+        case Success(x) => Success(x)
+        case Failure(_) => Failure(ImportException(s"Failed to import embed metadata for node id ${cont.get("nid")}"))
       }
     }
 
