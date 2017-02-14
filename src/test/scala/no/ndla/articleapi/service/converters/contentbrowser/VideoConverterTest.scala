@@ -13,6 +13,8 @@ import no.ndla.articleapi.TestEnvironment
 import no.ndla.articleapi.UnitSuite
 import no.ndla.articleapi.ArticleApiProperties.{NDLABrightcoveAccountId, NDLABrightcovePlayerId, resourceHtmlEmbedTag}
 
+import scala.util.Success
+
 class VideoConverterTest extends UnitSuite with TestEnvironment {
   val nodeId = "1234"
   val altText = "Jente som spiser melom. Grønn bakgrunn, rød melon. Fotografi."
@@ -23,7 +25,7 @@ class VideoConverterTest extends UnitSuite with TestEnvironment {
   test("That VideoConverter converts a ContentBrowser to html code") {
     val content = ContentBrowser(contentString, Some("nb"))
     val expectedResult = s"""<$resourceHtmlEmbedTag data-account="$NDLABrightcoveAccountId" data-caption="" data-player="$NDLABrightcovePlayerId" data-resource="brightcove" data-videoid="ref:${content.get("nid")}" />"""
-    val (result, requiredLibraries, messages) = VideoConverter.convert(content, Seq())
+    val Success((result, requiredLibraries, _)) = VideoConverter.convert(content, Seq())
 
     result should equal(expectedResult)
     requiredLibraries.length should equal(1)
@@ -32,7 +34,7 @@ class VideoConverterTest extends UnitSuite with TestEnvironment {
   test("Captions are added as video metadata") {
     val content = ContentBrowser(contentStringWithCaptions, Some("nb"))
     val expectedResult = s"""<$resourceHtmlEmbedTag data-account="$NDLABrightcoveAccountId" data-caption="$caption" data-player="$NDLABrightcovePlayerId" data-resource="brightcove" data-videoid="ref:${content.get("nid")}" />"""
-    val (result, requiredLibraries, messages) = VideoConverter.convert(content, Seq())
+    val Success((result, requiredLibraries, _)) = VideoConverter.convert(content, Seq())
 
     result should equal(expectedResult)
     requiredLibraries.length should equal(1)

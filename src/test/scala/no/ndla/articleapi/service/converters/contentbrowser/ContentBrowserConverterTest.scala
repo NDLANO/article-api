@@ -15,20 +15,19 @@ import no.ndla.articleapi.integration.{ImageCopyright, ImageLicense, ImageMetaIn
 import no.ndla.articleapi.model.domain.{ImportStatus, NodeGeneralContent}
 import org.mockito.Mockito._
 
+import scala.util.Success
+
 class ContentBrowserConverterTest extends UnitSuite with TestEnvironment {
   val nodeId = "1234"
   val sampleAlt = "Fotografi"
   val sampleContentString = s"[contentbrowser ==nid=$nodeId==imagecache=Fullbredde==width===alt=$sampleAlt==link===node_link=1==link_type=link_to_content==lightbox_size===remove_fields[76661]=1==remove_fields[76663]=1==remove_fields[76664]=1==remove_fields[76666]=1==insertion=inline==link_title_text= ==link_text= ==text_align===css_class=contentbrowser contentbrowser]"
   val sampleContent =  TestData.sampleContent.copy(content=s"<article>$sampleContentString</article>")
 
-  test("contentbrowser strings of unsupported types are replaced with an error message") {
+  test("contentbrowser strings of unsupported causes a Failure to be returned") {
     val expectedResult = s"""<article><$resourceHtmlEmbedTag data-message="Unsupported content (unsupported type): $nodeId" data-resource="error" /></article>"""
 
     when(extractService.getNodeType(nodeId)).thenReturn(Some("unsupported type"))
-    val (result, status) = contentBrowserConverter.convert(sampleContent, ImportStatus(Seq(), Seq()))
-
-    result.content should equal (expectedResult)
-    result.requiredLibraries.length should equal (0)
+    contentBrowserConverter.convert(sampleContent, ImportStatus(Seq(), Seq())).isFailure should be (true)
   }
 
   test("That content-browser strings of type h5p_content are converted correctly") {
@@ -38,7 +37,7 @@ class ContentBrowserConverterTest extends UnitSuite with TestEnvironment {
     val expectedResult = s"""<article><$resourceHtmlEmbedTag data-resource="h5p" data-url="${JoubelH5PConverter.JoubelH5PBaseUrl}/$joubelH5PIdId" /></article>"""
 
     when(extractService.getNodeType(validNodeId)).thenReturn(Some("h5p_content"))
-    val (result, status) = contentBrowserConverter.convert(initialContent, ImportStatus(Seq(), Seq()))
+    val Success((result, _)) = contentBrowserConverter.convert(initialContent, ImportStatus(Seq(), Seq()))
 
     result.content should equal (expectedResult)
     result.requiredLibraries.length should equal (0)
@@ -55,7 +54,7 @@ class ContentBrowserConverterTest extends UnitSuite with TestEnvironment {
 
     when(extractService.getNodeType(nodeId)).thenReturn(Some("image"))
     when(imageApiClient.importOrGetMetaByExternId(nodeId)).thenReturn(Some(imageMeta))
-    val (result, status) = contentBrowserConverter.convert(sampleContent, ImportStatus(Seq(), Seq()))
+    val Success((result, _)) = contentBrowserConverter.convert(sampleContent, ImportStatus(Seq(), Seq()))
 
     result.content should equal (expectedResult)
     result.requiredLibraries.length should equal (0)
@@ -69,7 +68,7 @@ class ContentBrowserConverterTest extends UnitSuite with TestEnvironment {
 
     when(extractService.getNodeType(nodeId)).thenReturn(Some("oppgave"))
     when(extractService.getNodeGeneralContent(nodeId)).thenReturn(List(oppgave))
-    val (result, status) = contentBrowserConverter.convert(sampleContent, ImportStatus(Seq(), Seq()))
+    val Success((result, _)) = contentBrowserConverter.convert(sampleContent, ImportStatus(Seq(), Seq()))
 
     result.content should equal (expectedResult)
   }
@@ -82,7 +81,7 @@ class ContentBrowserConverterTest extends UnitSuite with TestEnvironment {
 
     when(extractService.getNodeType(nodeId)).thenReturn(Some("fagstoff"))
     when(extractService.getNodeGeneralContent(nodeId)).thenReturn(List(oppgave))
-    val (result, status) = contentBrowserConverter.convert(sampleContent, ImportStatus(Seq(), Seq()))
+    val Success((result, _)) = contentBrowserConverter.convert(sampleContent, ImportStatus(Seq(), Seq()))
 
     result.content should equal (expectedResult)
   }
@@ -95,7 +94,7 @@ class ContentBrowserConverterTest extends UnitSuite with TestEnvironment {
 
     when(extractService.getNodeType(nodeId)).thenReturn(Some("aktualitet"))
     when(extractService.getNodeGeneralContent(nodeId)).thenReturn(List(oppgave))
-    val (result, status) = contentBrowserConverter.convert(sampleContent, ImportStatus(Seq(), Seq()))
+    val Success((result, _)) = contentBrowserConverter.convert(sampleContent, ImportStatus(Seq(), Seq()))
 
     result.content should equal (expectedResult)
   }
@@ -108,7 +107,7 @@ class ContentBrowserConverterTest extends UnitSuite with TestEnvironment {
 
     when(extractService.getNodeType(nodeId)).thenReturn(Some("veiledning"))
     when(extractService.getNodeGeneralContent(nodeId)).thenReturn(List(oppgave))
-    val (result, status) = contentBrowserConverter.convert(sampleContent, ImportStatus(Seq(), Seq()))
+    val Success((result, _)) = contentBrowserConverter.convert(sampleContent, ImportStatus(Seq(), Seq()))
 
     result.content should equal (expectedResult)
   }
@@ -116,7 +115,7 @@ class ContentBrowserConverterTest extends UnitSuite with TestEnvironment {
   test("That Content-browser strings of type video are converted into HTML img tags") {
     val expectedResult = s"""<article><$resourceHtmlEmbedTag data-account="$NDLABrightcoveAccountId" data-caption="" data-player="$NDLABrightcovePlayerId" data-resource="brightcove" data-videoid="ref:$nodeId" /></article>"""
     when(extractService.getNodeType(nodeId)).thenReturn(Some("video"))
-    val (result, status) = contentBrowserConverter.convert(sampleContent, ImportStatus(Seq(), Seq()))
+    val Success((result, _)) = contentBrowserConverter.convert(sampleContent, ImportStatus(Seq(), Seq()))
     val strippedResult = " +".r.replaceAllIn(result.content.replace("\n", ""), " ")
 
     strippedResult should equal (expectedResult)
@@ -128,7 +127,7 @@ class ContentBrowserConverterTest extends UnitSuite with TestEnvironment {
     val expectedResult = s"""<article><a id="biblio-$nodeId"></a><h1>CONTENT</h1>more content</article>"""
 
     when(extractService.getNodeType(nodeId)).thenReturn(Some("biblio"))
-    val (result, status) = contentBrowserConverter.convert(initialContent, ImportStatus(Seq(), Seq()))
+    val Success((result, status)) = contentBrowserConverter.convert(initialContent, ImportStatus(Seq(), Seq()))
     val strippedContent = " +".r.replaceAllIn(result.content, " ")
 
     strippedContent should equal (expectedResult)
@@ -142,7 +141,7 @@ class ContentBrowserConverterTest extends UnitSuite with TestEnvironment {
 
     when(extractService.getNodeType(nodeId)).thenReturn(Some("aktualitet"))
     when(extractService.getNodeGeneralContent(nodeId)).thenReturn(List(oppgave))
-    val (result, status) = contentBrowserConverter.convert(sampleContent.copy(content="", metaDescription=sampleContent.content), ImportStatus(Seq(), Seq()))
+    val Success((result, _)) = contentBrowserConverter.convert(sampleContent.copy(content="", metaDescription=sampleContent.content), ImportStatus(Seq(), Seq()))
 
     result.content should equal ("")
     result.metaDescription should equal (expectedResult)

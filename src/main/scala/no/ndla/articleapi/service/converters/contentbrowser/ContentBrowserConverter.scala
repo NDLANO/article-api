@@ -11,11 +11,15 @@ package no.ndla.articleapi.service.converters.contentbrowser
 
 import com.typesafe.scalalogging.LazyLogging
 import org.jsoup.nodes.Element
+
 import scala.annotation.tailrec
 import no.ndla.articleapi.integration.{ConverterModule, LanguageContent}
 import no.ndla.articleapi.model.domain.ImportStatus
 import no.ndla.articleapi.ArticleApiProperties.EnableJoubelH5POembed
-import no.ndla.articleapi.integration.ConverterModule.{stringToJsoupDocument, jsoupDocumentToString}
+import no.ndla.articleapi.integration.ConverterModule.{jsoupDocumentToString, stringToJsoupDocument}
+import no.ndla.articleapi.model.api.ImportException
+
+import scala.util.{Failure, Success, Try}
 
 trait ContentBrowserConverter {
   this: ContentBrowserConverterModules =>
@@ -40,33 +44,54 @@ trait ContentBrowserConverter {
       contentBrowserModules.getOrElse(nodeType, UnsupportedContentConverter)
     }
 
-    def convert(languageContent: LanguageContent, importStatus: ImportStatus): (LanguageContent, ImportStatus) = {
-      @tailrec def convert(element: Element, languageContent: LanguageContent, importStatus: ImportStatus): (LanguageContent, ImportStatus) = {
-        val text = element.html()
-        val cont = ContentBrowser(text, languageContent.language)
+    def replaceHtmlInElement(element: Element, start: Int, end: Int, replacement: String) = {
+      val html = element.html()
+      element.html(html.substring(0, start) + replacement + html.substring(end))
+    }
+
+    def convert(languageContent: LanguageContent, importStatus: ImportStatus): Try[(LanguageContent, ImportStatus)] = {
+      @tailrec def convert(element: Element, languageContent: LanguageContent, importStatus: ImportStatus, exceptions: Seq[Throwable]): (LanguageContent, ImportStatus, Seq[Throwable]) = {
+        val cont = ContentBrowser(element.html(), languageContent.language)
 
         if (!cont.isContentBrowserField)
-          return (languageContent, importStatus)
+          return (languageContent, importStatus, exceptions)
 
-        val (newContent, reqLibs, status) = getConverterModule(cont).convert(cont, importStatus.visitedNodes)
+        val converterModule = getConverterModule(cont)
 
-        val (start, end) = cont.getStartEndIndex()
-        element.html(text.substring(0, start) + newContent + text.substring(end))
+        converterModule.convert(cont, importStatus.visitedNodes) match {
+          case Failure(x) => {
+            val (start, end) = cont.getStartEndIndex()
+            replaceHtmlInElement(element, start, end, "")
+            convert(element, languageContent, importStatus, exceptions :+ x)
+          }
+          case Success((newContent, reqLibs, status)) => {
+            val (start, end) = cont.getStartEndIndex()
+            replaceHtmlInElement(element, start, end, newContent)
 
-        val updatedRequiredLibraries = languageContent.requiredLibraries ++ reqLibs
-        val updatedImportStatusMessages = importStatus.messages ++ status.messages
-        convert(element, languageContent.copy(requiredLibraries=updatedRequiredLibraries),
-          status.copy(messages=updatedImportStatusMessages))
+            val updatedRequiredLibraries = languageContent.requiredLibraries ++ reqLibs
+            val updatedImportStatusMessages = importStatus.messages ++ status.messages
+            convert(element, languageContent.copy(requiredLibraries = updatedRequiredLibraries),
+              status.copy(messages = updatedImportStatusMessages), exceptions)
+          }
+        }
       }
 
       val contentElement = stringToJsoupDocument(languageContent.content)
-      val (updatedLanguageContent, updatedImportStatus) = convert(contentElement, languageContent, importStatus)
+      val (updatedLanguageContent, updatedImportStatus, contentEceptions) = convert(contentElement, languageContent, importStatus, Seq())
 
       val metaDescriptionElement = stringToJsoupDocument(languageContent.metaDescription)
-      val (finalLanguageContent, finalImportStatus) = convert(metaDescriptionElement, updatedLanguageContent, updatedImportStatus)
+      val (finalLanguageContent, finalImportStatus, migrationContentExceptions) = convert(metaDescriptionElement, updatedLanguageContent, updatedImportStatus, Seq())
 
-      (finalLanguageContent.copy(content=jsoupDocumentToString(contentElement), metaDescription=jsoupDocumentToString(metaDescriptionElement)),
-        finalImportStatus)
+      val converterExceptions = contentEceptions ++ migrationContentExceptions
+      converterExceptions.headOption match {
+        case Some(_) =>
+          val exceptionMessages = converterExceptions.map(_.getMessage)
+          Failure(ImportException(s"Error(s) in ContentBrowserConverter: ${exceptionMessages.mkString(",")}"))
+        case None =>
+          Success(finalLanguageContent.copy(content=jsoupDocumentToString(contentElement), metaDescription=jsoupDocumentToString(metaDescriptionElement)),
+            finalImportStatus)
+      }
     }
+
   }
 }

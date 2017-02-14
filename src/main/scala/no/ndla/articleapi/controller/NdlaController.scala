@@ -13,7 +13,8 @@ import javax.servlet.http.HttpServletRequest
 
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.articleapi.ArticleApiProperties.{CorrelationIdHeader, CorrelationIdKey}
-import no.ndla.articleapi.model.api.{Error, NotFoundException, OptimisticLockException, ValidationError, ValidationException, ValidationMessage}
+import no.ndla.articleapi.model.api.{Error, ImportExceptions, NotFoundException, OptimisticLockException, ValidationError, ValidationException, ValidationMessage}
+import no.ndla.articleapi.model.domain.ImportError
 import no.ndla.network.{ApplicationUrl, CorrelationID}
 import org.apache.logging.log4j.ThreadContext
 import org.elasticsearch.index.IndexNotFoundException
@@ -44,6 +45,7 @@ abstract class NdlaController extends ScalatraServlet with NativeJsonSupport wit
     case e: IndexNotFoundException => InternalServerError(body=Error.IndexMissingError)
     case n: NotFoundException => NotFound(body=Error(Error.NOT_FOUND, n.getMessage))
     case o: OptimisticLockException => Conflict(body=Error(Error.RESOURCE_OUTDATED, o.getMessage))
+    case i: ImportExceptions => UnprocessableEntity(body=ImportError(i.message, i.errors.map(_.getMessage)))
     case t: Throwable => {
       logger.error(Error.GenericError.toString, t)
       InternalServerError(body=Error.GenericError)

@@ -14,6 +14,8 @@ import com.amazonaws.services.s3.model.PutObjectRequest
 import no.ndla.articleapi.{TestEnvironment, UnitSuite}
 import org.mockito.Mockito._
 
+import scala.util.Success
+
 class AttachmentStorageServiceTest extends UnitSuite with TestEnvironment {
   override val attachmentStorageService = new AmazonStorageService
 
@@ -22,11 +24,11 @@ class AttachmentStorageServiceTest extends UnitSuite with TestEnvironment {
     val key = "storagekey"
 
     when(amazonClient.putObject(request)).thenThrow(new AmazonClientException("Fail"))
-    attachmentStorageService.uploadFile(request, key) should equal (None)
+    attachmentStorageService.uploadFile(request, key).isFailure should equal(true)
   }
 
   test("That uploadFile returns the second parameter on success") {
     val key = "storagekey"
-    attachmentStorageService.uploadFile(mock[PutObjectRequest], key) should equal (Some(key))
+    attachmentStorageService.uploadFile(mock[PutObjectRequest], key) should equal (Success(key))
   }
 }

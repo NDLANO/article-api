@@ -14,6 +14,8 @@ import no.ndla.articleapi.ArticleApiProperties.resourceHtmlEmbedTag
 import no.ndla.articleapi.integration.MigrationEmbedMeta
 import org.mockito.Mockito._
 
+import scala.util.Success
+
 class LenkeConverterTest extends UnitSuite with TestEnvironment {
   val nodeId = "1234"
   val altText = "Jente som spiser melom. Grønn bakgrunn, rød melon. Fotografi."
@@ -26,7 +28,7 @@ class LenkeConverterTest extends UnitSuite with TestEnvironment {
   val linkEmbedCode = s"""<$resourceHtmlEmbedTag data-resource="external" data-url="$linkUrl" />"""
 
   override def beforeEach = {
-    when(extractService.getNodeEmbedMeta(nodeId)).thenReturn(Some(MigrationEmbedMeta(Some(linkUrl), None)))
+    when(extractService.getNodeEmbedMeta(nodeId)).thenReturn(Success(MigrationEmbedMeta(Some(linkUrl), None)))
   }
 
   test("That LenkeConverter returns an embed code if insertion method is 'inline'") {
@@ -34,7 +36,7 @@ class LenkeConverterTest extends UnitSuite with TestEnvironment {
     val contentString = s"[contentbrowser ==nid=$nodeId==imagecache=Fullbredde==width===alt=$altText==link===node_link=1==link_type=link_to_content==lightbox_size===remove_fields[76661]=1==remove_fields[76663]=1==remove_fields[76664]=1==remove_fields[76666]=1==insertion=$insertion==link_title_text= ==link_text= ==text_align===css_class=contentbrowser contentbrowser]"
     val content = ContentBrowser(contentString, Some("nb"))
 
-    val (result, requiredLibraries, errors) = LenkeConverter.convert(content, Seq())
+    val Success((result, requiredLibraries, errors)) = LenkeConverter.convert(content, Seq())
     result should equal(linkEmbedCode)
     requiredLibraries.length should equal(0)
     errors.messages.length should equal(1)
@@ -46,7 +48,7 @@ class LenkeConverterTest extends UnitSuite with TestEnvironment {
     val content = ContentBrowser(contentString, Some("nb"))
     val expectedResult = " <a href=\"https://www.youtube.com/watch?v=1qN72LEQnaU\" title=\"\"> </a>"
 
-    val (result, requiredLibraries, errors) = LenkeConverter.convert(content, Seq())
+    val Success((result, requiredLibraries, errors)) = LenkeConverter.convert(content, Seq())
     result should equal(expectedResult)
     requiredLibraries.length should equal(0)
     errors.messages.length should equal(0)
@@ -58,7 +60,7 @@ class LenkeConverterTest extends UnitSuite with TestEnvironment {
     val content = ContentBrowser(contentString, Some("nb"))
     val expectedResult = " <a href=\"https://www.youtube.com/watch?v=1qN72LEQnaU\" title=\"\"> </a>"
 
-    val (result, requiredLibraries, errors) = LenkeConverter.convert(content, Seq())
+    val Success((result, requiredLibraries, errors)) = LenkeConverter.convert(content, Seq())
     result should equal(expectedResult)
     requiredLibraries.length should equal(0)
     errors.messages.length should equal(1)
@@ -70,7 +72,7 @@ class LenkeConverterTest extends UnitSuite with TestEnvironment {
     val content = ContentBrowser(contentString, Some("nb"))
     val expectedResult = " <a href=\"https://www.youtube.com/watch?v=1qN72LEQnaU\" title=\"\"> </a>"
 
-    val (result, requiredLibraries, errors) = LenkeConverter.convert(content, Seq())
+    val Success((result, requiredLibraries, errors)) = LenkeConverter.convert(content, Seq())
     result should equal(expectedResult)
     requiredLibraries.length should equal(0)
     errors.messages.length should equal(0)
@@ -82,7 +84,7 @@ class LenkeConverterTest extends UnitSuite with TestEnvironment {
     val content = ContentBrowser(contentString, Some("nb"))
     val expectedResult = s"<details><summary>${content.get("link_text")}</summary>$linkEmbedCode</details>"
 
-    val (result, requiredLibraries, errors) = LenkeConverter.convert(content, Seq())
+    val Success((result, requiredLibraries, errors)) = LenkeConverter.convert(content, Seq())
 
     result should equal(expectedResult)
     requiredLibraries.length should equal(0)
@@ -95,8 +97,8 @@ class LenkeConverterTest extends UnitSuite with TestEnvironment {
     val content = ContentBrowser(contentString, Some("nb"))
     val expectedResult = s"""<$resourceHtmlEmbedTag data-nrk-video-id="$nrkVideoId" data-resource="nrk" data-url="$nrkLinkUrl" />"""
 
-    when(extractService.getNodeEmbedMeta(nodeId)).thenReturn(Some(MigrationEmbedMeta(Some(nrkLinkUrl), Some(nrkEmbedScript))))
-    val (result, requiredLibraries, errors) = LenkeConverter.convert(content, Seq())
+    when(extractService.getNodeEmbedMeta(nodeId)).thenReturn(Success(MigrationEmbedMeta(Some(nrkLinkUrl), Some(nrkEmbedScript))))
+    val Success((result, requiredLibraries, errors)) = LenkeConverter.convert(content, Seq())
 
     result should equal(expectedResult)
     errors.messages.length should equal(1)

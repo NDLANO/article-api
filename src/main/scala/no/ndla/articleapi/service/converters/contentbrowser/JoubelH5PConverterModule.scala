@@ -14,6 +14,8 @@ import no.ndla.articleapi.model.domain.{ImportStatus, RequiredLibrary}
 import no.ndla.articleapi.service.ExtractService
 import no.ndla.articleapi.service.converters.HtmlTagGenerator
 
+import scala.util.{Success, Try}
+
 trait JoubelH5PConverterModule {
   this: ExtractService with HtmlTagGenerator =>
 
@@ -21,13 +23,13 @@ trait JoubelH5PConverterModule {
     override val typeName: String = "h5p_content"
     val JoubelH5PBaseUrl = "https://ndlah5p.joubel.com/node"
 
-    override def convert(content: ContentBrowser, visitedNodes: Seq[String]): (String, Seq[RequiredLibrary], ImportStatus) = {
+    override def convert(content: ContentBrowser, visitedNodes: Seq[String]): Try[(String, Seq[RequiredLibrary], ImportStatus)] = {
       val ndlaNodeId = content.get("nid")
 
       ValidH5PNodeIds.get(ndlaNodeId) match {
-        case Some(joubelNodeId) => (validH5PResource(joubelNodeId, content),
+        case Some(joubelNodeId) => Success(validH5PResource(joubelNodeId, content),
           Seq(), ImportStatus(Seq(), visitedNodes))
-        case None => invalidH5PResource(ndlaNodeId, content, visitedNodes)
+        case None => Success(invalidH5PResource(ndlaNodeId, content, visitedNodes))
       }
     }
 

@@ -17,7 +17,7 @@ import no.ndla.articleapi.model.api.NotFoundException
 import no.ndla.articleapi.model.domain._
 import org.mockito.Mockito._
 
-import scala.util.{Failure, Try}
+import scala.util.{Failure, Success, Try}
 
 class GeneralContentConverterTest extends UnitSuite with TestEnvironment {
   val (nodeId, nodeId2) = ("1234", "4321")
@@ -27,7 +27,7 @@ class GeneralContentConverterTest extends UnitSuite with TestEnvironment {
   val sampleFagstoff1 = NodeGeneralContent(nodeId, nodeId, "Tittel", "Innhold", "nb")
   val sampleFagstoff2 = NodeGeneralContent(nodeId, nodeId2, "Tittel", "Innhald", "nn")
   val sampleArticleSummary = ArticleSummary(1, Seq(ArticleTitle("title", Some("nb"))), Seq(), Seq(), "http://url", "publicdomain")
-  val sampleNodeToConvert = NodeToConvert(Seq(ArticleTitle("title", Some("en"))), Seq(), "publicdomain", Seq(), Seq(), Seq(), "fagstoff", new Date(0), new Date(1))
+  val sampleNodeToConvert = NodeToConvert(Seq(ArticleTitle("title", Some("en"))), Seq(), "publicdomain", Seq(), Seq(), Seq(), "fagstoff", "fagstoff", new Date(0), new Date(1))
   val sampleContent = TestData.sampleContent.copy(content="<div>sample content</div>")
 
   val generalContentConverter = new GeneralContentConverter {
@@ -38,22 +38,18 @@ class GeneralContentConverterTest extends UnitSuite with TestEnvironment {
     val content = ContentBrowser(contentString, Some("nb"))
 
     when(extractService.getNodeGeneralContent(nodeId)).thenReturn(Seq(sampleFagstoff1, sampleFagstoff2))
-    val (result, requiredLibraries, status) = generalContentConverter.convert(content, Seq())
+    val Success((result, requiredLibraries, status)) = generalContentConverter.convert(content, Seq())
 
     result should equal (sampleFagstoff1.content)
     status.messages.isEmpty should equal (true)
     requiredLibraries.isEmpty should equal (true)
   }
 
-  test("That GeneralContentConverter returns an error when the node is not found") {
+  test("That GeneralContentConverter returns a Failure when the node is not found") {
     val content = ContentBrowser(contentString, Some("nb"))
 
     when(extractService.getNodeGeneralContent(nodeId)).thenReturn(Seq())
-    val (result, requiredLibraries, status) = generalContentConverter.convert(content, Seq())
-
-    result should equal (s"{Import error: Failed to retrieve '${generalContentConverter.typeName}' with language 'nb' ($nodeId)}")
-    status.messages.nonEmpty should equal (true)
-    requiredLibraries.isEmpty should equal (true)
+    generalContentConverter.convert(content, Seq()).isFailure should be (true)
   }
 
   test("That GeneralContentConverter inserts the content if insertion mode is 'collapsed_body'") {
@@ -63,7 +59,7 @@ class GeneralContentConverterTest extends UnitSuite with TestEnvironment {
 
     when(extractService.getNodeGeneralContent(nodeId)).thenReturn(Seq(sampleFagstoff1, sampleFagstoff2))
     when(articleRepository.getIdFromExternalId(nodeId)).thenReturn(Some(1: Long))
-    val (result, requiredLibraries, status) = generalContentConverter.convert(content, Seq())
+    val Success((result, requiredLibraries, status)) = generalContentConverter.convert(content, Seq())
 
     result should equal (expectedResult)
     status.messages.isEmpty should equal (true)
@@ -78,7 +74,7 @@ class GeneralContentConverterTest extends UnitSuite with TestEnvironment {
 
     when(extractService.getNodeGeneralContent(nodeId)).thenReturn(Seq(sampleFagstoff1, sampleFagstoff2))
     when(articleRepository.getIdFromExternalId(nodeId)).thenReturn(Some(1: Long))
-    val (result, requiredLibraries, status) = generalContentConverter.convert(content, Seq())
+    val Success((result, requiredLibraries, status)) = generalContentConverter.convert(content, Seq())
 
     result should equal (expectedResult)
     status.messages.isEmpty should equal (true)
@@ -92,7 +88,7 @@ class GeneralContentConverterTest extends UnitSuite with TestEnvironment {
 
     when(extractService.getNodeGeneralContent(nodeId)).thenReturn(Seq(sampleFagstoff1, sampleFagstoff2))
     when(articleRepository.getIdFromExternalId(nodeId)).thenReturn(Some(1: Long))
-    val (result, requiredLibraries, status) = generalContentConverter.convert(content, Seq())
+    val Success((result, requiredLibraries, status)) = generalContentConverter.convert(content, Seq())
 
     result should equal (expectedResult)
     status.messages.nonEmpty should equal (true)
@@ -107,7 +103,7 @@ class GeneralContentConverterTest extends UnitSuite with TestEnvironment {
     when(extractService.getNodeGeneralContent(nodeId)).thenReturn(Seq(sampleFagstoff1, sampleFagstoff2))
     when(articleRepository.getIdFromExternalId(nodeId)).thenReturn(Some(1: Long))
 
-    val (result, requiredLibraries, status) = generalContentConverter.convert(content, Seq())
+    val Success((result, requiredLibraries, status)) = generalContentConverter.convert(content, Seq())
 
     result should equal (expectedResult)
     status.messages.nonEmpty should equal (true)
@@ -125,14 +121,13 @@ class GeneralContentConverterTest extends UnitSuite with TestEnvironment {
     when(extractConvertStoreContent.processNode(nodeId, ImportStatus(Seq(), Seq(nodeId2)))).thenReturn(Try((newNodeid, ImportStatus(Seq(), Seq(nodeId2, nodeId)))))
 
     val languageContent = sampleContent.copy(content="<div>sample content</div>")
-    val nodeToConvert = sampleNodeToConvert.copy(contents = Seq(languageContent))
-    val (result, requiredLibraries, status) = generalContentConverter.convert(content, Seq(nodeId2))
+    val Success((result, _, status)) = generalContentConverter.convert(content, Seq(nodeId2))
 
     result should equal(expectedResult)
     status should equal (ImportStatus(List(), List(nodeId2, nodeId)))
   }
 
-  test("That GeneralContentConverter links back to old NDLA if node could not be imported") {
+  test("That GeneralContentConverter returns a Failure if node could not be imported") {
     val contentString = s"[contentbrowser ==nid=$nodeId==imagecache=Fullbredde==width===alt=$altText==link===node_link=1==link_type=link_to_content==lightbox_size===remove_fields[76661]=1==remove_fields[76663]=1==remove_fields[76664]=1==remove_fields[76666]=1==insertion=link==link_title_text===link_text=Tittel==text_align===css_class=contentbrowser contentbrowser]"
     val content = ContentBrowser(contentString, Some("nb"))
     val expectedResult = s""" <a href="http://ndla.no/node/$nodeId" title="">Tittel</a>"""
@@ -141,13 +136,6 @@ class GeneralContentConverterTest extends UnitSuite with TestEnvironment {
     when(articleRepository.getIdFromExternalId(nodeId)).thenReturn(None)
     when(extractConvertStoreContent.processNode(nodeId, ImportStatus(Seq(), Seq(nodeId2)))).thenReturn(Failure(NotFoundException("Node was not found")))
 
-    val languageContent = sampleContent.copy(tnid=nodeId2, content="<div>sample content</div>")
-    val nodeToConvert = sampleNodeToConvert.copy(contents = Seq(languageContent))
-
-    val (result, requiredLibraries, status) = generalContentConverter.convert(content, Seq(nodeId2))
-
-    result should equal(expectedResult)
-    status.visitedNodes should equal (List(nodeId2))
-    status.messages.nonEmpty should equal(true)
+    generalContentConverter.convert(content, Seq(nodeId2)).isFailure should be (true)
   }
 }

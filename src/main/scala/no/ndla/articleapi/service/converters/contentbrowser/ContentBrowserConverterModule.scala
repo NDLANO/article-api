@@ -17,9 +17,11 @@ import no.ndla.articleapi.service.converters.HtmlTagGenerator
 import no.ndla.articleapi.service.search.{IndexService, SearchConverterService, SearchIndexService}
 import no.ndla.network.NdlaClient
 
+import scala.util.Try
+
 
 trait ContentBrowserConverterModule {
-  def convert(content: ContentBrowser, visitedNodes: Seq[String]): (String, Seq[RequiredLibrary], ImportStatus)
+  def convert(content: ContentBrowser, visitedNodes: Seq[String]): Try[(String, Seq[RequiredLibrary], ImportStatus)]
   val typeName: String
 }
 

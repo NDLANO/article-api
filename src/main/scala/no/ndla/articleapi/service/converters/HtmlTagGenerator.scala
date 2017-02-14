@@ -78,6 +78,10 @@ trait HtmlTagGenerator {
       buildEmbedContent(dataAttributes)
     }
 
+    def buildDetailsSummaryContent(linkText: String, content: String) = {
+      s"<details><summary>$linkText</summary>$content</details>"
+    }
+
     def buildAnchor(href: String, anchorText: String, title: String): String = {
       val attributes = Map(Attributes.Href -> href, Attributes.Title -> title)
       s"<a ${buildAttributesString(attributes)}>$anchorText</a>"

@@ -19,7 +19,7 @@ import no.ndla.articleapi.ArticleApiProperties.resourceHtmlEmbedTag
 import org.joda.time.DateTime
 import org.mockito.Mockito._
 
-import scala.util.Try
+import scala.util.{Success, Try}
 
 class ConverterServiceTest extends UnitSuite with TestEnvironment {
 
@@ -31,7 +31,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
   val nodeId = "1234"
   val sampleAlt = "Fotografi"
   val sampleContentString = s"[contentbrowser ==nid=$nodeId==imagecache=Fullbredde==width===alt=$sampleAlt==link===node_link=1==link_type=link_to_content==lightbox_size===remove_fields[76661]=1==remove_fields[76663]=1==remove_fields[76664]=1==remove_fields[76666]=1==insertion===link_title_text= ==link_text= ==text_align===css_class=contentbrowser contentbrowser]"
-  val sampleNode = NodeToConvert(List(contentTitle), Seq(), "by-sa", Seq(author), List(tag), Seq(TestData.visualElement), "fagstoff", new Date(0), new Date(1))
+  val sampleNode = NodeToConvert(List(contentTitle), Seq(), "by-sa", Seq(author), List(tag), Seq(TestData.visualElement), "fagstoff", "fagstoff", new Date(0), new Date(1))
   val sampleLanguageContent = TestData.sampleContent.copy(content=sampleContentString, language=Some("nb"))
 
   test("That the document is wrapped in an article tag") {
@@ -219,10 +219,9 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
           |</tbody>
           |</table>""".stripMargin.replace("\n", "")
 
-    val initialContent = sampleLanguageContent.copy(content=table)
-    val (result, importStatus) = TableConverter.convert(initialContent, ImportStatus(Seq(), Seq()))
-
-    result.content should equal(tableExpectedResult)
+    val initialContent: LanguageContent = sampleLanguageContent.copy(content=table)
+    val Success((content, _)) = TableConverter.convert(initialContent, ImportStatus(Seq(), Seq()))
+    content.content should equal(tableExpectedResult)
   }
 
   test("JoubelH5PConverter is used when ENABLE_JOUBEL_H5P_OEMBED is true") {

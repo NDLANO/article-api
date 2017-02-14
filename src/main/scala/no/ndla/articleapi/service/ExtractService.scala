@@ -38,11 +38,11 @@ trait ExtractService {
     def getNodeType(nodeId: String): Option[String] =
       migrationApiClient.getContentType(nodeId).map(x => x.nodeType).toOption
 
-    def getNodeEmbedMeta(nodeId: String): Option[MigrationEmbedMeta] =
-      migrationApiClient.getNodeEmbedData(nodeId).toOption
+    def getNodeEmbedMeta(nodeId: String): Try[MigrationEmbedMeta] =
+      migrationApiClient.getNodeEmbedData(nodeId)
 
-    def getNodeFilMeta(nodeId: String): Option[ContentFilMeta] =
-      migrationApiClient.getFilMeta(nodeId).map(x => x.asContentFilMeta).toOption
+    def getNodeFilMeta(nodeId: String): Try[ContentFilMeta] =
+      migrationApiClient.getFilMeta(nodeId).map(x => x.asContentFilMeta)
 
     def getNodeGeneralContent(nodeId: String): Seq[NodeGeneralContent] = {
       val content = migrationApiClient.getNodeGeneralContent(nodeId).getOrElse(Seq()).map(x => x.asNodeGeneralContent)

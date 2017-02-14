@@ -11,10 +11,11 @@ package no.ndla.articleapi.service
 
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.articleapi.integration.MigrationApiClient
-import no.ndla.articleapi.model.api.NotFoundException
+import no.ndla.articleapi.model.api.{ImportException, NotFoundException}
 import no.ndla.articleapi.model.domain.{Article, ImportStatus, NodeToConvert}
 import no.ndla.articleapi.repository.ArticleRepository
 import no.ndla.articleapi.service.search.SearchIndexService
+import no.ndla.articleapi.ArticleApiProperties.supportedContentTypes
 
 import scala.util.{Failure, Success, Try}
 
@@ -26,7 +27,7 @@ trait ExtractConvertStoreContent {
   class ExtractConvertStoreContent extends LazyLogging {
     def processNode(externalId: String, importStatus: ImportStatus = ImportStatus(Seq(), Seq())): Try[(Long, ImportStatus)] = {
       if (importStatus.visitedNodes.contains(externalId)) {
-        return articleRepository.getIdFromExternalId(externalId) match {
+        return getMainNodeId(externalId).flatMap(mainNodeId => articleRepository.getIdFromExternalId(mainNodeId)) match {
           case Some(id) => Success(id, importStatus)
           case None => Failure(NotFoundException(s"Content with external id $externalId was not found"))
         }
@@ -40,11 +41,19 @@ trait ExtractConvertStoreContent {
       } yield (newId, updatedImportStatus ++ ImportStatus(Seq(s"Successfully imported node $externalId: $newId")))
     }
 
+    private def getMainNodeId(externalId: String): Option[String] = {
+      extract(externalId) map { case (_, mainNodeId) => mainNodeId } toOption
+    }
+
     private def extract(externalId: String): Try[(NodeToConvert, String)] = {
       val node = extractService.getNodeData(externalId)
       node.contents.find(_.isMainNode) match {
         case None => Failure(NotFoundException(s"$externalId is a translation; Could not find main node"))
-        case Some(mainNode) => Success(node, mainNode.nid)
+        case Some(mainNode) =>
+          if (!supportedContentTypes.contains(node.nodeType.toLowerCase))
+            Failure(ImportException(s"Tried to import node of unsupported type '${node.contentType.toLowerCase}'"))
+          else
+            Success(node, mainNode.nid)
       }
     }
 
@@ -64,6 +73,6 @@ trait ExtractConvertStoreContent {
         case Failure(ex) => Seq()
         case Success(subjectMetas) => subjectMetas.map(_.nid)
       }
-  }
 
+  }
 }

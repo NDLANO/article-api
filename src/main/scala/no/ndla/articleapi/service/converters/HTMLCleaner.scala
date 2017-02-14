@@ -5,9 +5,10 @@ import no.ndla.articleapi.ArticleApiProperties._
 import no.ndla.articleapi.integration.{ConverterModule, ImageApiClient, LanguageContent, LanguageIngress}
 import no.ndla.articleapi.model.domain.ImportStatus
 import org.jsoup.nodes.{Element, Node, TextNode}
-import no.ndla.articleapi.integration.ConverterModule.{stringToJsoupDocument, jsoupDocumentToString}
+import no.ndla.articleapi.integration.ConverterModule.{jsoupDocumentToString, stringToJsoupDocument}
 
 import scala.collection.JavaConversions._
+import scala.util.{Success, Try}
 
 trait HTMLCleaner {
   this: ImageApiClient with HtmlTagGenerator =>
@@ -15,7 +16,7 @@ trait HTMLCleaner {
 
   class HTMLCleaner extends ConverterModule with LazyLogging {
 
-    override def convert(content: LanguageContent, importStatus: ImportStatus): (LanguageContent, ImportStatus) = {
+    override def convert(content: LanguageContent, importStatus: ImportStatus): Try[(LanguageContent, ImportStatus)] = {
       val element = stringToJsoupDocument(content.content)
       val illegalTags = unwrapIllegalTags(element).map(x => s"Illegal tag(s) removed: $x").distinct
       val illegalAttributes = removeAttributes(element).map(x => s"Illegal attribute(s) removed: $x").distinct
@@ -29,8 +30,8 @@ trait HTMLCleaner {
       val metaDescription = prepareMetaDescription(content.metaDescription)
       val ingress = getIngress(content, element)
 
-      (content.copy(content=jsoupDocumentToString(element), ingress=ingress, metaDescription=metaDescription),
-        ImportStatus(importStatus.messages ++ illegalTags ++ illegalAttributes, importStatus.visitedNodes))
+      Success((content.copy(content=jsoupDocumentToString(element), ingress=ingress, metaDescription=metaDescription),
+        ImportStatus(importStatus.messages ++ illegalTags ++ illegalAttributes, importStatus.visitedNodes)))
     }
 
     private def moveImagesOutOfPTags(element: Element) {
