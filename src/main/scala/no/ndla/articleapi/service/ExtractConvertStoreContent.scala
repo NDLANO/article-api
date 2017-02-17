@@ -33,12 +33,12 @@ trait ExtractConvertStoreContent {
         }
       }
 
-      extract(externalId) map { case (node, mainNodeId) =>
-        val (convertedNode, updatedImportStatus) = convert(node, importStatus)
-        val newId = store(convertedNode, mainNodeId)
-        val indexErrors = indexArticle(convertedNode.copy(id=Some(newId)))
-        (newId, updatedImportStatus ++ ImportStatus(Seq(s"Successfully imported node $externalId: $newId") ++ indexErrors))
-      }
+      for {
+        (node, mainNodeId) <- extract(externalId)
+        (convertedArticle, updatedImportStatus) <- convert(node, importStatus)
+        newId <- store(convertedArticle, mainNodeId)
+        _ <- searchIndexService.indexDocument(convertedArticle.copy(id = Some(newId)))
+      } yield (newId, updatedImportStatus ++ ImportStatus(Seq(s"Successfully imported node $externalId: $newId")))
     }
 
     private def getMainNodeId(externalId: String): Option[String] = {
@@ -57,21 +57,14 @@ trait ExtractConvertStoreContent {
       }
     }
 
-    private def convert(nodeToConvert: NodeToConvert, importStatus: ImportStatus): (Article, ImportStatus) =
-      converterService.toDomainArticle(nodeToConvert, importStatus)
+    private def convert(nodeToConvert: NodeToConvert, importStatus: ImportStatus): Try[(Article, ImportStatus)] =
+      Success(converterService.toDomainArticle(nodeToConvert, importStatus))
 
-    private def store(article: Article, nodeId: String): Long = {
-      val subjectIds = getSubjectIds(nodeId)
-      articleRepository.exists(nodeId) match {
-        case true => articleRepository.updateWithExternalId(article, nodeId)
-        case false => articleRepository.insertWithExternalIds(article, nodeId, subjectIds)
-      }
-    }
-
-    private def indexArticle(article: Article): Seq[String] = {
-      searchIndexService.indexDocument(article) match {
-        case Failure(f) => Seq(s"Failed to index article with id ${article.id}: ${f.getMessage}")
-        case Success(_) => Seq()
+    private def store(article: Article, mainNodeNid: String): Try[Long] = {
+      val subjectIds = getSubjectIds(mainNodeNid)
+      articleRepository.exists(mainNodeNid) match {
+        case true => articleRepository.updateWithExternalId(article, mainNodeNid)
+        case false => Success(articleRepository.insertWithExternalIds(article, mainNodeNid, subjectIds))
       }
     }
 
@@ -80,5 +73,6 @@ trait ExtractConvertStoreContent {
         case Failure(ex) => Seq()
         case Success(subjectMetas) => subjectMetas.map(_.nid)
       }
+
   }
 }

@@ -59,6 +59,7 @@ trait ConverterService {
       val ingresses = nodeToConvert.contents.flatMap(content => content.asArticleIntroduction)
 
       domain.Article(None,
+        None,
         nodeToConvert.titles,
         nodeToConvert.contents.map(_.asContent),
         toDomainCopyright(nodeToConvert.license, nodeToConvert.authors),
@@ -90,6 +91,7 @@ trait ConverterService {
     def toDomainArticle(newArticle: api.NewArticle): domain.Article = {
       domain.Article(
         id=None,
+        revision=None,
         title=newArticle.title.map(toDomainTitle),
         content=newArticle.content.map(toDomainContent),
         copyright=toDomainCopyright(newArticle.copyright),
@@ -105,21 +107,22 @@ trait ConverterService {
       )
     }
 
-    def toDomainArticle(newArticle: api.UpdatedArticle): domain.Article = {
+    def toDomainArticle(updatedArticle: api.UpdatedArticle): domain.Article = {
       domain.Article(
         id=None,
-        title=newArticle.title.map(toDomainTitle),
-        content=newArticle.content.map(toDomainContent),
-        copyright=toDomainCopyright(newArticle.copyright),
-        tags=newArticle.tags.map(toDomainTag),
-        requiredLibraries=newArticle.requiredLibraries.getOrElse(Seq()).map(toDomainRequiredLibraries),
-        visualElement=newArticle.visualElement.getOrElse(Seq()).map(toDomainVisualElement),
-        introduction=newArticle.introduction.getOrElse(Seq()).map(toDomainIntroduction),
-        metaDescription=newArticle.metaDescription.getOrElse(Seq()).map(toDomainMetaDescription),
-        metaImageId=newArticle.metaImageId,
+        revision=Option(updatedArticle.revision),
+        title=updatedArticle.title.map(toDomainTitle),
+        content=updatedArticle.content.map(toDomainContent),
+        copyright=toDomainCopyright(updatedArticle.copyright),
+        tags=updatedArticle.tags.map(toDomainTag),
+        requiredLibraries=updatedArticle.requiredLibraries.getOrElse(Seq()).map(toDomainRequiredLibraries),
+        visualElement=updatedArticle.visualElement.getOrElse(Seq()).map(toDomainVisualElement),
+        introduction=updatedArticle.introduction.getOrElse(Seq()).map(toDomainIntroduction),
+        metaDescription=updatedArticle.metaDescription.getOrElse(Seq()).map(toDomainMetaDescription),
+        metaImageId=updatedArticle.metaImageId,
         created=clock.now(),
         updated=clock.now(),
-        contentType=newArticle.contentType
+        contentType=updatedArticle.contentType
       )
     }
 
@@ -128,7 +131,15 @@ trait ConverterService {
     }
 
     def toDomainContent(articleContent: api.ArticleContent): domain.ArticleContent = {
-      domain.ArticleContent(articleContent.content, None, articleContent.language) // TODO: footnotes
+      domain.ArticleContent(articleContent.content, articleContent.footNotes.map(toDomainFootNotes), articleContent.language)
+    }
+
+    def toDomainFootNotes(footNotes: Map[String, api.FootNoteItem]): Map[String, domain.FootNoteItem] = {
+      footNotes map { case (key, value) => key -> toDomainFootNote(value) }
+    }
+
+    def toDomainFootNote(footNote: api.FootNoteItem): domain.FootNoteItem = {
+      domain.FootNoteItem(footNote.title, footNote.`type`, footNote.year, footNote.edition, footNote.publisher, footNote.authors)
     }
 
     def toDomainCopyright(copyright: api.Copyright): domain.Copyright = {
@@ -154,6 +165,7 @@ trait ConverterService {
     def toApiArticle(article: domain.Article): api.Article = {
       api.Article(
         article.id.get.toString,
+        article.revision.get,
         article.title.map(toApiArticleTitle),
         article.content.map(toApiArticleContent),
         toApiCopyright(article.copyright),

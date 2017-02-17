@@ -9,7 +9,6 @@
 
 package no.ndla.articleapi
 
-import no.ndla.network.secrets.PropertyKeys
 import org.scalatest._
 import org.scalatest.mock.MockitoSugar
 
@@ -18,13 +17,6 @@ abstract class UnitSuite extends FunSuite with Matchers with OptionValues with I
 
   setEnv("NDLA_ENVIRONMENT", "local")
   setEnv("ENABLE_JOUBEL_H5P_OEMBED", "true")
-
-  setEnv(PropertyKeys.MetaUserNameKey, "username")
-  setEnv(PropertyKeys.MetaPasswordKey, "password")
-  setEnv(PropertyKeys.MetaResourceKey, "resource")
-  setEnv(PropertyKeys.MetaServerKey, "server")
-  setEnv(PropertyKeys.MetaPortKey, "1234")
-  setEnv(PropertyKeys.MetaSchemaKey, "schema")
 
   setEnv("SEARCH_SERVER", "some-server")
   setEnv("SEARCH_REGION", "some-region")
@@ -37,10 +29,13 @@ abstract class UnitSuite extends FunSuite with Matchers with OptionValues with I
   setEnv("NDLA_BRIGHTCOVE_ACCOUNT_ID", "some-account-id")
   setEnv("NDLA_BRIGHTCOVE_PLAYER_ID", "some-player-id")
 
-  def setEnv(key: String, value: String) = {
+  def setEnv(key: String, value: String) = env.put(key, value)
+
+  def setEnvIfAbsent(key: String, value: String) = env.putIfAbsent(key, value)
+
+  private def env = {
     val field = System.getenv().getClass.getDeclaredField("m")
     field.setAccessible(true)
-    val map = field.get(System.getenv()).asInstanceOf[java.util.Map[java.lang.String, java.lang.String]]
-    map.put(key, value)
+    field.get(System.getenv()).asInstanceOf[java.util.Map[java.lang.String, java.lang.String]]
   }
 }

@@ -12,7 +12,7 @@ package no.ndla.articleapi.repository
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.articleapi.ArticleApiProperties
 import no.ndla.articleapi.integration.DataSource
-import no.ndla.articleapi.model.api.NotFoundException
+import no.ndla.articleapi.model.api.OptimisticLockException
 import no.ndla.articleapi.model.domain.Article
 import org.json4s.native.Serialization.write
 import org.postgresql.util.PGobject
@@ -26,17 +26,17 @@ trait ArticleRepository {
 
   class ArticleRepository extends LazyLogging {
     implicit val formats = org.json4s.DefaultFormats + Article.JSonSerializer
-    ConnectionPool.singleton(new DataSourceConnectionPool(dataSource))
 
-    def insert(article: Article)(implicit session: DBSession = AutoSession) = {
+    def insert(article: Article)(implicit session: DBSession = AutoSession): Article = {
+      val startRevision = 1
       val dataObject = new PGobject()
       dataObject.setType("jsonb")
       dataObject.setValue(write(article))
 
-      val articleId: Long = sql"insert into ${Article.table} (document) values (${dataObject})".updateAndReturnGeneratedKey().apply
+      val articleId: Long = sql"insert into ${Article.table} (document, revision) values (${dataObject}, $startRevision)".updateAndReturnGeneratedKey().apply
 
       logger.info(s"Inserted new article: $articleId")
-      article.copy(id=Some(articleId))
+      article.copy(id=Some(articleId), revision=Some(startRevision))
     }
 
     def update(article: Article)(implicit session: DBSession = AutoSession): Try[Article] = {
@@ -44,18 +44,21 @@ trait ArticleRepository {
       dataObject.setType("jsonb")
       dataObject.setValue(write(article))
 
-      val count = sql"update ${Article.table} set document=${dataObject} where id=${article.id}".update().apply
+      val newRevision = article.revision.getOrElse(0) + 1
+      val count = sql"update ${Article.table} set document=${dataObject}, revision=$newRevision where id=${article.id} and revision=${article.revision}".update.apply
+
       if (count != 1) {
-        val message = s"Could not find article with id ${article.id}"
+        val message = s"Found revision mismatch when attempting to update article ${article.id}"
         logger.info(message)
-        Failure(NotFoundException(message))
+        Failure(new OptimisticLockException)
       } else {
         logger.info(s"Updated article ${article.id}")
-        Success(article)
+        Success(article.copy(revision=Some(newRevision)))
       }
     }
 
     def insertWithExternalIds(article: Article, externalId: String, externalSubjectId: Seq[String])(implicit session: DBSession = AutoSession): Long = {
+      val startRevision = 1
       val dataObject = new PGobject()
       dataObject.setType("jsonb")
       dataObject.setValue(write(article))
@@ -66,15 +69,28 @@ trait ArticleRepository {
       articleId
     }
 
-    def updateWithExternalId(article: Article, externalId: String)(implicit session: DBSession = AutoSession): Long = {
+    def updateWithExternalId(article: Article, externalId: String)(implicit session: DBSession = AutoSession): Try[Long] = {
       val dataObject = new PGobject()
       dataObject.setType("jsonb")
       dataObject.setValue(write(article))
 
-      val articleId: Long = sql"update ${Article.table} set document=${dataObject} where external_id=${externalId}".updateAndReturnGeneratedKey().apply
+      val expectedArticleRevision = 1
+      Try(sql"update ${Article.table} set document=${dataObject} where external_id=${externalId} and revision=$expectedArticleRevision".updateAndReturnGeneratedKey().apply) match {
+        case Success(articleId) => {
+          logger.info(s"Updated article with external_id=$externalId, id=$articleId")
+          Success(articleId)
+        }
+        case Failure(ex) => {
+          val message = "The revision stored in the database is newer than the one being updated. Please use the latest version from database when updating."
 
-      logger.info(s"Updated node $externalId: $articleId")
-      articleId
+          logger.info(message)
+          Failure(new OptimisticLockException(message))
+        }
+      }
+    }
+
+    def delete(articleId: Long)(implicit session: DBSession = AutoSession) = {
+      sql"delete from ${Article.table} where id = $articleId".update().apply
     }
 
     def withId(articleId: Long): Option[Article] =

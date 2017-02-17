@@ -21,14 +21,16 @@ case class Error(@(ApiModelProperty@field)(description = "Code stating the type 
                  @(ApiModelProperty@field)(description = "When the error occured") occuredAt: Date = new Date())
 
 object Error {
-  val GENERIC = "1"
-  val NOT_FOUND = "2"
-  val INDEX_MISSING = "3"
-  val VALIDATION = "4"
+  val GENERIC = "GENERIC"
+  val NOT_FOUND = "NOT_FOUND"
+  val INDEX_MISSING = "INDEX_MISSING"
+  val VALIDATION = "VALIDATION"
+  val RESOURCE_OUTDATED = "RESOURCE_OUTDATED"
 
   val VALIDATION_DESCRIPTION = "Validation Error"
   val GENERIC_DESCRIPTION = s"Ooops. Something we didn't anticipate occured. We have logged the error, and will look into it. But feel free to contact ${ArticleApiProperties.ContactEmail} if the error persists."
   val INDEX_MISSING_DESCRIPTION = s"Ooops. Our search index is not available at the moment, but we are trying to recreate it. Please try again in a few minutes. Feel free to contact ${ArticleApiProperties.ContactEmail} if the error persists."
+  val RESOURCE_OUTDATED_DESCRIPTION = "The resource is outdated. Please try fetching before submitting again."
 
   val GenericError = Error(GENERIC, GENERIC_DESCRIPTION)
   val IndexMissingError = Error(INDEX_MISSING, INDEX_MISSING_DESCRIPTION)
@@ -39,3 +41,4 @@ case class ImportException(message: String) extends RuntimeException(message)
 
 class ImportExceptions(val message: String, val errors: Seq[Throwable]) extends RuntimeException(message)
 class ValidationException(message: String = "Validation Error", val errors: Seq[ValidationMessage]) extends RuntimeException(message)
+class OptimisticLockException(message: String = Error.RESOURCE_OUTDATED_DESCRIPTION) extends RuntimeException(message)

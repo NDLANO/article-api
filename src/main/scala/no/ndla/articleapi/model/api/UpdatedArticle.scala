@@ -14,6 +14,7 @@ import scala.annotation.meta.field
 
 @ApiModel(description = "Information about the article")
 case class UpdatedArticle(@(ApiModelProperty@field)(description = "The title of the article") title: Seq[ArticleTitle],
+                          @(ApiModelProperty@field)(description = "The revision number for the article") revision: Int,
                           @(ApiModelProperty@field)(description = "The content of the article") content: Seq[ArticleContent],
                           @(ApiModelProperty@field)(description = "Searchable tags") tags: Seq[ArticleTag],
                           @(ApiModelProperty@field)(description = "An introduction") introduction: Option[Seq[ArticleIntroduction]],

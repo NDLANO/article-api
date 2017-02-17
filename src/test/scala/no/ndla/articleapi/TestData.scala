@@ -23,6 +23,7 @@ object TestData {
 
   val sampleArticleWithPublicDomain = Article(
     Option(1),
+    Option(1),
     Seq(ArticleTitle("test", Option("en"))),
     Seq(ArticleContent("<article><div>test</div></article>", None, Option("en"))),
     publicDomainCopyright,
@@ -41,6 +42,7 @@ object TestData {
 
   val updatedArticle = api.UpdatedArticle(
     Seq(api.ArticleTitle("test", Option("en"))),
+    1,
     Seq(api.ArticleContent("<article><div>test</div></article>", None, Option("en"))),
     Seq(),
     None,

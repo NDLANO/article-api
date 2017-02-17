@@ -11,14 +11,16 @@ package no.ndla.articleapi.service
 
 import java.util.Date
 
+import io.searchbox.client.JestResult
 import no.ndla.articleapi.integration.{LanguageIngress, MigrationSubjectMeta}
+import no.ndla.articleapi.model.api.{NotFoundException, OptimisticLockException}
 import no.ndla.articleapi.model.domain._
 import no.ndla.articleapi.{TestData, TestEnvironment, UnitSuite}
 import org.mockito.Mockito._
 import org.mockito.Matchers._
 import scalikejdbc.DBSession
 
-import scala.util.{Success, Try}
+import scala.util.{Failure, Success, Try}
 
 class ExtractConvertStoreContentTest extends UnitSuite with TestEnvironment {
   val (nodeId, nodeId2) = ("1234", "4321")
@@ -58,6 +60,25 @@ class ExtractConvertStoreContentTest extends UnitSuite with TestEnvironment {
 
     val result = eCSService.processNode(nodeId, ImportStatus(Seq(), Seq("9876")))
     result should equal(Success(newNodeid, ImportStatus(List(s"Successfully imported node $nodeId: $newNodeid"), List("9876", nodeId, nodeId2))))
+  }
+
+  test("That ETL returns a Failure if the node was not found") {
+    when(extractService.getNodeData(nodeId)).thenReturn(sampleNode.copy(contents=Seq()))
+    val result = eCSService.processNode(nodeId, ImportStatus(Seq(), Seq("9876")))
+    result.isFailure should be (true)
+  }
+
+  test("That ETL returns a Failure if failed to persist the converted article") {
+    when(articleRepository.updateWithExternalId(any[Article], any[String])).thenReturn(Failure(new OptimisticLockException()))
+    when(articleRepository.exists(sampleNode.contents.head.nid)).thenReturn(true)
+    val result = eCSService.processNode(nodeId, ImportStatus(Seq(), Seq("9876")))
+    result.isFailure should be (true)
+  }
+
+  test("That ETL returns a Failure if failed to index the converted article") {
+    when(searchIndexService.indexDocument(any[Article])).thenReturn(any[Failure[NdlaSearchException]])
+    val result = eCSService.processNode(nodeId, ImportStatus(Seq(), Seq("9876")))
+    result.isFailure should be (true)
   }
 
 }
