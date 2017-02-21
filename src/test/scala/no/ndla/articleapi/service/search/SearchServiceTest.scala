@@ -11,21 +11,18 @@ package no.ndla.articleapi.service.search
 
 import no.ndla.articleapi.integration.JestClientFactory
 import no.ndla.articleapi.model.domain._
-import no.ndla.articleapi.{ArticleApiProperties, TestEnvironment, UnitSuite}
-import no.ndla.articleapi.TestData
-import org.elasticsearch.common.settings.Settings
-import org.elasticsearch.node.{Node, NodeBuilder}
+import no.ndla.articleapi.{ArticleApiProperties, TestData, TestEnvironment, UnitSuite}
+import org.elasticsearch.node.Node
 import org.joda.time.DateTime
 import scala.reflect.io.Path
-import scala.util.Random
 
 class SearchServiceTest extends UnitSuite with TestEnvironment {
 
-  val esHttpPort = new Random(System.currentTimeMillis()).nextInt(30000 - 20000) + 20000
+  val esPort = 9200
   val esDataDir = "esTestData"
   var esNode: Node = _
 
-  override val jestClient = JestClientFactory.getClient(searchServer = s"http://localhost:$esHttpPort")
+  override val jestClient = JestClientFactory.getClient(searchServer = s"http://localhost:$esPort")
 
   override val searchService = new SearchService
   override val indexService = new IndexService
@@ -74,21 +71,11 @@ class SearchServiceTest extends UnitSuite with TestEnvironment {
 
   override def beforeAll = {
     Path(esDataDir).deleteRecursively()
-    val settings = Settings.settingsBuilder()
-      .put("path.home", esDataDir)
-      .put("index.number_of_shards", "1")
-      .put("index.number_of_replicas", "0")
-      .put("http.port", esHttpPort)
-      .put("cluster.name", getClass.getName)
-      .build()
 
-    esNode = new NodeBuilder().settings(settings).node()
-    esNode.start()
+    val newIndex = indexService.createIndexWithName(ArticleApiProperties.SearchIndex)
 
-
-    val indexName = indexService.createIndex().get
-    indexService.updateAliasTarget(None, indexName)
-    indexService.indexDocuments(List(article1, article2), indexName)
+    indexService.indexDocument(article1)
+    indexService.indexDocument(article2)
     indexService.indexDocument(article3)
     indexService.indexDocument(article4)
 
@@ -96,10 +83,8 @@ class SearchServiceTest extends UnitSuite with TestEnvironment {
   }
 
   override def afterAll() = {
-    esNode.close()
     Path(esDataDir).deleteRecursively()
   }
-
 
   test("That getStartAtAndNumResults returns default values for None-input") {
     searchService.getStartAtAndNumResults(None, None) should equal((0, ArticleApiProperties.DefaultPageSize))

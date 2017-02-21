@@ -1,13 +1,15 @@
 import java.util.Properties
 
+val AwsSdkversion = "1.10.26"
+val Elastic4sVersion = "5.2.7"
+val ElasticsearchVersion = "5.1.1"
+val Jettyversion = "9.2.10.v20150310"
+val Log4JVersion = "2.7"
+val MockitoVersion = "1.10.19"
 val Scalaversion = "2.12.1"
 val Scalatraversion = "2.5.0"
 val ScalaLoggingVersion = "3.5.0"
-val Log4JVersion = "2.7"
-val Jettyversion = "9.2.10.v20150310"
-val AwsSdkversion = "1.10.26"
 val ScalaTestVersion = "3.0.1"
-val MockitoVersion = "1.10.19"
 
 val appProperties = settingKey[Properties]("The application properties")
 
@@ -30,8 +32,8 @@ lazy val article_api = (project in file(".")).
     javacOptions ++= Seq("-source", "1.8", "-target", "1.8"),
     scalacOptions := Seq("-target:jvm-1.8"),
     libraryDependencies ++= Seq(
-      "ndla" %% "network" % "0.12-SNAPSHOT", //vårt lib - må oppdateres
-      "ndla" %% "mapping" % "0.3-SNAPSHOT", //vårt lib - må oppdateres
+      "ndla" %% "network" % "0.12-SNAPSHOT", //vårt lib - må releases først https://github.com/NDLANO/network/pull/10
+      "ndla" %% "mapping" % "0.3-SNAPSHOT",  //vårt lib - må releases først https://github.com/NDLANO/mapping/pull/2
       "joda-time" % "joda-time" % "2.8.2",
       "org.scalatra" %% "scalatra" % Scalatraversion,
       "org.eclipse.jetty" % "jetty-webapp" % Jettyversion % "container;compile",
@@ -50,12 +52,13 @@ lazy val article_api = (project in file(".")).
       "mysql" % "mysql-connector-java" % "5.1.36",
       "com.amazonaws" % "aws-java-sdk-s3" % AwsSdkversion,
       "org.scalaj" %% "scalaj-http" % "2.3.0",
-      "io.searchbox" % "jest" % "2.0.0", //
-      "org.elasticsearch" % "elasticsearch" % "5.1.1",
-      "com.sksamuel.elastic4s" %% "elastic4s-core" % "5.2.7", //
-      "org.elasticsearch" % "elasticsearch" % "5.1.1" % "test", //
-      "org.apache.lucene" % "lucene-test-framework" % "5.5.0" % "test", //
-      "vc.inreach.aws" % "aws-signing-request-interceptor" % "0.0.14", //signerer request mot aws sin elastic search
+      "io.searchbox" % "jest" % "2.0.4",
+      "org.elasticsearch" % "elasticsearch" % ElasticsearchVersion,
+      "com.sksamuel.elastic4s" %% "elastic4s-core" % Elastic4sVersion,
+      "com.sksamuel.elastic4s" %% "elastic4s-http" % Elastic4sVersion,
+      "org.elasticsearch" % "elasticsearch" % ElasticsearchVersion % "test",
+      "org.apache.lucene" % "lucene-test-framework" % "6.4.1" % "test",
+      "vc.inreach.aws" % "aws-signing-request-interceptor" % "0.0.16",
       "org.scalatest" %% "scalatest" % ScalaTestVersion % "test",
       "org.jsoup" % "jsoup" % "1.7.3",
       "org.mockito" % "mockito-all" % MockitoVersion % "test",
