@@ -82,7 +82,7 @@ assemblyMergeStrategy in assembly := {
 }
 
 // Don't run Integration tests in default run
-testOptions in Test += Tests.Argument("-l", "no.ndla.imageapi.ESIntegrationTest")
+testOptions in Test += Tests.Argument("-l", "no.ndla.articleapi.ESIntegrationTest")
 
 // Make the docker task depend on the assembly task, which generates a fat JAR file
 docker <<= (docker dependsOn assembly)
