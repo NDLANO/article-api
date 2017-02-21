@@ -12,6 +12,8 @@ package no.ndla.articleapi
 import org.scalatest._
 import org.scalatest.mock.MockitoSugar
 
+//Own tag for elasticsearch tests that need a running elasticsearch instance outside the test e.g. in the docker container
+object ESIntegrationTest extends Tag("no.ndla.imageapi.ESIntegrationTest")
 
 abstract class UnitSuite extends FunSuite with Matchers with OptionValues with Inside with Inspectors with MockitoSugar with BeforeAndAfterEach with BeforeAndAfterAll {
 
