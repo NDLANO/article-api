@@ -9,7 +9,11 @@ API for accessing articles from NDLA
     sbt compile
 
 ## Run tests
+    #All tests except Tagged tests
     sbt test
+     
+    #Tests that need a running elasticsearch outside of component, e.g. in your local docker.
+    sbt "test-only -- -n no.ndla.articleapi.tag.ESIntegrationTest"
 
 ## Create Docker Image
     sbt docker
