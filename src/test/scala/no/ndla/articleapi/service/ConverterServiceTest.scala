@@ -250,9 +250,10 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
   }
 
   test("toApiArticle converts a domain.Article to an api.Article") {
+    val (articleId, externalId) = (1, "751234")
     val today = new DateTime().toDate
     val domainArticle = Article(
-      Option(1),
+      Option(articleId),
       Option(2),
       Seq(ArticleTitle("title", Option("nb"))),
       Seq(ArticleContent("content", None, Option("nb"))),
@@ -268,7 +269,8 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
       "fagstoff")
 
     val apiArticle = api.Article(
-      "1",
+      articleId.toString,
+      Some(s"http://ndla.no/node/$externalId"),
       2,
       Seq(api.ArticleTitle("title", Option("nb"))),
       Seq(api.ArticleContent("content", None, Option("nb"))),
@@ -282,6 +284,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
       today,
       "fagstoff")
 
+    when(articleRepository.getExternalIdFromId(articleId)).thenReturn(Some(externalId))
     service.toApiArticle(domainArticle) should equal(apiArticle)
   }
 

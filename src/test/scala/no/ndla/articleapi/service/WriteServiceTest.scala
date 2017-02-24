@@ -34,6 +34,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
 
   test("newArticle should insert a given article") {
     when(articleRepository.insert(any[Article])(any[DBSession])).thenReturn(article)
+    when(articleRepository.getExternalIdFromId(any[Long])(any[DBSession])).thenReturn(None)
 
     service.newArticle(newArticle).id should equal(article.id.get.toString)
     verify(articleRepository, times(1)).insert(any[Article])

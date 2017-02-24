@@ -10,17 +10,17 @@
 package no.ndla.articleapi.service
 
 import com.typesafe.scalalogging.LazyLogging
-
-import scala.annotation.tailrec
 import no.ndla.articleapi.ArticleApiProperties.maxConvertionRounds
 import no.ndla.articleapi.integration.ImageApiClient
 import no.ndla.articleapi.model.domain._
 import no.ndla.articleapi.model.{api, domain}
+import no.ndla.articleapi.repository.ArticleRepository
 import no.ndla.mapping.License.getLicense
-import org.joda.time.DateTime
+
+import scala.annotation.tailrec
 
 trait ConverterService {
-  this: ConverterModules with ExtractConvertStoreContent with ImageApiClient with Clock =>
+  this: ConverterModules with ExtractConvertStoreContent with ImageApiClient with Clock with ArticleRepository =>
   val converterService: ConverterService
 
   class ConverterService extends LazyLogging {
@@ -162,9 +162,14 @@ trait ConverterService {
       domain.ArticleIntroduction(intro.introduction, intro.language)
     }
 
+    private def getLinkToOldNdla(id: Long): Option[String] = {
+      articleRepository.getExternalIdFromId(id).map(createLinkToOldNdla)
+    }
+
     def toApiArticle(article: domain.Article): api.Article = {
       api.Article(
         article.id.get.toString,
+        article.id.flatMap(getLinkToOldNdla),
         article.revision.get,
         article.title.map(toApiArticleTitle),
         article.content.map(toApiArticleContent),
@@ -233,6 +238,8 @@ trait ConverterService {
     def toApiArticleMetaDescription(metaDescription: domain.ArticleMetaDescription): api.ArticleMetaDescription= {
       api.ArticleMetaDescription(metaDescription.content, metaDescription.language)
     }
+
+    def createLinkToOldNdla(nodeId: String): String = s"http://ndla.no/node/$nodeId"
 
   }
 }
