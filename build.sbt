@@ -81,8 +81,12 @@ assemblyMergeStrategy in assembly := {
     oldStrategy(x)
 }
 
-// Don't run Integration tests in default run
-testOptions in Test += Tests.Argument("-l", "no.ndla.tag.ESIntegrationTest")
+// Don't run Integration tests in default run on Travis as there is no elasticsearch localhost:9200 there yet. 
+// NB this thing will unfortunalty overrade runs on your local commandline so that
+// sbt "test-only -- -n no.ndla.tag.IntegrationTest"
+// will not run unless this line gets commented out or you change the tag in UnitSuite.scala
+// This should be solved better!
+testOptions in Test += Tests.Argument("-l", "no.ndla.tag.IntegrationTest")
 
 // Make the docker task depend on the assembly task, which generates a fat JAR file
 docker <<= (docker dependsOn assembly)

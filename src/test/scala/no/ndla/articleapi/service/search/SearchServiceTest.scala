@@ -81,76 +81,76 @@ class SearchServiceTest extends UnitSuite with TestEnvironment {
     indexService.delete(Some(ArticleApiProperties.SearchIndex))
   }
 
-  test("That getStartAtAndNumResults returns default values for None-input", ESIntegrationTest) {
+  test("That getStartAtAndNumResults returns default values for None-input", IntegrationTest) {
     searchService.getStartAtAndNumResults(None, None) should equal((0, ArticleApiProperties.DefaultPageSize))
   }
 
-  test("That getStartAtAndNumResults returns SEARCH_MAX_PAGE_SIZE for value greater than SEARCH_MAX_PAGE_SIZE", ESIntegrationTest) {
+  test("That getStartAtAndNumResults returns SEARCH_MAX_PAGE_SIZE for value greater than SEARCH_MAX_PAGE_SIZE", IntegrationTest) {
     searchService.getStartAtAndNumResults(None, Some(1000)) should equal((0, ArticleApiProperties.MaxPageSize))
   }
 
-  test("That getStartAtAndNumResults returns the correct calculated start at for page and page-size with default page-size", ESIntegrationTest) {
+  test("That getStartAtAndNumResults returns the correct calculated start at for page and page-size with default page-size", IntegrationTest) {
     val page = 74
     val expectedStartAt = (page - 1) * ArticleApiProperties.DefaultPageSize
     searchService.getStartAtAndNumResults(Some(page), None) should equal((expectedStartAt, ArticleApiProperties.DefaultPageSize))
   }
 
-  test("That getStartAtAndNumResults returns the correct calculated start at for page and page-size", ESIntegrationTest) {
+  test("That getStartAtAndNumResults returns the correct calculated start at for page and page-size", IntegrationTest) {
     val page = 123
     val expectedStartAt = (page - 1) * ArticleApiProperties.DefaultPageSize
     searchService.getStartAtAndNumResults(Some(page), Some(ArticleApiProperties.DefaultPageSize)) should equal((expectedStartAt, ArticleApiProperties.DefaultPageSize))
   }
 
-  test("That all returns all documents ordered by id ascending", ESIntegrationTest) {
+  test("That all returns all documents ordered by id ascending", IntegrationTest) {
     val results = searchService.all(List(), None, None, None, None, Sort.ByIdAsc)
     results.totalCount should be(3)
     results.results.head.id should be("1")
     results.results.last.id should be("3")
   }
 
-  test("That all returns all documents ordered by id descending", ESIntegrationTest) {
+  test("That all returns all documents ordered by id descending", IntegrationTest) {
     val results = searchService.all(List(), None, None, None, None, Sort.ByIdDesc)
     results.totalCount should be(3)
     results.results.head.id should be("3")
     results.results.last.id should be("1")
   }
 
-  test("That all returns all documents ordered by title ascending", ESIntegrationTest) {
+  test("That all returns all documents ordered by title ascending", IntegrationTest) {
     val results = searchService.all(List(), None, None, None, None, Sort.ByTitleAsc)
     results.totalCount should be(3)
     results.results.head.id should be("1")
     results.results.last.id should be("2")
   }
 
-  test("That all returns all documents ordered by lastUpdated descending", ESIntegrationTest) {
+  test("That all returns all documents ordered by lastUpdated descending", IntegrationTest) {
     val results = searchService.all(List(), None, None, None, None, Sort.ByLastUpdatedDesc)
     results.totalCount should be(3)
     results.results.head.id should be("3")
     results.results.last.id should be("1")
   }
 
-  test("That all returns all documents ordered by lastUpdated ascending", ESIntegrationTest) {
+  test("That all returns all documents ordered by lastUpdated ascending", IntegrationTest) {
     val results = searchService.all(List(), None, None, None, None, Sort.ByLastUpdatedAsc)
     results.totalCount should be(3)
     results.results.head.id should be("1")
     results.results.last.id should be("3")
   }
 
-  test("That all filtering on license only returns documents with given license", ESIntegrationTest) {
+  test("That all filtering on license only returns documents with given license", IntegrationTest) {
     val results = searchService.all(List(), None, Some("publicdomain"), None, None, Sort.ByTitleAsc)
     results.totalCount should be(2)
     results.results.head.id should be("3")
     results.results.last.id should be("2")
   }
 
-  test("That all filtered by id only returns documents with the given ids", ESIntegrationTest) {
+  test("That all filtered by id only returns documents with the given ids", IntegrationTest) {
     val results = searchService.all(List(1, 3), None, None, None, None, Sort.ByIdAsc)
     results.totalCount should be(2)
     results.results.head.id should be("1")
     results.results.last.id should be("3")
   }
 
-  test("That paging returns only hits on current page and not more than page-size", ESIntegrationTest) {
+  test("That paging returns only hits on current page and not more than page-size", IntegrationTest) {
     val page1 = searchService.all(List(), None, None, Some(1), Some(2), Sort.ByTitleAsc)
     val page2 = searchService.all(List(), None, None, Some(2), Some(2), Sort.ByTitleAsc)
     page1.totalCount should be(3)
@@ -164,38 +164,38 @@ class SearchServiceTest extends UnitSuite with TestEnvironment {
     page2.results.head.id should be("2")
   }
 
-  test("That search matches title and html-content ordered by relevance descending", ESIntegrationTest) {
+  test("That search matches title and html-content ordered by relevance descending", IntegrationTest) {
     val results = searchService.matchingQuery(Seq("bil"), List(), Some("nb"), None, None, None, Sort.ByRelevanceDesc)
     results.totalCount should be(2)
     results.results.head.id should be("1")
     results.results.last.id should be("3")
   }
 
-  test("That search combined with filter by id only returns documents matching the query with one of the given ids", ESIntegrationTest) {
+  test("That search combined with filter by id only returns documents matching the query with one of the given ids", IntegrationTest) {
     val results = searchService.matchingQuery(Seq("bil"), List(3), Some("nb"), None, None, None, Sort.ByRelevanceDesc)
     results.totalCount should be(1)
     results.results.head.id should be("3")
     results.results.last.id should be("3")
   }
 
-  test("That search matches title", ESIntegrationTest) {
+  test("That search matches title", IntegrationTest) {
     val results = searchService.matchingQuery(Seq("Pingvinen"), List(), Some("nb"), None, None, None, Sort.ByTitleAsc)
     results.totalCount should be(1)
     results.results.head.id should be("2")
   }
 
-  test("That search matches tags", ESIntegrationTest) {
+  test("That search matches tags", IntegrationTest) {
     val results = searchService.matchingQuery(Seq("and"), List(), Some("nb"), None, None, None, Sort.ByTitleAsc)
     results.totalCount should be(1)
     results.results.head.id should be("3")
   }
 
-  test("That search does not return superman since it has license copyrighted and license is not specified", ESIntegrationTest) {
+  test("That search does not return superman since it has license copyrighted and license is not specified", IntegrationTest) {
     val results = searchService.matchingQuery(Seq("supermann"), List(), Some("nb"), None, None, None, Sort.ByTitleAsc)
     results.totalCount should be(0)
   }
 
-  test("That search returns superman since license is specified as copyrighted", ESIntegrationTest) {
+  test("That search returns superman since license is specified as copyrighted", IntegrationTest) {
     val results = searchService.matchingQuery(Seq("supermann"), List(), Some("nb"), Some("copyrighted"), None, None, Sort.ByTitleAsc)
     results.totalCount should be(1)
     results.results.head.id should be("4")
