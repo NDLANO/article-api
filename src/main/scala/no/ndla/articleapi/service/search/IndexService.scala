@@ -85,7 +85,7 @@ trait IndexService {
         languageSupportedField("tags"),
         dateField("lastUpdated"),
         keywordField("license") index "not_analyzed",
-        textField("authors")
+        textField("authors").fielddata(true)
       ), ArticleApiProperties.SearchDocument).string()
     }
 
