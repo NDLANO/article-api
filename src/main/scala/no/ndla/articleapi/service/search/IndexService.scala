@@ -13,7 +13,7 @@ import java.text.SimpleDateFormat
 import java.util.Calendar
 
 import com.sksamuel.elastic4s.http.ElasticDsl._
-import com.sksamuel.elastic4s.mappings.NestedFieldDefinition
+import com.sksamuel.elastic4s.mappings.{MappingContentBuilder, NestedFieldDefinition}
 import com.typesafe.scalalogging.LazyLogging
 import io.searchbox.core.{Bulk, Index}
 import io.searchbox.indices.aliases.{AddAliasMapping, GetAliases, ModifyAliases, RemoveAliasMapping}
@@ -76,24 +76,24 @@ trait IndexService {
     }
 
     def buildMapping() = {
-      mapping(ArticleApiProperties.SearchDocument).fields(
-        keywordField("id"),
+      MappingContentBuilder.buildWithName(mapping(ArticleApiProperties.SearchDocument).fields(
+        intField("id"),
         languageSupportedField("title", keepRaw = true),
         languageSupportedField("content"),
         languageSupportedField("visualElement"),
         languageSupportedField("introduction"),
         languageSupportedField("tags"),
         dateField("lastUpdated"),
-        textField("license") index "not_analyzed",
+        keywordField("license") index "not_analyzed",
         textField("authors")
-      )
+      ), ArticleApiProperties.SearchDocument).string()
     }
 
     private def languageSupportedField(fieldName: String, keepRaw: Boolean = false) = {
       val languageSupportedField = new NestedFieldDefinition(fieldName)
       languageSupportedField._fields = keepRaw match {
-        case true => languageAnalyzers.map(langAnalyzer => textField(langAnalyzer.lang) analyzer langAnalyzer.analyzer fields (textField("raw") index "not_analyzed"))
-        case false => languageAnalyzers.map(langAnalyzer => textField(langAnalyzer.lang) analyzer langAnalyzer.analyzer)
+        case true => languageAnalyzers.map(langAnalyzer => textField(langAnalyzer.lang).fielddata(true) analyzer langAnalyzer.analyzer fields (textField("raw").fielddata(true) index "not_analyzed"))
+        case false => languageAnalyzers.map(langAnalyzer => textField(langAnalyzer.lang).fielddata(true) analyzer langAnalyzer.analyzer)
       }
 
       languageSupportedField
