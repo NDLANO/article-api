@@ -1,15 +1,15 @@
 import java.util.Properties
 
-val AwsSdkversion = "1.10.26"
-val Elastic4sVersion = "5.2.8"
-val ElasticsearchVersion = "5.1.1"
-val Jettyversion = "9.2.10.v20150310"
-val Log4JVersion = "2.7"
-val MockitoVersion = "1.10.19"
 val Scalaversion = "2.12.1"
 val Scalatraversion = "2.5.0"
 val ScalaLoggingVersion = "3.5.0"
+val Log4JVersion = "2.7"
+val Jettyversion = "9.2.10.v20150310"
+val AwsSdkversion = "1.11.46"
 val ScalaTestVersion = "3.0.1"
+val MockitoVersion = "1.10.19"
+val Elastic4sVersion = "5.2.8"
+val ElasticsearchVersion = "5.1.1"
 
 val appProperties = settingKey[Properties]("The application properties")
 
