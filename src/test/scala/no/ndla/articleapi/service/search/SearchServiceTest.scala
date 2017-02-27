@@ -12,16 +12,12 @@ package no.ndla.articleapi.service.search
 import no.ndla.articleapi.integration.JestClientFactory
 import no.ndla.articleapi.model.domain._
 import no.ndla.articleapi._
-import org.elasticsearch.node.Node
 import org.joda.time.DateTime
 
-import scala.reflect.io.Path
 
 class SearchServiceTest extends UnitSuite with TestEnvironment {
 
   val esPort = 9200
-  val esDataDir = "esTestData"
-  var esNode: Node = _
 
   override val jestClient = JestClientFactory.getClient(searchServer = s"http://localhost:$esPort")
 
@@ -71,9 +67,7 @@ class SearchServiceTest extends UnitSuite with TestEnvironment {
   )
 
   override def beforeAll = {
-    Path(esDataDir).deleteRecursively()
-
-    val newIndex = indexService.createIndexWithName(ArticleApiProperties.SearchIndex)
+    indexService.createIndexWithName(ArticleApiProperties.SearchIndex)
 
     indexService.indexDocument(article1)
     indexService.indexDocument(article2)
@@ -84,7 +78,7 @@ class SearchServiceTest extends UnitSuite with TestEnvironment {
   }
 
   override def afterAll() = {
-    Path(esDataDir).deleteRecursively()
+    indexService.delete(Some(ArticleApiProperties.SearchIndex))
   }
 
   test("That getStartAtAndNumResults returns default values for None-input", ESIntegrationTest) {

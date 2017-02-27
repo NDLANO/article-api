@@ -1,7 +1,7 @@
 import java.util.Properties
 
 val AwsSdkversion = "1.10.26"
-val Elastic4sVersion = "5.2.7"
+val Elastic4sVersion = "5.2.8"
 val ElasticsearchVersion = "5.1.1"
 val Jettyversion = "9.2.10.v20150310"
 val Log4JVersion = "2.7"
