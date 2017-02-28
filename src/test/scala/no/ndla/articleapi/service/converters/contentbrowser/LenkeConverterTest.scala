@@ -103,6 +103,6 @@ class LenkeConverterTest extends UnitSuite with TestEnvironment {
     result should equal(expectedResult)
     errors.messages.length should equal(1)
     requiredLibraries.length should equal(1)
-    requiredLibraries.head.url should equal(nrkScriptUrl)
+    requiredLibraries.head.url should equal(nrkScriptUrl.replace("https:", ""))
   }
 }

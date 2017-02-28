@@ -77,9 +77,9 @@ object ArticleApiProperties extends LazyLogging {
   val NDLABrightcovePlayerId = prop("NDLA_BRIGHTCOVE_PLAYER_ID")
   val EnableJoubelH5POembed = booleanProp("ENABLE_JOUBEL_H5P_OEMBED")
 
-  val H5PResizerScriptUrl = "http://ndla.no/sites/all/modules/h5p/library/js/h5p-resizer.js"
-  val NDLABrightcoveVideoScriptUrl = s"http://players.brightcove.net/$NDLABrightcoveAccountId/${NDLABrightcovePlayerId}_default/index.min.js"
-  val NRKVideoScriptUrl = "http://www.nrk.no/serum/latest/js/video_embed.js"
+  val H5PResizerScriptUrl = "//ndla.no/sites/all/modules/h5p/library/js/h5p-resizer.js"
+  val NDLABrightcoveVideoScriptUrl = s"//players.brightcove.net/$NDLABrightcoveAccountId/${NDLABrightcovePlayerId}_default/index.min.js"
+  val NRKVideoScriptUrl = "//www.nrk.no/serum/latest/js/video_embed.js"
 
   lazy val secrets = readSecrets(SecretsFile) match {
      case Success(values) => values

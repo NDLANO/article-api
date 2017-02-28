@@ -6,7 +6,6 @@
  *
  */
 
-
 package no.ndla.articleapi.service.converters.contentbrowser
 
 import com.netaporter.uri.dsl._
@@ -86,7 +85,8 @@ trait LenkeConverterModule {
     def getNrkEmbedTag(embedCode: String, url: String): (String, Option[RequiredLibrary]) = {
       val doc = Jsoup.parseBodyFragment(embedCode)
       val (videoId, requiredLibraryUrl) = (doc.select("div[data-nrk-id]").attr("data-nrk-id"), doc.select("script").attr("src"))
-      val requiredLibrary = RequiredLibrary("text/javascript", "NRK video embed", requiredLibraryUrl)
+      val requiredLibrary = RequiredLibrary("text/javascript", "NRK video embed", requiredLibraryUrl.copy(scheme=None))
+
       (HtmlTagGenerator.buildNRKInlineVideoContent(videoId, url), Some(requiredLibrary))
     }
 
