@@ -82,9 +82,9 @@ assemblyMergeStrategy in assembly := {
 }
 
 // Don't run Integration tests in default run on Travis as there is no elasticsearch localhost:9200 there yet. 
-// NB this thing will unfortunalty overrade runs on your local commandline so that
+// NB this line will unfortunalty override runs on your local commandline so that
 // sbt "test-only -- -n no.ndla.tag.IntegrationTest"
-// will not run unless this line gets commented out or you change the tag in UnitSuite.scala
+// will not run unless this line gets commented out or you remove the tag over the test class
 // This should be solved better!
 testOptions in Test += Tests.Argument("-l", "no.ndla.tag.IntegrationTest")
 
