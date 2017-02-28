@@ -39,7 +39,7 @@ object ArticleApiProperties extends LazyLogging {
   val SearchServer = propOrElse("SEARCH_SERVER", "http://search-article-api.ndla-local")
   val SearchRegion = propOrElse("SEARCH_REGION", "eu-central-1")
   val RunWithSignedSearchRequests = propOrElse("RUN_WITH_SIGNED_SEARCH_REQUESTS", "true").toBoolean
-  val SearchIndex = "articles"
+  lazy val SearchIndex = propOrElse("SEARCH_ALIAS", "articles")
   val SearchDocument = "article"
   val DefaultPageSize = 10
   val MaxPageSize = 100

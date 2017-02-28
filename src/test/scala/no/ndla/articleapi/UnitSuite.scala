@@ -10,7 +10,7 @@
 package no.ndla.articleapi
 
 import org.scalatest._
-import org.scalatest.mock.MockitoSugar
+import org.scalatest.mockito.MockitoSugar
 
 
 abstract class UnitSuite extends FunSuite with Matchers with OptionValues with Inside with Inspectors with MockitoSugar with BeforeAndAfterEach with BeforeAndAfterAll {
@@ -28,6 +28,7 @@ abstract class UnitSuite extends FunSuite with Matchers with OptionValues with I
 
   setEnv("NDLA_BRIGHTCOVE_ACCOUNT_ID", "some-account-id")
   setEnv("NDLA_BRIGHTCOVE_PLAYER_ID", "some-player-id")
+  setEnv("SEARCH_ALIAS", "integration-test-index")
 
   def setEnv(key: String, value: String) = env.put(key, value)
 

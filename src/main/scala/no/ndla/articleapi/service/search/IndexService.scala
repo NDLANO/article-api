@@ -12,9 +12,8 @@ package no.ndla.articleapi.service.search
 import java.text.SimpleDateFormat
 import java.util.Calendar
 
-import com.sksamuel.elastic4s.ElasticDsl._
-import com.sksamuel.elastic4s.mappings.FieldType.{DateType, IntegerType, StringType}
-import com.sksamuel.elastic4s.mappings.NestedFieldDefinition
+import com.sksamuel.elastic4s.http.ElasticDsl._
+import com.sksamuel.elastic4s.mappings.{MappingContentBuilder, NestedFieldDefinition}
 import com.typesafe.scalalogging.LazyLogging
 import io.searchbox.core.{Bulk, Index}
 import io.searchbox.indices.aliases.{AddAliasMapping, GetAliases, ModifyAliases, RemoveAliasMapping}
@@ -59,7 +58,10 @@ trait IndexService {
     }
 
     def createIndex(): Try[String] = {
-      val indexName = ArticleApiProperties.SearchIndex + "_" + getTimestamp
+      createIndexWithName(ArticleApiProperties.SearchIndex + "_" + getTimestamp)
+    }
+
+    def createIndexWithName(indexName: String): Try[String] = {
       if (indexExists(indexName).getOrElse(false)) {
         Success(indexName)
       } else {
@@ -73,25 +75,25 @@ trait IndexService {
       mappingResponse.map(_ => indexName)
     }
 
-    def buildMapping(): String = {
-      mapping(ArticleApiProperties.SearchDocument).fields(
-        "id" typed IntegerType,
+    def buildMapping() = {
+      MappingContentBuilder.buildWithName(mapping(ArticleApiProperties.SearchDocument).fields(
+        intField("id"),
         languageSupportedField("title", keepRaw = true),
         languageSupportedField("content"),
         languageSupportedField("visualElement"),
         languageSupportedField("introduction"),
         languageSupportedField("tags"),
-        "lastUpdated" typed DateType,
-        "license" typed StringType index "not_analyzed",
-        "authors" typed StringType
-      ).buildWithName.string()
+        dateField("lastUpdated"),
+        keywordField("license") index "not_analyzed",
+        textField("authors").fielddata(true)
+      ), ArticleApiProperties.SearchDocument).string()
     }
 
     private def languageSupportedField(fieldName: String, keepRaw: Boolean = false) = {
       val languageSupportedField = new NestedFieldDefinition(fieldName)
       languageSupportedField._fields = keepRaw match {
-        case true => languageAnalyzers.map(langAnalyzer => langAnalyzer.lang typed StringType analyzer langAnalyzer.analyzer fields ("raw" typed StringType index "not_analyzed"))
-        case false => languageAnalyzers.map(langAnalyzer => langAnalyzer.lang typed StringType analyzer langAnalyzer.analyzer)
+        case true => languageAnalyzers.map(langAnalyzer => textField(langAnalyzer.lang).fielddata(true) analyzer langAnalyzer.analyzer fields (textField("raw").fielddata(true) index "not_analyzed"))
+        case false => languageAnalyzers.map(langAnalyzer => textField(langAnalyzer.lang).fielddata(true) analyzer langAnalyzer.analyzer)
       }
 
       languageSupportedField
