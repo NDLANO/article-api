@@ -10,11 +10,7 @@ package no.ndla.articleapi.model
 package object domain {
 
   def emptySomeToNone(lang: Option[String]): Option[String] = {
-    lang match {
-      case Some(s) if s.isEmpty => None
-      case Some(s) => Some(s)
-      case None => None
-    }
+    lang.filter(_.nonEmpty)
   }
 
 }
