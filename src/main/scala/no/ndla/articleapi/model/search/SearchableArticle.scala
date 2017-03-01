@@ -11,22 +11,20 @@ package no.ndla.articleapi.model.search
 import java.util.Date
 
 import no.ndla.articleapi.model.domain.emptySomeToNone
-import no.ndla.articleapi.model.search.LanguageValue.LV
+import no.ndla.articleapi.model.search.LanguageValue.LanguageValue
 
 
 object LanguageValue {
 
-  case class LV[T](lang: Option[String], value: T)
+  case class LanguageValue[T](lang: Option[String], value: T)
 
-  def apply[T](lang: Option[String], value: T, washTheString: Boolean = true): LV[T] = {
+  def apply[T](lang: Option[String], value: T): LanguageValue[T] = LanguageValue(emptySomeToNone(lang), value)
 
-    new LV(emptySomeToNone(lang), value)
-  }
 }
 
-case class SearchableLanguageValues(languageValues: Seq[LV[String]])
+case class SearchableLanguageValues(languageValues: Seq[LanguageValue[String]])
 
-case class SearchableLanguageList(languageValues: Seq[LV[Seq[String]]])
+case class SearchableLanguageList(languageValues: Seq[LanguageValue[Seq[String]]])
 
 case class SearchableArticle(
   id: Long,
