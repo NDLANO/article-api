@@ -9,11 +9,12 @@
 
 package no.ndla.articleapi.service
 
-import no.ndla.articleapi.model.domain.Article
+import no.ndla.articleapi.model.domain.{Article, ArticleContent}
 import no.ndla.articleapi.repository.ArticleRepository
 import no.ndla.articleapi.ArticleApiProperties.resourceHtmlEmbedTag
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Element
+
 import scala.collection.JavaConversions._
 import scala.annotation.tailrec
 
@@ -63,6 +64,16 @@ trait ArticleContentInformation {
           case false => Some(externalId -> urls.distinct)
         }
       }).toMap
+    }
+
+    def getEmbedImageWithParentHtml(id: Long): Option[Seq[String]] = {
+      articleRepository.withId(id).map(article => {
+        val content = article.content.headOption.getOrElse(ArticleContent("", None, None)).content
+        val document = Jsoup.parseBodyFragment(content)
+        document.outputSettings().prettyPrint(false)
+        val elements = document.select(s"""$resourceHtmlEmbedTag[data-resource=image]""").toSeq
+        elements.map(element => element.parent().outerHtml())
+      })
     }
 
   }
