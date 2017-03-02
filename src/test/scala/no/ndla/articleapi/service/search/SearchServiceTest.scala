@@ -66,6 +66,42 @@ class SearchServiceTest extends UnitSuite with TestEnvironment {
     created = today.minusDays(4).toDate,
     updated = today.toDate
   )
+  val article5 = TestData.sampleArticleWithPublicDomain.copy(
+    id = Option(5),
+    title = List(ArticleTitle("Hulken løfter biler", Some("nb"))),
+    introduction = List(ArticleIntroduction("Hulken", Some("nb"))),
+    content = List(ArticleContent("<p>Bilde av hulk</p><p> som <strong>løfter</strong> en rød bil.</p>", None, Some("nb"))),
+    tags = List(ArticleTag(List("hulk"), Some("nb"))),
+    created = today.minusDays(40).toDate,
+    updated = today.minusDays(35).toDate
+  )
+  val article6 = TestData.sampleArticleWithPublicDomain.copy(
+    id = Option(6),
+    title = List(ArticleTitle("Loke og Tor prøver å fange midgaardsormen", Some("nb"))),
+    introduction = List(ArticleIntroduction("Loke og Tor", Some("nb"))),
+    content = List(ArticleContent("<p>Bilde av <em>Loke</em> og <em>Tor</em></p><p> som <strong>fisker</strong> fra Naglfar.</p>", None, Some("nb"))),
+    tags = List(ArticleTag(List("Loke", "Tor", "Naglfar"), Some("nb"))),
+    created = today.minusDays(30).toDate,
+    updated = today.minusDays(25).toDate
+  )
+  val article7 = TestData.sampleArticleWithPublicDomain.copy(
+    id = Option(7),
+    title = List(ArticleTitle("Yggdrasil livets tre", Some("nb"))),
+    introduction = List(ArticleIntroduction("Yggdrasil", Some("nb"))),
+    content = List(ArticleContent("<p>Bilde av <em>Yggdrasil</em> livets tre med alle dyrene som bor i det.", None, Some("nb"))),
+    tags = List(ArticleTag(List("yggdrasil"), Some("nb"))),
+    created = today.minusDays(20).toDate,
+    updated = today.minusDays(15).toDate
+  )
+  val article8 = TestData.sampleArticleWithPublicDomain.copy(
+    id = Option(8),
+    title = List(ArticleTitle("Baldur har mareritt", Some("nb"))),
+    introduction = List(ArticleIntroduction("Baldur", Some("nb"))),
+    content = List(ArticleContent("<p>Bilde av <em>Baldurs</em> mareritt om Ragnarok.", None, Some("nb"))),
+    tags = List(ArticleTag(List("baldur"), Some("nb"))),
+    created = today.minusDays(10).toDate,
+    updated = today.minusDays(5).toDate
+  )
 
   override def beforeAll = {
     indexService.createIndexWithName(ArticleApiProperties.SearchIndex)
@@ -74,8 +110,12 @@ class SearchServiceTest extends UnitSuite with TestEnvironment {
     indexService.indexDocument(article2)
     indexService.indexDocument(article3)
     indexService.indexDocument(article4)
+    indexService.indexDocument(article5)
+    indexService.indexDocument(article6)
+    indexService.indexDocument(article7)
+    indexService.indexDocument(article8)
 
-    blockUntil(() => searchService.countDocuments() == 4)
+    blockUntil(() => searchService.countDocuments() == 8)
   }
 
   override def afterAll() = {
@@ -104,44 +144,77 @@ class SearchServiceTest extends UnitSuite with TestEnvironment {
 
   test("That all returns all documents ordered by id ascending") {
     val results = searchService.all(List(), None, None, None, None, Sort.ByIdAsc)
-    results.totalCount should be(3)
+    results.totalCount should be(7)
     results.results.head.id should be("1")
-    results.results.last.id should be("3")
+    results.results(1).id should be("2")
+    results.results(2).id should be("3")
+    results.results(3).id should be("5")
+    results.results(4).id should be("6")
+    results.results(5).id should be("7")
+    results.results.last.id should be("8")
   }
 
   test("That all returns all documents ordered by id descending") {
     val results = searchService.all(List(), None, None, None, None, Sort.ByIdDesc)
-    results.totalCount should be(3)
-    results.results.head.id should be("3")
+    results.totalCount should be(7)
+    results.results.head.id should be("8")
     results.results.last.id should be("1")
   }
 
   test("That all returns all documents ordered by title ascending") {
     val results = searchService.all(List(), None, None, None, None, Sort.ByTitleAsc)
-    results.totalCount should be(3)
-    results.results.head.id should be("1")
-    results.results.last.id should be("2")
+    results.totalCount should be(7)
+    results.results.head.id should be("8")
+    results.results(1).id should be("1")
+    results.results(2).id should be("3")
+    results.results(3).id should be("5")
+    results.results(4).id should be("6")
+    results.results(5).id should be("2")
+    results.results.last.id should be("7")
+  }
+
+  test("That all returns all documents ordered by title descending") {
+    val results = searchService.all(List(), None, None, None, None, Sort.ByTitleDesc)
+    results.totalCount should be(7)
+    results.results.head.id should be("7")
+    results.results(1).id should be("2")
+    results.results(2).id should be("6")
+    results.results(3).id should be("5")
+    results.results(4).id should be("3")
+    results.results(5).id should be("1")
+    results.results.last.id should be("8")
+
   }
 
   test("That all returns all documents ordered by lastUpdated descending") {
     val results = searchService.all(List(), None, None, None, None, Sort.ByLastUpdatedDesc)
-    results.totalCount should be(3)
+    results.totalCount should be(7)
+
     results.results.head.id should be("3")
-    results.results.last.id should be("1")
+    results.results.last.id should be("5")
   }
 
   test("That all returns all documents ordered by lastUpdated ascending") {
     val results = searchService.all(List(), None, None, None, None, Sort.ByLastUpdatedAsc)
-    results.totalCount should be(3)
-    results.results.head.id should be("1")
+    results.totalCount should be(7)
+    results.results.head.id should be("5")
+    results.results(1).id should be("6")
+    results.results(2).id should be("7")
+    results.results(3).id should be("8")
+    results.results(4).id should be("1")
+    results.results(5).id should be("2")
     results.results.last.id should be("3")
   }
 
   test("That all filtering on license only returns documents with given license") {
     val results = searchService.all(List(), None, Some("publicdomain"), None, None, Sort.ByTitleAsc)
-    results.totalCount should be(2)
-    results.results.head.id should be("3")
-    results.results.last.id should be("2")
+    results.totalCount should be(6)
+    results.results.head.id should be("8")
+    results.results(1).id should be("3")
+    results.results(2).id should be("5")
+    results.results(3).id should be("6")
+    results.results(4).id should be("2")
+    results.results.last.id should be("7")
   }
 
   test("That all filtered by id only returns documents with the given ids") {
@@ -154,21 +227,23 @@ class SearchServiceTest extends UnitSuite with TestEnvironment {
   test("That paging returns only hits on current page and not more than page-size") {
     val page1 = searchService.all(List(), None, None, Some(1), Some(2), Sort.ByTitleAsc)
     val page2 = searchService.all(List(), None, None, Some(2), Some(2), Sort.ByTitleAsc)
-    page1.totalCount should be(3)
+    page1.totalCount should be(7)
     page1.page should be(1)
     page1.results.size should be(2)
-    page1.results.head.id should be("1")
-    page1.results.last.id should be("3")
-    page2.totalCount should be(3)
+    page1.results.head.id should be("8")
+    page1.results.last.id should be("1")
+    page2.totalCount should be(7)
     page2.page should be(2)
-    page2.results.size should be(1)
-    page2.results.head.id should be("2")
+    page2.results.size should be(2)
+    page2.results.head.id should be("3")
+    page2.results.last.id should be("5")
   }
 
   test("That search matches title and html-content ordered by relevance descending") {
     val results = searchService.matchingQuery(Seq("bil"), List(), Some("nb"), None, None, None, Sort.ByRelevanceDesc)
-    results.totalCount should be(2)
-    results.results.head.id should be("1")
+    results.totalCount should be(3)
+    results.results.head.id should be("5")
+    results.results(1).id should be("1")
     results.results.last.id should be("3")
   }
 
