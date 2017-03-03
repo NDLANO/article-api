@@ -51,8 +51,8 @@ trait IndexService {
       articles.foreach(article => bulkBuilder.addAction(createIndexRequest(article, indexName)))
 
       val response = jestClient.execute(bulkBuilder.build())
-      response.map(_ => {
-        logger.info(s"Indexed ${articles.size} documents")
+      response.map(r => {
+        logger.info(s"Indexed ${articles.size} documents. No of failed items: ${r.getFailedItems.size()}")
         articles.size
       })
     }
