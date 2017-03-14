@@ -239,7 +239,7 @@ trait ConverterService {
       api.ArticleMetaDescription(metaDescription.content, metaDescription.language)
     }
 
-    def createLinkToOldNdla(nodeId: String): String = s"http://ndla.no/node/$nodeId"
+    def createLinkToOldNdla(nodeId: String): String = s"//ndla.no/node/$nodeId"
 
   }
 }
