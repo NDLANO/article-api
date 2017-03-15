@@ -11,18 +11,18 @@ package no.ndla.articleapi.service
 
 import java.util.Date
 
-import io.searchbox.client.JestResult
 import no.ndla.articleapi.integration.{LanguageIngress, MigrationSubjectMeta}
-import no.ndla.articleapi.model.api.{NotFoundException, OptimisticLockException}
+import no.ndla.articleapi.model.api.OptimisticLockException
 import no.ndla.articleapi.model.domain._
 import no.ndla.articleapi.{TestData, TestEnvironment, UnitSuite}
-import org.mockito.Mockito._
 import org.mockito.Matchers._
+import org.mockito.Mockito._
 import scalikejdbc.DBSession
 
 import scala.util.{Failure, Success, Try}
 
 class ExtractConvertStoreContentTest extends UnitSuite with TestEnvironment {
+  override val converterService = new ConverterService
   val (nodeId, nodeId2) = ("1234", "4321")
   val newNodeid: Long = 4444
   val sampleTitle = ArticleTitle("title", Some("en"))
@@ -88,7 +88,14 @@ class ExtractConvertStoreContentTest extends UnitSuite with TestEnvironment {
   }
 
   test("Articles that fails to import should be deleted from database if it exists") {
+    when(searchIndexService.indexDocument(any[Article])).thenReturn(Failure(mock[RuntimeException]))
+    when(articleRepository.getIdFromExternalId(any[String])(any[DBSession])).thenReturn(Some(1: Long))
 
+    val result = eCSService.processNode(nodeId, ImportStatus(Seq.empty, Seq.empty))
+    result.isFailure should be (true)
+
+    verify(articleRepository, times(1)).delete(1)
+    verify(indexService, times(1)).deleteDocument(1)
   }
 
 }
