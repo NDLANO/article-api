@@ -77,12 +77,12 @@ trait ContentBrowserConverter {
       }
 
       val contentElement = stringToJsoupDocument(languageContent.content)
-      val (updatedLanguageContent, updatedImportStatus, contentEceptions) = convert(contentElement, languageContent, importStatus, Seq())
+      val (updatedLanguageContent, updatedImportStatus, contentExceptions) = convert(contentElement, languageContent, importStatus, Seq())
 
       val metaDescriptionElement = stringToJsoupDocument(languageContent.metaDescription)
       val (finalLanguageContent, finalImportStatus, migrationContentExceptions) = convert(metaDescriptionElement, updatedLanguageContent, updatedImportStatus, Seq())
 
-      val converterExceptions = contentEceptions ++ migrationContentExceptions
+      val converterExceptions = contentExceptions ++ migrationContentExceptions
       converterExceptions.headOption match {
         case Some(_) =>
           val exceptionMessages = converterExceptions.map(_.getMessage)
