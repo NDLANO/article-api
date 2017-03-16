@@ -15,7 +15,7 @@ import java.util.Calendar
 import com.sksamuel.elastic4s.http.ElasticDsl._
 import com.sksamuel.elastic4s.mappings.{MappingContentBuilder, NestedFieldDefinition}
 import com.typesafe.scalalogging.LazyLogging
-import io.searchbox.core.{Bulk, Index}
+import io.searchbox.core.{Bulk, Delete, Index}
 import io.searchbox.indices.aliases.{AddAliasMapping, GetAliases, ModifyAliases, RemoveAliasMapping}
 import io.searchbox.indices.mapping.PutMapping
 import io.searchbox.indices.{CreateIndex, DeleteIndex, IndicesExists}
@@ -55,6 +55,20 @@ trait IndexService {
         logger.info(s"Indexed ${articles.size} documents. No of failed items: ${r.getFailedItems.size()}")
         articles.size
       })
+    }
+
+    def deleteDocument(articleId: Long): Try[_] = {
+      for {
+        _ <- indexService.aliasTarget.map {
+          case Some(index) => Success(index)
+          case None => createIndex().map(newIndex => updateAliasTarget(None, newIndex))
+        }
+        deleted <- {
+          jestClient.execute(
+            new Delete.Builder(s"$articleId").index(ArticleApiProperties.SearchIndex).`type`(ArticleApiProperties.SearchDocument).build()
+          )
+        }
+      } yield deleted
     }
 
     def createIndex(): Try[String] = {
@@ -132,7 +146,7 @@ trait IndexService {
       }
     }
 
-    def delete(optIndexName: Option[String]): Try[_] = {
+    def deleteIndex(optIndexName: Option[String]): Try[_] = {
       optIndexName match {
         case None => Success()
         case Some(indexName) => {

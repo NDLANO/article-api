@@ -14,13 +14,13 @@ import no.ndla.articleapi.integration.MigrationApiClient
 import no.ndla.articleapi.model.api.{ImportException, NotFoundException}
 import no.ndla.articleapi.model.domain.{Article, ImportStatus, NodeToConvert}
 import no.ndla.articleapi.repository.ArticleRepository
-import no.ndla.articleapi.service.search.SearchIndexService
+import no.ndla.articleapi.service.search.{IndexService, SearchIndexService}
 import no.ndla.articleapi.ArticleApiProperties.supportedContentTypes
 
 import scala.util.{Failure, Success, Try}
 
 trait ExtractConvertStoreContent {
-  this: ExtractService with MigrationApiClient with ConverterService with ArticleRepository with SearchIndexService =>
+  this: ExtractService with MigrationApiClient with ConverterService with ArticleRepository with SearchIndexService with IndexService =>
 
   val extractConvertStoreContent: ExtractConvertStoreContent
 
@@ -33,12 +33,26 @@ trait ExtractConvertStoreContent {
         }
       }
 
-      for {
+      val importedArticle = for {
         (node, mainNodeId) <- extract(externalId)
         (convertedArticle, updatedImportStatus) <- convert(node, importStatus)
         newId <- store(convertedArticle, mainNodeId)
         _ <- searchIndexService.indexDocument(convertedArticle.copy(id = Some(newId)))
       } yield (newId, updatedImportStatus ++ ImportStatus(Seq(s"Successfully imported node $externalId: $newId")))
+
+      if (importedArticle.isFailure) {
+        deleteArticleByExternalId(externalId)
+      }
+
+      importedArticle
+    }
+
+    private def deleteArticleByExternalId(externalId: String) = {
+      articleRepository.getIdFromExternalId(externalId).map(articleId => {
+        logger.info(s"Deleting previously imported article (id=$articleId, external id=$externalId) from database because the article could not be re-imported")
+        articleRepository.delete(articleId)
+        indexService.deleteDocument(articleId)
+      })
     }
 
     private def getMainNodeId(externalId: String): Option[String] = {
@@ -58,13 +72,13 @@ trait ExtractConvertStoreContent {
     }
 
     private def convert(nodeToConvert: NodeToConvert, importStatus: ImportStatus): Try[(Article, ImportStatus)] =
-      Success(converterService.toDomainArticle(nodeToConvert, importStatus))
+      converterService.toDomainArticle(nodeToConvert, importStatus)
 
     private def store(article: Article, mainNodeNid: String): Try[Long] = {
       val subjectIds = getSubjectIds(mainNodeNid)
       articleRepository.exists(mainNodeNid) match {
         case true => articleRepository.updateWithExternalId(article, mainNodeNid)
-        case false => Success(articleRepository.insertWithExternalIds(article, mainNodeNid, subjectIds))
+        case false => Try(articleRepository.insertWithExternalIds(article, mainNodeNid, subjectIds))
       }
     }
 

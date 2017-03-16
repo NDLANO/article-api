@@ -119,7 +119,7 @@ class SearchServiceTest extends UnitSuite with TestEnvironment {
   }
 
   override def afterAll() = {
-    indexService.delete(Some(ArticleApiProperties.SearchIndex))
+    indexService.deleteIndex(Some(ArticleApiProperties.SearchIndex))
   }
 
   test("That getStartAtAndNumResults returns default values for None-input") {

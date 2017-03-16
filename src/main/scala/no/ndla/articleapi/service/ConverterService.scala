@@ -18,38 +18,44 @@ import no.ndla.articleapi.repository.ArticleRepository
 import no.ndla.mapping.License.getLicense
 
 import scala.annotation.tailrec
+import scala.util.{Failure, Success, Try}
 
 trait ConverterService {
   this: ConverterModules with ExtractConvertStoreContent with ImageApiClient with Clock with ArticleRepository =>
   val converterService: ConverterService
 
   class ConverterService extends LazyLogging {
-    def toDomainArticle(nodeToConvert: NodeToConvert, importStatus: ImportStatus): (domain.Article, ImportStatus) = {
+    def toDomainArticle(nodeToConvert: NodeToConvert, importStatus: ImportStatus): Try[(domain.Article, ImportStatus)] = {
       val updatedVisitedNodes = importStatus.visitedNodes ++ nodeToConvert.contents.map(_.nid)
-      val (convertedContent, converterStatus) = convert(nodeToConvert, maxConvertionRounds, importStatus.copy(visitedNodes = updatedVisitedNodes.distinct))
-      val (postProcessed, postProcessStatus) = postProcess(convertedContent, converterStatus)
 
-      (toDomainArticle(postProcessed), postProcessStatus)
+      convert(nodeToConvert, maxConvertionRounds, importStatus.copy(visitedNodes = updatedVisitedNodes.distinct))
+          .flatMap { case (content, status) => postProcess(content, status) } match {
+        case Failure(f) => Failure(f)
+        case Success((convertedContent, converterStatus)) => Success((toDomainArticle(convertedContent), converterStatus))
+      }
     }
 
-    @tailrec private def convert (nodeToConvert: NodeToConvert, maxRoundsLeft: Int, importStatus: ImportStatus): (NodeToConvert, ImportStatus) = {
+    @tailrec private def convert(nodeToConvert: NodeToConvert, maxRoundsLeft: Int, importStatus: ImportStatus): Try[(NodeToConvert, ImportStatus)] = {
       if (maxRoundsLeft == 0) {
         val message = "Maximum number of converter rounds reached; Some content might not be converted"
         logger.warn(message)
-        return (nodeToConvert, importStatus.copy(messages=importStatus.messages :+ message))
+        return Success((nodeToConvert, importStatus.copy(messages=importStatus.messages :+ message)))
       }
 
-      val (updatedContent, updatedStatus) = executeConverterModules(nodeToConvert, importStatus)
+      val (updatedContent, updatedStatus) = executeConverterModules(nodeToConvert, importStatus) match {
+        case Failure(e) => return Failure(e)
+        case Success(s) => s
+      }
 
       // If this converting round did not yield any changes to the content, this node is finished (case true)
       // If changes were made during this convertion, we run the converters again (case false)
       updatedContent == nodeToConvert match {
-        case true => (updatedContent, updatedStatus)
+        case true => Success((updatedContent, updatedStatus))
         case false => convert(updatedContent, maxRoundsLeft - 1, updatedStatus)
       }
     }
 
-    private def postProcess(nodeToConvert: NodeToConvert, importStatus: ImportStatus): (NodeToConvert, ImportStatus) =
+    private def postProcess(nodeToConvert: NodeToConvert, importStatus: ImportStatus): Try[(NodeToConvert, ImportStatus)] =
       executePostprocessorModules(nodeToConvert, importStatus)
 
 
@@ -239,7 +245,7 @@ trait ConverterService {
       api.ArticleMetaDescription(metaDescription.content, metaDescription.language)
     }
 
-    def createLinkToOldNdla(nodeId: String): String = s"http://ndla.no/node/$nodeId"
+    def createLinkToOldNdla(nodeId: String): String = s"//ndla.no/node/$nodeId"
 
   }
 }
