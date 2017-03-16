@@ -49,7 +49,7 @@ trait ExtractConvertStoreContent {
 
     private def deleteArticleByExternalId(externalId: String) = {
       articleRepository.getIdFromExternalId(externalId).map(articleId => {
-        logger.info("Deleting previously imported article from database because the article could not be re-imported")
+        logger.info(s"Deleting previously imported article (id=$articleId, external id=$externalId) from database because the article could not be re-imported")
         articleRepository.delete(articleId)
         indexService.deleteDocument(articleId)
       })
