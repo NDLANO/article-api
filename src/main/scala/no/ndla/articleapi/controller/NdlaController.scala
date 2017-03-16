@@ -13,9 +13,9 @@ import javax.servlet.http.HttpServletRequest
 
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.articleapi.ArticleApiProperties.{CorrelationIdHeader, CorrelationIdKey}
-import no.ndla.articleapi.model.api.{Error, ImportExceptions, NotFoundException, OptimisticLockException, ValidationError, ValidationException, ValidationMessage}
+import no.ndla.articleapi.model.api.{AccessDeniedException, Error, ImportExceptions, NotFoundException, OptimisticLockException, ValidationError, ValidationException, ValidationMessage}
 import no.ndla.articleapi.model.domain.ImportError
-import no.ndla.network.{ApplicationUrl, CorrelationID}
+import no.ndla.network.{ApplicationUrl, AuthUser, CorrelationID}
 import org.apache.logging.log4j.ThreadContext
 import org.elasticsearch.index.IndexNotFoundException
 import org.json4s.{DefaultFormats, Formats}
@@ -31,16 +31,19 @@ abstract class NdlaController extends ScalatraServlet with NativeJsonSupport wit
     CorrelationID.set(Option(request.getHeader(CorrelationIdHeader)))
     ThreadContext.put(CorrelationIdKey, CorrelationID.get.getOrElse(""))
     ApplicationUrl.set(request)
+    AuthUser.set(request)
     logger.info("{} {}{}", request.getMethod, request.getRequestURI, Option(request.getQueryString).map(s => s"?$s").getOrElse(""))
   }
 
   after() {
     CorrelationID.clear()
     ThreadContext.remove(CorrelationIdKey)
+    AuthUser.clear()
     ApplicationUrl.clear
   }
 
   error {
+    case a: AccessDeniedException => Forbidden(body = Error(Error.ACCESS_DENIED, a.getMessage))
     case v: ValidationException => BadRequest(body=ValidationError(messages=v.errors))
     case e: IndexNotFoundException => InternalServerError(body=Error.IndexMissingError)
     case n: NotFoundException => NotFound(body=Error(Error.NOT_FOUND, n.getMessage))
@@ -76,6 +79,11 @@ abstract class NdlaController extends ScalatraServlet with NativeJsonSupport wit
         paramAsListOfStrings.map(_.toLong)
       }
     }
+  }
+
+  def assertHasRole(role: String): Unit = {
+    if (!AuthUser.hasRole(role))
+      throw new AccessDeniedException("User is missing required role to perform this operation")
   }
 }
 

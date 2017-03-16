@@ -9,6 +9,8 @@
 
 package no.ndla.articleapi.controller
 
+import no.ndla.articleapi.ArticleApiProperties
+import no.ndla.articleapi.ArticleApiProperties.RoleWithWriteAccess
 import no.ndla.articleapi.model.api._
 import no.ndla.articleapi.model.domain.Sort
 import no.ndla.articleapi.service.{ReadService, WriteService}
@@ -33,6 +35,7 @@ trait ArticleController {
     registerModel[Error]()
 
     val response400 = ResponseMessage(400, "Validation Error", Some("ValidationError"))
+    val response403 = ResponseMessage(403, "Access Denied", Some("Error"))
     val response404 = ResponseMessage(404, "Not found", Some("Error"))
     val response500 = ResponseMessage(500, "Unknown error", Some("Error"))
 
@@ -55,6 +58,7 @@ trait ArticleController {
              When browsing, the default is title (asc).
              The following are supported: relevance, -relevance, title, -title, lastUpdated, -lastUpdated, id, -id""".stripMargin)
         )
+        authorizations "oauth2"
         responseMessages(response500))
 
     val getArticleById =
@@ -66,6 +70,7 @@ trait ArticleController {
           headerParam[Option[String]]("app-key").description("Your app-key. May be omitted to access api anonymously, but rate limiting applies on anonymous access."),
           pathParam[Long]("article_id").description("Id of the article that is to be returned")
         )
+        authorizations "oauth2"
         responseMessages(response404, response500))
 
     val newArticle =
@@ -77,7 +82,8 @@ trait ArticleController {
           headerParam[Option[String]]("app-key").description("Your app-key"),
           bodyParam[NewArticle]
         )
-        responseMessages(response400, response500))
+        authorizations "oauth2"
+        responseMessages(response400, response403, response500))
 
     val updateArticle =
       (apiOperation[Article]("updateArticle")
@@ -89,7 +95,8 @@ trait ArticleController {
           pathParam[Long]("article_id").description("Id of the article that is to be updated"),
           bodyParam[UpdatedArticle]
         )
-        responseMessages(response400, response404, response500))
+        authorizations "oauth2"
+        responseMessages(response400, response403, response404, response500))
 
 
     get("/", operation(getAllArticles)) {
@@ -131,12 +138,16 @@ trait ArticleController {
     }
 
     post("/", operation(newArticle)) {
+      assertHasRole(RoleWithWriteAccess)
+
       val newArticle = extract[NewArticle](request.body)
       val article = writeService.newArticle(newArticle)
       Created(body=article)
     }
 
     patch("/:article_id", operation(updateArticle)) {
+      assertHasRole(RoleWithWriteAccess)
+
       val articleId = long("article_id")
       val updatedArticle = extract[UpdatedArticle](request.body)
       writeService.updateArticle(articleId, updatedArticle) match {
