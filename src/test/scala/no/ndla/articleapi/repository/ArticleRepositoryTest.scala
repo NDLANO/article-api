@@ -1,6 +1,6 @@
 package no.ndla.articleapi.repository
 
-import no.ndla.articleapi.model.domain.ArticleTitle
+import no.ndla.articleapi.model.domain.{ArticleIds, ArticleTitle}
 import no.ndla.articleapi.{DBMigrator, IntegrationSuite, TestData, TestEnvironment}
 import scalikejdbc.{ConnectionPool, DataSourceConnectionPool}
 
@@ -75,6 +75,16 @@ class ArticleRepositoryTest extends IntegrationSuite with TestEnvironment {
     result.isFailure should be (true)
 
     repository.delete(articleId)
+  }
+
+  test("getAllIds returns a list with all ids in the database") {
+    val externalIds = (100 to 150).map(_.toString)
+    val ids = externalIds.map(exId => repository.insertWithExternalIds(sampleArticle, exId, Seq("52")))
+    val expected = ids.zip(externalIds).map { case (id, exId) => ArticleIds(id, Some(exId)) }
+
+    repository.getAllIds should equal(expected)
+
+    ids.foreach(repository.delete)
   }
 
 }
