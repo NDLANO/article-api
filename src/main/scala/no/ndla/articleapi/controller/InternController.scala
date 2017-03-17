@@ -49,7 +49,7 @@ trait InternController {
       }
     }
 
-    get("/allids") {
+    get("/ids") {
       articleRepository.getAllIds
     }
 
