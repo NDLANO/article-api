@@ -13,7 +13,7 @@ import com.typesafe.scalalogging.LazyLogging
 import no.ndla.articleapi.ArticleApiProperties
 import no.ndla.articleapi.integration.DataSource
 import no.ndla.articleapi.model.api.OptimisticLockException
-import no.ndla.articleapi.model.domain.Article
+import no.ndla.articleapi.model.domain.{Article, ArticleIds}
 import org.json4s.native.Serialization.write
 import org.postgresql.util.PGobject
 import scalikejdbc.{ConnectionPool, DataSourceConnectionPool, _}
@@ -107,6 +107,10 @@ trait ArticleRepository {
     def getExternalIdFromId(id: Long)(implicit session: DBSession = AutoSession): Option[String] = {
       sql"select external_id from ${Article.table} where id=${id.toInt}"
         .map(rs => rs.string("external_id")).single.apply()
+    }
+
+    def getAllIds(implicit session: DBSession = AutoSession): Seq[ArticleIds] = {
+      sql"select id, external_id from ${Article.table}".map(rs => ArticleIds(rs.long("id"), rs.stringOpt("external_id"))).list.apply
     }
 
     def minMaxId(implicit session: DBSession = AutoSession): (Long, Long) = {

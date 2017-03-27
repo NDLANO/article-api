@@ -49,6 +49,10 @@ trait InternController {
       }
     }
 
+    get("/ids") {
+      articleRepository.getAllIds
+    }
+
     get("/tagsinuse") {
       ArticleContentInformation.getHtmlTagsMap
     }

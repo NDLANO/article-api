@@ -18,6 +18,7 @@ import scalikejdbc.DBSession
 
 class ReadServiceTest extends UnitSuite with TestEnvironment {
   override val readService = new ReadService
+  override val converterService = new ConverterService
 
   val externalImageApiUrl = externalApiUrls("image")
   val idAttr = s"${Attributes.DataId}"

@@ -11,18 +11,18 @@ package no.ndla.articleapi.service
 
 import java.util.Date
 
-import io.searchbox.client.JestResult
 import no.ndla.articleapi.integration.{LanguageIngress, MigrationSubjectMeta}
-import no.ndla.articleapi.model.api.{NotFoundException, OptimisticLockException}
+import no.ndla.articleapi.model.api.OptimisticLockException
 import no.ndla.articleapi.model.domain._
 import no.ndla.articleapi.{TestData, TestEnvironment, UnitSuite}
-import org.mockito.Mockito._
 import org.mockito.Matchers._
+import org.mockito.Mockito._
 import scalikejdbc.DBSession
 
 import scala.util.{Failure, Success, Try}
 
 class ExtractConvertStoreContentTest extends UnitSuite with TestEnvironment {
+  override val converterService = new ConverterService
   val (nodeId, nodeId2) = ("1234", "4321")
   val newNodeid: Long = 4444
   val sampleTitle = ArticleTitle("title", Some("en"))
@@ -64,6 +64,8 @@ class ExtractConvertStoreContentTest extends UnitSuite with TestEnvironment {
 
   test("That ETL returns a Failure if the node was not found") {
     when(extractService.getNodeData(nodeId)).thenReturn(sampleNode.copy(contents=Seq()))
+    when(articleRepository.getIdFromExternalId(nodeId)).thenReturn(None)
+
     val result = eCSService.processNode(nodeId, ImportStatus(Seq(), Seq("9876")))
     result.isFailure should be (true)
   }
@@ -71,14 +73,29 @@ class ExtractConvertStoreContentTest extends UnitSuite with TestEnvironment {
   test("That ETL returns a Failure if failed to persist the converted article") {
     when(articleRepository.updateWithExternalId(any[Article], any[String])).thenReturn(Failure(new OptimisticLockException()))
     when(articleRepository.exists(sampleNode.contents.head.nid)).thenReturn(true)
+    when(articleRepository.getIdFromExternalId(nodeId)).thenReturn(None)
+
     val result = eCSService.processNode(nodeId, ImportStatus(Seq(), Seq("9876")))
     result.isFailure should be (true)
   }
 
   test("That ETL returns a Failure if failed to index the converted article") {
     when(searchIndexService.indexDocument(any[Article])).thenReturn(any[Failure[NdlaSearchException]])
+    when(articleRepository.getIdFromExternalId(nodeId)).thenReturn(None)
+
     val result = eCSService.processNode(nodeId, ImportStatus(Seq(), Seq("9876")))
     result.isFailure should be (true)
+  }
+
+  test("Articles that fails to import should be deleted from database if it exists") {
+    when(searchIndexService.indexDocument(any[Article])).thenReturn(Failure(mock[RuntimeException]))
+    when(articleRepository.getIdFromExternalId(any[String])(any[DBSession])).thenReturn(Some(1: Long))
+
+    val result = eCSService.processNode(nodeId, ImportStatus(Seq.empty, Seq.empty))
+    result.isFailure should be (true)
+
+    verify(articleRepository, times(1)).delete(1)
+    verify(indexService, times(1)).deleteDocument(1)
   }
 
 }

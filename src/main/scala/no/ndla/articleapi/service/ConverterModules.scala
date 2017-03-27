@@ -19,13 +19,13 @@ trait ConverterModules {
   val converterModules: Seq[ConverterModule]
   val postProcessorModules: Seq[ConverterModule]
 
-  def executeConverterModules(nodeToConvert: NodeToConvert, importStatus: ImportStatus): (NodeToConvert, ImportStatus) =
+  def executeConverterModules(nodeToConvert: NodeToConvert, importStatus: ImportStatus): Try[(NodeToConvert, ImportStatus)] =
     runConverters(converterModules, nodeToConvert, importStatus)
 
-  def executePostprocessorModules(nodeToConvert: NodeToConvert, importStatus: ImportStatus): (NodeToConvert, ImportStatus) =
+  def executePostprocessorModules(nodeToConvert: NodeToConvert, importStatus: ImportStatus): Try[(NodeToConvert, ImportStatus)] =
     runConverters(postProcessorModules, nodeToConvert, importStatus)
 
-  private def runConverters(converters: Seq[ConverterModule], nodeToConvert: NodeToConvert, importStatus: ImportStatus): (NodeToConvert, ImportStatus) = {
+  private def runConverters(converters: Seq[ConverterModule], nodeToConvert: NodeToConvert, importStatus: ImportStatus): Try[(NodeToConvert, ImportStatus)] = {
      val (convertedNode, finalImportStatus, exceptions) = converters.foldLeft((nodeToConvert, importStatus, Seq[Throwable]()))((element, converter) => {
 
       val (partiallyConvertedNode, importStatus, exceptions) = element
@@ -37,10 +37,10 @@ trait ConverterModules {
 
     if (exceptions.nonEmpty) {
       val failedNodeIds = nodeToConvert.contents.map(_.nid).mkString(",")
-      throw new ImportExceptions(s"Error importing node(s) with id(s) $failedNodeIds", errors=exceptions)
+      return Failure(new ImportExceptions(s"Error importing node(s) with id(s) $failedNodeIds", errors=exceptions))
     }
 
-    (convertedNode, finalImportStatus)
+    Success((convertedNode, finalImportStatus))
   }
 
 

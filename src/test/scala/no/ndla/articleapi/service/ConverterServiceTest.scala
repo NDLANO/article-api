@@ -43,7 +43,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
 
     when(extractConvertStoreContent.processNode("4321")).thenReturn(Try(1: Long, ImportStatus(Seq(), Seq())))
 
-    val (result, status) = service.toDomainArticle(node, ImportStatus(Seq(), Seq()))
+    val Success((result, status)) = service.toDomainArticle(node, ImportStatus(Seq(), Seq()))
 
     result.content.head.content should equal (expedtedResult)
   }
@@ -63,7 +63,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     when(extractService.getNodeType(nodeId2)).thenReturn(Some("oppgave"))
     when(extractService.getNodeGeneralContent(nodeId2)).thenReturn(Seq(sampleOppgave2))
 
-    val (result, status) = service.toDomainArticle(node, ImportStatus(Seq(), Seq()))
+    val Success((result, status)) = service.toDomainArticle(node, ImportStatus(Seq(), Seq()))
     result.content.head.content should equal ("Innhold! Enda mer innhold!")
     status.messages.isEmpty should equal (true)
     result.requiredLibraries.isEmpty should equal (true)
@@ -81,7 +81,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     val bokmalExpectedResult = "Nordavinden og sola kranglet en gang om hvem av dem som var den sterkeste"
     val nynorskExpectedResult = "Nordavinden og sola krangla ein gong om kven av dei som var den sterkaste"
 
-    val (result, status) = service.toDomainArticle(node, ImportStatus(Seq(), Seq()))
+    val Success((result, status)) = service.toDomainArticle(node, ImportStatus(Seq(), Seq()))
     val bokmalResult = result.content.head.content
     val nynorskResult = result.content.last.content
 
@@ -111,7 +111,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     val contentNodeBokmal = sampleLanguageContent.copy(content=content, ingress=Some(ingressNodeBokmal))
 
     val node = sampleNode.copy(contents=List(contentNodeBokmal))
-    val (result, status) = service.toDomainArticle(node, ImportStatus(Seq(), Seq()))
+    val Success((result, status)) = service.toDomainArticle(node, ImportStatus(Seq(), Seq()))
 
     result.content.length should be (1)
     result.introduction.length should be (1)
@@ -124,7 +124,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     val node = sampleNode.copy(contents=List(contentNodeBokmal))
     val bokmalExpectedResult = """<table title="test"></table>"""
 
-    val (result, status) = service.toDomainArticle(node, ImportStatus(Seq(), Seq()))
+    val Success((result, status)) = service.toDomainArticle(node, ImportStatus(Seq(), Seq()))
 
     result.content.head.content should equal (bokmalExpectedResult)
     status.messages.nonEmpty should equal (true)
@@ -137,7 +137,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     val node = sampleNode.copy(contents=List(contentNodeBokmal))
     val expectedResult = """<table><tbody><tr><th align="right" valign="top">Table row cell</th></tr></tbody></table>"""
 
-    val (result, status) = service.toDomainArticle(node, ImportStatus(Seq(), Seq()))
+    val Success((result, status)) = service.toDomainArticle(node, ImportStatus(Seq(), Seq()))
 
     result.content.head.content should equal (expectedResult)
     status.messages.isEmpty should equal (true)
@@ -149,7 +149,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     val node = sampleNode.copy(contents=List(contentNodeBokmal))
     val expectedResult = """<p>not a comment</p>"""
 
-    val (result, status) = service.toDomainArticle(node, ImportStatus(Seq(), Seq()))
+    val Success((result, status)) = service.toDomainArticle(node, ImportStatus(Seq(), Seq()))
 
     result.content.head.content should equal (expectedResult)
     status.messages.isEmpty should equal (true)
@@ -169,7 +169,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
 
     when(extractService.getNodeType(nodeId)).thenReturn(Some("image"))
     when(imageApiClient.importOrGetMetaByExternId(nodeId)).thenReturn(Some(imageMeta))
-    val (result, status) = service.toDomainArticle(node, ImportStatus(Seq(), Seq()))
+    val Success((result, status)) = service.toDomainArticle(node, ImportStatus(Seq(), Seq()))
 
     result.content.head.content should equal (expectedResult)
     result.requiredLibraries.length should equal (0)
@@ -180,7 +180,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     val node = sampleNode.copy(contents=List(contentNodeBokmal))
     val expectedResult = """<article> <p>hello you</p></article>"""
 
-    val (result, status) = service.toDomainArticle(node, ImportStatus(Seq(), Seq()))
+    val Success((result, status)) = service.toDomainArticle(node, ImportStatus(Seq(), Seq()))
     val strippedResult = " +".r.replaceAllIn(result.content.head.content.replace("\n", ""), " ")
 
     strippedResult should equal (expectedResult)
@@ -193,7 +193,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     val node = sampleNode.copy(contents=List(contentNodeBokmal))
     val expectedResult = s"""<article> <$resourceHtmlEmbedTag /></article>"""
 
-    val (result, status) = service.toDomainArticle(node, ImportStatus(Seq(), Seq()))
+    val Success((result, status)) = service.toDomainArticle(node, ImportStatus(Seq(), Seq()))
 
     result.content.head.content should equal (expectedResult)
     status.messages.isEmpty should equal (true)
@@ -234,11 +234,23 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
 
     when(extractService.getNodeType(h5pNodeId)).thenReturn(Some("h5p_content"))
 
-    val (result, status) = service.toDomainArticle(node, ImportStatus(Seq(), Seq()))
+    val Success((result, status)) = service.toDomainArticle(node, ImportStatus(Seq(), Seq()))
 
     result.content.head.content should equal (expectedResult)
     status.messages.isEmpty should equal (true)
     result.requiredLibraries.isEmpty should equal (true)
+  }
+
+  test("toDomainArticle should return Failure if convertion fails") {
+    val nodeId = 123123
+    val contentString = s"[contentbrowser ==nid=$nodeId==imagecache=Fullbredde==width===alt=$sampleAlt==link===node_link=1==link_type=link_to_content==lightbox_size===remove_fields[76661]=1==remove_fields[76663]=1==remove_fields[76664]=1==remove_fields[76666]=1==insertion===link_title_text= ==link_text= ==text_align===css_class=contentbrowser contentbrowser]"
+    val contentNodeBokmal = sampleLanguageContent.copy(content=contentString)
+    val node = sampleNode.copy(contents=List(contentNodeBokmal))
+
+    when(extractService.getNodeType(s"$nodeId")).thenReturn(Some("image"))
+    when(imageApiClient.importOrGetMetaByExternId(s"$nodeId")).thenReturn(None)
+
+    service.toDomainArticle(node, ImportStatus(Seq.empty, Seq.empty)).isFailure should be (true)
   }
 
   test("toApiLicense defaults to unknown if the license was not found") {
@@ -270,7 +282,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
 
     val apiArticle = api.Article(
       articleId.toString,
-      Some(s"http://ndla.no/node/$externalId"),
+      Some(s"//ndla.no/node/$externalId"),
       2,
       Seq(api.ArticleTitle("title", Option("nb"))),
       Seq(api.ArticleContent("content", None, Option("nb"))),

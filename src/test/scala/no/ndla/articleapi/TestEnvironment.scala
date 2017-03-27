@@ -73,7 +73,7 @@ trait TestEnvironment
   val migrationApiClient = mock[MigrationApiClient]
   val extractService = mock[ExtractService]
 
-  val converterService = new ConverterService
+  val converterService = mock[ConverterService]
   val contentBrowserConverter = new ContentBrowserConverter
   val biblioConverter = new BiblioConverter
   val htmlCleaner = new HTMLCleaner
