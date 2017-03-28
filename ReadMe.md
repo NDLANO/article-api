@@ -11,6 +11,7 @@ API for accessing articles from NDLA
 ## Run tests
     #All tests except Tagged tests
     sbt test
+
 ### IntegrationTest Tag and sbt run problems
 Tests that need a running elasticsearch outside of component, e.g. in your local docker are marked with selfdefined java
 annotation test tag  ```IntegrationTag``` in ```/ndla/article-api/src/test/java/no/ndla/tag/IntegrationTest.java```. 
