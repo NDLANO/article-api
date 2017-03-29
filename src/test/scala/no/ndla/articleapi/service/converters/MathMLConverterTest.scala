@@ -1,3 +1,11 @@
+/*
+ * Part of NDLA article_api.
+ * Copyright (C) 2017 NDLA
+ *
+ * See LICENSE
+ *
+ */
+
 package no.ndla.articleapi.service.converters
 
 import no.ndla.articleapi.integration.LanguageIngress
