@@ -14,7 +14,7 @@ import no.ndla.articleapi.{TestData, TestEnvironment, UnitSuite}
 import no.ndla.articleapi.integration._
 import no.ndla.articleapi.model.domain._
 import no.ndla.articleapi.model.api
-import no.ndla.articleapi.service.converters.TableConverter
+import no.ndla.articleapi.service.converters.{MathMLConverter, TableConverter}
 import no.ndla.articleapi.ArticleApiProperties.resourceHtmlEmbedTag
 import org.joda.time.DateTime
 import org.mockito.Mockito._
@@ -222,6 +222,17 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     val initialContent: LanguageContent = sampleLanguageContent.copy(content=table)
     val Success((content, _)) = TableConverter.convert(initialContent, ImportStatus(Seq(), Seq()))
     content.content should equal(tableExpectedResult)
+  }
+
+  test("MathML elements are converted correctly") {
+    val originalContent = "<math><menclose notation=\"updiagonalstrike\"></menclose>\u00a0</math>"
+    val expectedContent = """<math xmlns="http://www.w3.org/1998/Math/MathML"><menclose notation="updiagonalstrike"></menclose> </math>"""
+    val initialContent: LanguageContent = sampleLanguageContent.copy(content=originalContent)
+    val node = sampleNode.copy(contents=List(initialContent))
+
+    val Success((content, _)) = service.toDomainArticle(node, ImportStatus(Seq.empty, Seq.empty))
+
+    content.content.head.content should equal(expectedContent)
   }
 
   test("JoubelH5PConverter is used when ENABLE_JOUBEL_H5P_OEMBED is true") {

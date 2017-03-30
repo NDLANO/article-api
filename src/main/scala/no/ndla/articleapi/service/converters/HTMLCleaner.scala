@@ -6,6 +6,7 @@ import no.ndla.articleapi.integration.{ConverterModule, ImageApiClient, Language
 import no.ndla.articleapi.model.domain.ImportStatus
 import org.jsoup.nodes.{Element, Node, TextNode}
 import no.ndla.articleapi.integration.ConverterModule.{jsoupDocumentToString, stringToJsoupDocument}
+import Attributes._
 
 import scala.collection.JavaConversions._
 import scala.util.{Success, Try}
@@ -35,7 +36,7 @@ trait HTMLCleaner {
     }
 
     private def moveImagesOutOfPTags(element: Element) {
-      for (el <- element.select("p").select(s"""$resourceHtmlEmbedTag[data-resource=image]""")) {
+      for (el <- element.select("p").select(s"""$resourceHtmlEmbedTag[$DataResource=image]""")) {
         el.parent.before(el.outerHtml())
         el.remove()
       }
@@ -164,37 +165,37 @@ trait HTMLCleaner {
 object HTMLCleaner {
   private object PermittedHTML {
     // MathML element reference list: https://developer.mozilla.org/en/docs/Web/MathML/Element
-    private val mathJaxTags = Set("math", "maction", "maligngroup", "malignmark", "menclose", "merror", "mfenced", "mfrac", "mglyph", "mi",
+    val mathMlTags = Set("math", "maction", "maligngroup", "malignmark", "menclose", "merror", "mfenced", "mfrac", "mglyph", "mi",
       "mlabeledtr", "mlongdiv", "mmultiscripts", "mn", "mo", "mover", "mpadded", "mphantom", "mroot", "mrow", "ms", "mscarries",
       "mscarry", "msgroup", "msline", "mspace", "msqrt", "msrow", "mstack", "mstyle", "msub", "msup", "msubsup", "mtable", "mtd",
       "mtext", "mtr", "munder", "munderover", "semantics", "annotation", "annotation-xml")
     val tags = Set("article", "section", "tr", "td", "li", "a", "button", "div", "p", "pre", "code", "sup",
       "h1", "h2", "h3", "h4", "h5", "h6", "aside", "strong", "ul", "br", "ol", "i", "em", "b", "th", "blockquote",
-      "details", "summary", "table", "thead", "tfoot", "tbody", "caption", "audio", "figcaption", resourceHtmlEmbedTag) ++ mathJaxTags
+      "details", "summary", "table", "thead", "tfoot", "tbody", "caption", "audio", "figcaption", resourceHtmlEmbedTag) ++ mathMlTags
 
-    import Attributes._
     val legalAttributesForAll = Set(Href, Title)
-    val tagAttributes = Map(
+    val tagAttributes: Map[String, Set[Attributes.Value]] = (Set(
       "td" -> Set(Align, Valign),
       "th" -> Set(Align, Valign),
       resourceHtmlEmbedTag -> Set(DataResource, DataResource_Id, DataId, DataContentId, DataLinkText, DataUrl,
         DataSize, DataVideoId, DataAccount, DataPlayer, DataKey, DataAlt, DataCaption, DataAlign,
         DataAudioId, DataNRKVideoId, DataMessage)
-    )
+    ) ++ mathMlTags.map(_ -> Set(AnyAttribute))).toMap
   }
 
   def isAttributeKeyValid(attributeKey: String, tagName: String): Boolean = {
-    legalAttributesForTag(tagName).map(_.toString).contains(attributeKey)
+    val legalAttrs = legalAttributesForTag(tagName)
+    legalAttrs.map(_.toString).contains(attributeKey) || legalAttrs.contains(AnyAttribute)
   }
 
-  def isTagValid(tagName: String): Boolean = {
-    PermittedHTML.tags.contains(tagName)
-  }
+  def isTagValid(tagName: String): Boolean = PermittedHTML.tags.contains(tagName)
+
+  def isMathMLTag(tagName: String): Boolean = PermittedHTML.mathMlTags.contains(tagName)
 
   def allLegalTags = PermittedHTML.tags
 
   def legalAttributesForTag(tagName: String): Set[Attributes.Value] = {
-    val legalAttributesForTag = PermittedHTML.tagAttributes.getOrElse(tagName, Set())
+    val legalAttributesForTag = PermittedHTML.tagAttributes.getOrElse(tagName, Set.empty)
     legalAttributesForTag ++ PermittedHTML.legalAttributesForAll
   }
 }
