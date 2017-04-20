@@ -66,7 +66,6 @@ class InternControllerTest extends UnitSuite with TestEnvironment with ScalatraF
     when(readService.withId(1L)).thenReturn(Some(TestData.apiArticleWithHtmlFault)) //thenReturn(Some(TestData.newArticle))
       get(s"/reports/headerElementsInLists"){
 
-        println(s"body: [$body]")
         status should equal(200)
         body should equal("""artikkel id;feil funnet
 1;"html element <h3> er ikke lov inni <li> elementer, se i: [<li><h3>Det er ikke lov å gjøre dette.</h3></li>]"""")
