@@ -67,6 +67,23 @@ object TestData {
     "fagstoff"
   )
 
+  val apiArticleWithHtmlFault = api.Article(
+    "1",
+    None,
+    1,
+    Seq(api.ArticleTitle("test", Option("en"))),
+    Seq(api.ArticleContent("<li><h3>Det er ikke lov å gjøre dette.</h3></li>", None, Option("en"))),
+    api.Copyright(api.License("publicdomain", None, None), "", Seq()),
+    Nil,
+    Nil,
+    Nil,
+    Nil,
+    Nil,
+    DateTime.now().minusDays(4).toDate,
+    DateTime.now().minusDays(2).toDate,
+    "fagstoff"
+  )
+
   val (nodeId, nodeId2) = ("1234", "4321")
   val sampleTitle = ArticleTitle("title", Some("en"))
   val sampleContent = LanguageContent(nodeId, nodeId, "sample content", "metadescription",  Some("en"))

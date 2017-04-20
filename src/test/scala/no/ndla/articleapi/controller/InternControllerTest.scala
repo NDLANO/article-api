@@ -12,12 +12,15 @@ package no.ndla.articleapi.controller
 import java.util.Date
 
 import no.ndla.articleapi.model.domain._
-import no.ndla.articleapi.{TestEnvironment, UnitSuite}
+import no.ndla.articleapi.model.api.{Article => ApiArticle}
+import no.ndla.articleapi.{TestData, TestEnvironment, UnitSuite}
 import org.json4s.native.Serialization._
 import org.scalatra.test.scalatest.ScalatraFunSuite
 import org.mockito.Mockito._
+
 import scala.util.{Failure, Try}
 import no.ndla.articleapi.TestData._
+import org.mockito.Matchers.anyLong
 
 class InternControllerTest extends UnitSuite with TestEnvironment with ScalatraFunSuite {
   implicit val formats = org.json4s.DefaultFormats
@@ -54,6 +57,20 @@ class InternControllerTest extends UnitSuite with TestEnvironment with ScalatraF
     post(s"/import/$nodeId") {
       status should equal(500)
     }
+  }
+
+  test("Test GET csv repport of illegal use of h tags in li elements") {
+
+    var test:Seq[ArticleIds] = Nil
+    when(articleRepository.getAllIds()).thenReturn(Seq(ArticleIds(1, None)))
+    when(readService.withId(1L)).thenReturn(Some(TestData.apiArticleWithHtmlFault)) //thenReturn(Some(TestData.newArticle))
+      get(s"/reports/headerElementsInLists"){
+
+        println(s"body: [$body]")
+        status should equal(200)
+        body should equal("""artikkel id;feil funnet
+1;"html element <h3> er ikke lov inni <li> elementer, se i: [<li><h3>Det er ikke lov å gjøre dette.</h3></li>]"""")
+      }
   }
 
 }
