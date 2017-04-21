@@ -67,37 +67,7 @@ trait InternController {
 
     get("/reports/headerElementsInLists") {
       contentType = "text/csv"
-      logger.info("Start searching for header elements in Lists in all articles")
-      val start = System.currentTimeMillis()
-      var errorMessages: List[HtmlFaultRapport] = immutable.List()
-      articleRepository.getAllIds.map(m => {
-        val article = readService.withId(m.articleId)
-          article match {
-          case Some(art) => {
-            art.content.map(c => {
-
-              val listElements = stringToJsoupDocument(c.content).select("li")
-              val regex = """<h[1-4]>""".r
-
-              listElements.map(li => {
-                val allIn = regex.findAllIn(li.toString).toList
-
-                allIn.map(m => {
-                  val error = s"html element $m er ikke lov inni <li> elementer, se i: [$li]"
-                  errorMessages = HtmlFaultRapport(art.id, error) :: errorMessages
-                })
-              })
-            })
-
-          }
-          case None => logger.warn(s"Did not find article given id ${m.articleId} gotten from articleRepository.getAllIds, should be investigated if not due to race condition")
-        }
-      })
-      val stop = System.currentTimeMillis()
-      logger.info(s"Done searching for header elements in Lists time taken ${stop - start} ms. Found ${errorMessages.size} faults.")
-      //Change the list to CSV format with header row.
-      val em = (s"""artikkel id;feil funnet""" :: errorMessages.map(e => s"""${e.articleId};"${e.faultMessage}"""")).mkString("\n")
-      Ok(em)
+      ArticleContentInformation.getFaultyHtmlReport()
     }
   }
 

@@ -72,7 +72,12 @@ object TestData {
     None,
     1,
     Seq(api.ArticleTitle("test", Option("en"))),
-    Seq(api.ArticleContent("<li><h3>Det er ikke lov å gjøre dette.</h3></li>", None, Option("en"))),
+    Seq(api.ArticleContent(
+      """<ul><li><h1>Det er ikke lov å gjøre dette.</h1> Tekst utenfor.</li><li>Dette er helt ok</li></ul>
+        |<ul><li><h2>Det er ikke lov å gjøre dette.</h2></li><li>Dette er helt ok</li></ul>
+        |<ol><li><h3>Det er ikke lov å gjøre dette.</h3></li><li>Dette er helt ok</li></ol>
+        |<ol><li><h4>Det er ikke lov å gjøre dette.</h4></li><li>Dette er helt ok</li></ol>
+      """.stripMargin, None, Option("en"))),
     api.Copyright(api.License("publicdomain", None, None), "", Seq()),
     Nil,
     Nil,

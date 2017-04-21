@@ -9,18 +9,22 @@
 
 package no.ndla.articleapi.service
 
-import no.ndla.articleapi.model.domain.Article
-import no.ndla.articleapi.repository.ArticleRepository
+import com.typesafe.scalalogging.LazyLogging
 import no.ndla.articleapi.ArticleApiProperties.resourceHtmlEmbedTag
+import no.ndla.articleapi.integration.ConverterModule.stringToJsoupDocument
+import no.ndla.articleapi.model.domain.{Article, HtmlFaultRapport}
+import no.ndla.articleapi.repository.ArticleRepository
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Element
-import scala.collection.JavaConversions._
+
 import scala.annotation.tailrec
+import scala.collection.JavaConversions._
+import scala.collection.immutable
 
 trait ArticleContentInformation {
-  this: ArticleRepository =>
+  this: ArticleRepository with ReadService =>
 
-  object ArticleContentInformation {
+  object ArticleContentInformation extends LazyLogging{
     def getHtmlTagsMap: Map[String, Seq[Long]] = {
       @tailrec def getHtmlTagsMap(nodes: Seq[Article], tagsMap: Map[String, List[Long]]): Map[String, List[Long]] = {
         if (nodes.isEmpty)
@@ -63,6 +67,36 @@ trait ArticleContentInformation {
           case false => Some(externalId -> urls.distinct)
         }
       }).toMap
+    }
+
+    def getFaultyHtmlReport(): String = {
+      logger.info("Start FaultyHtmlReport: searching for header elements in Lists in all articles")
+      val start = System.currentTimeMillis()
+      var errorMessages: List[HtmlFaultRapport] = immutable.List()
+      val ids = articleRepository.getAllIds
+      logger.info(s"Found ${ids.length} article ids")
+      ids.map(m => {
+        val article = readService.withId(m.articleId)
+        article match {
+          case Some(art) => {
+            art.content.map(c => {
+              val listElements = stringToJsoupDocument(c.content).select("li")
+              listElements.map(li => {
+                val hTags = li.select("h1, h2, h3, h4, h5, h6")
+                hTags.map(h => {
+                val error = s"html element $h er ikke lov inni: [$li]"
+                errorMessages = HtmlFaultRapport(art.id, error) :: errorMessages
+                })
+              })
+            })
+          }
+          case None => logger.warn(s"Did not find article given id ${m.articleId} gotten from articleRepository.getAllIds, should be investigated if not due to race condition")
+        }
+      })
+      val stop = System.currentTimeMillis()
+      logger.info(s"Done searching for header elements in Lists time taken ${stop - start} ms. Found ${errorMessages.size} faults.")
+      //Change the list to CSV format with header row.
+      return (s"""artikkel id;feil funnet""" :: errorMessages.map(e => s"""${e.articleId};"${e.faultMessage}"""")).mkString("\n")
     }
 
   }
