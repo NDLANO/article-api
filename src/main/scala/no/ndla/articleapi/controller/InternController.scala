@@ -9,17 +9,21 @@
 
 package no.ndla.articleapi.controller
 
-import no.ndla.articleapi.model.domain.ImportStatus
+import no.ndla.articleapi.integration.ConverterModule.stringToJsoupDocument
+import no.ndla.articleapi.model.domain.{HtmlFaultRapport, ImportStatus}
 import no.ndla.articleapi.repository.ArticleRepository
+import no.ndla.articleapi.service._
 import no.ndla.articleapi.service.search.SearchIndexService
-import no.ndla.articleapi.service.{ArticleContentInformation, ConverterService, ExtractConvertStoreContent, ExtractService}
 import org.json4s.{DefaultFormats, Formats}
 import org.scalatra.{InternalServerError, Ok}
 
+import scala.collection.JavaConversions._
+import scala.collection.immutable
 import scala.util.{Failure, Success}
 
 trait InternController {
-  this: ExtractService with ConverterService with ArticleRepository with ArticleContentInformation with ExtractConvertStoreContent with SearchIndexService =>
+  this: ReadService with ExtractService with ConverterService with ArticleRepository with ArticleContentInformation
+    with ExtractConvertStoreContent with SearchIndexService =>
   val internController: InternController
 
   class InternController extends NdlaController {
@@ -60,5 +64,11 @@ trait InternController {
     get("/embedurls/:external_subject_id") {
       ArticleContentInformation.getExternalEmbedResources(params("external_subject_id"))
     }
+
+    get("/reports/headerElementsInLists") {
+      contentType = "text/csv"
+      ArticleContentInformation.getFaultyHtmlReport()
+    }
   }
+
 }
