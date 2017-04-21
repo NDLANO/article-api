@@ -57,7 +57,7 @@ trait ArticleRepository {
       }
     }
 
-    def   insertWithExternalIds(article: Article, externalId: String, externalSubjectId: Seq[String])(implicit session: DBSession = AutoSession): Long = {
+    def insertWithExternalIds(article: Article, externalId: String, externalSubjectId: Seq[String])(implicit session: DBSession = AutoSession): Long = {
       val startRevision = 1
       val dataObject = new PGobject()
       dataObject.setType("jsonb")
