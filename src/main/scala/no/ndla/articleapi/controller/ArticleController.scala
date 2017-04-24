@@ -9,7 +9,6 @@
 
 package no.ndla.articleapi.controller
 
-import no.ndla.articleapi.ArticleApiProperties
 import no.ndla.articleapi.ArticleApiProperties.RoleWithWriteAccess
 import no.ndla.articleapi.model.api._
 import no.ndla.articleapi.model.domain.Sort
