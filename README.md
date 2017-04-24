@@ -3,6 +3,16 @@
 
 API for accessing articles from NDLA
 
+# Usage
+Creates, updates and returns an ```Article```. Implements elastic serach for seach within the article database.
+
+To interact with the api, you need valid security credentials; see [Access Tokens usage](https://github.com/NDLANO/auth/blob/master/README.md).
+To write data to the api, you need write role access.
+
+Has internal import routines for importing data from the old system to this database. There are a number of cleaning and 
+reporting services pertaining to the import which are only available for internal admin services. 
+
+
 # Building and distribution
 
 ## Compile
