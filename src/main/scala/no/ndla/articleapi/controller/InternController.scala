@@ -54,7 +54,7 @@ trait InternController {
       articleRepository.getAllIds
     }
 
-    get("/externalidtonewid/:external_id") {
+    get("/id/:external_id") {
       val externalId = params("external_id")
       articleRepository.getIdFromExternalId(externalId) match {
         case Some(id) => id
