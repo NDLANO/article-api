@@ -9,16 +9,13 @@
 
 package no.ndla.articleapi.controller
 
-import no.ndla.articleapi.integration.ConverterModule.stringToJsoupDocument
-import no.ndla.articleapi.model.domain.{HtmlFaultRapport, ImportStatus}
+import no.ndla.articleapi.model.domain.ImportStatus
 import no.ndla.articleapi.repository.ArticleRepository
 import no.ndla.articleapi.service._
 import no.ndla.articleapi.service.search.SearchIndexService
 import org.json4s.{DefaultFormats, Formats}
-import org.scalatra.{InternalServerError, Ok}
+import org.scalatra.{InternalServerError, NotFound, Ok}
 
-import scala.collection.JavaConversions._
-import scala.collection.immutable
 import scala.util.{Failure, Success}
 
 trait InternController {
@@ -57,6 +54,14 @@ trait InternController {
       articleRepository.getAllIds
     }
 
+    get("/id/:external_id") {
+      val externalId = params("external_id")
+      articleRepository.getIdFromExternalId(externalId) match {
+        case Some(id) => id
+        case None => NotFound()
+      }
+    }
+
     get("/tagsinuse") {
       ArticleContentInformation.getHtmlTagsMap
     }
@@ -69,6 +74,6 @@ trait InternController {
       contentType = "text/csv"
       ArticleContentInformation.getFaultyHtmlReport()
     }
-  }
 
+  }
 }
