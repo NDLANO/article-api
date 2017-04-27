@@ -10,13 +10,12 @@
 package no.ndla.articleapi
 
 import com.amazonaws.services.s3.AmazonS3Client
-import io.searchbox.client.JestClient
 import no.ndla.articleapi.controller.{ArticleController, HealthController, InternController}
 import no.ndla.articleapi.integration._
 import no.ndla.articleapi.repository.ArticleRepository
 import no.ndla.articleapi.service._
-import no.ndla.articleapi.service.converters.contentbrowser._
 import no.ndla.articleapi.service.converters._
+import no.ndla.articleapi.service.converters.contentbrowser._
 import no.ndla.articleapi.service.search.{IndexService, SearchConverterService, SearchIndexService, SearchService}
 import no.ndla.articleapi.validation.ArticleValidator
 import no.ndla.network.NdlaClient
@@ -24,37 +23,38 @@ import org.scalatest.mockito.MockitoSugar
 
 trait TestEnvironment
   extends ElasticClient
-  with SearchService
-  with IndexService
-  with SearchIndexService
-  with ArticleController
-  with InternController
-  with HealthController
-  with DataSource
-  with ArticleRepository
-  with MockitoSugar
-  with MigrationApiClient
-  with ExtractService
-  with ConverterModules
-  with ConverterService
-  with ContentBrowserConverterModules
-  with ContentBrowserConverter
-  with BiblioConverterModule
-  with BiblioConverter
-  with AmazonClient
-  with AttachmentStorageService
-  with ArticleContentInformation
-  with ExtractConvertStoreContent
-  with NdlaClient
-  with TagsService
-  with SearchConverterService
-  with ReadService
-  with WriteService
-  with ArticleValidator
-  with HtmlTagGenerator
-  with HTMLCleaner
-  with Clock
-{
+    with SearchService
+    with IndexService
+    with SearchIndexService
+    with ArticleController
+    with InternController
+    with HealthController
+    with DataSource
+    with ArticleRepository
+    with MockitoSugar
+    with MigrationApiClient
+    with ExtractService
+    with ConverterModules
+    with ConverterService
+    with ContentBrowserConverterModules
+    with ContentBrowserConverter
+    with BiblioConverterModule
+    with BiblioConverter
+    with AmazonClient
+    with AttachmentStorageService
+    with ArticleContentInformation
+    with ExtractConvertStoreContent
+    with NdlaClient
+    with TagsService
+    with SearchConverterService
+    with ReadService
+    with WriteService
+    with ArticleValidator
+    with HtmlTagGenerator
+    with HTMLCleaner
+    with Clock
+    with AuthenticationUser
+    with AuthenticationRole {
   val searchService = mock[SearchService]
   val indexService = mock[IndexService]
   val searchIndexService = mock[SearchIndexService]
@@ -92,4 +92,6 @@ trait TestEnvironment
   val imageApiClient = mock[ImageApiClient]
 
   val clock = mock[SystemClock]
+  val authUser = mock[AuthUser]
+  val authRole = new AuthRole
 }

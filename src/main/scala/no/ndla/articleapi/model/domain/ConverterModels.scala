@@ -16,20 +16,34 @@ import com.netaporter.uri.dsl._
 import no.ndla.articleapi.integration.LanguageContent
 
 case class NodeGeneralContent(nid: String, tnid: String, title: String, content: String, language: String) {
-  def isMainNode = nid == tnid || tnid == "0"
   def isTranslation = !isMainNode
+
+  def isMainNode = nid == tnid || tnid == "0"
 
   def asContentTitle = ArticleTitle(title, Some(language))
 }
 
-case class NodeToConvert(titles: Seq[ArticleTitle], contents: Seq[LanguageContent], license: String, authors: Seq[Author], tags: Seq[ArticleTag],
-                         visualElements: Seq[VisualElement], contentType: String, nodeType: String, created: Date, updated: Date)
+case class NodeToConvert(titles: Seq[ArticleTitle],
+                         contents: Seq[LanguageContent],
+                         license: String,
+                         authors: Seq[Author],
+                         tags: Seq[ArticleTag],
+                         visualElements: Seq[VisualElement],
+                         contentType: String,
+                         nodeType: String,
+                         created: Date,
+                         updated: Date,
+                         updatedBy: String
+                        )
 
 case class ContentFilMeta(nid: String, tnid: String, title: String, fileName: String, url: URL, mimeType: String, fileSize: String)
+
 object ContentFilMeta {
   implicit def stringToUrl(s: String): URL = new URL(s.uri)
 }
 
 case class BiblioMeta(biblio: Biblio, authors: Seq[BiblioAuthor])
+
 case class Biblio(title: String, bibType: String, year: String, edition: String, publisher: String)
+
 case class BiblioAuthor(name: String, lastname: String, firstname: String)

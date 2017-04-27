@@ -21,7 +21,7 @@ import scala.annotation.tailrec
 import scala.util.{Failure, Success, Try}
 
 trait ConverterService {
-  this: ConverterModules with ExtractConvertStoreContent with ImageApiClient with Clock with ArticleRepository =>
+  this: ConverterModules with ExtractConvertStoreContent with ImageApiClient with Clock with ArticleRepository with AuthenticationUser =>
   val converterService: ConverterService
 
   class ConverterService extends LazyLogging {
@@ -77,6 +77,7 @@ trait ConverterService {
         None,
         nodeToConvert.created,
         nodeToConvert.updated,
+        authUser.id(),
         nodeToConvert.contentType)
     }
 
@@ -109,6 +110,7 @@ trait ConverterService {
         metaImageId=newArticle.metaImageId,
         created=clock.now(),
         updated=clock.now(),
+        updatedBy=authUser.id(),
         contentType=newArticle.contentType
       )
     }
@@ -128,6 +130,7 @@ trait ConverterService {
         metaImageId=updatedArticle.metaImageId,
         created=clock.now(),
         updated=clock.now(),
+        updatedBy=authUser.id(),
         contentType=updatedArticle.contentType
       )
     }
@@ -187,6 +190,7 @@ trait ConverterService {
         article.metaDescription.map(toApiArticleMetaDescription),
         article.created,
         article.updated,
+        article.updatedBy,
         article.contentType
       )
     }

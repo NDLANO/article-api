@@ -19,7 +19,7 @@ import no.ndla.articleapi.validation.ArticleValidator
 import scala.util.{Failure, Try}
 
 trait WriteService {
-  this: ArticleRepository with ConverterService with ArticleValidator with IndexService with Clock =>
+  this: ArticleRepository with ConverterService with ArticleValidator with IndexService with Clock with AuthenticationUser =>
   val writeService: WriteService
 
   class WriteService {
@@ -58,6 +58,7 @@ trait WriteService {
             metaDescription = mergeLanguageFields(existing.metaDescription, updatedArticle.metaDescription),
             metaImageId = updatedArticle.metaImageId,
             updated = clock.now(),
+            updatedBy = authUser.id(),
             contentType = updatedArticle.contentType
           )
           articleValidator.validateArticle(toUpdate)

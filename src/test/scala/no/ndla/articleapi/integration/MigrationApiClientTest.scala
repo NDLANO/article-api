@@ -16,7 +16,7 @@ class MigrationApiClientTest extends UnitSuite with TestEnvironment {
   val migrationContent= MigrationContent("124", "124", "content", "metadescription", Option("nb"), DateTime.now().toDate, DateTime.now().toDate)
   val emneArtikkelData = MigrationEmneArtikkelData("ingress from emneartikkel", "metadescription from emneartikkel", Option("nb"))
   val migrationMainNodeImport = MigrationMainNodeImport(Seq(), Seq(migrationIngress), Seq(migrationContent), Seq(), Option("by-sa"),
-    Option("emneartikkel"), Seq(), Seq(), Seq(), Seq(), Seq(), Seq(), Seq(), Seq(), Seq(), Seq(emneArtikkelData))
+    Option("emneartikkel"), Seq(), Seq(), Seq(), Seq(), Seq(), Seq(), Seq(), Seq(), Seq(), Seq(emneArtikkelData), "ndalId54321")
 
   test("asLanguageContents uses ingress from emneartikkel if emneartikkeldata is present") {
     migrationMainNodeImport.asLanguageContents.head.ingress.get should equal (LanguageIngress(emneArtikkelData.ingress, None))
