@@ -8,7 +8,7 @@
 
 package no.ndla.articleapi.controller
 
-import no.ndla.articleapi.{ArticleSwagger, TestEnvironment, UnitSuite}
+import no.ndla.articleapi.{ArticleSwagger, TestData, TestEnvironment, UnitSuite}
 import org.scalatra.test.scalatest.ScalatraFunSuite
 
 class ArticleControllerTest extends UnitSuite with TestEnvironment with ScalatraFunSuite {
@@ -39,12 +39,6 @@ class ArticleControllerTest extends UnitSuite with TestEnvironment with Scalatra
 
   test("That POST / returns 403 if no auth-header") {
     post("/") {
-      status should equal (403)
-    }
-  }
-
-  test("That PUT /:cover_id returns 403 if auth header does not have valid ndla_id") {
-    put("/test/1", headers = Map("Authorization" -> authHeaderWithEmptyNdlaId)) {
       status should equal (403)
     }
   }
