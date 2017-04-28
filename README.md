@@ -4,7 +4,7 @@
 API for accessing articles from NDLA
 
 # Usage
-Creates, updates and returns an `Article`. Implements ElasticSearch for search within the article database.
+Creates, updates and returns an `Article`. Implements Elasticsearch for search within the article database.
 
 To interact with the api, you need valid security credentials; see [Access Tokens usage](https://github.com/NDLANO/auth/blob/master/README.md).
 To write data to the api, you need write role access.
@@ -12,6 +12,7 @@ To write data to the api, you need write role access.
 It also has as internal import routines for importing data from the old system to this database. There are a number of cleaning and
 reporting services pertaining to the import which are only available for internal admin services. 
 
+# Article format
 The endpoint `GET /article-api/v1/articles/<id>` will fetch a json-object containing the article in all languages it is translated to.
 The article body contained in this json-object consists of a strict subset of permitted HTML tags. It may also contain a special tag, `<embed>`,
 which is used to refer to content located in other APIs (including, but not limited to images, audio, video and H5P).
@@ -27,16 +28,15 @@ In order to display the article in its intended form all these embed-tags needs 
 The [article converter](https://github.com/NDLANO/article-converter) implements the logic needed to do this.
 
 
-For a more detailed documentation of the API, please refer to the [API documentation](https://staging.api.ndla.no).
+For a more detailed documentation of the API, please refer to the [API documentation](https://api.ndla.no) (Staging: [API documentation](https://staging.api.ndla.no)).
 
-# Building and distribution
+# Developer documentation
 
-## Compile
-    sbt compile
+**Compile**: sbt compile
 
-## Run tests
-    #All tests except Tagged tests
-    sbt test
+**Run tests:** sbt test
+
+**Create Docker Image:** sbt docker
 
 ### IntegrationTest Tag and sbt run problems
 Tests that need a running elasticsearch outside of component, e.g. in your local docker are marked with selfdefined java
@@ -49,7 +49,4 @@ This, it seems, will unfortunalty override runs on your local commandline so tha
  This should be solved better!
 
     sbt "test-only -- -n no.ndla.tag.IntegrationTest"
-
-## Create Docker Image
-    sbt docker
 
