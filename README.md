@@ -1,9 +1,7 @@
 # ARTICLE API 
 [![Build Status](https://travis-ci.org/NDLANO/article-api.svg?branch=master)](https://travis-ci.org/NDLANO/article-api)
 
-API for accessing articles from NDLA
-
-# Usage
+## Usage
 Creates, updates and returns an `Article`. Implements Elasticsearch for search within the article database.
 
 To interact with the api, you need valid security credentials; see [Access Tokens usage](https://github.com/NDLANO/auth/blob/master/README.md).
@@ -12,7 +10,7 @@ To write data to the api, you need write role access.
 It also has as internal import routines for importing data from the old system to this database. There are a number of cleaning and
 reporting services pertaining to the import which are only available for internal admin services. 
 
-# Article format
+## Article format
 The endpoint `GET /article-api/v1/articles/<id>` will fetch a json-object containing the article in all languages it is translated to.
 The article body contained in this json-object consists of a strict subset of permitted HTML tags. It may also contain a special tag, `<embed>`,
 which is used to refer to content located in other APIs (including, but not limited to images, audio, video and H5P).
@@ -30,7 +28,7 @@ The [article converter](https://github.com/NDLANO/article-converter) implements 
 
 For a more detailed documentation of the API, please refer to the [API documentation](https://api.ndla.no) (Staging: [API documentation](https://staging.api.ndla.no)).
 
-# Developer documentation
+## Developer documentation
 
 **Compile**: sbt compile
 
