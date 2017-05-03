@@ -90,13 +90,6 @@ trait HtmlTagGenerator {
     private def buildAttributesString(figureDataAttributeMap: Map[Attributes.Value, String]): String =
       figureDataAttributeMap.toList.sortBy(_._1.toString).map { case (key, value) => s"""$key="${value.trim}"""" }.mkString(" ")
 
-    private def verifyAttributeKeys(attributeKeys: Set[Attributes.Value], tagName: String): Option[String] = {
-      val legalAttributes = HTMLCleaner.legalAttributesForTag(tagName)
-      attributeKeys.subsetOf(legalAttributes) match {
-        case true => None
-        case false => Some(s"This is a BUG: Trying to use illegal attribute(s) ${attributeKeys.diff(legalAttributes)}!")
-      }
-    }
   }
 
 }

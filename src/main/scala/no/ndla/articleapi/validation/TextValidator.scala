@@ -14,7 +14,7 @@ import org.jsoup.Jsoup
 import org.jsoup.safety.Whitelist
 
 class TextValidator(allowHtml: Boolean) {
-  private val IllegalContentInBasicText = s"The content contains illegal tags. Allowed HTML tags are: ${HTMLCleaner.allLegalTags.mkString(",")}"
+  private def IllegalContentInBasicText = s"The content contains illegal tags and/or attributes. Allowed HTML tags are: ${HTMLCleaner.allLegalTags.mkString(",")}"
   private val IllegalContentInPlainText = "The content contains illegal html-characters. No HTML is allowed"
   private val FieldEmpty = "Required field is empty"
   private val EmbedTagValidator = new EmbedTagValidator
@@ -29,7 +29,7 @@ class TextValidator(allowHtml: Boolean) {
   private def validateOnlyBasicHtmlTags(fieldPath: String, text: String): Seq[ValidationMessage] = {
     val whiteList = new Whitelist().addTags(HTMLCleaner.allLegalTags.toSeq: _*)
     HTMLCleaner.allLegalTags.foreach(tag =>
-      whiteList.addAttributes(tag, HTMLCleaner.legalAttributesForTag(tag).map(_.toString).toSeq: _*))
+      whiteList.addAttributes(tag, HTMLCleaner.legalAttributesForTag(tag).toSeq: _*))
 
     text.isEmpty match {
       case true => ValidationMessage(fieldPath, FieldEmpty) :: Nil

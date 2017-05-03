@@ -16,9 +16,12 @@ import no.ndla.articleapi.model.domain._
 import no.ndla.articleapi.model.{api, domain}
 import no.ndla.articleapi.repository.ArticleRepository
 import no.ndla.mapping.License.getLicense
+import no.ndla.articleapi.integration.ConverterModule.{jsoupDocumentToString, stringToJsoupDocument}
+import no.ndla.articleapi.service.converters.{Attributes, HTMLCleaner, ResourceType}
 
 import scala.annotation.tailrec
 import scala.util.{Failure, Success, Try}
+import scala.collection.JavaConverters._
 
 trait ConverterService {
   this: ConverterModules with ExtractConvertStoreContent with ImageApiClient with Clock with ArticleRepository =>
@@ -136,8 +139,19 @@ trait ConverterService {
       domain.ArticleTitle(articleTitle.title, articleTitle.language)
     }
 
+    private def removeUnknownEmbedTagAttributes(html: String): String = {
+      val document = stringToJsoupDocument(html)
+      document.select("embed").asScala.map(el => {
+          ResourceType.valueOf(el.attr(Attributes.DataResource.toString))
+          .map(EmbedTag.requiredAttributesForResourceType)
+          .map(requiredAttributes => HTMLCleaner.removeIllegalAttributes(el, requiredAttributes.map(_.toString)))
+      })
+
+      jsoupDocumentToString(document)
+    }
+
     def toDomainContent(articleContent: api.ArticleContent): domain.ArticleContent = {
-      domain.ArticleContent(articleContent.content, articleContent.footNotes.map(toDomainFootNotes), articleContent.language)
+      domain.ArticleContent(removeUnknownEmbedTagAttributes(articleContent.content), articleContent.footNotes.map(toDomainFootNotes), articleContent.language)
     }
 
     def toDomainFootNotes(footNotes: Map[String, api.FootNoteItem]): Map[String, domain.FootNoteItem] = {

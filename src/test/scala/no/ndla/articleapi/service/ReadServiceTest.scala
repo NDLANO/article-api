@@ -27,11 +27,11 @@ class ReadServiceTest extends UnitSuite with TestEnvironment {
   val imageType = s"${ResourceType.Image}"
   val h5pType = s"${ResourceType.H5P}"
   val urlAttr = s"${Attributes.DataUrl}"
-  val content1 = s"""<$resourceHtmlEmbedTag $resourceIdAttr=123 $resourceAttr="$imageType" /><$resourceHtmlEmbedTag $resourceIdAttr=1234 $resourceAttr="$imageType" />"""
-  val content2 = s"""<$resourceHtmlEmbedTag $resourceIdAttr=321 $resourceAttr="$imageType" /><$resourceHtmlEmbedTag $resourceIdAttr=4321 $resourceAttr="$imageType" />"""
+  val content1 = s"""<$resourceHtmlEmbedTag $resourceIdAttr="123" $resourceAttr="$imageType" /><$resourceHtmlEmbedTag $resourceIdAttr=1234 $resourceAttr="$imageType" />"""
+  val content2 = s"""<$resourceHtmlEmbedTag $resourceIdAttr="321" $resourceAttr="$imageType" /><$resourceHtmlEmbedTag $resourceIdAttr=4321 $resourceAttr="$imageType" />"""
   val articleContent1 = ArticleContent(content1, None, None)
   val expectedArticleContent1 = articleContent1.copy(content=
-    s"""<$resourceHtmlEmbedTag $resourceAttr="$imageType" $idAttr="0" $urlAttr="$externalImageApiUrl/123" /><$resourceHtmlEmbedTag $resourceAttr="$imageType" $idAttr="1" $urlAttr="$externalImageApiUrl/1234" />""")
+    s"""<$resourceHtmlEmbedTag $resourceIdAttr="123" $resourceAttr="$imageType" $idAttr="0" $urlAttr="$externalImageApiUrl/123" /><$resourceHtmlEmbedTag $resourceIdAttr="1234" $resourceAttr="$imageType" $idAttr="1" $urlAttr="$externalImageApiUrl/1234" />""")
 
   val articleContent2 = ArticleContent(content2, None, None)
 
@@ -42,7 +42,6 @@ class ReadServiceTest extends UnitSuite with TestEnvironment {
     when(articleRepository.getExternalIdFromId(any[Long])(any[DBSession])).thenReturn(Some("54321"))
 
     val expectedResult = converterService.toApiArticle(article.copy(content=Seq(expectedArticleContent1)))
-
     readService.withId(1) should equal(Option(expectedResult))
   }
 
@@ -58,9 +57,9 @@ class ReadServiceTest extends UnitSuite with TestEnvironment {
   test("addIdAndUrlOnResource adds urls on all content translations in an article") {
     val article = TestData.sampleArticleWithByNcSa.copy(content=Seq(articleContent1, articleContent2))
     val article1ExpectedResult = articleContent1.copy(content=
-      s"""<$resourceHtmlEmbedTag $resourceAttr="$imageType" $idAttr="0" $urlAttr="$externalImageApiUrl/123" /><$resourceHtmlEmbedTag $resourceAttr="$imageType" $idAttr="1" $urlAttr="$externalImageApiUrl/1234" />""")
+      s"""<$resourceHtmlEmbedTag $resourceIdAttr="123" $resourceAttr="$imageType" $idAttr="0" $urlAttr="$externalImageApiUrl/123" /><$resourceHtmlEmbedTag $resourceIdAttr="1234" $resourceAttr="$imageType" $idAttr="1" $urlAttr="$externalImageApiUrl/1234" />""")
     val article2ExpectedResult = articleContent1.copy(content=
-      s"""<$resourceHtmlEmbedTag $resourceAttr="$imageType" $idAttr="0" $urlAttr="$externalImageApiUrl/321" /><$resourceHtmlEmbedTag $resourceAttr="$imageType" $idAttr="1" $urlAttr="$externalImageApiUrl/4321" />""")
+      s"""<$resourceHtmlEmbedTag $resourceIdAttr="321" $resourceAttr="$imageType" $idAttr="0" $urlAttr="$externalImageApiUrl/321" /><$resourceHtmlEmbedTag $resourceIdAttr="4321" $resourceAttr="$imageType" $idAttr="1" $urlAttr="$externalImageApiUrl/4321" />""")
 
     val result = readService.addUrlsAndIdsOnEmbedResources(article)
     result should equal (article.copy(content=Seq(article1ExpectedResult, article2ExpectedResult)))
