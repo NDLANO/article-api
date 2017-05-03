@@ -11,6 +11,7 @@ package no.ndla.articleapi
 
 import com.amazonaws.regions.Regions
 import com.amazonaws.services.s3.AmazonS3ClientBuilder
+import no.ndla.articleapi.auth.{Role, User}
 import no.ndla.articleapi.controller.{ArticleController, HealthController, InternController}
 import no.ndla.articleapi.integration._
 import no.ndla.articleapi.repository.ArticleRepository
@@ -54,8 +55,8 @@ object ComponentRegistry
     with HTMLCleaner
     with HtmlTagGenerator
     with Clock
-    with AuthenticationRole
-    with AuthenticationUser {
+    with Role
+    with User {
 
   implicit val swagger = new ArticleSwagger
 

@@ -10,6 +10,7 @@
 package no.ndla.articleapi
 
 import com.amazonaws.services.s3.AmazonS3Client
+import no.ndla.articleapi.auth.{Role, User}
 import no.ndla.articleapi.controller.{ArticleController, HealthController, InternController}
 import no.ndla.articleapi.integration._
 import no.ndla.articleapi.repository.ArticleRepository
@@ -53,8 +54,8 @@ trait TestEnvironment
     with HtmlTagGenerator
     with HTMLCleaner
     with Clock
-    with AuthenticationUser
-    with AuthenticationRole {
+    with User
+    with Role {
   val searchService = mock[SearchService]
   val indexService = mock[IndexService]
   val searchIndexService = mock[SearchIndexService]

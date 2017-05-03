@@ -9,6 +9,7 @@
 
 package no.ndla.articleapi.service.converters.contentbrowser
 
+import no.ndla.articleapi.auth.User
 import no.ndla.articleapi.integration._
 import no.ndla.articleapi.model.domain.{ImportStatus, RequiredLibrary}
 import no.ndla.articleapi.repository.ArticleRepository
@@ -59,4 +60,4 @@ trait ContentBrowserConverterModules
   with MigrationApiClient
   with HtmlTagGenerator
   with UnsupportedContentConverter
-  with AuthenticationUser
+  with User

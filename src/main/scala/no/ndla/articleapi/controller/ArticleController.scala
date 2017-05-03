@@ -10,9 +10,10 @@
 package no.ndla.articleapi.controller
 
 import no.ndla.articleapi.ArticleApiProperties.RoleWithWriteAccess
+import no.ndla.articleapi.auth.Role
 import no.ndla.articleapi.model.api._
 import no.ndla.articleapi.model.domain.Sort
-import no.ndla.articleapi.service.{AuthenticationRole, ReadService, WriteService}
+import no.ndla.articleapi.service.{ReadService, WriteService}
 import no.ndla.articleapi.service.search.SearchService
 import org.json4s.native.Serialization.read
 import org.json4s.{DefaultFormats, Formats}
@@ -22,7 +23,7 @@ import org.scalatra.swagger.{ResponseMessage, Swagger, SwaggerSupport}
 import scala.util.{Failure, Success, Try}
 
 trait ArticleController {
-  this: ReadService with WriteService with SearchService with AuthenticationRole =>
+  this: ReadService with WriteService with SearchService with Role =>
   val articleController: ArticleController
 
   class ArticleController(implicit val swagger: Swagger) extends NdlaController with SwaggerSupport {
