@@ -45,14 +45,14 @@ object TestData {
     Seq(api.ArticleTitle("test", Option("en"))),
     1,
     Seq(api.ArticleContent("<article><div>test</div></article>", None, Option("en"))),
-    Seq(),
+    Seq.empty,
+    Seq.empty,
+    Seq.empty,
     None,
-    None,
-    None,
-    None,
-    api.Copyright(api.License("publicdomain", None, None), "", Seq()),
-    None,
-    "fagstoff"
+    Seq.empty,
+    Some(api.Copyright(api.License("publicdomain", None, None), "", Seq.empty)),
+    Seq.empty,
+    Some("fagstoff")
   )
 
   val newArticle = api.NewArticle(

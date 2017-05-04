@@ -11,22 +11,23 @@ package no.ndla.articleapi.validation
 import no.ndla.articleapi.model.api.ValidationMessage
 import no.ndla.articleapi.ArticleApiProperties.resourceHtmlEmbedTag
 import no.ndla.articleapi.integration.ConverterModule
+import no.ndla.articleapi.model.domain.EmbedTag
 import no.ndla.articleapi.service.converters.{Attributes, HTMLCleaner, ResourceType}
 import org.jsoup.nodes.Element
 
-import scala.collection.JavaConversions._
+import scala.collection.JavaConverters._
 
 class EmbedTagValidator {
   def validate(fieldName: String, content: String): Seq[ValidationMessage] = {
     val document = ConverterModule.stringToJsoupDocument(content)
-    document.select(s"$resourceHtmlEmbedTag").flatMap(validateEmbedTag(fieldName, _)).toList
+    document.select(s"$resourceHtmlEmbedTag").asScala.flatMap(validateEmbedTag(fieldName, _)).toList
   }
 
   private def validateEmbedTag(fieldName: String, embed: Element): Seq[ValidationMessage] = {
     if (embed.tagName != resourceHtmlEmbedTag)
       return Seq()
 
-    val allAttributesOnTag = embed.attributes().map(attr => attr.getKey -> attr.getValue).toMap
+    val allAttributesOnTag = embed.attributes().asScala.map(attr => attr.getKey -> attr.getValue).toMap
     val legalAttributes = getLegalAttributesUsed(allAttributesOnTag)
 
     val validationErrors = attributesAreLegal(fieldName, allAttributesOnTag) ++
@@ -37,7 +38,7 @@ class EmbedTagValidator {
   }
 
   private def attributesAreLegal(fieldName: String, attributes: Map[String, String]): Option[ValidationMessage] = {
-    val legalAttributeKeys = HTMLCleaner.legalAttributesForTag(resourceHtmlEmbedTag).map(_.toString)
+    val legalAttributeKeys = HTMLCleaner.legalAttributesForTag(resourceHtmlEmbedTag)
     val illegalAttributesUsed: Set[String] = attributes.keySet diff legalAttributeKeys
 
     if (illegalAttributesUsed.nonEmpty) {
@@ -71,54 +72,10 @@ class EmbedTagValidator {
     }
 
     val resourceType = ResourceType.valueOf(attributes(Attributes.DataResource)).get
-    val requiredAttributesForResourceType = requiredAttributesForAllResourceTypes ++
-      Map(ResourceType.Image -> requiredAttributesForImageEmbedTag,
-      ResourceType.Audio -> requiredAttributesForAudioEmbedTag,
-      ResourceType.H5P -> requiredAttributesForH5PEmbedTag,
-      ResourceType.Brightcove -> requiredAttributesForBrightCoveEmbedTag,
-      ResourceType.ContentLink -> requiredAttributesForContentLink,
-      ResourceType.Error -> requiredAttributesForError,
-      ResourceType.ExternalContent -> requiredAttributesForExternalContent,
-      ResourceType.NRKContent -> requiredAttributesForNrkContent
-    ).getOrElse(resourceType, Set())
+    val requiredAttributesForResourceType = EmbedTag.requiredAttributesForResourceType(resourceType)
 
     verifyEmbedTagBasedOnResourceType(fieldName, requiredAttributesForResourceType, attributeKeys, resourceType)
   }
-
-  private val requiredAttributesForAllResourceTypes = Set(Attributes.DataResource)
-
-  private val requiredAttributesForImageEmbedTag =
-    Set(Attributes.DataResource_Id,
-      Attributes.DataSize,
-      Attributes.DataAlt,
-      Attributes.DataCaption,
-      Attributes.DataAlign)
-
-  private val requiredAttributesForAudioEmbedTag =
-    Set(Attributes.DataResource_Id)
-
-  private val requiredAttributesForH5PEmbedTag =
-    Set(Attributes.DataUrl)
-
-  private val requiredAttributesForBrightCoveEmbedTag =
-    Set(Attributes.DataCaption,
-      Attributes.DataVideoId,
-      Attributes.DataAccount,
-      Attributes.DataPlayer)
-
-  private val requiredAttributesForContentLink =
-    Set(Attributes.DataContentId,
-      Attributes.DataLinkText)
-
-  private val requiredAttributesForError =
-    Set(Attributes.DataMessage)
-
-  private val requiredAttributesForExternalContent =
-    Set(Attributes.DataUrl)
-
-  private val requiredAttributesForNrkContent =
-    Set(Attributes.DataNRKVideoId,
-      Attributes.DataUrl)
 
   private def verifyEmbedTagBasedOnResourceType(fieldName: String, requiredAttributes: Set[Attributes.Value], actualAttributes: Set[Attributes.Value], resourceType: ResourceType.Value): Seq[ValidationMessage] = {
     val missingAttributes = getMissingAttributes(requiredAttributes, actualAttributes)
@@ -135,7 +92,7 @@ class EmbedTagValidator {
   }
 
   private def getLegalAttributesUsed(allAttributes: Map[String, String]): Map[Attributes.Value, String] = {
-    val legalAttributeKeys = HTMLCleaner.legalAttributesForTag(resourceHtmlEmbedTag).map(_.toString)
+    val legalAttributeKeys = HTMLCleaner.legalAttributesForTag(resourceHtmlEmbedTag)
 
     allAttributes.filter {case (key, _) => legalAttributeKeys.contains(key)}
       .map { case (key, value) => Attributes.valueOf(key).get -> value

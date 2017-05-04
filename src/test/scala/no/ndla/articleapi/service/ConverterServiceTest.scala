@@ -14,7 +14,7 @@ import no.ndla.articleapi.{TestData, TestEnvironment, UnitSuite}
 import no.ndla.articleapi.integration._
 import no.ndla.articleapi.model.domain._
 import no.ndla.articleapi.model.api
-import no.ndla.articleapi.service.converters.{MathMLConverter, TableConverter}
+import no.ndla.articleapi.service.converters.{Attributes, MathMLConverter, ResourceType, TableConverter}
 import no.ndla.articleapi.ArticleApiProperties.resourceHtmlEmbedTag
 import org.joda.time.DateTime
 import org.mockito.Mockito._
@@ -311,6 +311,16 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
 
     when(articleRepository.getExternalIdFromId(articleId)).thenReturn(Some(externalId))
     service.toApiArticle(domainArticle) should equal(apiArticle)
+  }
+
+  test("toDomainArticleShould should remove unneeded attributes on embed-tags") {
+    val content = s"""<h1>hello</h1><embed ${Attributes.DataResource}="${ResourceType.Image}" ${Attributes.DataUrl}="http://some-url" ${Attributes.DataId}=1 data-random="hehe" />"""
+    val expected = s"""<h1>hello</h1><embed ${Attributes.DataResource}="${ResourceType.Image}" />"""
+    val articleContent = api.ArticleContent(content, None, Some("en"))
+    val apiArticle = TestData.newArticle.copy(content=Seq(articleContent))
+
+    val result = service.toDomainArticle(apiArticle)
+    result.content.head.content should equal (expected)
   }
 
 }

@@ -8,8 +8,13 @@
 
 package no.ndla.articleapi.controller
 
+import no.ndla.articleapi.model.api.UpdatedArticle
 import no.ndla.articleapi.{ArticleSwagger, TestData, TestEnvironment, UnitSuite}
 import org.scalatra.test.scalatest.ScalatraFunSuite
+import org.mockito.Mockito._
+import org.mockito.Matchers._
+
+import scala.util.{Success, Try}
 
 class ArticleControllerTest extends UnitSuite with TestEnvironment with ScalatraFunSuite {
 
@@ -29,28 +34,31 @@ class ArticleControllerTest extends UnitSuite with TestEnvironment with Scalatra
   implicit val swagger = new ArticleSwagger
 
   lazy val controller = new ArticleController
-  addServlet(controller, "/")
+  addServlet(controller, "/test")
+
+  val updateTitleJson = """{"revision": 1, "title": [{"language": "nb", "title": "hehe"}]}"""
+  val invalidArticle = """{"revision": 1, "title": [{"language": "nb", "titlee": "lol"]}"""
 
   test("That / returns a validation message if article is invalid") {
-    post("/", headers = Map("Authorization" -> authHeaderWithWriteRole)) {
+    post("/test", headers = Map("Authorization" -> authHeaderWithWriteRole)) {
       status should equal (400)
     }
   }
 
   test("That POST / returns 403 if no auth-header") {
-    post("/") {
+    post("/test") {
       status should equal (403)
     }
   }
 
   test("That POST / returns 403 if auth header does not have expected role") {
-    post("/", headers = Map("Authorization" -> authHeaderWithWrongRole)) {
+    post("/test", headers = Map("Authorization" -> authHeaderWithWrongRole)) {
       status should equal (403)
     }
   }
 
   test("That POST / returns 403 if auth header does not have any roles") {
-    post("/", headers = Map("Authorization" -> authHeaderWithoutAnyRoles)) {
+    post("/test", headers = Map("Authorization" -> authHeaderWithoutAnyRoles)) {
       status should equal (403)
     }
   }
@@ -58,6 +66,38 @@ class ArticleControllerTest extends UnitSuite with TestEnvironment with Scalatra
   test("That POST / returns 403 if auth header does not have user id") {
     post("/", headers = Map("Authorization" -> authHeaderWithEmptyNdlaId)) {
       status should equal (403)
+    }
+  }
+
+  test("That PATCH /:id returns a validation message if article is invalid") {
+    patch("/test/123", invalidArticle, headers = Map("Authorization" -> authHeaderWithWriteRole)) {
+      status should equal (400)
+    }
+  }
+
+  test("That PATCH /:id returns 403 if no auth-header") {
+    patch("/test/123") {
+      status should equal (403)
+    }
+  }
+
+  test("That PATCH /:id returns 403 if auth header does not have expected role") {
+    patch("/test/123", headers = Map("Authorization" -> authHeaderWithWrongRole)) {
+      status should equal (403)
+    }
+  }
+
+  test("That PATCH /:id returns 403 if auth header does not have any roles") {
+    patch("/test/123", headers = Map("Authorization" -> authHeaderWithoutAnyRoles)) {
+      status should equal (403)
+    }
+  }
+
+  test("That PATCH /:id returns 200 on success") {
+    when(writeService.updateArticle(any[Long], any[UpdatedArticle])).thenReturn(Success(TestData.apiArticleWithHtmlFault))
+    patch("/test/123", updateTitleJson, headers = Map("Authorization" -> authHeaderWithWriteRole)) {
+      println(body)
+      status should equal (200)
     }
   }
 

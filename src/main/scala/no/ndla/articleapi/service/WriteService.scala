@@ -11,8 +11,7 @@ package no.ndla.articleapi.service
 import no.ndla.articleapi.auth.User
 import no.ndla.articleapi.model.api
 import no.ndla.articleapi.model.api.NotFoundException
-import no.ndla.articleapi.model.domain
-import no.ndla.articleapi.model.domain.LanguageField
+import no.ndla.articleapi.model.domain._
 import no.ndla.articleapi.repository.ArticleRepository
 import no.ndla.articleapi.service.search.IndexService
 import no.ndla.articleapi.validation.ArticleValidator
@@ -37,7 +36,7 @@ trait WriteService {
       (toKeep ++ updated).filterNot(_.value.isEmpty)
     }
 
-    private def mergeTags(existing: Seq[domain.ArticleTag], updated: Seq[domain.ArticleTag]): Seq[domain.ArticleTag] = {
+    private def mergeTags(existing: Seq[ArticleTag], updated: Seq[ArticleTag]): Seq[ArticleTag] = {
       val toKeep = existing.filterNot(item => updated.map(_.language).contains(item.language))
       (toKeep ++ updated).filterNot(_.tags.isEmpty)
     }
@@ -46,21 +45,20 @@ trait WriteService {
       articleRepository.withId(articleId) match {
         case None => Failure(NotFoundException(s"Article with id $articleId does not exist"))
         case Some(existing) => {
-          val updatedArticle = converterService.toDomainArticle(updatedApiArticle)
           val toUpdate = existing.copy(
-            revision = updatedArticle.revision,
-            title = mergeLanguageFields(existing.title, updatedArticle.title),
-            content = mergeLanguageFields(existing.content, updatedArticle.content),
-            copyright = updatedArticle.copyright,
-            tags = mergeTags(existing.tags, updatedArticle.tags),
-            requiredLibraries = updatedArticle.requiredLibraries,
-            visualElement = mergeLanguageFields(existing.visualElement, updatedArticle.visualElement),
-            introduction = mergeLanguageFields(existing.introduction, updatedArticle.introduction),
-            metaDescription = mergeLanguageFields(existing.metaDescription, updatedArticle.metaDescription),
-            metaImageId = updatedArticle.metaImageId,
+            revision = Option(updatedApiArticle.revision),
+            title = mergeLanguageFields(existing.title, updatedApiArticle.title.map(converterService.toDomainTitle)),
+            content = mergeLanguageFields(existing.content, updatedApiArticle.content.map(converterService.toDomainContent)),
+            copyright = updatedApiArticle.copyright.map(converterService.toDomainCopyright).getOrElse(existing.copyright),
+            tags = mergeTags(existing.tags, updatedApiArticle.tags.map(converterService.toDomainTag)),
+            requiredLibraries = updatedApiArticle.requiredLibraries.map(converterService.toDomainRequiredLibraries),
+            visualElement = mergeLanguageFields(existing.visualElement, updatedApiArticle.visualElement.map(converterService.toDomainVisualElement)),
+            introduction = mergeLanguageFields(existing.introduction, updatedApiArticle.introduction.map(converterService.toDomainIntroduction)),
+            metaDescription = mergeLanguageFields(existing.metaDescription, updatedApiArticle.metaDescription.map(converterService.toDomainMetaDescription)),
+            metaImageId = if(updatedApiArticle.metaImageId.isDefined) updatedApiArticle.metaImageId else existing.metaImageId,
             updated = clock.now(),
             updatedBy = authUser.id(),
-            contentType = updatedArticle.contentType
+            contentType = updatedApiArticle.contentType.getOrElse(existing.contentType)
           )
           articleValidator.validateArticle(toUpdate)
           for {

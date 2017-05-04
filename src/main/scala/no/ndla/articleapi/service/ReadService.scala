@@ -50,7 +50,6 @@ trait ReadService {
         case false =>
         case true => {
           val (resourceType, id) = (embedTag.attr(s"${Attributes.DataResource}"), embedTag.attr(resourceIdAttrName))
-          embedTag.removeAttr(resourceIdAttrName)
           embedTag.attr(s"${Attributes.DataUrl}", s"${externalApiUrls(resourceType)}/$id")
         }
       }
