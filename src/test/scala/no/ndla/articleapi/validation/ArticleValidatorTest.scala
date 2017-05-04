@@ -28,6 +28,13 @@ class ArticleValidatorTest extends UnitSuite with TestEnvironment {
     a [ValidationException] should be thrownBy articleValidator.validateArticle(article)
   }
 
+  test("validateArticle does not throw an exception for MathMl tags") {
+    val content = """<math xmlns="http://www.w3.org/1998/Math/MathML"></math>"""
+    val article = TestData.sampleArticleWithByNcSa.copy(content=Seq(ArticleContent(content, None, Some("nb"))))
+
+    noException should be thrownBy articleValidator.validateArticle(article)
+  }
+
   test("validateArticle should throw an error if introduction contains HTML tags") {
     val article = TestData.sampleArticleWithByNcSa.copy(content=Seq(ArticleContent(validDocument, None, Some("nb"))), introduction=Seq(ArticleIntroduction(validDocument, Some("nb"))))
     a [ValidationException] should be thrownBy articleValidator.validateArticle(article)

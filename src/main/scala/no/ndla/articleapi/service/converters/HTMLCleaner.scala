@@ -81,15 +81,9 @@ trait HTMLCleaner {
     }
 
     private def removeAttributes(el: Element): Seq[String] = {
-      el.select("*").toList.flatMap(tag => {
-        tag.attributes().toList.
-          filter(attribute => !HTMLCleaner.isAttributeKeyValid(attribute.getKey, tag.tagName))
-          .map(illegalAttribute => {
-            val keyName = illegalAttribute.getKey
-            tag.removeAttr(keyName)
-            keyName
-          })
-      })
+      el.select("*").toList.flatMap(tag =>
+        HTMLCleaner.removeIllegalAttributes(tag, HTMLCleaner.legalAttributesForTag(tag.tagName))
+      )
     }
 
     private def removeComments(node: Node) {
@@ -173,19 +167,26 @@ object HTMLCleaner {
       "h1", "h2", "h3", "h4", "h5", "h6", "aside", "strong", "ul", "br", "ol", "i", "em", "b", "th", "blockquote",
       "details", "summary", "table", "thead", "tfoot", "tbody", "caption", "audio", "figcaption", resourceHtmlEmbedTag) ++ mathMlTags
 
-    val legalAttributesForAll = Set(Href, Title)
-    val tagAttributes: Map[String, Set[Attributes.Value]] = (Set(
-      "td" -> Set(Align, Valign),
-      "th" -> Set(Align, Valign),
+    val MathMLAttributes = Set("accent", "accentunder", "actiontype", "align", "altimg", "altimg-width", "altimg-height", "altimg-valign", "alttext", "close", "columnalign", "columnlines", "columnspacing",
+      "columnspan", "denomalign", "depth", "dir", "display", "displaystyle", "fence", "frame", "framespacing", "height", "href", "id", "largeop", "length", "linethickness", "lspace",
+      "lquote", "mathbackground", "mathcolor", "mathsize", "mathvariant", "maxsize", "Unimplemented", "minsize", "movablelimits", "notation", "numalign", "open", "rowalign",
+      "rowlines", "rowspacing", "rowspan", "rspace", "rquote", "scriptlevel", "scriptminsize", "Starting", "scriptsizemultiplier", "selection", "separator", "separators",
+      "stretchy", "subscriptshift", "supscriptshift", "symmetric", "voffset", "width", "xlink:href", "xmlns")
+
+    val legalAttributesForAll = Set("href", "title")
+
+    val tagAttributes: Map[String, Set[String]] = Map(
+      "td" -> Set("align", "valign"),
+      "th" -> Set("align", "valign"),
       resourceHtmlEmbedTag -> Set(DataResource, DataResource_Id, DataId, DataContentId, DataLinkText, DataUrl,
         DataSize, DataVideoId, DataAccount, DataPlayer, DataKey, DataAlt, DataCaption, DataAlign,
-        DataAudioId, DataNRKVideoId, DataMessage)
-    ) ++ mathMlTags.map(_ -> Set(AnyAttribute))).toMap
+        DataAudioId, DataNRKVideoId, DataMessage).map(_.toString)
+    ) ++ mathMlTags.map(_ -> MathMLAttributes)
   }
 
   def isAttributeKeyValid(attributeKey: String, tagName: String): Boolean = {
     val legalAttrs = legalAttributesForTag(tagName)
-    legalAttrs.map(_.toString).contains(attributeKey) || legalAttrs.contains(AnyAttribute)
+    legalAttrs.contains(attributeKey) || legalAttrs.contains(AnyAttribute)
   }
 
   def isTagValid(tagName: String): Boolean = PermittedHTML.tags.contains(tagName)
@@ -194,8 +195,20 @@ object HTMLCleaner {
 
   def allLegalTags = PermittedHTML.tags
 
-  def legalAttributesForTag(tagName: String): Set[Attributes.Value] = {
+  def legalAttributesForTag(tagName: String): Set[String] = {
     val legalAttributesForTag = PermittedHTML.tagAttributes.getOrElse(tagName, Set.empty)
     legalAttributesForTag ++ PermittedHTML.legalAttributesForAll
+  }
+
+  def removeIllegalAttributes(el: Element, legalAttributes: Set[String]): Seq[String] = {
+    val canContainAnyAttribute = legalAttributes.contains(Attributes.AnyAttribute.toString)
+
+    el.attributes().toList.
+      filter(attr => !legalAttributes.contains(attr.getKey) && !canContainAnyAttribute)
+      .map(illegalAttribute => {
+        val keyName = illegalAttribute.getKey
+        el.removeAttr(keyName)
+        keyName
+      })
   }
 }
