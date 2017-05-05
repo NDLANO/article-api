@@ -1,0 +1,76 @@
+{
+  "attributes": {
+    "embed": [
+      "data-player",
+      "data-account",
+      "data-id",
+      "data-resource",
+      "data-caption",
+      "data-key",
+      "data-link-text",
+      "data-videoid",
+      "data-resource_id",
+      "data-align",
+      "data-nrk-video-id",
+      "data-content-id",
+      "data-message",
+      "data-url",
+      "data-audio-id",
+      "data-size",
+      "data-alt"
+    ],
+    "td": [
+      "valign",
+      "align"
+    ],
+    "th": [
+      "valign",
+      "align"
+    ],
+    "a": [
+      "href",
+      "title"
+    ]
+  },
+  "tags": [
+    "pre",
+    "em",
+    "code",
+    "h2",
+    "h3",
+    "h1",
+    "h6",
+    "h4",
+    "h5",
+    "table",
+    "p",
+    "tbody",
+    "section",
+    "aside",
+    "li",
+    "details",
+    "tr",
+    "sup",
+    "thead",
+    "blockquote",
+    "figcaption",
+    "b",
+    "br",
+    "article",
+    "strong",
+    "embed",
+    "a",
+    "ol",
+    "i",
+    "button",
+    "summary",
+    "ul",
+    "caption",
+    "div",
+    "audio",
+    "tfoot",
+    "embed",
+    "td",
+    "th"
+  ]
+}

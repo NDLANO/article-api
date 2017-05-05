@@ -28,8 +28,9 @@ class TextValidator(allowHtml: Boolean) {
 
   private def validateOnlyBasicHtmlTags(fieldPath: String, text: String): Seq[ValidationMessage] = {
     val whiteList = new Whitelist().addTags(HTMLCleaner.allLegalTags.toSeq: _*)
-    HTMLCleaner.allLegalTags.foreach(tag =>
-      whiteList.addAttributes(tag, HTMLCleaner.legalAttributesForTag(tag).toSeq: _*))
+    HTMLCleaner.allLegalTags
+      .filter(tag => HTMLCleaner.legalAttributesForTag(tag).nonEmpty)
+      .foreach(tag => whiteList.addAttributes(tag, HTMLCleaner.legalAttributesForTag(tag).toSeq: _*))
 
     text.isEmpty match {
       case true => ValidationMessage(fieldPath, FieldEmpty) :: Nil
