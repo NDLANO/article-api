@@ -2,8 +2,10 @@ package no.ndla.articleapi.repository
 
 import no.ndla.articleapi.model.domain.{ArticleIds, ArticleTitle}
 import no.ndla.articleapi.{DBMigrator, IntegrationSuite, TestData, TestEnvironment}
+import no.ndla.tag.IntegrationTest
 import scalikejdbc.{ConnectionPool, DataSourceConnectionPool}
 
+@IntegrationTest
 class ArticleRepositoryTest extends IntegrationSuite with TestEnvironment {
   var repository: ArticleRepository = _
 
