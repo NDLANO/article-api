@@ -14,7 +14,7 @@ import org.json4s.native.JsonMethods.{compact, parse, render}
 import org.postgresql.util.PGobject
 import scalikejdbc._
 
-class V2_AddUpdatedColoums extends JdbcMigration {
+class V2__AddUpdatedColoums extends JdbcMigration {
 
   implicit val formats = org.json4s.DefaultFormats
 

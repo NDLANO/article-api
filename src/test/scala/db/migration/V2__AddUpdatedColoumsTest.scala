@@ -10,10 +10,10 @@ package db.migration
 import no.ndla.articleapi.{TestEnvironment, UnitSuite}
 import org.mockito.Mockito.when
 
-class V2_AddUpdatedColoumsTest  extends UnitSuite with TestEnvironment {
+class V2__AddUpdatedColoumsTest  extends UnitSuite with TestEnvironment {
 
 
-  val migration = new V2_AddUpdatedColoums
+  val migration = new V2__AddUpdatedColoums
 
 
   test("add updatedBy and updated on audio object") {
