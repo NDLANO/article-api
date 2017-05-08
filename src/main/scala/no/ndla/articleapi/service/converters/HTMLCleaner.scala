@@ -205,10 +205,8 @@ object HTMLCleaner {
   }
 
   def removeIllegalAttributes(el: Element, legalAttributes: Set[String]): Seq[String] = {
-    val canContainAnyAttribute = legalAttributes.contains(Attributes.AnyAttribute.toString)
-
     el.attributes().asScala.toList.
-      filter(attr => !legalAttributes.contains(attr.getKey) && !canContainAnyAttribute)
+      filter(attr => !legalAttributes.contains(attr.getKey))
       .map(illegalAttribute => {
         val keyName = illegalAttribute.getKey
         el.removeAttr(keyName)

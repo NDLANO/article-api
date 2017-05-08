@@ -130,7 +130,6 @@ object Attributes extends Enumeration {
   val DataNRKVideoId = Value("data-nrk-video-id")
   val DataResource_Id = Value("data-resource_id")
 
-  val AnyAttribute = Value("*")
   val XMLNsAttribute = Value("xmlns")
 
   val Href = Value("href")
