@@ -32,11 +32,11 @@ For a more detailed documentation of the API, please refer to the [API documenta
 
 Whenever an article is created or updated a validation of the content itself is performed. This is to ensure that only accepted tags and attributes are
 used.
-A list of permitted HTML/MathML tags and attributes are specified in src/main/resources/html-rules.json and src/main/resources/mathml-rules.json.
-The `tags` section defines permitted tags in which attributes are not permitted. The `attributes` section defines tags with a list of permitted attributes.
+A list of permitted HTML/MathML tags and attributes are specified in `src/main/resources/html-rules.json` and `src/main/resources/mathml-rules`.json.
+The `tags` section defines permitted tags without attributes. The `attributes` section defines tags with a list of permitted attributes.
 
 Extra validation is performed on the `<embed>` tag: based on the `data-resource` attribute a different set of **required** attributes must also be present.
-These rules are defined in src/main/resources/embed-tag-rules.json. Should any attribute other than those in the required list be present,
+These rules are defined in `src/main/resources/embed-tag-rules.json`. Should any attribute other than those in the required list be present,
 they will be stripped before validation (this step is only performed on `<embed>` tags).
 
 When an article is fetched with the `GET` API endpoint, the api will add a `data-url` attribute on every `<embed>` tag which also contains a `data-resource_id` attribute.
