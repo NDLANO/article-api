@@ -28,6 +28,38 @@ The [article converter](https://github.com/NDLANO/article-converter) implements 
 
 For a more detailed documentation of the API, please refer to the [API documentation](https://api.ndla.no) (Staging: [API documentation](https://staging.api.ndla.no)).
 
+### Validation of article content
+
+Whenever an article is created or updated a validation of the content itself is performed. This is to ensure that only accepted tags and attributes are
+used.
+A list of permitted HTML/MathML tags and attributes are specified in src/main/resources/html-rules.json and src/main/resources/mathml-rules.json.
+The `tags` section defines permitted tags in which attributes are not permitted. The `attributes` section defines tags with a list of permitted attributes.
+
+Extra validation is performed on the `<embed>` tag: based on the `data-resource` attribute a different set of **required** attributes must also be present.
+These rules are defined in src/main/resources/embed-tag-rules.json. Should any attribute other than those in the required list be present,
+they will be stripped before validation (this step is only performed on `<embed>` tags).
+
+When an article is fetched with the `GET` API endpoint, the api will add a `data-url` attribute on every `<embed>` tag which also contains a `data-resource_id` attribute.
+A `data-id` attribute is appended to each `<embed>` tag.
+
+### Resource types for embed tags
+The embed tag contains a set of attributes which define what content should be inserted. The list below provides an explaination of each recognized attribute.
+* **data-resource** - defines the type of resource that should be inserted (can be image, audio, link to another article, ...). Present in every embed tag
+* **data-id** - a unique number identifying the embed tag in an article. Present in every embed tag
+* **data-url** - a url linking to the resource to insert. Present in image, audio, h5p, external, and nrk
+* **data-alt** - alternative text to display if the resource could not be inserted. Present in image
+* **data-size** - a hint as to how large the resource should be when presented. Present in image
+* **data-align** - a hint as to the alignment of the resource when presented. Can be "left" or "right". Present in image
+* **data-player** - a video player identifier used to play videos. Present in brightcove
+* **data-message** - a message to be displayed when presented. Present in error
+* **data-caption** - a caption to display along with the resource. Present in brightcove and image
+* **data-account** - the brightcove account id. Present in brightcove
+* **data-videoid** - a video identifier. Present in brightcove
+* **data-link-text** - the text to display in a link. Present in content-link
+* **data-content-id** - the id to the article content to be inserted. Present in content-link
+* **data-nrk-video-id** - an ID to nrk videos. Present in nrk
+* **data-resource_id** - an ID to an internal resource to be inserted. Present in image and audio
+
 ## Developer documentation
 
 **Compile**: sbt compile
