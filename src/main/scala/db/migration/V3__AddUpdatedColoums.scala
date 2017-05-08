@@ -14,7 +14,7 @@ import org.json4s.native.JsonMethods.{compact, parse, render}
 import org.postgresql.util.PGobject
 import scalikejdbc._
 
-class V2__AddUpdatedColoums extends JdbcMigration {
+class V3__AddUpdatedColoums extends JdbcMigration {
 
   implicit val formats = org.json4s.DefaultFormats
 
@@ -27,11 +27,11 @@ class V2__AddUpdatedColoums extends JdbcMigration {
     }
   }
 
-  def allArticles(implicit session: DBSession): List[V2_DBArticleMetaInformation] = {
-    sql"select id, document from contentdata".map(rs => V2_DBArticleMetaInformation(rs.long("id"), rs.string("document"))).list().apply()
+  def allArticles(implicit session: DBSession): List[V3_DBArticleMetaInformation] = {
+    sql"select id, document from contentdata".map(rs => V3_DBArticleMetaInformation(rs.long("id"), rs.string("document"))).list().apply()
   }
 
-  def convertArticleUpdate(articleMeta: V2_DBArticleMetaInformation) = {
+  def convertArticleUpdate(articleMeta: V3_DBArticleMetaInformation) = {
     val oldDocument = parse(articleMeta.document)
     val updatedJson = parse(s"""{"updatedBy": "content-import-client"}""")
 
@@ -41,7 +41,7 @@ class V2__AddUpdatedColoums extends JdbcMigration {
   }
 
 
-  def update(articleMeta: V2_DBArticleMetaInformation)(implicit session: DBSession) = {
+  def update(articleMeta: V3_DBArticleMetaInformation)(implicit session: DBSession) = {
     val dataObject = new PGobject()
     dataObject.setType("jsonb")
     dataObject.setValue(articleMeta.document)
@@ -51,4 +51,4 @@ class V2__AddUpdatedColoums extends JdbcMigration {
 
 }
 
-case class V2_DBArticleMetaInformation(id: Long, document: String)
+case class V3_DBArticleMetaInformation(id: Long, document: String)
