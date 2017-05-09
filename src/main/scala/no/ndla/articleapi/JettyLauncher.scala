@@ -23,7 +23,7 @@ object JettyLauncher extends LazyLogging {
     logger.info("Starting the db migration...")
     val startDBMillis = System.currentTimeMillis()
     DBMigrator.migrate(ComponentRegistry.dataSource)
-    logger.info(s"Done db migration, tok ${startDBMillis - System.currentTimeMillis()}ms")
+    logger.info(s"Done db migration, tok ${System.currentTimeMillis() - startDBMillis}ms")
 
     val startMillis = System.currentTimeMillis()
 
