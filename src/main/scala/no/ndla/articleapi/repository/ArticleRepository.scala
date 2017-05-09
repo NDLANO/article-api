@@ -13,8 +13,9 @@ import com.typesafe.scalalogging.LazyLogging
 import no.ndla.articleapi.ArticleApiProperties
 import no.ndla.articleapi.integration.DataSource
 import no.ndla.articleapi.model.api.OptimisticLockException
-import no.ndla.articleapi.model.domain.{Article, ArticleIds}
+import no.ndla.articleapi.model.domain.{Article, ArticleIds, ArticleTag}
 import org.json4s.native.Serialization.write
+import org.json4s.native.JsonMethods._
 import org.postgresql.util.PGobject
 import scalikejdbc.{ConnectionPool, DataSourceConnectionPool, _}
 
@@ -111,6 +112,13 @@ trait ArticleRepository {
 
     def getAllIds(implicit session: DBSession = AutoSession): Seq[ArticleIds] = {
       sql"select id, external_id from ${Article.table}".map(rs => ArticleIds(rs.long("id"), rs.stringOpt("external_id"))).list.apply
+    }
+
+    def allTags(implicit session: DBSession = AutoSession): Seq[ArticleTag] = {
+      val allTags = sql"""select document->>'tags' from ${Article.table}""".map(rs => rs.string(1)).list.apply
+
+      allTags.flatMap(tag => parse(tag).extract[List[ArticleTag]]).groupBy(_.language)
+        .map { case (language, tags) => ArticleTag(tags.flatMap(_.tags).distinct.sorted, language) }.toList
     }
 
     def minMaxId(implicit session: DBSession = AutoSession): (Long, Long) = {

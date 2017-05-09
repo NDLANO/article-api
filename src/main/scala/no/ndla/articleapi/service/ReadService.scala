@@ -8,14 +8,15 @@
 
 package no.ndla.articleapi.service
 
-import no.ndla.articleapi.model.{api, domain}
+import no.ndla.articleapi.model.api
+import no.ndla.articleapi.model.domain._
 import no.ndla.articleapi.repository.ArticleRepository
 import no.ndla.articleapi.ArticleApiProperties.{externalApiUrls, resourceHtmlEmbedTag}
 import no.ndla.articleapi.integration.ConverterModule.{jsoupDocumentToString, stringToJsoupDocument}
-import no.ndla.articleapi.service.converters.{Attributes, ResourceType}
+import no.ndla.articleapi.service.converters.Attributes
 import org.jsoup.nodes.Element
 
-import scala.collection.JavaConversions._
+import scala.collection.JavaConverters._
 
 trait ReadService {
   this: ArticleRepository with ConverterService =>
@@ -27,15 +28,18 @@ trait ReadService {
         .map(addUrlsAndIdsOnEmbedResources)
         .map(converterService.toApiArticle)
 
-    private[service] def addUrlsAndIdsOnEmbedResources(article: domain.Article): domain.Article = {
+    private[service] def addUrlsAndIdsOnEmbedResources(article: Article): Article = {
       val articleWithUrls = article.content.map(addIdAndUrlOnResource)
       article.copy(content = articleWithUrls)
     }
 
-    private[service] def addIdAndUrlOnResource(content: domain.ArticleContent): domain.ArticleContent = {
+    def tags: Seq[api.ArticleTag] =
+      articleRepository.allTags.map(tag => api.ArticleTag(tag.tags, tag.language))
+
+    private[service] def addIdAndUrlOnResource(content: ArticleContent): ArticleContent = {
       val doc = stringToJsoupDocument(content.content)
 
-      val embedTags = doc.select(s"$resourceHtmlEmbedTag").toList
+      val embedTags = doc.select(s"$resourceHtmlEmbedTag").asScala.toList
       embedTags.zipWithIndex.foreach { case (embedTag, index) =>
         embedTag.attr(s"${Attributes.DataId}", s"$index")
         addUrlOnEmbedTag(embedTag)
