@@ -23,12 +23,24 @@ class V3__AddUpdatedColoums extends JdbcMigration {
     db.autoClose(false)
 
     db.withinTx { implicit session =>
-      allArticles.map(convertArticleUpdate).foreach(update)
+      val count = countAllArticles.get
+      var delt = (count / 1000) + 1
+      var offset = 0L
+
+      while (delt > 0) {
+        allArticles(offset * 1000).map(convertArticleUpdate).foreach(update)
+        delt -= 1
+        offset += 1
+      }
     }
   }
 
-  def allArticles(implicit session: DBSession): List[V3_DBArticleMetaInformation] = {
-    sql"select id, document from contentdata".map(rs => V3_DBArticleMetaInformation(rs.long("id"), rs.string("document"))).list().apply()
+  def countAllArticles(implicit session: DBSession) = {
+    sql"select count(*) from contentdata".map(rs => rs.long("count")).single().apply()
+  }
+
+  def allArticles(offset: Long)(implicit session: DBSession) = {
+    sql"select id, document from contentdata order by id limit 1000 offset ${offset}".map(rs => V3_DBArticleMetaInformation(rs.long("id"), rs.string("document"))).list.apply()
   }
 
   def convertArticleUpdate(articleMeta: V3_DBArticleMetaInformation) = {
