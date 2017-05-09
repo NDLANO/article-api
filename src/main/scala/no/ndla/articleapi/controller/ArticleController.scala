@@ -97,6 +97,19 @@ trait ArticleController {
         authorizations "oauth2"
         responseMessages(response400, response403, response404, response500))
 
+    val getTags =
+      (apiOperation[List[ArticleTag]]("getTags")
+        summary "Retrieves a list of all previously used tags in articles"
+        notes "Retrieves a list of all previously used tags in articles"
+        parameters(
+        headerParam[Option[String]]("X-Correlation-ID").description("User supplied correlation-id. May be omitted."),
+        headerParam[Option[String]]("app-key").description("Your app-key."))
+        responseMessages response500
+        authorizations "oauth2")
+
+    get("/tags/", operation(getTags)) {
+      readService.tags
+    }
 
     get("/", operation(getAllArticles)) {
       val query = paramOrNone("query")
