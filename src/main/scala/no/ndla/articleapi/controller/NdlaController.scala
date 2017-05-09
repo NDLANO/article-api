@@ -81,9 +81,5 @@ abstract class NdlaController extends ScalatraServlet with NativeJsonSupport wit
     }
   }
 
-  def assertHasRole(role: String): Unit = {
-    if (!AuthUser.hasRole(role))
-      throw new AccessDeniedException("User is missing required role to perform this operation")
-  }
 }
 

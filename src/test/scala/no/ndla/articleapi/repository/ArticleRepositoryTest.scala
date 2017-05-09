@@ -2,8 +2,10 @@ package no.ndla.articleapi.repository
 
 import no.ndla.articleapi.model.domain.{ArticleIds, ArticleTitle}
 import no.ndla.articleapi.{DBMigrator, IntegrationSuite, TestData, TestEnvironment}
+import no.ndla.tag.IntegrationTest
 import scalikejdbc.{ConnectionPool, DataSourceConnectionPool}
 
+@IntegrationTest
 class ArticleRepositoryTest extends IntegrationSuite with TestEnvironment {
   var repository: ArticleRepository = _
 
@@ -14,9 +16,7 @@ class ArticleRepositoryTest extends IntegrationSuite with TestEnvironment {
   }
 
   override def beforeAll() = {
-    val datasource = getDataSource
-    DBMigrator.migrate(datasource)
-    ConnectionPool.singleton(new DataSourceConnectionPool(datasource))
+    ConnectionPool.singleton(new DataSourceConnectionPool(getDataSource))
   }
 
   test("updating several times updates revision number") {

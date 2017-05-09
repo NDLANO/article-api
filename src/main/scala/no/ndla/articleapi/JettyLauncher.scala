@@ -20,8 +20,10 @@ import scala.io.Source
 object JettyLauncher extends LazyLogging {
   def main(args: Array[String]) {
     logger.info(Source.fromInputStream(getClass.getResourceAsStream("/log-license.txt")).mkString)
-
+    logger.info("Starting the db migration...")
+    val startDBMillis = System.currentTimeMillis()
     DBMigrator.migrate(ComponentRegistry.dataSource)
+    logger.info(s"Done db migration, tok ${startDBMillis - System.currentTimeMillis()}ms")
 
     val startMillis = System.currentTimeMillis()
 

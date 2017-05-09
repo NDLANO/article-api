@@ -8,6 +8,7 @@
 
 package no.ndla.articleapi.service
 
+import no.ndla.articleapi.auth.User
 import no.ndla.articleapi.model.api
 import no.ndla.articleapi.model.api.NotFoundException
 import no.ndla.articleapi.model.domain._
@@ -18,7 +19,7 @@ import no.ndla.articleapi.validation.ArticleValidator
 import scala.util.{Failure, Try}
 
 trait WriteService {
-  this: ArticleRepository with ConverterService with ArticleValidator with IndexService with Clock =>
+  this: ArticleRepository with ConverterService with ArticleValidator with IndexService with Clock with User =>
   val writeService: WriteService
 
   class WriteService {
@@ -56,6 +57,7 @@ trait WriteService {
             metaDescription = mergeLanguageFields(existing.metaDescription, updatedApiArticle.metaDescription.map(converterService.toDomainMetaDescription)),
             metaImageId = if(updatedApiArticle.metaImageId.isDefined) updatedApiArticle.metaImageId else existing.metaImageId,
             updated = clock.now(),
+            updatedBy = authUser.id(),
             contentType = updatedApiArticle.contentType.getOrElse(existing.contentType)
           )
           articleValidator.validateArticle(toUpdate)

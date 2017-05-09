@@ -11,7 +11,7 @@ package no.ndla.articleapi
 
 import com.amazonaws.regions.Regions
 import com.amazonaws.services.s3.AmazonS3ClientBuilder
-import io.searchbox.client.JestClient
+import no.ndla.articleapi.auth.{Role, User}
 import no.ndla.articleapi.controller.{ArticleController, HealthController, InternController}
 import no.ndla.articleapi.integration._
 import no.ndla.articleapi.repository.ArticleRepository
@@ -26,36 +26,38 @@ import scalikejdbc.{ConnectionPool, DataSourceConnectionPool}
 
 object ComponentRegistry
   extends DataSource
-  with InternController
-  with ArticleController
-  with HealthController
-  with ArticleRepository
-  with ElasticClient
-  with SearchService
-  with IndexService
-  with SearchIndexService
-  with ExtractService
-  with ConverterModules
-  with ConverterService
-  with ContentBrowserConverterModules
-  with ContentBrowserConverter
-  with BiblioConverterModule
-  with BiblioConverter
-  with AmazonClient
-  with AttachmentStorageService
-  with ArticleContentInformation
-  with ExtractConvertStoreContent
-  with NdlaClient
-  with TagsService
-  with MigrationApiClient
-  with SearchConverterService
-  with ReadService
-  with WriteService
-  with ArticleValidator
-  with HTMLCleaner
-  with HtmlTagGenerator
-  with Clock
-{
+    with InternController
+    with ArticleController
+    with HealthController
+    with ArticleRepository
+    with ElasticClient
+    with SearchService
+    with IndexService
+    with SearchIndexService
+    with ExtractService
+    with ConverterModules
+    with ConverterService
+    with ContentBrowserConverterModules
+    with ContentBrowserConverter
+    with BiblioConverterModule
+    with BiblioConverter
+    with AmazonClient
+    with AttachmentStorageService
+    with ArticleContentInformation
+    with ExtractConvertStoreContent
+    with NdlaClient
+    with TagsService
+    with MigrationApiClient
+    with SearchConverterService
+    with ReadService
+    with WriteService
+    with ArticleValidator
+    with HTMLCleaner
+    with HtmlTagGenerator
+    with Clock
+    with Role
+    with User {
+
   implicit val swagger = new ArticleSwagger
 
   lazy val dataSource = new PGPoolingDataSource()
@@ -105,4 +107,7 @@ object ComponentRegistry
   lazy val imageApiClient = new ImageApiClient
 
   lazy val clock = new SystemClock
+  lazy val authRole = new AuthRole
+  lazy val authUser = new AuthUser
+
 }

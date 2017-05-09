@@ -11,6 +11,7 @@ package no.ndla.articleapi.service
 
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.articleapi.ArticleApiProperties.maxConvertionRounds
+import no.ndla.articleapi.auth.User
 import no.ndla.articleapi.integration.ImageApiClient
 import no.ndla.articleapi.model.domain._
 import no.ndla.articleapi.model.api
@@ -24,7 +25,7 @@ import scala.util.{Failure, Success, Try}
 import scala.collection.JavaConverters._
 
 trait ConverterService {
-  this: ConverterModules with ExtractConvertStoreContent with ImageApiClient with Clock with ArticleRepository =>
+  this: ConverterModules with ExtractConvertStoreContent with ImageApiClient with Clock with ArticleRepository with User =>
   val converterService: ConverterService
 
   class ConverterService extends LazyLogging {
@@ -80,6 +81,7 @@ trait ConverterService {
         None,
         nodeToConvert.created,
         nodeToConvert.updated,
+        authUser.id(),
         nodeToConvert.contentType)
     }
 
@@ -112,6 +114,7 @@ trait ConverterService {
         metaImageId=newArticle.metaImageId,
         created=clock.now(),
         updated=clock.now(),
+        updatedBy=authUser.id(),
         contentType=newArticle.contentType
       )
     }
@@ -182,6 +185,7 @@ trait ConverterService {
         article.metaDescription.map(toApiArticleMetaDescription),
         article.created,
         article.updated,
+        article.updatedBy,
         article.contentType
       )
     }

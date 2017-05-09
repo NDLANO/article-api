@@ -10,7 +10,7 @@ package no.ndla.articleapi.service
 
 import no.ndla.articleapi.model.domain.{Article, ArticleContent, ArticleTitle}
 import no.ndla.articleapi.{TestData, TestEnvironment, UnitSuite}
-import org.joda.time.DateTime
+import org.joda.time.{DateTime, DateTimeZone}
 import org.mockito.Mockito._
 import org.mockito.Matchers._
 import org.mockito.Mockito
@@ -50,6 +50,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
   }
 
   test("updateArticle should update the updated field of an article") {
+    when(authUser.id()).thenReturn("ndalId54321")
     val expectedUpdatedArticle = article.copy(updated=today)
     when(articleRepository.withId(articleId)).thenReturn(Some(article))
     when(articleRepository.update(any[Article])(any[DBSession])).thenReturn(Success(expectedUpdatedArticle))
@@ -59,7 +60,6 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     verify(articleRepository, times(1)).update(expectedUpdatedArticle)
     verify(indexService, times(1)).indexDocument(any[Article])
   }
-
 
   test("That mergeLanguageFields returns original list when updated is empty") {
     val existing = Seq(ArticleTitle("Tittel 1", Some("nb")), ArticleTitle("Tittel 2", Some("nn")), ArticleTitle("Tittel 3", None))

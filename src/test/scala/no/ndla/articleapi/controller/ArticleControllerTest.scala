@@ -88,7 +88,6 @@ class ArticleControllerTest extends UnitSuite with TestEnvironment with Scalatra
   test("That PATCH /:id returns 200 on success") {
     when(writeService.updateArticle(any[Long], any[UpdatedArticle])).thenReturn(Success(TestData.apiArticleWithHtmlFault))
     patch("/test/123", updateTitleJson, headers = Map("Authorization" -> authHeaderWithWriteRole)) {
-      println(body)
       status should equal (200)
     }
   }

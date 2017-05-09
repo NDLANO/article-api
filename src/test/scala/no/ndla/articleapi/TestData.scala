@@ -35,6 +35,7 @@ object TestData {
     None,
     DateTime.now().minusDays(4).toDate,
     DateTime.now().minusDays(2).toDate,
+    "ndalId54321",
     "fagstoff")
 
   val sampleArticleWithByNcSa = sampleArticleWithPublicDomain.copy(copyright=byNcSaCopyright)
@@ -86,6 +87,7 @@ object TestData {
     Nil,
     DateTime.now().minusDays(4).toDate,
     DateTime.now().minusDays(2).toDate,
+    "ndalId54321",
     "fagstoff"
   )
 
