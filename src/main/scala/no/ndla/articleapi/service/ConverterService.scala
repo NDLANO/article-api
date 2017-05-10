@@ -81,7 +81,7 @@ trait ConverterService {
         None,
         nodeToConvert.created,
         nodeToConvert.updated,
-        authUser.id(),
+        "content-import-client",
         nodeToConvert.contentType)
     }
 
