@@ -72,7 +72,7 @@ case class MigrationMainNodeImport(titles: Seq[MigrationContentTitle], ingresses
   authors: Seq[MigrationContentAuthor], license: Option[String], nodeType: Option[String],
   pageTitles: Seq[MigrationPageTitle], visualElements: Seq[MigrationVisualElement], relatedContents: Seq[MigrationRelatedContents],
   editorialKeywords: Seq[MigrationEditorialKeywords], learningResourceType: Seq[MigrationLearningResourceType],
-  difficulty: Seq[MigrationDifficulty], contentType: Seq[MigrationContentType], innholdAndFag: Seq[MigrationInnholdsKategoriAndFag],
+  difficulty: Seq[MigrationDifficulty], innholdAndFag: Seq[MigrationInnholdsKategoriAndFag],
   fagressurs                                                                          : Seq[MigrationFagressurs], emneartikkelData: Seq[MigrationEmneArtikkelData], updatedBy: String) {
 
   def asNodeToConvert(nodeId  : String, tags: List[ArticleTag]): NodeToConvert = NodeToConvert(
@@ -82,7 +82,6 @@ case class MigrationMainNodeImport(titles: Seq[MigrationContentTitle], ingresses
     authors.flatMap(x => x.asAuthor),
     tags,
     visualElements.map(_.asVisualElement),
-    contentType.headOption.getOrElse(MigrationContentType("unknown", None)).`type`,
     nodeType.getOrElse("unknown"),
     contents.minBy(_.created).created,
     contents.maxBy(_.changed).changed,

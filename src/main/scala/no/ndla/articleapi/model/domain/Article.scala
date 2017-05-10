@@ -29,8 +29,7 @@ case class Article(id: Option[Long],
                    metaImageId: Option[String],
                    created: Date,
                    updated: Date,
-                   updatedBy: String,
-                   contentType: String)
+                   updatedBy: String)
 
 
 object Article extends SQLSyntaxSupport[Article] {
@@ -55,8 +54,7 @@ object Article extends SQLSyntaxSupport[Article] {
       meta.metaImageId,
       meta.created,
       meta.updated,
-      meta.updatedBy,
-      meta.contentType)
+      meta.updatedBy)
   }
 
   val JSonSerializer = FieldSerializer[Article](

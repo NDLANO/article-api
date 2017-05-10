@@ -81,8 +81,7 @@ trait ConverterService {
         None,
         nodeToConvert.created,
         nodeToConvert.updated,
-        authUser.id(),
-        nodeToConvert.contentType)
+        authUser.id())
     }
 
     private def toDomainCopyright(license: String, authors: Seq[Author]): Copyright = {
@@ -114,8 +113,7 @@ trait ConverterService {
         metaImageId=newArticle.metaImageId,
         created=clock.now(),
         updated=clock.now(),
-        updatedBy=authUser.id(),
-        contentType=newArticle.contentType
+        updatedBy=authUser.id()
       )
     }
 
@@ -185,8 +183,7 @@ trait ConverterService {
         article.metaDescription.map(toApiArticleMetaDescription),
         article.created,
         article.updated,
-        article.updatedBy,
-        article.contentType
+        article.updatedBy
       )
     }
 

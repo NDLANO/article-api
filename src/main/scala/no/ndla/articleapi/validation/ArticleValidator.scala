@@ -30,8 +30,7 @@ trait ArticleValidator {
         validateTags(article.tags) ++
         article.requiredLibraries.flatMap(validateRequiredLibrary) ++
         article.metaImageId.flatMap(validateMetaImageId) ++
-        article.visualElement.flatMap(validateVisualElement) ++
-        validateContentType(article.contentType)
+        article.visualElement.flatMap(validateVisualElement)
 
       if (validationErrors.nonEmpty)
         throw new ValidationException(errors=validationErrors)
@@ -103,10 +102,6 @@ trait ArticleValidator {
         case true => None
         case false => Some(ValidationMessage("metaImageId", "Meta image ID must be a number"))
       }
-    }
-
-    def validateContentType(contentType: String): Seq[ValidationMessage] = {
-      NoHtmlValidator.validate("contentType", contentType)
     }
 
     private def validateLanguage(fieldPath: String, languageCode: Option[String]): Option[ValidationMessage] = {
