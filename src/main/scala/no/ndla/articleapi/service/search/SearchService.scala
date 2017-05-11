@@ -61,7 +61,10 @@ trait SearchService {
         hit.get("visualElement").getAsJsonObject.entrySet().to[Seq].map(entr => VisualElement(entr.getValue.getAsString, Some(entr.getKey))),
         hit.get("introduction").getAsJsonObject.entrySet().to[Seq].map(entr => ArticleIntroduction(entr.getValue.getAsString, Some(entr.getKey))),
         ApplicationUrl.get + hit.get("id").getAsString,
-        hit.get("license").getAsString)
+        hit.get("license").getAsString,
+        hit.get("articleType").getAsString
+      )
+
     }
 
     def all(withIdIn: List[Long], language: Option[String], license: Option[String], page: Option[Int], pageSize: Option[Int], sort: Sort.Value): SearchResult = {
