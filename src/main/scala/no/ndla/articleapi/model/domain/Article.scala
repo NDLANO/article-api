@@ -11,6 +11,7 @@ package no.ndla.articleapi.model.domain
 import java.util.Date
 
 import no.ndla.articleapi.ArticleApiProperties
+import no.ndla.articleapi.model.api.{ValidationException, ValidationMessage}
 import org.json4s.FieldSerializer
 import org.json4s.FieldSerializer._
 import org.json4s.native.Serialization._
@@ -29,7 +30,8 @@ case class Article(id: Option[Long],
                    metaImageId: Option[String],
                    created: Date,
                    updated: Date,
-                   updatedBy: String)
+                   updatedBy: String,
+                   articleType: String)
 
 
 object Article extends SQLSyntaxSupport[Article] {
@@ -54,11 +56,23 @@ object Article extends SQLSyntaxSupport[Article] {
       meta.metaImageId,
       meta.created,
       meta.updated,
-      meta.updatedBy)
+      meta.updatedBy,
+      meta.articleType
+    )
   }
 
   val JSonSerializer = FieldSerializer[Article](
     ignore("id") orElse
     ignore("revision")
   )
+}
+
+object ArticleType extends Enumeration {
+  val Standard = Value("standard")
+  val TopicArticle = Value("topic-article")
+
+  def valueOf(s:String): Option[ArticleType.Value] = ArticleType.values.find(_.toString == s.toUpperCase)
+
+  def valueOfOrError(s: String): ArticleType.Value =
+    valueOf(s).getOrElse(throw new ValidationException(errors = List(ValidationMessage("status", s"'$s' is not a valid publishingstatus."))))
 }

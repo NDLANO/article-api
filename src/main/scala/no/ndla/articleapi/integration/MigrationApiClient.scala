@@ -72,21 +72,26 @@ case class MigrationMainNodeImport(titles: Seq[MigrationContentTitle], ingresses
   authors: Seq[MigrationContentAuthor], license: Option[String], nodeType: Option[String],
   pageTitles: Seq[MigrationPageTitle], visualElements: Seq[MigrationVisualElement], relatedContents: Seq[MigrationRelatedContents],
   editorialKeywords: Seq[MigrationEditorialKeywords], learningResourceType: Seq[MigrationLearningResourceType],
-  difficulty: Seq[MigrationDifficulty], innholdAndFag: Seq[MigrationInnholdsKategoriAndFag],
-  fagressurs                                                                          : Seq[MigrationFagressurs], emneartikkelData: Seq[MigrationEmneArtikkelData], updatedBy: String) {
+  difficulty: Seq[MigrationDifficulty], contentType: Seq[MigrationContentType], innholdAndFag: Seq[MigrationInnholdsKategoriAndFag],
+  fagressurs: Seq[MigrationFagressurs], emneartikkelData: Seq[MigrationEmneArtikkelData], updatedBy: String) {
 
-  def asNodeToConvert(nodeId  : String, tags: List[ArticleTag]): NodeToConvert = NodeToConvert(
-    titles.map(x => x.asContentTitle),
-    asLanguageContents,
-    license.getOrElse(""),
-    authors.flatMap(x => x.asAuthor),
-    tags,
-    visualElements.map(_.asVisualElement),
-    nodeType.getOrElse("unknown"),
-    contents.minBy(_.created).created,
-    contents.maxBy(_.changed).changed,
-    updatedBy
-  )
+  def asNodeToConvert(nodeId  : String, tags: List[ArticleTag]): NodeToConvert = {
+    val articleType = contentType.headOption.map(cType => if (cType.`type` == "emneartikkel") ArticleType.TopicArticle else ArticleType.Standard)
+
+    NodeToConvert(
+      titles.map(x => x.asContentTitle),
+      asLanguageContents,
+      license.getOrElse(""),
+      authors.flatMap(x => x.asAuthor),
+      tags,
+      visualElements.map(_.asVisualElement),
+      nodeType.getOrElse("unknown"),
+      contents.minBy(_.created).created,
+      contents.maxBy(_.changed).changed,
+      updatedBy,
+      articleType.getOrElse(ArticleType.Standard)
+    )
+  }
 
   def asLanguageContents: Seq[LanguageContent] = {
     contents.map(content => {

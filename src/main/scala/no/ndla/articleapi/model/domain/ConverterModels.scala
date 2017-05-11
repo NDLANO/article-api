@@ -32,7 +32,8 @@ case class NodeToConvert(titles: Seq[ArticleTitle],
                          nodeType: String,
                          created: Date,
                          updated: Date,
-                         updatedBy: String
+                         updatedBy: String,
+                         articleType: ArticleType.Value
                         )
 
 case class ContentFilMeta(nid: String, tnid: String, title: String, fileName: String, url: URL, mimeType: String, fileSize: String)
