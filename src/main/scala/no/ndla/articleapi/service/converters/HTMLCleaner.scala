@@ -7,8 +7,11 @@ import no.ndla.articleapi.model.domain.ImportStatus
 import org.jsoup.nodes.{Element, Node, TextNode}
 import no.ndla.articleapi.integration.ConverterModule.{jsoupDocumentToString, stringToJsoupDocument}
 import Attributes._
+import org.json4s.native.JsonMethods.parse
+import org.json4s._
 
-import scala.collection.JavaConversions._
+import scala.collection.JavaConverters._
+import scala.io.Source
 import scala.util.{Success, Try}
 
 trait HTMLCleaner {
@@ -36,7 +39,7 @@ trait HTMLCleaner {
     }
 
     private def moveImagesOutOfPTags(element: Element) {
-      for (el <- element.select("p").select(s"""$resourceHtmlEmbedTag[$DataResource=image]""")) {
+      for (el <- element.select("p").select(s"""$resourceHtmlEmbedTag[$DataResource=image]""").asScala) {
         el.parent.before(el.outerHtml())
         el.remove()
       }
@@ -61,7 +64,7 @@ trait HTMLCleaner {
     }
 
     private def unwrapIllegalTags(el: Element): Seq[String] = {
-      el.children().select("*").toList
+      el.children().select("*").asScala.toList
         .filter(htmlTag => !HTMLCleaner.isTagValid(htmlTag.tagName))
         .map(illegalHtmlTag => {
           val tagName = illegalHtmlTag.tagName
@@ -73,7 +76,7 @@ trait HTMLCleaner {
 
     private def prepareMetaDescription(metaDescription: String): String = {
       val element = stringToJsoupDocument(metaDescription)
-      for (el <- element.select("embed")) {
+      for (el <- element.select("embed").asScala) {
         val caption = el.attr("data-caption")
         el.replaceWith(new TextNode(caption, ""))
       }
@@ -81,7 +84,7 @@ trait HTMLCleaner {
     }
 
     private def removeAttributes(el: Element): Seq[String] = {
-      el.select("*").toList.flatMap(tag =>
+      el.select("*").asScala.toList.flatMap(tag =>
         HTMLCleaner.removeIllegalAttributes(tag, HTMLCleaner.legalAttributesForTag(tag.tagName))
       )
     }
@@ -107,7 +110,7 @@ trait HTMLCleaner {
     }
 
     private def removeEmptyTags(element: Element): Element = {
-      for (el <- element.select("p,div,section,aside")) {
+      for (el <- element.select("p,div,section,aside").asScala) {
         if (htmlTagIsEmpty(el)) {
           el.remove()
         }
@@ -142,8 +145,8 @@ trait HTMLCleaner {
     }
 
     private def wrapStandaloneTextInPTag (element: Element) : Element = {
-      val sections = element.select("body>section")
-      sections.map(node => node.childNodes().map(child => {
+      val sections = element.select("body>section").asScala
+      sections.map(node => node.childNodes().asScala.map(child => {
         if (child.nodeName() == "#text" && !child.asInstanceOf[TextNode].isBlank) {
           child.wrap("<p>")
         }
@@ -157,54 +160,53 @@ trait HTMLCleaner {
 }
 
 object HTMLCleaner {
-  private object PermittedHTML {
-    // MathML element reference list: https://developer.mozilla.org/en/docs/Web/MathML/Element
-    val mathMlTags = Set("math", "maction", "maligngroup", "malignmark", "menclose", "merror", "mfenced", "mfrac", "mglyph", "mi",
-      "mlabeledtr", "mlongdiv", "mmultiscripts", "mn", "mo", "mover", "mpadded", "mphantom", "mroot", "mrow", "ms", "mscarries",
-      "mscarry", "msgroup", "msline", "mspace", "msqrt", "msrow", "mstack", "mstyle", "msub", "msup", "msubsup", "mtable", "mtd",
-      "mtext", "mtr", "munder", "munderover", "semantics", "annotation", "annotation-xml")
-    val tags = Set("article", "section", "tr", "td", "li", "a", "button", "div", "p", "pre", "code", "sup",
-      "h1", "h2", "h3", "h4", "h5", "h6", "aside", "strong", "ul", "br", "ol", "i", "em", "b", "th", "blockquote",
-      "details", "summary", "table", "thead", "tfoot", "tbody", "caption", "audio", "figcaption", resourceHtmlEmbedTag) ++ mathMlTags
+  object PermittedHTML {
+    val attributes: Map[String, Seq[String]] = readAttributes
+    val tags: Set[String] = readTags
 
-    val MathMLAttributes = Set("accent", "accentunder", "actiontype", "align", "altimg", "altimg-width", "altimg-height", "altimg-valign", "alttext", "close", "columnalign", "columnlines", "columnspacing",
-      "columnspan", "denomalign", "depth", "dir", "display", "displaystyle", "fence", "frame", "framespacing", "height", "href", "id", "largeop", "length", "linethickness", "lspace",
-      "lquote", "mathbackground", "mathcolor", "mathsize", "mathvariant", "maxsize", "Unimplemented", "minsize", "movablelimits", "notation", "numalign", "open", "rowalign",
-      "rowlines", "rowspacing", "rowspan", "rspace", "rquote", "scriptlevel", "scriptminsize", "Starting", "scriptsizemultiplier", "selection", "separator", "separators",
-      "stretchy", "subscriptshift", "supscriptshift", "symmetric", "voffset", "width", "xlink:href", "xmlns")
+    private def convertJsonStr(jsonStr: String): Map[String, Any] = {
+      implicit val formats = org.json4s.DefaultFormats
+      parse(jsonStr).extract[Map[String, Any]]
+    }
+    private def htmlRulesJson: Map[String, Any] = convertJsonStr(Source.fromResource("html-rules.json").mkString)
+    private def mathMLRulesJson: Map[String, Any] = convertJsonStr(Source.fromResource("mathml-rules.json").mkString)
 
-    val legalAttributesForAll = Set("href", "title")
+    private def readAttributes: Map[String, Seq[String]] = {
+      val htmlJson: Map[String, Any] = htmlRulesJson
+      val mathMlJson: Map[String, Any] = mathMLRulesJson
 
-    val tagAttributes: Map[String, Set[String]] = Map(
-      "td" -> Set("align", "valign"),
-      "th" -> Set("align", "valign"),
-      resourceHtmlEmbedTag -> Set(DataResource, DataResource_Id, DataId, DataContentId, DataLinkText, DataUrl,
-        DataSize, DataVideoId, DataAccount, DataPlayer, DataKey, DataAlt, DataCaption, DataAlign,
-        DataAudioId, DataNRKVideoId, DataMessage).map(_.toString)
-    ) ++ mathMlTags.map(_ -> MathMLAttributes)
+      val htmlAttr = htmlJson.get("attributes").map(_.asInstanceOf[Map[String, Seq[String]]])
+      val mathMlAttrs = mathMlJson.get("attributes").map(_.asInstanceOf[Map[String, Seq[String]]])
+      htmlAttr.getOrElse(Map.empty) ++ mathMlAttrs.getOrElse(Map.empty)
+    }
+
+    private def readTags: Set[String] = {
+      val htmlJson: Map[String, Any] = htmlRulesJson
+      val mathMlJson: Map[String, Any] = mathMLRulesJson
+
+      val htmlTags = htmlJson.get("tags").map(_.asInstanceOf[Seq[String]].toSet)
+      val mathMlTags = mathMlJson.get("tags").map(_.asInstanceOf[Seq[String]].toSet)
+
+      htmlTags.getOrElse(Set.empty) ++ mathMlTags.getOrElse(Set.empty) ++ attributes.keys
+    }
   }
 
   def isAttributeKeyValid(attributeKey: String, tagName: String): Boolean = {
     val legalAttrs = legalAttributesForTag(tagName)
-    legalAttrs.contains(attributeKey) || legalAttrs.contains(AnyAttribute)
+    legalAttrs.contains(attributeKey)
   }
 
   def isTagValid(tagName: String): Boolean = PermittedHTML.tags.contains(tagName)
 
-  def isMathMLTag(tagName: String): Boolean = PermittedHTML.mathMlTags.contains(tagName)
-
-  def allLegalTags = PermittedHTML.tags
+  def allLegalTags: Set[String] = PermittedHTML.tags
 
   def legalAttributesForTag(tagName: String): Set[String] = {
-    val legalAttributesForTag = PermittedHTML.tagAttributes.getOrElse(tagName, Set.empty)
-    legalAttributesForTag ++ PermittedHTML.legalAttributesForAll
+    PermittedHTML.attributes.getOrElse(tagName, Seq.empty).toSet
   }
 
   def removeIllegalAttributes(el: Element, legalAttributes: Set[String]): Seq[String] = {
-    val canContainAnyAttribute = legalAttributes.contains(Attributes.AnyAttribute.toString)
-
-    el.attributes().toList.
-      filter(attr => !legalAttributes.contains(attr.getKey) && !canContainAnyAttribute)
+    el.attributes().asScala.toList.
+      filter(attr => !legalAttributes.contains(attr.getKey))
       .map(illegalAttribute => {
         val keyName = illegalAttribute.getKey
         el.removeAttr(keyName)

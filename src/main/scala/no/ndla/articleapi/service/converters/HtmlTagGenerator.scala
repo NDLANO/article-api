@@ -114,13 +114,11 @@ object ResourceType extends Enumeration {
 object Attributes extends Enumeration {
   val DataId = Value("data-id")
   val DataUrl = Value("data-url")
-  val DataKey = Value("data-key")
   val DataAlt = Value("data-alt")
   val DataSize = Value("data-size")
   val DataAlign = Value("data-align")
   val DataPlayer = Value("data-player")
   val DataMessage = Value("data-message")
-  val DataAudioId = Value("data-audio-id")
   val DataCaption = Value("data-caption")
   val DataAccount = Value("data-account")
   val DataVideoId = Value("data-videoid")
@@ -130,7 +128,6 @@ object Attributes extends Enumeration {
   val DataNRKVideoId = Value("data-nrk-video-id")
   val DataResource_Id = Value("data-resource_id")
 
-  val AnyAttribute = Value("*")
   val XMLNsAttribute = Value("xmlns")
 
   val Href = Value("href")

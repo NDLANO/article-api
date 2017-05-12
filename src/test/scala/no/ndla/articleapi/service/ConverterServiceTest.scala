@@ -122,7 +122,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
   test("That html attributes are removed from the article") {
     val contentNodeBokmal = sampleLanguageContent.copy(content="""<table class="testclass" title="test"></table>""")
     val node = sampleNode.copy(contents=List(contentNodeBokmal))
-    val bokmalExpectedResult = """<table title="test"></table>"""
+    val bokmalExpectedResult = """<table></table>"""
 
     val Success((result, status)) = service.toDomainArticle(node, ImportStatus(Seq(), Seq()))
 
