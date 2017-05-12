@@ -30,12 +30,18 @@ trait ArticleValidator {
         validateTags(article.tags) ++
         article.requiredLibraries.flatMap(validateRequiredLibrary) ++
         article.metaImageId.flatMap(validateMetaImageId) ++
-        article.visualElement.flatMap(validateVisualElement)
-
-      // TODO add validation for articleType
+        article.visualElement.flatMap(validateVisualElement) ++
+        validateArticleType(article.articleType)
 
       if (validationErrors.nonEmpty)
         throw new ValidationException(errors=validationErrors)
+    }
+
+    def validateArticleType(articleType: String): Seq[ValidationMessage] = {
+      ArticleType.valueOf(articleType) match {
+        case None => Seq(ValidationMessage("articleType", s"$articleType is not a valid article type. Valid options are ${ArticleType.all.mkString(",")}"))
+        case _ => Seq.empty
+      }
     }
 
     def validateContent(content: ArticleContent): Seq[ValidationMessage] = {

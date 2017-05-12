@@ -138,4 +138,8 @@ class ArticleValidatorTest extends UnitSuite with TestEnvironment {
     a [ValidationException] should be thrownBy articleValidator.validateArticle(article)
   }
 
+  test("validateArticle throws an exception on an article with an invalid article type") {
+    val article = TestData.sampleArticleWithByNcSa.copy(articleType = "invalid")
+    a [ValidationException] should be thrownBy articleValidator.validateArticle(article)
+  }
 }

@@ -72,7 +72,7 @@ object ArticleType extends Enumeration {
   val TopicArticle = Value("topic-article")
 
   def all = ArticleType.values.map(_.toString).toSeq
-  def valueOf(s:String): Option[ArticleType.Value] = ArticleType.values.find(_.toString == s.toUpperCase)
+  def valueOf(s:String): Option[ArticleType.Value] = ArticleType.values.find(_.toString == s)
   def valueOfOrError(s: String): ArticleType.Value =
-    valueOf(s).getOrElse(throw new ValidationException(errors = List(ValidationMessage("status", s"'$s' is not a valid publishingstatus."))))
+    valueOf(s).getOrElse(throw new ValidationException(errors = List(ValidationMessage("articleType", s"'$s' is not a valid article type. Valid options are ${all.mkString(",")}."))))
 }

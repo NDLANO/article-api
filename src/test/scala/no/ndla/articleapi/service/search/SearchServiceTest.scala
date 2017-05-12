@@ -101,7 +101,8 @@ class SearchServiceTest extends UnitSuite with TestEnvironment {
     content = List(ArticleContent("<p>Bilde av <em>Baldurs</em> mareritt om Ragnarok.", None, Some("nb"))),
     tags = List(ArticleTag(List("baldur"), Some("nb"))),
     created = today.minusDays(10).toDate,
-    updated = today.minusDays(5).toDate
+    updated = today.minusDays(5).toDate,
+    articleType = ArticleType.TopicArticle.toString
   )
 
   override def beforeAll = {
@@ -137,6 +138,15 @@ class SearchServiceTest extends UnitSuite with TestEnvironment {
     val page = 123
     val expectedStartAt = (page - 1) * DefaultPageSize
     searchService.getStartAtAndNumResults(page, DefaultPageSize) should equal((expectedStartAt, DefaultPageSize))
+  }
+
+  test("all should return only articles of a given type if a type filter is specified") {
+    val results = searchService.all(List(), Language.DefaultLanguage, None, 1, 10, Sort.ByIdAsc, Seq(ArticleType.TopicArticle.toString))
+    results.totalCount should be(1)
+    results.results.head.id should be("8")
+
+    val results2 = searchService.all(List(), Language.DefaultLanguage, None, 1, 10, Sort.ByIdAsc, ArticleType.all)
+    results2.totalCount should be(7)
   }
 
   test("That all returns all documents ordered by id ascending") {
@@ -234,6 +244,14 @@ class SearchServiceTest extends UnitSuite with TestEnvironment {
     page2.results.size should be(2)
     page2.results.head.id should be("3")
     page2.results.last.id should be("5")
+  }
+
+  test("mathcingQuery should filter results based on an article type filter") {
+    val results = searchService.matchingQuery(Seq("bil"), List(), "nb", None, 1, 10, Sort.ByRelevanceDesc, Seq(ArticleType.TopicArticle.toString))
+    results.totalCount should be(0)
+
+    val results2 = searchService.matchingQuery(Seq("bil"), List(), "nb", None, 1, 10, Sort.ByRelevanceDesc, Seq(ArticleType.Standard.toString))
+    results2.totalCount should be(3)
   }
 
   test("That search matches title and html-content ordered by relevance descending") {
