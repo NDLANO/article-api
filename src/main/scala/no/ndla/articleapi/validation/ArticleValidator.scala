@@ -32,6 +32,8 @@ trait ArticleValidator {
         article.metaImageId.flatMap(validateMetaImageId) ++
         article.visualElement.flatMap(validateVisualElement)
 
+      // TODO add validation for articleType
+
       if (validationErrors.nonEmpty)
         throw new ValidationException(errors=validationErrors)
     }

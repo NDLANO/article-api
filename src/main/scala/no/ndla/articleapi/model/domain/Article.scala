@@ -71,8 +71,8 @@ object ArticleType extends Enumeration {
   val Standard = Value("standard")
   val TopicArticle = Value("topic-article")
 
+  def all = ArticleType.values.map(_.toString).toSeq
   def valueOf(s:String): Option[ArticleType.Value] = ArticleType.values.find(_.toString == s.toUpperCase)
-
   def valueOfOrError(s: String): ArticleType.Value =
     valueOf(s).getOrElse(throw new ValidationException(errors = List(ValidationMessage("status", s"'$s' is not a valid publishingstatus."))))
 }

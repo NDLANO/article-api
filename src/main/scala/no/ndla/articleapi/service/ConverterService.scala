@@ -187,7 +187,7 @@ trait ConverterService {
         article.created,
         article.updated,
         article.updatedBy,
-        article.articleType.toString
+        article.articleType
       )
     }
 

@@ -9,10 +9,11 @@
 
 package no.ndla.articleapi.controller
 
+import no.ndla.articleapi.ArticleApiProperties
 import no.ndla.articleapi.ArticleApiProperties.RoleWithWriteAccess
 import no.ndla.articleapi.auth.Role
 import no.ndla.articleapi.model.api._
-import no.ndla.articleapi.model.domain.Sort
+import no.ndla.articleapi.model.domain.{ArticleType, Language, Sort}
 import no.ndla.articleapi.service.{ReadService, WriteService}
 import no.ndla.articleapi.service.search.SearchService
 import org.json4s.native.Serialization.read
@@ -114,22 +115,25 @@ trait ArticleController {
 
     get("/", operation(getAllArticles)) {
       val query = paramOrNone("query")
-      val language = paramOrNone("language")
+      val sort = Sort.valueOf(paramOrDefault("sort", ""))
+      val language = paramOrDefault("language", Language.DefaultLanguage)
       val license = paramOrNone("license")
-      val sort = paramOrNone("sort")
-      val pageSize = paramOrNone("page-size").flatMap(ps => Try(ps.toInt).toOption)
-      val page = paramOrNone("page").flatMap(idx => Try(idx.toInt).toOption)
+      val pageSize = intOrDefault("page-size", ArticleApiProperties.DefaultPageSize)
+      val page = intOrDefault("page", 1)
       val idList = paramAsListOfLong("ids")
+      val articleTypesFilter = paramAsListOfString("articleTypes")
 
       query match {
         case Some(q) => searchService.matchingQuery(
-          query = q.toLowerCase().split(" ").map(_.trim),
+          query = q.toLowerCase.split(" ").map(_.trim),
           withIdIn = idList,
           language = language,
           license = license,
           page = page,
           pageSize = pageSize,
-          sort = Sort.valueOf(sort).getOrElse(Sort.ByRelevanceDesc))
+          sort = sort.getOrElse(Sort.ByRelevanceDesc),
+          if (articleTypesFilter.isEmpty) ArticleType.all else articleTypesFilter
+        )
 
         case None => searchService.all(
           withIdIn = idList,
@@ -137,7 +141,9 @@ trait ArticleController {
           license = license,
           page = page,
           pageSize = pageSize,
-          sort = Sort.valueOf(sort).getOrElse(Sort.ByTitleAsc))
+          sort = sort.getOrElse(Sort.ByTitleAsc),
+          if (articleTypesFilter.isEmpty) ArticleType.all else articleTypesFilter
+        )
       }
     }
 

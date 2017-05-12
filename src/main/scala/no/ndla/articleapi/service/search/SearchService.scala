@@ -21,7 +21,7 @@ import no.ndla.network.ApplicationUrl
 import org.apache.lucene.search.join.ScoreMode
 import org.elasticsearch.ElasticsearchException
 import org.elasticsearch.index.IndexNotFoundException
-import org.elasticsearch.index.query.{BoolQueryBuilder, MatchQueryBuilder, Operator, QueryBuilders}
+import org.elasticsearch.index.query._
 import org.elasticsearch.search.builder.SearchSourceBuilder
 import org.elasticsearch.search.sort.{FieldSortBuilder, SortBuilders, SortOrder}
 
@@ -67,19 +67,15 @@ trait SearchService {
 
     }
 
-    def all(withIdIn: List[Long], language: Option[String], license: Option[String], page: Option[Int], pageSize: Option[Int], sort: Sort.Value): SearchResult = {
-      executeSearch(
-        withIdIn,
-        language.getOrElse(Language.DefaultLanguage),
-        license,
-        sort,
-        page,
-        pageSize,
-        QueryBuilders.boolQuery())
+    def all(withIdIn: List[Long], language: String, license: Option[String], page: Int, pageSize: Int, sort: Sort.Value, articleTypes: Seq[String]): SearchResult = {
+      logger.info(s"articletypes: $articleTypes")
+      val fullSearch = QueryBuilders.boolQuery().filter(QueryBuilders.constantScoreQuery(QueryBuilders.termsQuery("articleType", articleTypes:_*)))
+      executeSearch(withIdIn, language, license, sort, page, pageSize, fullSearch)
     }
 
-    def matchingQuery(query: Iterable[String], withIdIn: List[Long], language: Option[String], license: Option[String], page: Option[Int], pageSize: Option[Int], sort: Sort.Value): SearchResult = {
-      val searchLanguage = language.getOrElse(Language.DefaultLanguage)
+    def matchingQuery(query: Iterable[String], withIdIn: List[Long], language: String, license: Option[String], page: Int, pageSize: Int, sort: Sort.Value, articleTypes: Seq[String]): SearchResult = {
+      logger.info(s"articletypes: $articleTypes")
+      val searchLanguage = language
 
       val titleSearch = QueryBuilders.matchQuery(s"title.$searchLanguage", query.mkString(" ")).operator(Operator.AND)
       val contentSearch = QueryBuilders.matchQuery(s"content.$searchLanguage", query.mkString(" ")).operator(Operator.AND)
@@ -90,11 +86,12 @@ trait SearchService {
           .should(QueryBuilders.nestedQuery("title", titleSearch, ScoreMode.Avg))
           .should(QueryBuilders.nestedQuery("content", contentSearch, ScoreMode.Avg))
           .should(QueryBuilders.nestedQuery("tags", tagSearch, ScoreMode.Avg)))
+        .filter(QueryBuilders.constantScoreQuery(QueryBuilders.termsQuery("articleType", articleTypes:_*)))
 
       executeSearch(withIdIn, searchLanguage, license, sort, page, pageSize, fullSearch)
     }
 
-    def executeSearch(withIdIn: List[Long], language: String, license: Option[String], sort: Sort.Value, page: Option[Int], pageSize: Option[Int], queryBuilder: BoolQueryBuilder): SearchResult = {
+    def executeSearch(withIdIn: List[Long], language: String, license: Option[String], sort: Sort.Value, page: Int, pageSize: Int, queryBuilder: BoolQueryBuilder): SearchResult = {
       val filteredSearch = license match {
         case None => queryBuilder.filter(noCopyright)
         case Some(lic) => queryBuilder.filter(QueryBuilders.termQuery("license", lic))
@@ -110,11 +107,10 @@ trait SearchService {
       val (startAt, numResults) = getStartAtAndNumResults(page, pageSize)
       val request = new Search.Builder(searchQuery.toString)
         .addIndex(ArticleApiProperties.SearchIndex)
-        .setParameter(Parameters.SIZE, numResults)
-        .setParameter("from", startAt)
+        .setParameter(Parameters.SIZE, numResults) .setParameter("from", startAt)
 
         jestClient.execute(request.build()) match {
-        case Success(response) => SearchResult(response.getTotal.toLong, page.getOrElse(1), numResults, getHits(response))
+        case Success(response) => SearchResult(response.getTotal.toLong, page, numResults, getHits(response))
         case Failure(f) => errorHandler(Failure(f))
       }
     }
@@ -139,17 +135,9 @@ trait SearchService {
       ret.getOrElse(0)
     }
 
-    def getStartAtAndNumResults(page: Option[Int], pageSize: Option[Int]): (Int, Int) = {
-      val numResults = pageSize match {
-        case Some(num) =>
-          if (num > 0) num.min(ArticleApiProperties.MaxPageSize) else ArticleApiProperties.DefaultPageSize
-        case None => ArticleApiProperties.DefaultPageSize
-      }
-
-      val startAt = page match {
-        case Some(sa) => (sa - 1).max(0) * numResults
-        case None => 0
-      }
+    def getStartAtAndNumResults(page: Int, pageSize: Int): (Int, Int) = {
+      val numResults = pageSize.min(ArticleApiProperties.MaxPageSize)
+      val startAt = (page - 1).max(0) * numResults
 
       (startAt, numResults)
     }
