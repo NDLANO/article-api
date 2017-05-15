@@ -26,12 +26,12 @@ class V4__AddUpdatedColoums extends JdbcMigration {
 
     db.withinTx { implicit session =>
       val count = countAllArticles.get
-      var delt = (count / 1000) + 1
+      var numPagesLeft = (count / 1000) + 1
       var offset = 0L
 
-      while (delt > 0) {
+      while (numPagesLeft > 0) {
         allArticles(offset * 1000).map(convertArticleUpdate).foreach(update)
-        delt -= 1
+        numPagesLeft -= 1
         offset += 1
       }
     }
