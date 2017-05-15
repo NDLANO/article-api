@@ -23,7 +23,7 @@ class Memoize1[T, R](maxCacheAgeMs: Long, f: T => R) extends (T => R) {
       case Some(cachedValue) if !cachedValue.isExpired => cachedValue.value
       case _ => {
         cache.put(v1, CacheValue(f(v1), System.currentTimeMillis()))
-        cache.get(v1).get.value
+        cache(v1).value
       }
     }
   }

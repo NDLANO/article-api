@@ -118,7 +118,9 @@ trait ArticleRepository {
       val allTags = sql"""select document->>'tags' from ${Article.table}""".map(rs => rs.string(1)).list.apply
 
       allTags.flatMap(tag => parse(tag).extract[List[ArticleTag]]).groupBy(_.language)
-        .map { case (language, tags) => ArticleTag(tags.flatMap(_.tags).distinct.sorted, language) }.toList
+        .map { case (language, tags) =>
+          ArticleTag(tags.flatMap(_.tags), language)
+        }.toList
     }
 
     def minMaxId(implicit session: DBSession = AutoSession): (Long, Long) = {

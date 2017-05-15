@@ -109,7 +109,7 @@ trait ArticleController {
         authorizations "oauth2")
 
     get("/tags/", operation(getTags)) {
-      readService.tags
+      readService.getNMostUsedTags(10)
     }
 
     get("/", operation(getAllArticles)) {
