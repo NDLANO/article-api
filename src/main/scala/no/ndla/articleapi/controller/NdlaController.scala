@@ -23,6 +23,8 @@ import org.scalatra._
 import org.scalatra.json.NativeJsonSupport
 import org.scalatra.{BadRequest, InternalServerError, NotFound, ScalatraServlet}
 
+import scala.util.Try
+
 abstract class NdlaController extends ScalatraServlet with NativeJsonSupport with LazyLogging {
   protected implicit override val jsonFormats: Formats = DefaultFormats
 
@@ -67,6 +69,9 @@ abstract class NdlaController extends ScalatraServlet with NativeJsonSupport wit
   def paramOrNone(paramName: String)(implicit request: HttpServletRequest): Option[String] = {
     params.get(paramName).map(_.trim).filterNot(_.isEmpty())
   }
+
+  def intOrDefault(paramName: String, default: Int)(implicit request: HttpServletRequest): Int =
+    paramOrNone(paramName).flatMap(p => Try(p.toInt).toOption).getOrElse(default)
 
   def paramAsListOfLong(paramName: String)(implicit request: HttpServletRequest): List[Long] = {
     params.get(paramName) match {

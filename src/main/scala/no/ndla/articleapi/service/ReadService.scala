@@ -35,10 +35,8 @@ trait ReadService {
     }
 
     def getNMostUsedTags(n: Int): Seq[api.ArticleTag] = {
-      val numMostUsed = if (n > 0) n else 10
-
       getTagUsageMap().map { case (lang, tags) =>
-          api.ArticleTag(tags.getNMostFrequent(numMostUsed), lang)
+          api.ArticleTag(tags.getNMostFrequent(n), lang)
       }.toSeq
     }
 
