@@ -18,6 +18,7 @@ import no.ndla.articleapi.model.api
 import no.ndla.articleapi.repository.ArticleRepository
 import no.ndla.mapping.License.getLicense
 import no.ndla.articleapi.integration.ConverterModule.{jsoupDocumentToString, stringToJsoupDocument}
+import no.ndla.articleapi.model.api.{ValidationException, ValidationMessage}
 import no.ndla.articleapi.service.converters.{Attributes, HTMLCleaner, ResourceType}
 
 import scala.annotation.tailrec
@@ -82,7 +83,8 @@ trait ConverterService {
         nodeToConvert.created,
         nodeToConvert.updated,
         "content-import-client",
-        nodeToConvert.contentType)
+        nodeToConvert.articleType.toString
+      )
     }
 
     private def toDomainCopyright(license: String, authors: Seq[Author]): Copyright = {
@@ -115,7 +117,7 @@ trait ConverterService {
         created=clock.now(),
         updated=clock.now(),
         updatedBy=authUser.id(),
-        contentType=newArticle.contentType
+        newArticle.articleType
       )
     }
 
@@ -186,7 +188,7 @@ trait ConverterService {
         article.created,
         article.updated,
         article.updatedBy,
-        article.contentType
+        article.articleType
       )
     }
 

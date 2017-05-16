@@ -31,10 +31,17 @@ trait ArticleValidator {
         article.requiredLibraries.flatMap(validateRequiredLibrary) ++
         article.metaImageId.flatMap(validateMetaImageId) ++
         article.visualElement.flatMap(validateVisualElement) ++
-        validateContentType(article.contentType)
+        validateArticleType(article.articleType)
 
       if (validationErrors.nonEmpty)
         throw new ValidationException(errors=validationErrors)
+    }
+
+    def validateArticleType(articleType: String): Seq[ValidationMessage] = {
+      ArticleType.valueOf(articleType) match {
+        case None => Seq(ValidationMessage("articleType", s"$articleType is not a valid article type. Valid options are ${ArticleType.all.mkString(",")}"))
+        case _ => Seq.empty
+      }
     }
 
     def validateContent(content: ArticleContent): Seq[ValidationMessage] = {
@@ -103,10 +110,6 @@ trait ArticleValidator {
         case true => None
         case false => Some(ValidationMessage("metaImageId", "Meta image ID must be a number"))
       }
-    }
-
-    def validateContentType(contentType: String): Seq[ValidationMessage] = {
-      NoHtmlValidator.validate("contentType", contentType)
     }
 
     private def validateLanguage(fieldPath: String, languageCode: Option[String]): Option[ValidationMessage] = {

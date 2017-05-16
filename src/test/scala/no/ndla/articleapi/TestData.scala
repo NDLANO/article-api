@@ -36,7 +36,7 @@ object TestData {
     DateTime.now().minusDays(4).toDate,
     DateTime.now().minusDays(2).toDate,
     "ndalId54321",
-    "fagstoff")
+    ArticleType.Standard.toString)
 
   val sampleArticleWithByNcSa = sampleArticleWithPublicDomain.copy(copyright=byNcSaCopyright)
   val sampleArticleWithCopyrighted = sampleArticleWithPublicDomain.copy(copyright=copyrighted )
@@ -52,7 +52,7 @@ object TestData {
     Seq.empty,
     Some(api.Copyright(api.License("publicdomain", None, None), "", Seq.empty)),
     Seq.empty,
-    Some("fagstoff")
+    Some("standard")
   )
 
   val newArticle = api.NewArticle(
@@ -65,7 +65,7 @@ object TestData {
     None,
     api.Copyright(api.License("publicdomain", None, None), "", Seq()),
     None,
-    "fagstoff"
+    "standard"
   )
 
   val apiArticleWithHtmlFault = api.Article(
@@ -88,7 +88,7 @@ object TestData {
     DateTime.now().minusDays(4).toDate,
     DateTime.now().minusDays(2).toDate,
     "ndalId54321",
-    "fagstoff"
+    "standard"
   )
 
   val (nodeId, nodeId2) = ("1234", "4321")

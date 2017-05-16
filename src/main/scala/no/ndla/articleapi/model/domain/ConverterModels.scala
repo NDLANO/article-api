@@ -29,10 +29,10 @@ case class NodeToConvert(titles: Seq[ArticleTitle],
                          authors: Seq[Author],
                          tags: Seq[ArticleTag],
                          visualElements: Seq[VisualElement],
-                         contentType: String,
                          nodeType: String,
                          created: Date,
-                         updated: Date
+                         updated: Date,
+                         articleType: ArticleType.Value
                         )
 
 case class ContentFilMeta(nid: String, tnid: String, title: String, fileName: String, url: URL, mimeType: String, fileSize: String)

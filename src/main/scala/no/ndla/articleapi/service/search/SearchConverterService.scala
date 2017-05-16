@@ -29,7 +29,9 @@ trait SearchConverterService {
         tags = SearchableLanguageList(ai.tags.map(tag => LanguageValue(tag.language, tag.tags))),
         lastUpdated = ai.updated,
         license = ai.copyright.license,
-        authors = ai.copyright.authors.map(_.name))
+        authors = ai.copyright.authors.map(_.name),
+        articleType = ai.articleType
+      )
     }
 
     def asArticleSummary(searchableArticle: SearchableArticle): ArticleSummary = {
