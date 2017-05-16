@@ -18,8 +18,6 @@ import org.mockito.Matchers._
 import scalikejdbc.DBSession
 
 class ReadServiceTest extends UnitSuite with TestEnvironment {
-  override val readService = new ReadService
-  override val converterService = new ConverterService
 
   val externalImageApiUrl = externalApiUrls("image")
   val idAttr = s"${Attributes.DataId}"
@@ -35,6 +33,13 @@ class ReadServiceTest extends UnitSuite with TestEnvironment {
     s"""<$resourceHtmlEmbedTag $resourceIdAttr="123" $resourceAttr="$imageType" $idAttr="0" $urlAttr="$externalImageApiUrl/123" /><$resourceHtmlEmbedTag $resourceIdAttr="1234" $resourceAttr="$imageType" $idAttr="1" $urlAttr="$externalImageApiUrl/1234" />""")
 
   val articleContent2 = ArticleContent(content2, None, None)
+
+  val nbTags = ArticleTag(Seq("a", "b", "c", "a", "b", "a"), Some("nb"))
+  val enTags = ArticleTag(Seq("d", "e", "f", "d", "e", "d"), Some("en"))
+  when(articleRepository.allTags(any[DBSession])).thenReturn(Seq(nbTags, enTags))
+
+  override val readService = new ReadService
+  override val converterService = new ConverterService
 
   test("withId adds urls and ids on embed resources") {
     val article = TestData.sampleArticleWithByNcSa.copy(content=Seq(articleContent1))
@@ -67,11 +72,7 @@ class ReadServiceTest extends UnitSuite with TestEnvironment {
   }
 
   test("getNMostUsedTags should return the N most used tags") {
-    val nbTags = ArticleTag(Seq("a", "b", "c", "a", "b", "a"), Some("nb"))
-    val enTags = ArticleTag(Seq("d", "e", "f", "d", "e", "d"), Some("en"))
     val expectedResult = Seq(api.ArticleTag(Seq("a", "b"), Some("nb")), api.ArticleTag(Seq("d", "e"), Some("en")))
-
-    when(articleRepository.allTags(any[DBSession])).thenReturn(Seq(nbTags, enTags))
     readService.getNMostUsedTags(2) should equal (expectedResult)
   }
 

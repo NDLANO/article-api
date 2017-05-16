@@ -18,6 +18,10 @@ import scala.io.Source
 
 
 object JettyLauncher extends LazyLogging {
+  def buildMostUsedTagsCache = {
+    ComponentRegistry.readService.getTagUsageMap()
+  }
+
   def main(args: Array[String]) {
     logger.info(Source.fromInputStream(getClass.getResourceAsStream("/log-license.txt")).mkString)
     logger.info("Starting the db migration...")
@@ -26,6 +30,9 @@ object JettyLauncher extends LazyLogging {
     logger.info(s"Done db migration, tok ${System.currentTimeMillis() - startDBMillis}ms")
 
     val startMillis = System.currentTimeMillis()
+
+    buildMostUsedTagsCache
+    logger.info(s"Built tags cache in ${System.currentTimeMillis() - startMillis} ms.")
 
     val context = new ServletContextHandler()
     context setContextPath "/"

@@ -8,12 +8,12 @@
 
 package no.ndla.articleapi.service
 
+import no.ndla.articleapi.ArticleApiProperties.{externalApiUrls, resourceHtmlEmbedTag}
+import no.ndla.articleapi.caching.MemoizeAutoRenew
+import no.ndla.articleapi.integration.ConverterModule.{jsoupDocumentToString, stringToJsoupDocument}
 import no.ndla.articleapi.model.api
 import no.ndla.articleapi.model.domain._
 import no.ndla.articleapi.repository.ArticleRepository
-import no.ndla.articleapi.ArticleApiProperties.{externalApiUrls, resourceHtmlEmbedTag}
-import no.ndla.articleapi.caching.{Memoize, Memoize1}
-import no.ndla.articleapi.integration.ConverterModule.{jsoupDocumentToString, stringToJsoupDocument}
 import no.ndla.articleapi.service.converters.Attributes
 import org.jsoup.nodes.Element
 
@@ -40,7 +40,7 @@ trait ReadService {
       }.toSeq
     }
 
-    val getTagUsageMap = Memoize(() => {
+    val getTagUsageMap = MemoizeAutoRenew(() => {
       articleRepository.allTags.map(languageTags => languageTags.language -> new MostFrequentOccurencesList(languageTags.tags)).toMap
     })
 
