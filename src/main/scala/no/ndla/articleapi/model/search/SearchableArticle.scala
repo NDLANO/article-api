@@ -35,5 +35,6 @@ case class SearchableArticle(
   tags: SearchableLanguageList,
   lastUpdated: Date,
   license: String,
-  authors: Seq[String]
+  authors: Seq[String],
+  articleType: String
 )

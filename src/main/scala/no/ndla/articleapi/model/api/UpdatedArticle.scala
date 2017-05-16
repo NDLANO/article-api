@@ -23,4 +23,5 @@ case class UpdatedArticle(@(ApiModelProperty@field)(description = "The title of 
                           @(ApiModelProperty@field)(description = "A visual element for the article. May be anything from an image to a video or H5P") visualElement: Seq[VisualElement],
                           @(ApiModelProperty@field)(description = "Describes the copyright information for the article") copyright: Option[Copyright],
                           @(ApiModelProperty@field)(description = "Required libraries in order to render the article") requiredLibraries: Seq[RequiredLibrary],
-                          @(ApiModelProperty@field)(description = "The type of learning resource") contentType: Option[String])
+                          @(ApiModelProperty@field)(description = "The type of article this is. Possible values are topic-article,standard") articleType: Option[String]
+                         )

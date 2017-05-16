@@ -96,16 +96,6 @@ class ArticleValidatorTest extends UnitSuite with TestEnvironment {
     a [ValidationException] should be thrownBy articleValidator.validateArticle(article)
   }
 
-  test("validateArticle throws an exception on an article with html in contentType") {
-    val article = TestData.sampleArticleWithByNcSa.copy(contentType=validDocument)
-    a [ValidationException] should be thrownBy articleValidator.validateArticle(article)
-  }
-
-  test("validateArticle does not throw an exception on an article with a plain text contentType") {
-    val article = TestData.sampleArticleWithByNcSa.copy(contentType="fagstoff")
-    noException should be thrownBy articleValidator.validateArticle(article)
-  }
-
   test("validateArticle throws an exception on an article with an illegal required library") {
     val illegalRequiredLib = RequiredLibrary("text/javascript", "naughty", "http://scary.bad.source.net/notNice.js")
     val article = TestData.sampleArticleWithByNcSa.copy(requiredLibraries=Seq(illegalRequiredLib))
@@ -148,4 +138,8 @@ class ArticleValidatorTest extends UnitSuite with TestEnvironment {
     a [ValidationException] should be thrownBy articleValidator.validateArticle(article)
   }
 
+  test("validateArticle throws an exception on an article with an invalid article type") {
+    val article = TestData.sampleArticleWithByNcSa.copy(articleType = "invalid")
+    a [ValidationException] should be thrownBy articleValidator.validateArticle(article)
+  }
 }

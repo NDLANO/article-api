@@ -75,18 +75,22 @@ case class MigrationMainNodeImport(titles: Seq[MigrationContentTitle], ingresses
   difficulty: Seq[MigrationDifficulty], contentType: Seq[MigrationContentType], innholdAndFag: Seq[MigrationInnholdsKategoriAndFag],
   fagressurs: Seq[MigrationFagressurs], emneartikkelData: Seq[MigrationEmneArtikkelData]) {
 
-  def asNodeToConvert(nodeId  : String, tags: List[ArticleTag]): NodeToConvert = NodeToConvert(
-    titles.map(x => x.asContentTitle),
-    asLanguageContents,
-    license.getOrElse(""),
-    authors.flatMap(x => x.asAuthor),
-    tags,
-    visualElements.map(_.asVisualElement),
-    contentType.headOption.getOrElse(MigrationContentType("unknown", None)).`type`,
-    nodeType.getOrElse("unknown"),
-    contents.minBy(_.created).created,
-    contents.maxBy(_.changed).changed
-  )
+  def asNodeToConvert(nodeId  : String, tags: List[ArticleTag]): NodeToConvert = {
+    val articleType = nodeType.map(nType => if (nType == "emneartikkel") ArticleType.TopicArticle else ArticleType.Standard)
+
+    NodeToConvert(
+      titles.map(x => x.asContentTitle),
+      asLanguageContents,
+      license.getOrElse(""),
+      authors.flatMap(x => x.asAuthor),
+      tags,
+      visualElements.map(_.asVisualElement),
+      nodeType.getOrElse("unknown"),
+      contents.minBy(_.created).created,
+      contents.maxBy(_.changed).changed,
+      articleType.getOrElse(ArticleType.Standard)
+    )
+  }
 
   def asLanguageContents: Seq[LanguageContent] = {
     contents.map(content => {

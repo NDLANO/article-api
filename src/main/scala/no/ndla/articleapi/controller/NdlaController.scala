@@ -16,6 +16,7 @@ import no.ndla.articleapi.ArticleApiProperties.{CorrelationIdHeader, Correlation
 import no.ndla.articleapi.model.api.{AccessDeniedException, Error, ImportExceptions, NotFoundException, OptimisticLockException, ValidationError, ValidationException, ValidationMessage}
 import no.ndla.articleapi.model.domain.ImportError
 import no.ndla.network.{ApplicationUrl, AuthUser, CorrelationID}
+import no.ndla.articleapi.model.domain.emptySomeToNone
 import org.apache.logging.log4j.ThreadContext
 import org.elasticsearch.index.IndexNotFoundException
 import org.json4s.{DefaultFormats, Formats}
@@ -68,16 +69,28 @@ abstract class NdlaController extends ScalatraServlet with NativeJsonSupport wit
     params.get(paramName).map(_.trim).filterNot(_.isEmpty())
   }
 
+  def paramOrDefault(paramName: String, default: String)(implicit request: HttpServletRequest): String = {
+    paramOrNone(paramName).getOrElse(default)
+  }
+
+  def intOrDefault(paramName: String, default: Int): Int = paramOrDefault(paramName, default.toString).toInt
+
+  def paramAsListOfString(paramName: String)(implicit request: HttpServletRequest): List[String] = {
+    emptySomeToNone(params.get(paramName)) match {
+      case None => List.empty
+      case Some(param) => param.split(",").toList.map(_.trim)
+    }
+  }
+
   def paramAsListOfLong(paramName: String)(implicit request: HttpServletRequest): List[Long] = {
-    params.get(paramName) match {
-      case None => List()
-      case Some(param) => {
-        val paramAsListOfStrings = param.split(",").toList.map(_.trim)
-        if (!paramAsListOfStrings.forall(entry => entry.forall(_.isDigit))) {
-          throw new ValidationException(errors = List(ValidationMessage(paramName, s"Invalid value for $paramName. Only (list of) digits are allowed.")))
+    val strings = paramAsListOfString(paramName)
+    strings.headOption match {
+      case None => List.empty
+      case Some(_) =>
+        if (!strings.forall(entry => entry.forall(_.isDigit))) {
+          throw new ValidationException(errors=Seq(ValidationMessage(paramName, s"Invalid value for $paramName. Only (list of) digits are allowed.")))
         }
-        paramAsListOfStrings.map(_.toLong)
-      }
+        strings.map(_.toLong)
     }
   }
 

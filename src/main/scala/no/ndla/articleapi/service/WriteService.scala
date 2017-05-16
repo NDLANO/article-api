@@ -57,8 +57,7 @@ trait WriteService {
             metaDescription = mergeLanguageFields(existing.metaDescription, updatedApiArticle.metaDescription.map(converterService.toDomainMetaDescription)),
             metaImageId = if(updatedApiArticle.metaImageId.isDefined) updatedApiArticle.metaImageId else existing.metaImageId,
             updated = clock.now(),
-            updatedBy = authUser.id(),
-            contentType = updatedApiArticle.contentType.getOrElse(existing.contentType)
+            updatedBy = authUser.id()
           )
           articleValidator.validateArticle(toUpdate)
           for {
