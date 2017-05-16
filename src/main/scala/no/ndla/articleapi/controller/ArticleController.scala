@@ -47,6 +47,7 @@ trait ArticleController {
         parameters(
           headerParam[Option[String]]("X-Correlation-ID").description("User supplied correlation-id. May be omitted."),
           headerParam[Option[String]]("app-key").description("Your app-key. May be omitted to access api anonymously, but rate limiting applies on anonymous access."),
+          queryParam[Option[String]]("articleTypes").description("Return only articles of specific type(s). To provide multiple types, separate by comma (,)."),
           queryParam[Option[String]]("query").description("Return only articles with content matching the specified query."),
           queryParam[Option[String]]("ids").description("Return only articles that have one of the provided ids. To provide multiple ids, separate by comma (,)."),
           queryParam[Option[String]]("language").description("The ISO 639-1 language code describing language used in query-params."),

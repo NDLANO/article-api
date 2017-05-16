@@ -66,6 +66,7 @@ trait ConverterService {
 
     private def toDomainArticle(nodeToConvert: NodeToConvert): Article = {
       val requiredLibraries = nodeToConvert.contents.flatMap(_.requiredLibraries).distinct
+
       val ingresses = nodeToConvert.contents.flatMap(content => content.asArticleIntroduction)
 
       Article(None,
@@ -81,7 +82,7 @@ trait ConverterService {
         None,
         nodeToConvert.created,
         nodeToConvert.updated,
-        authUser.id(),
+        "content-import-client",
         nodeToConvert.articleType.toString
       )
     }

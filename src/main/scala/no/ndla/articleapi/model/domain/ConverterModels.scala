@@ -32,7 +32,6 @@ case class NodeToConvert(titles: Seq[ArticleTitle],
                          nodeType: String,
                          created: Date,
                          updated: Date,
-                         updatedBy: String,
                          articleType: ArticleType.Value
                         )
 

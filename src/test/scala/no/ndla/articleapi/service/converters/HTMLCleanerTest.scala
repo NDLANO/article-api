@@ -14,6 +14,15 @@ class HTMLCleanerTest extends UnitSuite with TestEnvironment {
   val defaultLanguageIngress = LanguageIngress("Jeg er en ingress", None)
   val defaultLanguageIngressWithHtml = LanguageIngress("<p>Jeg er en ingress</p>", None)
 
+  test("embed tag should be an allowed tag") {
+    HTMLCleaner.isTagValid("embed")
+
+    val dataAttrs = Attributes.values.map(_.toString).filter(x => x.startsWith("data-")).toSet
+    val legalEmbedAttrs = HTMLCleaner.legalAttributesForTag("embed")
+
+    dataAttrs.foreach(x => legalEmbedAttrs should contain(x))
+  }
+
   test("That HTMLCleaner unwraps illegal attributes") {
     val initialContent = TestData.sampleContent.copy(content="""<body><article><h1 class="useless">heading<div style="width='0px'">hey</div></h1></article></body>""")
     val expectedResult = "<article><h1>heading<div>hey</div></h1></article>"

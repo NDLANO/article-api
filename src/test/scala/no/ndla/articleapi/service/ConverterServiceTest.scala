@@ -31,7 +31,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
   val nodeId = "1234"
   val sampleAlt = "Fotografi"
   val sampleContentString = s"[contentbrowser ==nid=$nodeId==imagecache=Fullbredde==width===alt=$sampleAlt==link===node_link=1==link_type=link_to_content==lightbox_size===remove_fields[76661]=1==remove_fields[76663]=1==remove_fields[76664]=1==remove_fields[76666]=1==insertion===link_title_text= ==link_text= ==text_align===css_class=contentbrowser contentbrowser]"
-  val sampleNode = NodeToConvert(List(contentTitle), Seq(), "by-sa", Seq(author), List(tag), Seq(TestData.visualElement), "fagstoff", new Date(0), new Date(1), "ndla54321", ArticleType.Standard)
+  val sampleNode = NodeToConvert(List(contentTitle), Seq(), "by-sa", Seq(author), List(tag), Seq(TestData.visualElement), "fagstoff", new Date(0), new Date(1), ArticleType.Standard)
   val sampleLanguageContent = TestData.sampleContent.copy(content=sampleContentString, language=Some("nb"))
 
   test("That the document is wrapped in an article tag") {
@@ -122,7 +122,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
   test("That html attributes are removed from the article") {
     val contentNodeBokmal = sampleLanguageContent.copy(content="""<table class="testclass" title="test"></table>""")
     val node = sampleNode.copy(contents=List(contentNodeBokmal))
-    val bokmalExpectedResult = """<table title="test"></table>"""
+    val bokmalExpectedResult = """<table></table>"""
 
     val Success((result, status)) = service.toDomainArticle(node, ImportStatus(Seq(), Seq()))
 
