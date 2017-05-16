@@ -9,7 +9,8 @@
 package no.ndla.articleapi.service
 
 import no.ndla.articleapi.ArticleApiProperties.{externalApiUrls, resourceHtmlEmbedTag}
-import no.ndla.articleapi.model.domain.ArticleContent
+import no.ndla.articleapi.model.api
+import no.ndla.articleapi.model.domain.{ArticleContent, ArticleTag}
 import no.ndla.articleapi.service.converters.{Attributes, ResourceType}
 import no.ndla.articleapi.{TestData, TestEnvironment, UnitSuite}
 import org.mockito.Mockito._
@@ -17,8 +18,6 @@ import org.mockito.Matchers._
 import scalikejdbc.DBSession
 
 class ReadServiceTest extends UnitSuite with TestEnvironment {
-  override val readService = new ReadService
-  override val converterService = new ConverterService
 
   val externalImageApiUrl = externalApiUrls("image")
   val idAttr = s"${Attributes.DataId}"
@@ -34,6 +33,13 @@ class ReadServiceTest extends UnitSuite with TestEnvironment {
     s"""<$resourceHtmlEmbedTag $resourceIdAttr="123" $resourceAttr="$imageType" $idAttr="0" $urlAttr="$externalImageApiUrl/123" /><$resourceHtmlEmbedTag $resourceIdAttr="1234" $resourceAttr="$imageType" $idAttr="1" $urlAttr="$externalImageApiUrl/1234" />""")
 
   val articleContent2 = ArticleContent(content2, None, None)
+
+  val nbTags = ArticleTag(Seq("a", "b", "c", "a", "b", "a"), Some("nb"))
+  val enTags = ArticleTag(Seq("d", "e", "f", "d", "e", "d"), Some("en"))
+  when(articleRepository.allTags(any[DBSession])).thenReturn(Seq(nbTags, enTags))
+
+  override val readService = new ReadService
+  override val converterService = new ConverterService
 
   test("withId adds urls and ids on embed resources") {
     val article = TestData.sampleArticleWithByNcSa.copy(content=Seq(articleContent1))
@@ -63,5 +69,20 @@ class ReadServiceTest extends UnitSuite with TestEnvironment {
 
     val result = readService.addUrlsAndIdsOnEmbedResources(article)
     result should equal (article.copy(content=Seq(article1ExpectedResult, article2ExpectedResult)))
+  }
+
+  test("getNMostUsedTags should return the N most used tags") {
+    val expectedResult = Seq(api.ArticleTag(Seq("a", "b"), Some("nb")), api.ArticleTag(Seq("d", "e"), Some("en")))
+    readService.getNMostUsedTags(2) should equal (expectedResult)
+  }
+
+  test("MostFrequentOccurencesList.getNMostFrequent returns the N most frequent entries in a list") {
+    val tagsList = Seq("tag", "tag", "tag", "junk", "lol", "17. Mai", "is", "brus", "17. Mai", "is", "is", "tag")
+    val occList = new readService.MostFrequentOccurencesList(tagsList)
+
+    occList.getNMostFrequent(1) should equal (Seq("tag"))
+    occList.getNMostFrequent(2) should equal (Seq("tag", "is"))
+    occList.getNMostFrequent(3) should equal (Seq("tag", "is", "17. Mai"))
+    occList.getNMostFrequent(4) should equal (Seq("tag", "is", "17. Mai", "lol"))
   }
 }

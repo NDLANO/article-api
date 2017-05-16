@@ -105,13 +105,20 @@ trait ArticleController {
         summary "Retrieves a list of all previously used tags in articles"
         notes "Retrieves a list of all previously used tags in articles"
         parameters(
+        queryParam[Option[Int]]("size").description("Limit the number of results to this many elements"),
         headerParam[Option[String]]("X-Correlation-ID").description("User supplied correlation-id. May be omitted."),
         headerParam[Option[String]]("app-key").description("Your app-key."))
         responseMessages response500
         authorizations "oauth2")
 
     get("/tags/", operation(getTags)) {
-      readService.tags
+      val defaultSize = 20
+      val size = intOrDefault("size", defaultSize) match {
+        case toSmall if toSmall < 1 => defaultSize
+        case x => x
+      }
+
+      readService.getNMostUsedTags(size)
     }
 
     get("/", operation(getAllArticles)) {
