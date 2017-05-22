@@ -31,7 +31,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
   val nodeId = "1234"
   val sampleAlt = "Fotografi"
   val sampleContentString = s"[contentbrowser ==nid=$nodeId==imagecache=Fullbredde==width===alt=$sampleAlt==link===node_link=1==link_type=link_to_content==lightbox_size===remove_fields[76661]=1==remove_fields[76663]=1==remove_fields[76664]=1==remove_fields[76666]=1==insertion===link_title_text= ==link_text= ==text_align===css_class=contentbrowser contentbrowser]"
-  val sampleNode = NodeToConvert(List(contentTitle), Seq(), "by-sa", Seq(author), List(tag), Seq(TestData.visualElement), "fagstoff", new Date(0), new Date(1), ArticleType.Standard)
+  val sampleNode = NodeToConvert(List(contentTitle), Seq(), "by-sa", Seq(author), List(tag), "fagstoff", new Date(0), new Date(1), ArticleType.Standard)
   val sampleLanguageContent = TestData.sampleContent.copy(content=sampleContentString, language=Some("nb"))
 
   test("That the document is wrapped in an article tag") {

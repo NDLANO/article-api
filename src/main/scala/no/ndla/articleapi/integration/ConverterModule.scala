@@ -53,6 +53,7 @@ object ConverterModule {
 }
 
 case class LanguageContent(nid: String, tnid: String, content: String, metaDescription: String, language: Option[String],
+                           visualElement: Option[String],
                            requiredLibraries: Seq[RequiredLibrary] = List[RequiredLibrary](),
                            footNotes: Option[Map[String, FootNoteItem]] = None,
                            ingress: Option[LanguageIngress] = None) {
@@ -62,6 +63,7 @@ case class LanguageContent(nid: String, tnid: String, content: String, metaDescr
   def asContent: ArticleContent = ArticleContent(content, footNotes, language)
   def asArticleIntroduction: Option[ArticleIntroduction] = ingress.map(x => ArticleIntroduction(x.content, language))
   def asArticleMetaDescription: ArticleMetaDescription = ArticleMetaDescription(metaDescription, language)
+  def asVisualElement: Option[VisualElement] = visualElement.map(visual => VisualElement(visual, language))
 }
 
 case class LanguageIngress(content: String, ingressImage: Option[String])

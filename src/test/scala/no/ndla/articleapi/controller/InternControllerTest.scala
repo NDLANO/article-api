@@ -25,7 +25,7 @@ class InternControllerTest extends UnitSuite with TestEnvironment with ScalatraF
   implicit val formats = org.json4s.DefaultFormats
 
   val author = Author("forfatter", "Henrik")
-  val sampleNode = NodeToConvert(List(sampleTitle), List(sampleContent), "by-sa", Seq(author), List(ArticleTag(List("tag"), Some("en"))), Seq(visualElement), "fagstoff", new Date(0), new Date(1), ArticleType.Standard)
+  val sampleNode = NodeToConvert(List(sampleTitle), List(sampleContent), "by-sa", Seq(author), List(ArticleTag(List("tag"), Some("en"))), "fagstoff", new Date(0), new Date(1), ArticleType.Standard)
   val sampleNode2 = sampleNode.copy(contents=List(sampleTranslationContent))
   lazy val controller = new InternController
   addServlet(controller, "/*")

@@ -52,12 +52,12 @@ class ReadServiceTest extends UnitSuite with TestEnvironment {
   }
 
   test("addIdAndUrlOnResource adds an id and url attribute on embed-resoures with a data-resource_id attribute") {
-    readService.addIdAndUrlOnResource(articleContent1) should equal(expectedArticleContent1)
+    readService.addIdAndUrlOnResource(articleContent1.content) should equal(expectedArticleContent1.content)
   }
 
   test("addIdAndUrlOnResource adds id but not url on embed resources without a data-resource_id attribute") {
     val articleContent3 = articleContent1.copy(content=s"""<$resourceHtmlEmbedTag $resourceAttr="$h5pType" $idAttr="0" $urlAttr="http://some.h5p.org" />""")
-    readService.addIdAndUrlOnResource(articleContent3) should equal(articleContent3)
+    readService.addIdAndUrlOnResource(articleContent3.content) should equal(articleContent3.content)
   }
 
   test("addIdAndUrlOnResource adds urls on all content translations in an article") {

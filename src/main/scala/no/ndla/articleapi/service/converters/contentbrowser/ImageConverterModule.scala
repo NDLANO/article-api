@@ -35,15 +35,15 @@ trait ImageConverterModule {
 
     def getImage(cont: ContentBrowser): Try[String] = {
       val alignment = getImageAlignment(cont)
-      imageApiClient.importOrGetMetaByExternId(cont.get("nid")) match {
-        case Some(image) => Success(HtmlTagGenerator.buildImageEmbedContent(
-          caption=cont.get("link_text"),
-          imageId=image.id,
-          align=alignment.getOrElse(""),
-          size=cont.get("imagecache").toLowerCase,
-          altText=cont.get("alt")))
+      toImageEmbed(cont.get("nid"), cont.get("link_text"), alignment.getOrElse(""), cont.get("imagecache").toLowerCase, cont.get("alt"))
+    }
+
+    def toImageEmbed(nodeId: String, caption: String, align: String, size: String, altText: String): Try[String] = {
+      imageApiClient.importOrGetMetaByExternId(nodeId) match {
+        case Some(image) =>
+          Success(HtmlTagGenerator.buildImageEmbedContent(caption, image.id, align, size, altText))
         case None =>
-          Failure(ImportException(s"Failed to import image with ID ${cont.get("nid")}"))
+          Failure(ImportException(s"Failed to import image with ID $nodeId"))
       }
     }
 

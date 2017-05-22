@@ -22,15 +22,21 @@ trait VideoConverterModule {
     override val typeName: String = "video"
 
     override def convert(content: ContentBrowser, visitedNodes: Seq[String]): Try[(String, Seq[RequiredLibrary], ImportStatus)] = {
+      val (embedVideo, requiredLibrary) = toVideo(content.get("link_text"), content.get("nid"))
+      logger.info(s"Added video with nid ${content.get("nid")}")
+      Success(embedVideo, List(requiredLibrary), ImportStatus(Seq(), visitedNodes))
+    }
+
+    def toVideo(linkText: String, nodeId: String): (String, RequiredLibrary) = {
       val requiredLibrary = RequiredLibrary("text/javascript", "Brightcove video", NDLABrightcoveVideoScriptUrl)
       val embedVideoMeta = HtmlTagGenerator.buildBrightCoveEmbedContent(
-        caption=content.get("link_text"),
-        videoId=s"ref:${content.get("nid")}",
+        caption=linkText,
+        videoId=s"ref:$nodeId",
         account=s"$NDLABrightcoveAccountId",
         player=s"$NDLABrightcovePlayerId")
 
-      logger.info(s"Added video with nid ${content.get("nid")}")
-      Success(embedVideoMeta, List(requiredLibrary), ImportStatus(Seq(), visitedNodes))
+      (embedVideoMeta, requiredLibrary)
     }
+
   }
 }

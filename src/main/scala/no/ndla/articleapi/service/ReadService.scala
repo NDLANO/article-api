@@ -30,8 +30,10 @@ trait ReadService {
         .map(converterService.toApiArticle)
 
     private[service] def addUrlsAndIdsOnEmbedResources(article: Article): Article = {
-      val articleWithUrls = article.content.map(addIdAndUrlOnResource)
-      article.copy(content = articleWithUrls)
+      val articleWithUrls = article.content.map(content => content.copy(content=addIdAndUrlOnResource(content.content)))
+      val visualElementWithUrls = article.visualElement.map(visual => visual.copy(resource=addIdAndUrlOnResource(visual.resource)))
+
+      article.copy(content = articleWithUrls, visualElement = visualElementWithUrls)
     }
 
     def getNMostUsedTags(n: Int): Seq[api.ArticleTag] = {
@@ -44,8 +46,8 @@ trait ReadService {
       articleRepository.allTags.map(languageTags => languageTags.language -> new MostFrequentOccurencesList(languageTags.tags)).toMap
     })
 
-    private[service] def addIdAndUrlOnResource(content: ArticleContent): ArticleContent = {
-      val doc = stringToJsoupDocument(content.content)
+    private[service] def addIdAndUrlOnResource(content: String): String = {
+      val doc = stringToJsoupDocument(content)
 
       val embedTags = doc.select(s"$resourceHtmlEmbedTag").asScala.toList
       embedTags.zipWithIndex.foreach { case (embedTag, index) =>
@@ -53,7 +55,7 @@ trait ReadService {
         addUrlOnEmbedTag(embedTag)
       }
 
-      content.copy(content = jsoupDocumentToString(doc))
+      jsoupDocumentToString(doc)
     }
 
     private def addUrlOnEmbedTag(embedTag: Element) = {

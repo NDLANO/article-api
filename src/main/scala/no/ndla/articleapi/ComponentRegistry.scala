@@ -41,6 +41,7 @@ object ComponentRegistry
     with ContentBrowserConverter
     with BiblioConverterModule
     with BiblioConverter
+    with VisualElementConverter
     with AmazonClient
     with AttachmentStorageService
     with ArticleContentInformation
@@ -100,7 +101,7 @@ object ComponentRegistry
   lazy val biblioConverter = new BiblioConverter
   lazy val htmlCleaner = new HTMLCleaner
   lazy val converterModules = List(contentBrowserConverter)
-  lazy val postProcessorModules = List(SimpleTagConverter, biblioConverter, DivTableConverter, TableConverter, MathMLConverter, htmlCleaner)
+  lazy val postProcessorModules = List(SimpleTagConverter, biblioConverter, DivTableConverter, TableConverter, MathMLConverter, htmlCleaner, VisualElementConverter)
 
   lazy val jestClient: NdlaJestClient = JestClientFactory.getClient()
   lazy val audioApiClient = new AudioApiClient
