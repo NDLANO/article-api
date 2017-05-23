@@ -27,17 +27,18 @@ trait VisualElementConverter {
 
   object VisualElementConverter extends ConverterModule {
     def convert(content: LanguageContent, importStatus: ImportStatus): Try[(LanguageContent, ImportStatus)] = {
-      val visualElementNodeId = content.visualElement
-      visualElementNodeId.flatMap(nodeIdToVisualElement) match {
-        case Some((visual, requiredLibs)) => {
-          val requiredLibraries = (content.requiredLibraries ++ content.requiredLibraries).distinct
+      if (content.visualElement.isEmpty)
+        return Success((content, importStatus))
+
+      content.visualElement.flatMap(nodeIdToVisualElement) match {
+        case Some((visual, requiredLibs)) =>
+          val requiredLibraries = (content.requiredLibraries ++ requiredLibs).distinct
           Success(content.copy(visualElement=Some(visual), requiredLibraries=requiredLibraries), importStatus)
-        }
         case None => Failure(ImportException(s"Failed to convert node id ${content.visualElement.get}"))
       }
     }
 
-    private[converters] def nodeIdToVisualElement(nodeId: String): Option[(String, Seq[RequiredLibrary])] = {
+    private def nodeIdToVisualElement(nodeId: String): Option[(String, Seq[RequiredLibrary])] = {
       val converters = Map[String, String => Option[(String, Seq[RequiredLibrary])]](
         ImageConverter.typeName -> toImage,
         AudioConverter.typeName -> toAudio,

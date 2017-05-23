@@ -325,4 +325,14 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     result.content.head.content should equal (expected)
   }
 
+  test("VisualElement should be converted") {
+    val node = sampleNode.copy(contents=List(TestData.sampleContent.copy(visualElement=Some(nodeId))))
+    val expectedResult = s"""<$resourceHtmlEmbedTag data-align="" data-alt="" data-caption="" data-resource="image" data-resource_id="1" data-size="" />"""
+    when(extractService.getNodeType(nodeId)).thenReturn(Some("image"))
+    when(imageApiClient.importOrGetMetaByExternId(nodeId)).thenReturn(Some(TestData.sampleImageMetaInformation))
+
+    val Success((convertedArticle, _)) = service.toDomainArticle(node, ImportStatus.empty)
+    convertedArticle.visualElement should equal (Seq(VisualElement(expectedResult, Some("en"))))
+  }
+
 }

@@ -14,6 +14,7 @@ case class ImportStatus(messages: Seq[String], visitedNodes: Seq[String] = Seq()
     ImportStatus(messages ++ importStatus.messages, visitedNodes ++ importStatus.visitedNodes)
 }
 object ImportStatus {
+  def empty = ImportStatus(Seq.empty, Seq.empty)
   def apply(message: String, visitedNodes: Seq[String]): ImportStatus = ImportStatus(Seq(message), visitedNodes)
   def apply(importStatuses: Seq[ImportStatus]): ImportStatus = {
     val (messages, visitedNodes) = importStatuses.map(x => (x.messages, x.visitedNodes)).unzip
