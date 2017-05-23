@@ -10,7 +10,7 @@ package no.ndla.articleapi.service
 
 import no.ndla.articleapi.ArticleApiProperties.{externalApiUrls, resourceHtmlEmbedTag}
 import no.ndla.articleapi.model.api
-import no.ndla.articleapi.model.domain.{ArticleContent, ArticleTag}
+import no.ndla.articleapi.model.domain.{ArticleContent, ArticleTag, VisualElement}
 import no.ndla.articleapi.service.converters.{Attributes, ResourceType}
 import no.ndla.articleapi.{TestData, TestEnvironment, UnitSuite}
 import org.mockito.Mockito._
@@ -42,12 +42,14 @@ class ReadServiceTest extends UnitSuite with TestEnvironment {
   override val converterService = new ConverterService
 
   test("withId adds urls and ids on embed resources") {
-    val article = TestData.sampleArticleWithByNcSa.copy(content=Seq(articleContent1))
+    val visualElementBefore = s"""<$resourceHtmlEmbedTag data-align="" data-alt="" data-caption="" data-resource="image" data-resource_id="1" data-size="" />"""
+    val visualElementAfter = s"""<$resourceHtmlEmbedTag data-align="" data-alt="" data-caption="" data-resource="image" data-resource_id="1" data-size="" data-id="0" data-url="http://proxy.ndla-local/image-api/v1/images/1" />"""
+    val article = TestData.sampleArticleWithByNcSa.copy(content=Seq(articleContent1), visualElement=Seq(VisualElement(visualElementBefore, Some("nb"))))
 
     when(articleRepository.withId(1)).thenReturn(Option(article))
     when(articleRepository.getExternalIdFromId(any[Long])(any[DBSession])).thenReturn(Some("54321"))
 
-    val expectedResult = converterService.toApiArticle(article.copy(content=Seq(expectedArticleContent1)))
+    val expectedResult = converterService.toApiArticle(article.copy(content=Seq(expectedArticleContent1), visualElement=Seq(VisualElement(visualElementAfter, Some("nb")))))
     readService.withId(1) should equal(Option(expectedResult))
   }
 
