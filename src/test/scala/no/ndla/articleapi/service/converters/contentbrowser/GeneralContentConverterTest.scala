@@ -27,7 +27,7 @@ class GeneralContentConverterTest extends UnitSuite with TestEnvironment {
   val sampleFagstoff1 = NodeGeneralContent(nodeId, nodeId, "Tittel", "Innhold", "nb")
   val sampleFagstoff2 = NodeGeneralContent(nodeId, nodeId2, "Tittel", "Innhald", "nn")
   val sampleArticleSummary = ArticleSummary(1, Seq(ArticleTitle("title", Some("nb"))), Seq(), Seq(), "http://url", "publicdomain")
-  val sampleNodeToConvert = NodeToConvert(Seq(ArticleTitle("title", Some("en"))), Seq(), "publicdomain", Seq(), Seq(), Seq(), "fagstoff", new Date(0), new Date(1), ArticleType.Standard)
+  val sampleNodeToConvert = NodeToConvert(Seq(ArticleTitle("title", Some("en"))), Seq(), "publicdomain", Seq(), Seq(), "fagstoff", new Date(0), new Date(1), ArticleType.Standard)
   val sampleContent = TestData.sampleContent.copy(content="<div>sample content</div>")
 
   val generalContentConverter = new GeneralContentConverter {

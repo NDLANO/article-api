@@ -66,8 +66,8 @@ trait ConverterService {
 
     private def toDomainArticle(nodeToConvert: NodeToConvert): Article = {
       val requiredLibraries = nodeToConvert.contents.flatMap(_.requiredLibraries).distinct
-
       val ingresses = nodeToConvert.contents.flatMap(content => content.asArticleIntroduction)
+      val visualElements = nodeToConvert.contents.flatMap(_.asVisualElement)
 
       Article(None,
         None,
@@ -76,7 +76,7 @@ trait ConverterService {
         toDomainCopyright(nodeToConvert.license, nodeToConvert.authors),
         nodeToConvert.tags,
         requiredLibraries,
-        nodeToConvert.visualElements,
+        visualElements,
         ingresses,
         nodeToConvert.contents.map(_.asArticleMetaDescription),
         None,

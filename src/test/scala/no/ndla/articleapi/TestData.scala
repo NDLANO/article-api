@@ -8,7 +8,7 @@
 
 package no.ndla.articleapi
 
-import no.ndla.articleapi.integration.LanguageContent
+import no.ndla.articleapi.integration._
 import no.ndla.articleapi.model.domain._
 import no.ndla.articleapi.ArticleApiProperties.resourceHtmlEmbedTag
 import no.ndla.articleapi.model.api
@@ -93,10 +93,20 @@ object TestData {
 
   val (nodeId, nodeId2) = ("1234", "4321")
   val sampleTitle = ArticleTitle("title", Some("en"))
-  val sampleContent = LanguageContent(nodeId, nodeId, "sample content", "metadescription",  Some("en"))
+  val sampleContent = LanguageContent(nodeId, nodeId, "sample content", "metadescription",  Some("en"), None)
   val sampleTranslationContent = sampleContent.copy(tnid=nodeId2)
 
   val visualElement = VisualElement(s"""<$resourceHtmlEmbedTag  data-align="" data-alt="" data-caption="" data-resource="image" data-resource_id="1" data-size="" />""", Some("nb"))
+
+ val sampleImageMetaInformation = ImageMetaInformation(
+     "1",
+    List(ImageTitle("Sample title", Some("nb"))),
+    List(ImageAltText("alt text", Some("nb"))),
+    "://image-url.com/image/img.jpg",
+    1024,
+    "application/jpeg",
+    ImageCopyright(ImageLicense("by", "Creative Commons", None), "pix", Seq.empty),
+    List(ImageTag(Seq("sample tag"), Some("nb"))))
 }
 
 

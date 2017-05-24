@@ -84,7 +84,6 @@ case class MigrationMainNodeImport(titles: Seq[MigrationContentTitle], ingresses
       license.getOrElse(""),
       authors.flatMap(x => x.asAuthor),
       tags,
-      visualElements.map(_.asVisualElement),
       nodeType.getOrElse("unknown"),
       contents.minBy(_.created).created,
       contents.maxBy(_.changed).changed,
@@ -93,6 +92,7 @@ case class MigrationMainNodeImport(titles: Seq[MigrationContentTitle], ingresses
   }
 
   def asLanguageContents: Seq[LanguageContent] = {
+
     contents.map(content => {
       LanguageContent(
         content.nid,
@@ -100,6 +100,7 @@ case class MigrationMainNodeImport(titles: Seq[MigrationContentTitle], ingresses
         content.content,
         getMetaDescription(content),
         content.language,
+        visualElements.find(_.language == content.language).map(_.element),
         ingress = getIngress(content.language))
     })
   }
@@ -166,9 +167,7 @@ case class MigrationEmbedMeta(url: Option[String], embedCode: Option[String])
 
 case class MigrationPageTitle(title: String, `type`: String, language: Option[String])
 
-case class MigrationVisualElement(element: String, `type`: String, language: Option[String]) {
-  def asVisualElement: VisualElement = VisualElement(element, language)
-}
+case class MigrationVisualElement(element: String, `type`: String, language: Option[String])
 
 case class MigrationRelatedContents(related: Seq[MigrationRelatedContent], language: Option[String])
 
