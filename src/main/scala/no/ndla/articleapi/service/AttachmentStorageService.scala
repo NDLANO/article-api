@@ -22,8 +22,8 @@ trait AttachmentStorageService {
   val attachmentStorageService: AmazonStorageService
 
   class AmazonStorageService extends LazyLogging {
-    def uploadFileFromUrl(storageKeyPrefix: String, filMeta: ContentFilMeta): Try[String] = {
-      val storageKey = s"$storageKeyPrefix/${filMeta.fileName}"
+    def uploadFileFromUrl(filMeta: ContentFilMeta): Try[String] = {
+      val storageKey = s"${filMeta.fileName}"
       val connection = filMeta.url.openConnection()
       val metaData = new ObjectMetadata()
       metaData.setContentType(filMeta.mimeType)

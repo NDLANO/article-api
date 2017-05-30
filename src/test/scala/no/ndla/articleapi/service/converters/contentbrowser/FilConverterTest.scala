@@ -28,11 +28,11 @@ class FilConverterTest extends UnitSuite with TestEnvironment {
     val expectedResult = s"""<a href="$filePath" title="${fileMeta.fileName}">${fileMeta.fileName}</a>"""
 
     when(extractService.getNodeFilMeta(nodeId)).thenReturn(Success(fileMeta))
-    when(attachmentStorageService.uploadFileFromUrl(nodeId, fileMeta)).thenReturn(Success(filePath))
+    when(attachmentStorageService.uploadFileFromUrl(fileMeta)).thenReturn(Success(filePath))
     val Success((result, _, _)) = FilConverter.convert(content, Seq())
 
     result should equal(expectedResult)
     verify(extractService, times(1)).getNodeFilMeta(nodeId)
-    verify(attachmentStorageService, times(1)).uploadFileFromUrl(nodeId, fileMeta)
+    verify(attachmentStorageService, times(1)).uploadFileFromUrl(fileMeta)
   }
 }

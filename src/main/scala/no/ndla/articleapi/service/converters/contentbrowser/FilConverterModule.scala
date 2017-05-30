@@ -26,11 +26,13 @@ trait FilConverterModule {
       val nodeId = content.get("nid")
       val importedFile = for {
         fileMeta <- extractService.getNodeFilMeta(nodeId)
-        audioPath <- attachmentStorageService.uploadFileFromUrl(nodeId, fileMeta)
-      } yield (HtmlTagGenerator.buildAnchor(audioPath, fileMeta.fileName, fileMeta.fileName), Seq(), ImportStatus(visitedNodes))
+        filePath <- attachmentStorageService.uploadFileFromUrl(fileMeta)
+      } yield (HtmlTagGenerator.buildAnchor(filePath, fileMeta.fileName, fileMeta.fileName), Seq.empty, ImportStatus(visitedNodes))
 
       importedFile match {
-        case Success(x) => Success(x)
+        case Success(x) =>
+          println(s"Imported file: $x")
+          Success(x)
         case Failure(_) => Failure(ImportException(s"Failed to import file with node id $nodeId"))
       }
     }

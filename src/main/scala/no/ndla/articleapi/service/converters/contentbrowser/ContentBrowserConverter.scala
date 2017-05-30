@@ -37,6 +37,7 @@ trait ContentBrowserConverter {
       VideoConverter.typeName -> VideoConverter,
       VeiledningConverter.typeName -> VeiledningConverter,
       AudioConverter.typeName -> AudioConverter,
+      FilConverter.typeName -> FilConverter,
       BiblioConverter.typeName -> BiblioConverter)
 
     private def getConverterModule(contentBrowser: ContentBrowser) = {
