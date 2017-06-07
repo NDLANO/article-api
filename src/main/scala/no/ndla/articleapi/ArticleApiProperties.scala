@@ -35,7 +35,7 @@ object ArticleApiProperties extends LazyLogging {
   val MetaInitialConnections = 3
   val MetaMaxConnections = 20
 
-  val AttachmentStorageName = if (Environment == "local") s"test.article-attachments.ndla" else s"$Environment.article-attachments.ndla"
+  val AttachmentStorageName = s"$Environment.article-attachments.ndla"
 
   val SearchServer = propOrElse("SEARCH_SERVER", "http://search-article-api.ndla-local")
   val SearchRegion = propOrElse("SEARCH_REGION", "eu-central-1")

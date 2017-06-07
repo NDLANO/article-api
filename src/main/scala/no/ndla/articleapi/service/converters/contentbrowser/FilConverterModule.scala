@@ -27,7 +27,7 @@ trait FilConverterModule {
       val nodeId = content.get("nid")
       val importedFile = for {
         fileMeta <- extractService.getNodeFilMeta(nodeId)
-        filePath <- attachmentStorageService.uploadFileFromUrl(fileMeta)
+        filePath <- attachmentStorageService.uploadFileFromUrl(nodeId, fileMeta)
       } yield (HtmlTagGenerator.buildAnchor(s"$Domain/files/$filePath", fileMeta.fileName, fileMeta.fileName), Seq.empty, ImportStatus(visitedNodes))
 
       importedFile match {
