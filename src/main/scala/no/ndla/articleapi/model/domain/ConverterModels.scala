@@ -29,6 +29,7 @@ case class NodeToConvert(titles: Seq[ArticleTitle],
                          authors: Seq[Author],
                          tags: Seq[ArticleTag],
                          nodeType: String,
+                         contentType: String,
                          created: Date,
                          updated: Date,
                          articleType: ArticleType.Value

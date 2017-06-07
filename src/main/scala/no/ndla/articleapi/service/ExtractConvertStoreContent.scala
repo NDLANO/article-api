@@ -64,10 +64,10 @@ trait ExtractConvertStoreContent {
       node.contents.find(_.isMainNode) match {
         case None => Failure(NotFoundException(s"$externalId is a translation; Could not find main node"))
         case Some(mainNode) =>
-          if (!supportedContentTypes.contains(node.nodeType.toLowerCase))
-            Failure(ImportException(s"Tried to import node of unsupported type '${node.nodeType.toLowerCase}'"))
-          else
+          if (supportedContentTypes.contains(node.nodeType.toLowerCase) || supportedContentTypes.contains(node.contentType.toLowerCase))
             Success(node, mainNode.nid)
+          else
+            Failure(ImportException(s"Tried to import node of unsupported type '${node.nodeType.toLowerCase}/${node.contentType.toLowerCase()}'"))
       }
     }
 
