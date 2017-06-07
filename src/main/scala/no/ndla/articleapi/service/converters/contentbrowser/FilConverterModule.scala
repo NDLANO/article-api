@@ -13,6 +13,7 @@ import no.ndla.articleapi.model.api.ImportException
 import no.ndla.articleapi.model.domain.{ImportStatus, RequiredLibrary}
 import no.ndla.articleapi.service.converters.HtmlTagGenerator
 import no.ndla.articleapi.service.{AttachmentStorageService, ExtractService}
+import no.ndla.articleapi.ArticleApiProperties.Domain
 
 import scala.util.{Failure, Success, Try}
 
@@ -26,12 +27,12 @@ trait FilConverterModule {
       val nodeId = content.get("nid")
       val importedFile = for {
         fileMeta <- extractService.getNodeFilMeta(nodeId)
-        audioPath <- attachmentStorageService.uploadFileFromUrl(nodeId, fileMeta)
-      } yield (HtmlTagGenerator.buildAnchor(audioPath, fileMeta.fileName, fileMeta.fileName), Seq(), ImportStatus(visitedNodes))
+        filePath <- attachmentStorageService.uploadFileFromUrl(nodeId, fileMeta)
+      } yield (HtmlTagGenerator.buildAnchor(s"$Domain/files/$filePath", fileMeta.fileName, fileMeta.fileName), Seq.empty, ImportStatus(visitedNodes))
 
       importedFile match {
         case Success(x) => Success(x)
-        case Failure(_) => Failure(ImportException(s"Failed to import file with node id $nodeId"))
+        case Failure(x) => Failure(ImportException(s"Failed to import file with node id $nodeId: ${x.getMessage}"))
       }
     }
 

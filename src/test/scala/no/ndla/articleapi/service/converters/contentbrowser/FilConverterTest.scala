@@ -13,6 +13,7 @@ import no.ndla.articleapi.model.domain.ContentFilMeta
 import no.ndla.articleapi.{TestEnvironment, UnitSuite}
 import org.mockito.Mockito._
 import no.ndla.articleapi.model.domain.ContentFilMeta._
+import no.ndla.articleapi.ArticleApiProperties.Domain
 
 import scala.util.Success
 
@@ -23,9 +24,9 @@ class FilConverterTest extends UnitSuite with TestEnvironment {
 
   test("That FilConverter returns a link to the file") {
     val content = ContentBrowser(contentString, Some("nb"))
-    val fileMeta = ContentFilMeta(nodeId, "0", "title", "title.pdf", "http://path/to/title.pdf", "application/pdf", "1024")
-    val filePath = s"/some/file/path/to/${fileMeta.fileName}"
-    val expectedResult = s"""<a href="$filePath" title="${fileMeta.fileName}">${fileMeta.fileName}</a>"""
+    val fileMeta = ContentFilMeta(nodeId, "0", "title", "title.pdf", s"$Domain/files/title.pdf", "application/pdf", "1024")
+    val filePath = s"$nodeId/${fileMeta.fileName}"
+    val expectedResult = s"""<a href="$Domain/files/$filePath" title="${fileMeta.fileName}">${fileMeta.fileName}</a>"""
 
     when(extractService.getNodeFilMeta(nodeId)).thenReturn(Success(fileMeta))
     when(attachmentStorageService.uploadFileFromUrl(nodeId, fileMeta)).thenReturn(Success(filePath))
