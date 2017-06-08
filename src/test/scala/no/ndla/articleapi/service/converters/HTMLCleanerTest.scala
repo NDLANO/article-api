@@ -101,6 +101,21 @@ class HTMLCleanerTest extends UnitSuite with TestEnvironment {
     result.requiredLibraries.length should equal (0)
   }
 
+  test("ingress with word count less than 3 should not be interpreted as an ingress") {
+    val content = s"""<section>
+                     |<$resourceHtmlEmbedTag data-size="fullbredde" data-url="http://image-api/images/5452" data-align="" data-id="1" data-resource="image" data-alt="Mobiltelefon sender SMS" />
+                     |<p><strong>Medievanener<br /></strong></p>
+                     |</section>
+                     |<section>
+                     |<h2>Mediehverdagen</h2>
+                     |</section>""".stripMargin.replace("\n", "")
+
+    val Success((result, _)) = htmlCleaner.convert(TestData.sampleContent.copy(content=content), defaultImportStatus)
+
+    result.content should equal(content)
+    result.ingress should equal(None)
+  }
+
   test("ingress image is not extracted when not present") {
     val content =
       """<section>

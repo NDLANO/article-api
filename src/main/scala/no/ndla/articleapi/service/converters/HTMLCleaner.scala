@@ -135,9 +135,16 @@ trait HTMLCleaner {
     }
 
     private def extractIngress(el: Element): Option[String] = {
-      val ingressText = getIngressText(el).map(ingress => extractElement(ingress))
-      removeEmptyTags(el)
-      ingressText
+      val minimumIngressWordCount = 3
+
+      getIngressText(el) match {
+        case None => None
+        case Some(ingress) if ingress.text.split(" +").length >= minimumIngressWordCount =>
+          val ingressText = extractElement(ingress)
+          removeEmptyTags(el)
+          Some(ingressText)
+        case _ => None
+      }
     }
 
     private def extractElement(elementToExtract: Element): String = {
