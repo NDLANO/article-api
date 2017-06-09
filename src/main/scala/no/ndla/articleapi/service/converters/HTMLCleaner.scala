@@ -124,20 +124,26 @@ trait HTMLCleaner {
     }
 
     private def getIngressText(el: Element): Option[Element] = {
-      val firstSection = Option(el.select("body>section").first)
-      val firstParagraph = firstSection.flatMap(section => Option(section.select(">p").first))
+      val firstParagraph = Option(el.select(">p").first)
       val ingress = firstParagraph.flatMap(p => Option(p.select(">strong").first))
 
       ingress match {
-        case None => firstSection.flatMap(section => Option(section.select(">strong").first))
+        case None => Option(el.select(">strong").first)
         case x => x
       }
     }
 
     private def extractIngress(el: Element): Option[String] = {
       val minimumIngressWordCount = 3
+      val firstSection = Option(el.select("body>section").first)
+      val firstDivSection = Option(el.select("body>section:eq(0)>div").first)
 
-      getIngressText(el) match {
+      val ingress = firstSection.flatMap(getIngressText) match {
+        case None => firstDivSection.flatMap(getIngressText)
+        case ing => ing
+      }
+
+      ingress match {
         case None => None
         case Some(ingress) if ingress.text.split(" +").length >= minimumIngressWordCount =>
           val ingressText = extractElement(ingress)

@@ -162,6 +162,26 @@ class HTMLCleanerTest extends UnitSuite with TestEnvironment {
     result.ingress should be (None)
   }
 
+  test("ingress inside a div should be extracted") {
+    val content =
+      """<section><div>
+        |<embed data-align="" data-alt="To gutter" data-caption="" data-resource="image" data-resource_id="1234" data-size="fullbredde" data-id="0" data-url="http://ndla" />
+        |<p><strong>Du er et unikt individ, med en rekke personlige egenskaper.</strong></p>
+        |</div></section>
+      """.stripMargin
+    val expectedContent =
+      """<section><div>
+        |<embed data-align="" data-alt="To gutter" data-caption="" data-resource="image" data-resource_id="1234" data-size="fullbredde" data-id="0" data-url="http://ndla" />
+        |
+        |</div></section>""".stripMargin
+    val expectedIngress = Some(LanguageIngress("Du er et unikt individ, med en rekke personlige egenskaper.", TestData.sampleContent.language))
+
+    val Success((result, _)) = htmlCleaner.convert(TestData.sampleContent.copy(content=content), defaultImportStatus)
+
+    result.ingress should be (expectedIngress)
+    result.content should be (expectedContent)
+  }
+
   test("standalone text in a section is wrapped in <p> tags") {
     val content = s"""<section>
                       |Medievanene er i endring.
