@@ -75,7 +75,7 @@ class HTMLCleanerTest extends UnitSuite with TestEnvironment {
          |<section>
          |<h2>Mediehverdagen</h2>
          |</section>""".stripMargin.replace("\n", "")
-    val expectedIngressResult = LanguageIngress("Medievanene er i endring.", None)
+    val expectedIngressResult = LanguageIngress("Medievanene er i endring.", TestData.sampleContent.language)
 
     val Success((result, _)) = htmlCleaner.convert(TestData.sampleContent.copy(content=content), defaultImportStatus)
 
@@ -101,6 +101,21 @@ class HTMLCleanerTest extends UnitSuite with TestEnvironment {
     result.requiredLibraries.length should equal (0)
   }
 
+  test("ingress with word count less than 3 should not be interpreted as an ingress") {
+    val content = s"""<section>
+                     |<$resourceHtmlEmbedTag data-size="fullbredde" data-url="http://image-api/images/5452" data-align="" data-id="1" data-resource="image" data-alt="Mobiltelefon sender SMS" />
+                     |<p><strong>Medievanener<br /></strong></p>
+                     |</section>
+                     |<section>
+                     |<h2>Mediehverdagen</h2>
+                     |</section>""".stripMargin.replace("\n", "")
+
+    val Success((result, _)) = htmlCleaner.convert(TestData.sampleContent.copy(content=content), defaultImportStatus)
+
+    result.content should equal(content)
+    result.ingress should equal(None)
+  }
+
   test("ingress image is not extracted when not present") {
     val content =
       """<section>
@@ -111,7 +126,7 @@ class HTMLCleanerTest extends UnitSuite with TestEnvironment {
         |</section>
       """.stripMargin.replace("\n", "")
     val expectedContentResult = """<section><ul><li><a href="#" title="Snopes">Snopes</a></li></ul></section>"""
-    val expectedIngressResult = LanguageIngress("Du har sikkert opplevd rykter og usannheter", None)
+    val expectedIngressResult = LanguageIngress("Du har sikkert opplevd rykter og usannheter", TestData.sampleContent.language)
     val Success((result, _)) = htmlCleaner.convert(TestData.sampleContent.copy(content=content), defaultImportStatus)
     result.content should equal(expectedContentResult)
     result.ingress should equal(Some(expectedIngressResult))
@@ -128,11 +143,23 @@ class HTMLCleanerTest extends UnitSuite with TestEnvironment {
       s"""<section>
         |<$resourceHtmlEmbedTag data-size="fullbredde" data-url="http://image-api/images/5452" data-align="" data-id="1" data-resource="image" data-alt="Mobiltelefon sender SMS" />
         |<h2>Mediehverdagen</h2></section>""".stripMargin.replace("\n", "")
-    val expectedIngressResult = LanguageIngress("Medievanene er i endring.", None)
+    val expectedIngressResult = LanguageIngress("Medievanene er i endring.", TestData.sampleContent.language)
     val Success((result, _)) = htmlCleaner.convert(TestData.sampleContent.copy(content=content), defaultImportStatus)
 
     result.content should equal(expectedContentResult)
     result.ingress should equal(Some(expectedIngressResult))
+  }
+
+  test("ingress should not be extracted if not located in the beginning of content") {
+    val content = s"""<section>
+                     |<$resourceHtmlEmbedTag data-size="fullbredde" data-url="http://image-api/images/5452" data-align="" data-id="1" data-resource="image" data-alt="Mobiltelefon sender SMS" />
+                     |<h2>Mediehverdagen</h2>
+                     |<p>A paragraph!</p>
+                     |<p><strong>Medievanene er i endring.</strong><p>
+                     |</section>""".stripMargin.replace("\n", "")
+    val Success((result, _)) = htmlCleaner.convert(TestData.sampleContent.copy(content=content), defaultImportStatus)
+
+    result.ingress should be (None)
   }
 
   test("standalone text in a section is wrapped in <p> tags") {

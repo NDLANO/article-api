@@ -47,7 +47,7 @@ trait HTMLCleaner {
 
     private def getIngress(content: LanguageContent, element: Element): Option[LanguageIngress] = {
       content.ingress match {
-        case None => extractIngress(element).map(LanguageIngress(_, None))
+        case None => extractIngress(element).map(LanguageIngress(_, content.language))
         case Some(ingress) =>
           val imageEmbedHtml = ingress.ingressImage.flatMap(imageApiClient.importOrGetMetaByExternId)
             .map(imageMetaData => HtmlTagGenerator.buildImageEmbedContent(
@@ -125,7 +125,8 @@ trait HTMLCleaner {
 
     private def getIngressText(el: Element): Option[Element] = {
       val firstSection = Option(el.select("body>section").first)
-      val ingress = firstSection.flatMap(section => Option(section.select(">p>strong").first))
+      val firstParagraph = firstSection.flatMap(section => Option(section.select(">p").first))
+      val ingress = firstParagraph.flatMap(p => Option(p.select(">strong").first))
 
       ingress match {
         case None => firstSection.flatMap(section => Option(section.select(">strong").first))
@@ -134,9 +135,16 @@ trait HTMLCleaner {
     }
 
     private def extractIngress(el: Element): Option[String] = {
-      val ingressText = getIngressText(el).map(ingress => extractElement(ingress))
-      removeEmptyTags(el)
-      ingressText
+      val minimumIngressWordCount = 3
+
+      getIngressText(el) match {
+        case None => None
+        case Some(ingress) if ingress.text.split(" +").length >= minimumIngressWordCount =>
+          val ingressText = extractElement(ingress)
+          removeEmptyTags(el)
+          Some(ingressText)
+        case _ => None
+      }
     }
 
     private def extractElement(elementToExtract: Element): String = {
