@@ -22,9 +22,12 @@ abstract class UnitSuite extends FunSuite with Matchers with OptionValues with I
   setEnv("SEARCH_REGION", "some-region")
   setEnv("RUN_WITH_SIGNED_SEARCH_REQUESTS", "false")
 
-  setEnv("MIGRATION_HOST", "some-host")
-  setEnv("MIGRATION_USER", "some-user")
-  setEnv("MIGRATION_PASSWORD", "some-password")
+  setEnv("AUDIO_API_URL", "localhost:30014")
+  setEnv("IMAGE_API_URL", "localhost:30001")
+
+  setEnvIfAbsent("MIGRATION_HOST", "some-host")
+  setEnvIfAbsent("MIGRATION_USER", "some-user")
+  setEnvIfAbsent("MIGRATION_PASSWORD", "some-password")
 
   setEnv("NDLA_BRIGHTCOVE_ACCOUNT_ID", "some-account-id")
   setEnv("NDLA_BRIGHTCOVE_PLAYER_ID", "some-player-id")
