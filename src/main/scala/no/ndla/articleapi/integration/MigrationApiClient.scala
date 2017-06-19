@@ -41,9 +41,9 @@ trait MigrationApiClient {
       get[MigrationMainNodeImport](ContentDataEndpoint, nodeId)
 
     private def get[A](endpointUrl: String, nodeId: String)(implicit mf: Manifest[A]): Try[A] = {
-      ndlaClient.fetch[A](
+      ndlaClient.fetchWithBasicAuth[A](
         Http(endpointUrl.replace(":node_id", nodeId)),
-        Some(ArticleApiProperties.MigrationUser), Some(ArticleApiProperties.MigrationPassword))
+        ArticleApiProperties.MigrationUser, ArticleApiProperties.MigrationPassword)
     }
 
     def getContentType(nodeId: String): Try[MigrationNodeType] =

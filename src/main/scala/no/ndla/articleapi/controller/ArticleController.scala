@@ -158,8 +158,10 @@ trait ArticleController {
     get("/:article_id", operation(getArticleById)) {
       val articleId = long("article_id")
 
+      logger.info(s"get article $articleId")
+
       readService.withId(articleId) match {
-        case Some(image) => image
+        case Some(article) => article
         case None => NotFound(body = Error(Error.NOT_FOUND, s"No article with id $articleId found"))
       }
     }

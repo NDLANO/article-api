@@ -11,7 +11,7 @@ package no.ndla.articleapi.model.search
 import java.util.Date
 
 import no.ndla.articleapi.model.domain.emptySomeToNone
-import no.ndla.articleapi.model.search.LanguageValue.LanguageValue
+import no.ndla.articleapi.model.search.LanguageValue.{LanguageValue => LV}
 
 
 object LanguageValue {
@@ -22,9 +22,9 @@ object LanguageValue {
 
 }
 
-case class SearchableLanguageValues(languageValues: Seq[LanguageValue[String]])
+case class SearchableLanguageValues(languageValues: Seq[LV[String]])
 
-case class SearchableLanguageList(languageValues: Seq[LanguageValue[Seq[String]]])
+case class SearchableLanguageList(languageValues: Seq[LV[Seq[String]]])
 
 case class SearchableArticle(
   id: Long,
