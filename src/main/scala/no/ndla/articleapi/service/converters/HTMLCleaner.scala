@@ -123,12 +123,24 @@ trait HTMLCleaner {
       el.html(el.html().replace("\u00a0", "")) // \u00a0 is the unicode representation of &nbsp;
     }
 
-    private def getIngressText(el: Element): Option[Element] = {
-      val firstParagraph = Option(el.select(">p").first)
-      val ingress = firstParagraph.flatMap(p => Option(p.select(">strong").first))
+    private def getIngressText(el: Element): Option[Seq[Element]] = {
+      val firstParagraphs = Option(el.select(">p")).map(_.asScala.toList)
+        .flatMap(paragraphs => paragraphs.headOption.map(_ => paragraphs.take(2))) // select two first paragraphs
+
+      val ingress = firstParagraphs.flatMap(ps => {
+        val ingresses = ps.map(p => Option(p.select(">strong").first))
+
+        // In some cases the ingress is split up into two paragraphs
+        ingresses match {
+          case Some(head) :: Some(second) :: _ => Some(Seq(head, second))
+          case Some(head) :: None :: _ => Some(Seq(head))
+          case Some(head) :: _ => Some(Seq(head))
+          case None :: _ => None
+        }
+      })
 
       ingress match {
-        case None => Option(el.select(">strong").first)
+        case None => Option(el.select(">strong").first).map(x => Seq(x))
         case x => x
       }
     }
@@ -143,10 +155,12 @@ trait HTMLCleaner {
         case ing => ing
       }
 
+      def getText(elements: Seq[Element]): String = elements.map(_.text).mkString(" ")
+
       ingress match {
         case None => None
-        case Some(ingress) if ingress.text.split(" +").length >= minimumIngressWordCount =>
-          val ingressText = extractElement(ingress)
+        case Some(ing) if getText(ing).split(" +").length >= minimumIngressWordCount =>
+          val ingressText = ing.map(extractElement).mkString(" ")
           removeEmptyTags(el)
           Some(ingressText)
         case _ => None

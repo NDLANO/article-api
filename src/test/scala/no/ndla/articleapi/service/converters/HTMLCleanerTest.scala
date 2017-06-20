@@ -162,6 +162,25 @@ class HTMLCleanerTest extends UnitSuite with TestEnvironment {
     result.ingress should be (None)
   }
 
+  test("only the first paragraph should be extracted if strong") {
+    val content = s"""<section><embed data-align="" data-alt="Hånd som tegner" data-caption="" data-resource="image" data-resource_id="200" data-size="fullbredde"/>
+         |<p><strong>Når du skal jobbe med fotoutstilling, er det lurt å sette seg godt inn i tema for utstillingen og bestemme seg for hvilket uttrykk man
+         |er ute etter å skape allerede i planleggingsfasen.
+         |</strong></p>
+         |<h2>Tips til aktuelle verktøy og bruk av verktøy</h2>
+         |</section>""".stripMargin
+    val expectedContentResult = s"""<section><embed data-align="" data-alt="Hånd som tegner" data-caption="" data-resource="image" data-resource_id="200" data-size="fullbredde" />
+
+      |<h2>Tips til aktuelle verktøy og bruk av verktøy</h2>
+      |</section>""".stripMargin
+    val expectedIngressResult = LanguageIngress("Når du skal jobbe med fotoutstilling, er det lurt å sette seg godt inn i tema for utstillingen og bestemme seg for hvilket uttrykk man er ute etter å skape allerede i planleggingsfasen.", TestData.sampleContent.language)
+
+    val Success((result, _)) = htmlCleaner.convert(TestData.sampleContent.copy(content=content), defaultImportStatus)
+
+    result.content should equal(expectedContentResult)
+    result.ingress should equal(Some(expectedIngressResult))
+  }
+
   test("ingress inside a div should be extracted") {
     val content =
       """<section><div>
@@ -263,6 +282,26 @@ class HTMLCleanerTest extends UnitSuite with TestEnvironment {
 
     result.content should equal(expectedContentResult)
     result.ingress should equal(Some(expectedIngressResult))
+  }
+
+  test("HTMLCleaner extracts two first string paragraphs as ingress") {
+    val content = s"""<section>
+                     |<$resourceHtmlEmbedTag data-size="fullbredde" data-url="http://image-api/images/5452" data-align="" data-id="1" data-resource="image" data-alt="Mobiltelefon sender SMS" />
+                     |<p><strong>Medievanene er i endring.</strong></p>
+                     |<p><strong>Er egentlig medievanene i endring</strong></p>
+                     |<h2>Mediehverdagen</h2>
+                     |</section>""".stripMargin.replace("\n", "")
+    val expectedContentResult = s"""<section>
+                                   |<$resourceHtmlEmbedTag data-size="fullbredde" data-url="http://image-api/images/5452" data-align="" data-id="1" data-resource="image" data-alt="Mobiltelefon sender SMS" />
+                                   |<h2>Mediehverdagen</h2>
+                                   |</section>""".stripMargin.replace("\n", "")
+
+    val expectedIngressResult = LanguageIngress("Medievanene er i endring. Er egentlig medievanene i endring", Some("en"))
+
+    val Success((result, _)) = htmlCleaner.convert(TestData.sampleContent.copy(content=content), defaultImportStatus)
+
+    result.ingress should equal(Some(expectedIngressResult))
+    result.content should equal(expectedContentResult)
   }
 
   test("elements are replaced with data-caption text in meta description") {
