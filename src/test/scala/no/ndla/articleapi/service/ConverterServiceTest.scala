@@ -295,7 +295,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
 
     val apiArticle = api.Article(
       articleId.toString,
-      Some(s"//ndla.no/node/$externalId"),
+      Some(s"//red.ndla.no/node/$externalId"),
       2,
       Seq(api.ArticleTitle("title", Option("nb"))),
       Seq(api.ArticleContent("content", None, Option("nb"))),
