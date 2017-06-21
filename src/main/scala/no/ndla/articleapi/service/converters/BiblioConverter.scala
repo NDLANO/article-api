@@ -10,15 +10,15 @@
 package no.ndla.articleapi.service.converters
 
 import com.typesafe.scalalogging.LazyLogging
-import no.ndla.articleapi.integration.{ConverterModule, LanguageContent}
 import no.ndla.articleapi.integration.ConverterModule.{jsoupDocumentToString, stringToJsoupDocument}
+import no.ndla.articleapi.integration.{ConverterModule, LanguageContent}
 import no.ndla.articleapi.model.api.ImportException
 import no.ndla.articleapi.model.domain.{FootNoteItem, ImportStatus}
 import no.ndla.articleapi.service.ExtractService
 import org.jsoup.nodes.Element
 
-import scala.collection.JavaConversions._
 import scala.annotation.tailrec
+import scala.collection.JavaConversions._
 import scala.util.{Failure, Success, Try}
 
 trait BiblioConverter {
@@ -28,7 +28,6 @@ trait BiblioConverter {
   class BiblioConverter extends ConverterModule with LazyLogging {
     def convert(content: LanguageContent, importStatus: ImportStatus): Try[(LanguageContent, ImportStatus)] = {
       val element = stringToJsoupDocument(content.content)
-
       val references = buildReferences(element)
       val referenceMap = references.isEmpty match {
         case true => return Success((content, importStatus))
@@ -38,7 +37,7 @@ trait BiblioConverter {
       referenceMap match {
         case Success((map, errors)) =>
           val finalImportStatus = ImportStatus(importStatus.messages ++ errors, importStatus.visitedNodes)
-          Success((content.copy(content=jsoupDocumentToString(element), footNotes=Some(content.footNotes.getOrElse(map))), finalImportStatus))
+          Success((content.copy(content = jsoupDocumentToString(element), footNotes = Some(content.footNotes.getOrElse(map))), finalImportStatus))
         case Failure(x) => Failure(x)
       }
     }
@@ -52,6 +51,7 @@ trait BiblioConverter {
         val nodeId = id.substring(id.indexOf("-") + 1)
 
         references.head.removeAttr("id")
+        references.head.attr("href", s"#ref_$index")
         references.head.html(s"<sup>$index</sup>")
 
         buildReferences(references.tail, referenceNodes :+ nodeId, index + 1)
