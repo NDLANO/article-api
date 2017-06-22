@@ -51,7 +51,8 @@ trait BiblioConverter {
         val nodeId = id.substring(id.indexOf("-") + 1)
 
         references.head.removeAttr("id")
-        references.head.attr("href", s"#ref_$index")
+        references.head.attr("href", s"#ref_{$index}_cite")
+        references.head.attr("name", s"ref_{$index}_sup")
         references.head.html(s"<sup>$index</sup>")
 
         buildReferences(references.tail, referenceNodes :+ nodeId, index + 1)
