@@ -153,8 +153,8 @@ trait HTMLCleaner {
 
       // Look for ingress according to the following priorities:
       //   1. first paragraph in first section, ei. <section><p> HERE </p></section>
-      //   2. first paragraph in first div inside first section, ei. <section><div><p> HERE </p></div></section>
-      //   3. first paragraph in first nested div inside first section, ei. <section><div><div><p> HERE </p></div></div></section>
+      //   2. first paragraph in first nested div inside first section, ei. <section><div><div><p> HERE </p></div></div></section>
+      //   3. first paragraph in first div inside first section, ei. <section><div><p> HERE </p></div></section>
       val ingress = (firstSection.flatMap(getIngressText), firstDivSection, secondDivSection) match {
         case (Some(ing), _, _) => Some(ing)
         case (None, _, Some(secondDiv)) => getIngressText(secondDiv)
