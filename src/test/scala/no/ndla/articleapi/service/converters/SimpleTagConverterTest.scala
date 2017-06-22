@@ -78,7 +78,7 @@ class SimpleTagConverterTest extends UnitSuite {
 
   test("That divs with class 'frame' convertet to class c-bodybox"){
     val initialContent = TestData.sampleContent.copy(content = """<div class="frame"><h4>De fire friheter</h4><p>Fri bevegelse av</p><ul><li>varer</li><li>tjenester</li><li>kapital </li><li>personer</li></ul></div>""")
-    val expectedResult = """"""
+    val expectedResult = """<div class="c-bodybox"><h4>De fire friheter</h4><p>Fri bevegelse av</p><ul><li>varer</li><li>tjenester</li><li>kapital </li><li>personer</li></ul></div>"""
     val Success((result, _)) = SimpleTagConverter.convert(initialContent, ImportStatus(Seq(), Seq()))
 
     result.content should equal (expectedResult)
