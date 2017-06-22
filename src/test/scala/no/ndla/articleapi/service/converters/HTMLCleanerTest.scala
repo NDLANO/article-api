@@ -185,7 +185,7 @@ class HTMLCleanerTest extends UnitSuite with TestEnvironment {
     val content =
       """<section><div>
         |<embed data-align="" data-alt="To gutter" data-caption="" data-resource="image" data-resource_id="1234" data-size="fullbredde" data-id="0" data-url="http://ndla" />
-        |<p><strong>Du er et unikt individ, med en rekke personlige egenskaper.</strong></p>
+        |<p><strong> </strong><strong>Du er et unikt individ, med en rekke personlige egenskaper.</strong></p>
         |</div></section>
       """.stripMargin
     val expectedContent =

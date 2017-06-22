@@ -106,11 +106,11 @@ trait HTMLCleaner {
     }
 
     private def htmlTagIsEmpty(el: Element) = {
-      el.select(resourceHtmlEmbedTag).isEmpty && !el.hasText && el.isBlock
+      el.select(resourceHtmlEmbedTag).isEmpty && !el.hasText
     }
 
     private def removeEmptyTags(element: Element): Element = {
-      for (el <- element.select("p,div,section,aside").asScala) {
+      for (el <- element.select("p,div,section,aside,strong").asScala) {
         if (htmlTagIsEmpty(el)) {
           el.remove()
         }
