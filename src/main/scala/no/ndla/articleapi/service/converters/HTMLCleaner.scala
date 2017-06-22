@@ -106,11 +106,11 @@ trait HTMLCleaner {
     }
 
     private def htmlTagIsEmpty(el: Element) = {
-      el.select(resourceHtmlEmbedTag).isEmpty && !el.hasText && el.isBlock
+      el.select(resourceHtmlEmbedTag).isEmpty && !el.hasText
     }
 
     private def removeEmptyTags(element: Element): Element = {
-      for (el <- element.select("p,div,section,aside").asScala) {
+      for (el <- element.select("p,div,section,aside,strong").asScala) {
         if (htmlTagIsEmpty(el)) {
           el.remove()
         }
@@ -149,10 +149,17 @@ trait HTMLCleaner {
       val minimumIngressWordCount = 3
       val firstSection = Option(el.select("body>section").first)
       val firstDivSection = Option(el.select("body>section:eq(0)>div").first)
+      val secondDivSection = Option(el.select("body>section:eq(0)>div:eq(0)>div").first)
 
-      val ingress = firstSection.flatMap(getIngressText) match {
-        case None => firstDivSection.flatMap(getIngressText)
-        case ing => ing
+      // Look for ingress according to the following priorities:
+      //   1. first paragraph in first section, ei. <section><p> HERE </p></section>
+      //   2. first paragraph in first nested div inside first section, ei. <section><div><div><p> HERE </p></div></div></section>
+      //   3. first paragraph in first div inside first section, ei. <section><div><p> HERE </p></div></section>
+      val ingress = (firstSection.flatMap(getIngressText), firstDivSection, secondDivSection) match {
+        case (Some(ing), _, _) => Some(ing)
+        case (None, _, Some(secondDiv)) => getIngressText(secondDiv)
+        case (None, Some(firstDiv), _) => getIngressText(firstDiv)
+        case _ => None
       }
 
       def getText(elements: Seq[Element]): String = elements.map(_.text).mkString(" ")
