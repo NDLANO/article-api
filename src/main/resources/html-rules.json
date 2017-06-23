@@ -1,5 +1,8 @@
 {
   "attributes": {
+    "div": [
+      "class"
+    ],
     "embed": [
       "data-player",
       "data-account",
@@ -72,6 +75,6 @@
     "tfoot",
     "embed",
     "td",
-    "th"
+    "th",
   ]
 }

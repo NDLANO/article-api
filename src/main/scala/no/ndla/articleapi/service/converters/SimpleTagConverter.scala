@@ -38,7 +38,7 @@ object SimpleTagConverter extends ConverterModule {
           el.addClass("c-bodybox")
         }
         case "full" | "wrapicon" | "no_icon" => el.unwrap()
-        case _ =>
+        case _ => el.removeAttr("class")
       }
     }
   }
