@@ -135,7 +135,7 @@ trait HTMLCleaner {
           case Some(head) :: Some(second) :: _ => Some(Seq(head, second))
           case Some(head) :: None :: _ => Some(Seq(head))
           case Some(head) :: _ => Some(Seq(head))
-          case None :: _ => None
+          case _ => None
         }
       })
 
