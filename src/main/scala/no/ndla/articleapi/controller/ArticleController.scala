@@ -63,6 +63,18 @@ trait ArticleController {
         authorizations "oauth2"
         responseMessages(response500))
 
+    val getAllArticlesPost =
+      (apiOperation[List[SearchResult]]("getAllArticlesPost")
+        summary "Show all articles"
+        notes "Shows all articles. You can search it too."
+        parameters(
+        headerParam[Option[String]]("X-Correlation-ID").description("User supplied correlation-id"),
+        headerParam[Option[String]]("app-key").description("Your app-key"),
+        bodyParam[SearchParams]
+      )
+        authorizations "oauth2"
+        responseMessages(response400, response500))
+
     val getArticleById =
       (apiOperation[List[Article]]("getArticleById")
         summary "Show article with a specified Id"
@@ -121,16 +133,7 @@ trait ArticleController {
       readService.getNMostUsedTags(size)
     }
 
-    get("/", operation(getAllArticles)) {
-      val query = paramOrNone("query")
-      val sort = Sort.valueOf(paramOrDefault("sort", ""))
-      val language = paramOrDefault("language", Language.DefaultLanguage)
-      val license = paramOrNone("license")
-      val pageSize = intOrDefault("page-size", ArticleApiProperties.DefaultPageSize)
-      val page = intOrDefault("page", 1)
-      val idList = paramAsListOfLong("ids")
-      val articleTypesFilter = paramAsListOfString("articleTypes")
-
+    private def search(query: Option[String], sort: Option[Sort.Value], language: String, license: Option[String], page: Int, pageSize: Int, idList: List[Long], articleTypesFilter: Seq[String]) = {
       query match {
         case Some(q) => searchService.matchingQuery(
           query = q.toLowerCase.split(" ").map(_.trim),
@@ -153,6 +156,35 @@ trait ArticleController {
           if (articleTypesFilter.isEmpty) ArticleType.all else articleTypesFilter
         )
       }
+
+    }
+
+    get("/", operation(getAllArticles)) {
+      val query = paramOrNone("query")
+      val sort = Sort.valueOf(paramOrDefault("sort", ""))
+      val language = paramOrDefault("language", Language.DefaultLanguage)
+      val license = paramOrNone("license")
+      val pageSize = intOrDefault("page-size", ArticleApiProperties.DefaultPageSize)
+      val page = intOrDefault("page", 1)
+      val idList = paramAsListOfLong("ids")
+      val articleTypesFilter = paramAsListOfString("articleTypes")
+
+      search(query, sort, language, license, page, pageSize, idList, articleTypesFilter)
+    }
+
+    post("/search/", operation(getAllArticlesPost)) {
+      val searchParams = extract[SearchParams](request.body)
+
+      val query = searchParams.query
+      val sort = Sort.valueOf(searchParams.sort.getOrElse(""))
+      val language = searchParams.language.getOrElse(Language.DefaultLanguage)
+      val license = searchParams.license
+      val pageSize = searchParams.pageSize.getOrElse(ArticleApiProperties.DefaultPageSize)
+      val page = searchParams.page.getOrElse(1)
+      val idList = searchParams.idList
+      val articleTypesFilter = searchParams.articleTypes
+
+      search(query, sort, language, license, page, pageSize, idList, articleTypesFilter)
     }
 
     get("/:article_id", operation(getArticleById)) {
