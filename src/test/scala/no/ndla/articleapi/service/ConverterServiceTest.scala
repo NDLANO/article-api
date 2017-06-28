@@ -317,12 +317,16 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
 
   test("toDomainArticleShould should remove unneeded attributes on embed-tags") {
     val content = s"""<h1>hello</h1><embed ${Attributes.DataResource}="${ResourceType.Image}" ${Attributes.DataUrl}="http://some-url" ${Attributes.DataId}=1 data-random="hehe" />"""
-    val expected = s"""<h1>hello</h1><embed ${Attributes.DataResource}="${ResourceType.Image}" />"""
+    val expectedContent = s"""<h1>hello</h1><embed ${Attributes.DataResource}="${ResourceType.Image}" />"""
+    val visualElement = s"""<embed ${Attributes.DataResource}="${ResourceType.Image}" ${Attributes.DataUrl}="http://some-url" ${Attributes.DataId}=1 data-random="hehe" />"""
+    val expectedVisualElement = s"""<embed ${Attributes.DataResource}="${ResourceType.Image}" />"""
     val articleContent = api.ArticleContent(content, None, Some("en"))
-    val apiArticle = TestData.newArticle.copy(content=Seq(articleContent))
+    val articleVisualElement = api.VisualElement(visualElement, Some("en"))
+    val apiArticle = TestData.newArticle.copy(content=Seq(articleContent), visualElement=Some(Seq(articleVisualElement)))
 
     val result = service.toDomainArticle(apiArticle)
-    result.content.head.content should equal (expected)
+    result.content.head.content should equal (expectedContent)
+    result.visualElement.head.resource should equal (expectedVisualElement)
   }
 
   test("VisualElement should be converted") {
