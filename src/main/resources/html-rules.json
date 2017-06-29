@@ -1,5 +1,8 @@
 {
   "attributes": {
+    "div": [
+      "class"
+    ],
     "embed": [
       "data-player",
       "data-account",
@@ -29,7 +32,8 @@
     ],
     "a": [
       "href",
-      "title"
+      "title",
+      "name"
     ]
   },
   "tags": [

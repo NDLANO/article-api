@@ -162,11 +162,30 @@ class HTMLCleanerTest extends UnitSuite with TestEnvironment {
     result.ingress should be (None)
   }
 
+  test("only the first paragraph should be extracted if strong") {
+    val content = s"""<section><embed data-align="" data-alt="Hånd som tegner" data-caption="" data-resource="image" data-resource_id="200" data-size="fullbredde"/>
+         |<p><strong>Når du skal jobbe med fotoutstilling, er det lurt å sette seg godt inn i tema for utstillingen og bestemme seg for hvilket uttrykk man
+         |er ute etter å skape allerede i planleggingsfasen.
+         |</strong></p>
+         |<h2>Tips til aktuelle verktøy og bruk av verktøy</h2>
+         |</section>""".stripMargin
+    val expectedContentResult = s"""<section><embed data-align="" data-alt="Hånd som tegner" data-caption="" data-resource="image" data-resource_id="200" data-size="fullbredde" />
+
+      |<h2>Tips til aktuelle verktøy og bruk av verktøy</h2>
+      |</section>""".stripMargin
+    val expectedIngressResult = LanguageIngress("Når du skal jobbe med fotoutstilling, er det lurt å sette seg godt inn i tema for utstillingen og bestemme seg for hvilket uttrykk man er ute etter å skape allerede i planleggingsfasen.", TestData.sampleContent.language)
+
+    val Success((result, _)) = htmlCleaner.convert(TestData.sampleContent.copy(content=content), defaultImportStatus)
+
+    result.content should equal(expectedContentResult)
+    result.ingress should equal(Some(expectedIngressResult))
+  }
+
   test("ingress inside a div should be extracted") {
     val content =
       """<section><div>
         |<embed data-align="" data-alt="To gutter" data-caption="" data-resource="image" data-resource_id="1234" data-size="fullbredde" data-id="0" data-url="http://ndla" />
-        |<p><strong>Du er et unikt individ, med en rekke personlige egenskaper.</strong></p>
+        |<p><strong> </strong><strong>Du er et unikt individ, med en rekke personlige egenskaper.</strong></p>
         |</div></section>
       """.stripMargin
     val expectedContent =
@@ -175,6 +194,44 @@ class HTMLCleanerTest extends UnitSuite with TestEnvironment {
         |
         |</div></section>""".stripMargin
     val expectedIngress = Some(LanguageIngress("Du er et unikt individ, med en rekke personlige egenskaper.", TestData.sampleContent.language))
+
+    val Success((result, _)) = htmlCleaner.convert(TestData.sampleContent.copy(content=content), defaultImportStatus)
+
+    result.ingress should be (expectedIngress)
+    result.content should be (expectedContent)
+  }
+
+  test("ingress inside a nested div should be extracted") {
+    val content =
+      """<section><div><div>
+        |<embed data-align="" data-alt="To gutter" data-caption="" data-resource="image" data-resource_id="1234" data-size="fullbredde" data-id="0" data-url="http://ndla" />
+        |<p><strong>Du er et unikt individ, med en rekke personlige egenskaper.</strong></p>
+        |</div><p>do not touch</p></div></section>""".stripMargin
+    val expectedContent =
+      """<section><div><div>
+        |<embed data-align="" data-alt="To gutter" data-caption="" data-resource="image" data-resource_id="1234" data-size="fullbredde" data-id="0" data-url="http://ndla" />
+        |
+        |</div><p>do not touch</p></div></section>""".stripMargin
+    val expectedIngress = Some(LanguageIngress("Du er et unikt individ, med en rekke personlige egenskaper.", TestData.sampleContent.language))
+
+    val Success((result, _)) = htmlCleaner.convert(TestData.sampleContent.copy(content=content), defaultImportStatus)
+
+    result.ingress should be (expectedIngress)
+    result.content should be (expectedContent)
+  }
+
+  test("ingres inside first paragraph should be extracted when also div is present") {
+    val content =
+      """<section><p><strong>correct ingress more than three words</strong></p><div><div>
+        |<embed data-align="" data-alt="To gutter" data-caption="" data-resource="image" data-resource_id="1234" data-size="fullbredde" data-id="0" data-url="http://ndla" />
+        |<p><strong>Du er et unikt individ, med en rekke personlige egenskaper.</strong></p>
+        |</div><p>do not touch</p></div></section>""".stripMargin
+    val expectedContent =
+      """<section><div><div>
+        |<embed data-align="" data-alt="To gutter" data-caption="" data-resource="image" data-resource_id="1234" data-size="fullbredde" data-id="0" data-url="http://ndla" />
+        |<p><strong>Du er et unikt individ, med en rekke personlige egenskaper.</strong></p>
+        |</div><p>do not touch</p></div></section>""".stripMargin
+    val expectedIngress = Some(LanguageIngress("correct ingress more than three words", TestData.sampleContent.language))
 
     val Success((result, _)) = htmlCleaner.convert(TestData.sampleContent.copy(content=content), defaultImportStatus)
 
@@ -263,6 +320,26 @@ class HTMLCleanerTest extends UnitSuite with TestEnvironment {
 
     result.content should equal(expectedContentResult)
     result.ingress should equal(Some(expectedIngressResult))
+  }
+
+  test("HTMLCleaner extracts two first string paragraphs as ingress") {
+    val content = s"""<section>
+                     |<$resourceHtmlEmbedTag data-size="fullbredde" data-url="http://image-api/images/5452" data-align="" data-id="1" data-resource="image" data-alt="Mobiltelefon sender SMS" />
+                     |<p><strong>Medievanene er i endring.</strong></p>
+                     |<p><strong>Er egentlig medievanene i endring</strong></p>
+                     |<h2>Mediehverdagen</h2>
+                     |</section>""".stripMargin.replace("\n", "")
+    val expectedContentResult = s"""<section>
+                                   |<$resourceHtmlEmbedTag data-size="fullbredde" data-url="http://image-api/images/5452" data-align="" data-id="1" data-resource="image" data-alt="Mobiltelefon sender SMS" />
+                                   |<h2>Mediehverdagen</h2>
+                                   |</section>""".stripMargin.replace("\n", "")
+
+    val expectedIngressResult = LanguageIngress("Medievanene er i endring. Er egentlig medievanene i endring", Some("en"))
+
+    val Success((result, _)) = htmlCleaner.convert(TestData.sampleContent.copy(content=content), defaultImportStatus)
+
+    result.ingress should equal(Some(expectedIngressResult))
+    result.content should equal(expectedContentResult)
   }
 
   test("elements are replaced with data-caption text in meta description") {
