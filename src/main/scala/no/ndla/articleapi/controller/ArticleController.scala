@@ -136,9 +136,9 @@ trait ArticleController {
     private def search(query: Option[String], sort: Option[Sort.Value], language: String, license: Option[String], page: Int, pageSize: Int, idList: List[Long], articleTypesFilter: Seq[String]) = {
       query match {
         case Some(q) => searchService.matchingQuery(
-          query = q.toLowerCase.split(" ").map(_.trim),
+          query = q,
           withIdIn = idList,
-          language = language,
+          searchLanguage = language,
           license = license,
           page = page,
           pageSize = pageSize,
