@@ -6,12 +6,14 @@ import no.ndla.articleapi.integration.JestClientFactory
 import no.ndla.articleapi.model.domain._
 import no.ndla.articleapi.service.converters.{DivTableConverter, MathMLConverter, SimpleTagConverter, TableConverter}
 import no.ndla.articleapi.{ArticleApiProperties, IntegrationSuite, TestEnvironment}
+import no.ndla.tag.IntegrationTest
 import org.json4s.native.Serialization.read
 import org.json4s.{DefaultFormats, Formats}
 import scalikejdbc.{ConnectionPool, DataSourceConnectionPool}
 
 import scala.util.{Failure, Success}
 
+@IntegrationTest
 class ArticleConverterRegressionTest extends IntegrationSuite with TestEnvironment {
   protected implicit val jsonFormats: Formats = DefaultFormats
 
@@ -58,7 +60,7 @@ class ArticleConverterRegressionTest extends IntegrationSuite with TestEnvironme
 
   def originalFiles: List[File] = {
     val path = getClass.getResource("/perfect_articles")
-    new File(path.getPath).listFiles.toList
+    new File(path.getPath).listFiles.toList.filter(file => file.getName.endsWith(".json"))
   }
 
   case class PerfectArticle(nodeId: String,
