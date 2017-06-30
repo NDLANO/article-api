@@ -68,11 +68,14 @@ trait SearchService {
     }
 
     def all(withIdIn: List[Long], language: String, license: Option[String], page: Int, pageSize: Int, sort: Sort.Value, articleTypes: Seq[String]): SearchResult = {
-      val fullSearch = QueryBuilders.boolQuery().filter(QueryBuilders.constantScoreQuery(QueryBuilders.termsQuery("articleType", articleTypes:_*)))
+      val articleTypesFilter = if (articleTypes.nonEmpty) articleTypes else ArticleType.all
+      val fullSearch = QueryBuilders.boolQuery()
+        .filter(QueryBuilders.constantScoreQuery(QueryBuilders.termsQuery("articleType", articleTypesFilter:_*)))
       executeSearch(withIdIn, language, license, sort, page, pageSize, fullSearch)
     }
 
     def matchingQuery(query: String, withIdIn: List[Long], searchLanguage: String, license: Option[String], page: Int, pageSize: Int, sort: Sort.Value, articleTypes: Seq[String]): SearchResult = {
+      val articleTypesFilter = if (articleTypes.nonEmpty) articleTypes else ArticleType.all
       val titleSearch = QueryBuilders.queryStringQuery(query).defaultField(s"title.$searchLanguage")
       val introSearch = QueryBuilders.queryStringQuery(query).defaultField(s"introduction.$searchLanguage")
       val contentSearch = QueryBuilders.queryStringQuery(query).defaultField(s"content.$searchLanguage")
@@ -84,7 +87,7 @@ trait SearchService {
           .should(QueryBuilders.nestedQuery("introduction", introSearch, ScoreMode.Avg).boost(2))
           .should(QueryBuilders.nestedQuery("content", contentSearch, ScoreMode.Avg).boost(1))
           .should(QueryBuilders.nestedQuery("tags", tagSearch, ScoreMode.Avg).boost(2)))
-        .filter(QueryBuilders.constantScoreQuery(QueryBuilders.termsQuery("articleType", articleTypes:_*)))
+        .filter(QueryBuilders.constantScoreQuery(QueryBuilders.termsQuery("articleType", articleTypesFilter:_*)))
 
       executeSearch(withIdIn, searchLanguage, license, sort, page, pageSize, fullQuery)
     }

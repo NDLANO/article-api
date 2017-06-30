@@ -181,7 +181,7 @@ class SearchServiceTest extends UnitSuite with TestEnvironment {
   }
 
   test("That all returns all documents ordered by title descending") {
-    val results = searchService.all(List(), Language.DefaultLanguage, None, 10, 10, Sort.ByTitleDesc, Seq.empty)
+    val results = searchService.all(List(), Language.DefaultLanguage, None, 1, 10, Sort.ByTitleDesc, Seq.empty)
     results.totalCount should be(7)
     results.results.head.id should be("7")
     results.results(1).id should be("2")
@@ -246,52 +246,54 @@ class SearchServiceTest extends UnitSuite with TestEnvironment {
     page2.results.last.id should be("5")
   }
 
-// TODO: fix tests
-//  test("mathcingQuery should filter results based on an article type filter") {
-//    val results = searchService.matchingRegularQuery(Seq("bil"), List(), "nb", None, 1, 10, Sort.ByRelevanceDesc, Seq(ArticleType.TopicArticle.toString))
-//    results.totalCount should be(0)
-//
-//    val results2 = searchService.matchingRegularQuery(Seq("bil"), List(), "nb", None, 1, 10, Sort.ByRelevanceDesc, Seq(ArticleType.Standard.toString))
-//    results2.totalCount should be(3)
-//  }
-//
-//  test("That search matches title and html-content ordered by relevance descending") {
-//    val results = searchService.matchingRegularQuery(Seq("bil"), List(), "nb", None, 1, 10, Sort.ByRelevanceDesc, Seq.empty)
-//    results.totalCount should be(3)
-//    results.results.head.id should be("5")
-//    results.results(1).id should be("1")
-//    results.results.last.id should be("3")
-//  }
-//
-//  test("That search combined with filter by id only returns documents matching the query with one of the given ids") {
-//    val results = searchService.matchingRegularQuery(Seq("bil"), List(3), "nb", None, 1, 10, Sort.ByRelevanceDesc, Seq.empty)
-//    results.totalCount should be(1)
-//    results.results.head.id should be("3")
-//    results.results.last.id should be("3")
-//  }
-//
-//  test("That search matches title") {
-//    val results = searchService.matchingRegularQuery(Seq("Pingvinen"), List(), "nb", None, 1, 10, Sort.ByTitleAsc, Seq.empty)
-//    results.totalCount should be(1)
-//    results.results.head.id should be("2")
-//  }
-//
-//  test("That search matches tags") {
-//    val results = searchService.matchingRegularQuery(Seq("and"), List(), "nb", None, 1, 10, Sort.ByTitleAsc, Seq.empty)
-//    results.totalCount should be(1)
-//    results.results.head.id should be("3")
-//  }
-//
-//  test("That search does not return superman since it has license copyrighted and license is not specified") {
-//    val results = searchService.matchingRegularQuery(Seq("supermann"), List(), "nb", None, 1, 10, Sort.ByTitleAsc, Seq.empty)
-//    results.totalCount should be(0)
-//  }
-//
-//  test("That search returns superman since license is specified as copyrighted") {
-//    val results = searchService.matchingRegularQuery(Seq("supermann"), List(), "nb", Some("copyrighted"), 1, 10, Sort.ByTitleAsc, Seq.empty)
-//    results.totalCount should be(1)
-//    results.results.head.id should be("4")
-//  }
+  test("mathcingQuery should filter results based on an article type filter") {
+    val results = searchService.matchingQuery("bil", List(), "nb", None, 1, 10, Sort.ByRelevanceDesc, Seq(ArticleType.TopicArticle.toString))
+    results.totalCount should be(0)
+
+    val results2 = searchService.matchingQuery("bil", List(), "nb", None, 1, 10, Sort.ByRelevanceDesc, Seq(ArticleType.Standard.toString))
+    results2.totalCount should be(3)
+  }
+
+  test("That search matches title and html-content ordered by relevance descending") {
+    val results = searchService.matchingQuery("bil", List(), "nb", None, 1, 10, Sort.ByRelevanceDesc, Seq.empty)
+
+    results.results.foreach(println)
+
+    results.totalCount should be(3)
+    results.results.head.id should be("1")
+    results.results(1).id should be("5")
+    results.results.last.id should be("3")
+  }
+
+  test("That search combined with filter by id only returns documents matching the query with one of the given ids") {
+    val results = searchService.matchingQuery("bil", List(3), "nb", None, 1, 10, Sort.ByRelevanceDesc, Seq.empty)
+    results.totalCount should be(1)
+    results.results.head.id should be("3")
+    results.results.last.id should be("3")
+  }
+
+  test("That search matches title") {
+    val results = searchService.matchingQuery("Pingvinen", List(), "nb", None, 1, 10, Sort.ByTitleAsc, Seq.empty)
+    results.totalCount should be(1)
+    results.results.head.id should be("2")
+  }
+
+  test("That search matches tags") {
+    val results = searchService.matchingQuery("and", List(), "nb", None, 1, 10, Sort.ByTitleAsc, Seq.empty)
+    results.totalCount should be(1)
+    results.results.head.id should be("3")
+  }
+
+  test("That search does not return superman since it has license copyrighted and license is not specified") {
+    val results = searchService.matchingQuery("supermann", List(), "nb", None, 1, 10, Sort.ByTitleAsc, Seq.empty)
+    results.totalCount should be(0)
+  }
+
+  test("That search returns superman since license is specified as copyrighted") {
+    val results = searchService.matchingQuery("supermann", List(), "nb", Some("copyrighted"), 1, 10, Sort.ByTitleAsc, Seq.empty)
+    results.totalCount should be(1)
+    results.results.head.id should be("4")
+  }
 
   def blockUntil(predicate: () => Boolean) = {
     var backoff = 0
