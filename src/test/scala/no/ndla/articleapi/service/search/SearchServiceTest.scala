@@ -104,6 +104,16 @@ class SearchServiceTest extends UnitSuite with TestEnvironment {
     updated = today.minusDays(5).toDate,
     articleType = ArticleType.TopicArticle.toString
   )
+  val article9 = TestData.sampleArticleWithPublicDomain.copy(
+    id = Option(9),
+    title = List(ArticleTitle("Baldur har mareritt om Ragnarok", Some("nb"))),
+    introduction = List(ArticleIntroduction("Baldur", Some("nb"))),
+    content = List(ArticleContent("<p>Bilde av <em>Baldurs</em> som har  mareritt.", None, Some("nb"))),
+    tags = List(ArticleTag(List("baldur"), Some("nb"))),
+    created = today.minusDays(10).toDate,
+    updated = today.minusDays(5).toDate,
+    articleType = ArticleType.TopicArticle.toString
+  )
 
   override def beforeAll = {
     indexService.createIndexWithName(ArticleApiProperties.SearchIndex)
@@ -116,8 +126,9 @@ class SearchServiceTest extends UnitSuite with TestEnvironment {
     indexService.indexDocument(article6)
     indexService.indexDocument(article7)
     indexService.indexDocument(article8)
+    indexService.indexDocument(article9)
 
-    blockUntil(() => searchService.countDocuments() == 8)
+    blockUntil(() => searchService.countDocuments() == 9)
   }
 
   override def afterAll() = {
@@ -305,6 +316,11 @@ class SearchServiceTest extends UnitSuite with TestEnvironment {
 
     val search4 = searchService.matchingQuery("bil AND NOT hulken", List(), "nb", None, 1, 10, Sort.ByTitleAsc, Seq.empty)
     search4.results.map(_.id) should equal (Seq("1", "3"))
+  }
+
+  test("search in content should be ranked lower than introduction and title") {
+    val search = searchService.matchingQuery("mareritt + ragnarok", List(), "nb", None, 1, 10, Sort.ByRelevanceDesc, Seq.empty)
+    search.results.map(_.id) should equal (Seq("9", "8"))
   }
 
   def blockUntil(predicate: () => Boolean) = {
