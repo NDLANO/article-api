@@ -257,8 +257,6 @@ class SearchServiceTest extends UnitSuite with TestEnvironment {
   test("That search matches title and html-content ordered by relevance descending") {
     val results = searchService.matchingQuery("bil", List(), "nb", None, 1, 10, Sort.ByRelevanceDesc, Seq.empty)
 
-    results.results.foreach(println)
-
     results.totalCount should be(3)
     results.results.head.id should be("1")
     results.results(1).id should be("5")
@@ -293,6 +291,20 @@ class SearchServiceTest extends UnitSuite with TestEnvironment {
     val results = searchService.matchingQuery("supermann", List(), "nb", Some("copyrighted"), 1, 10, Sort.ByTitleAsc, Seq.empty)
     results.totalCount should be(1)
     results.results.head.id should be("4")
+  }
+
+  test("Searching with logical AND only returns results with all terms") {
+    val search1 = searchService.matchingQuery("bilde AND bil", List(), "nb", None, 1, 10, Sort.ByTitleAsc, Seq.empty)
+    search1.results.map(_.id) should equal (Seq("1", "3", "5"))
+
+    val search2 = searchService.matchingQuery("batmen AND bil", List(), "nb", None, 1, 10, Sort.ByTitleAsc, Seq.empty)
+    search2.results.map(_.id) should equal (Seq("1"))
+
+    val search3 = searchService.matchingQuery("bil AND bilde AND NOT flaggermusmann", List(), "nb", None, 1, 10, Sort.ByTitleAsc, Seq.empty)
+    search3.results.map(_.id) should equal (Seq("3", "5"))
+
+    val search4 = searchService.matchingQuery("bil AND NOT hulken", List(), "nb", None, 1, 10, Sort.ByTitleAsc, Seq.empty)
+    search4.results.map(_.id) should equal (Seq("1", "3"))
   }
 
   def blockUntil(predicate: () => Boolean) = {
