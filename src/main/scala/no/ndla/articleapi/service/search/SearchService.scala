@@ -76,10 +76,10 @@ trait SearchService {
 
     def matchingQuery(query: String, withIdIn: List[Long], searchLanguage: String, license: Option[String], page: Int, pageSize: Int, sort: Sort.Value, articleTypes: Seq[String]): SearchResult = {
       val articleTypesFilter = if (articleTypes.nonEmpty) articleTypes else ArticleType.all
-      val titleSearch = QueryBuilders.queryStringQuery(query).defaultField(s"title.$searchLanguage")
-      val introSearch = QueryBuilders.queryStringQuery(query).defaultField(s"introduction.$searchLanguage")
-      val contentSearch = QueryBuilders.queryStringQuery(query).defaultField(s"content.$searchLanguage")
-      val tagSearch = QueryBuilders.queryStringQuery(query).defaultField(s"tags.$searchLanguage")
+      val titleSearch = QueryBuilders.simpleQueryStringQuery(query).field(s"title.$searchLanguage")
+      val introSearch = QueryBuilders.simpleQueryStringQuery(query).field(s"introduction.$searchLanguage")
+      val contentSearch = QueryBuilders.simpleQueryStringQuery(query).field(s"content.$searchLanguage")
+      val tagSearch = QueryBuilders.simpleQueryStringQuery(query).field(s"tags.$searchLanguage")
 
       val fullQuery = QueryBuilders.boolQuery()
         .must(QueryBuilders.boolQuery()
