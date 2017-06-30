@@ -94,7 +94,7 @@ trait ConverterService {
     }
 
     def toDomainVisualElement(visual: api.VisualElement): VisualElement = {
-      VisualElement(visual.content, visual.language)
+      VisualElement(removeUnknownEmbedTagAttributes(visual.content), visual.language)
     }
 
     def toDomainMetaDescription(meta: api.ArticleMetaDescription): ArticleMetaDescription = {
