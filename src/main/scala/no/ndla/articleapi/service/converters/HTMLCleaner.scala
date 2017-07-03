@@ -39,10 +39,12 @@ trait HTMLCleaner {
     }
 
     private def moveImagesOutOfPTags(element: Element) {
-      for (el <- element.select("p").select(s"""$resourceHtmlEmbedTag[$DataResource=image]""").asScala) {
-        el.parent.before(el.outerHtml())
-        el.remove()
-      }
+      element.select("p").asScala.foreach(pTag => {
+        pTag.select(s"""$resourceHtmlEmbedTag[$DataResource=image]""").asScala.toList.foreach(el => {
+          pTag.before(el.outerHtml())
+          el.remove()
+        })
+      })
     }
 
     private def getIngress(content: LanguageContent, element: Element): Option[LanguageIngress] = {
