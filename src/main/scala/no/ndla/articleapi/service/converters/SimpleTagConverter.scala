@@ -33,11 +33,14 @@ object SimpleTagConverter extends ConverterModule {
         case "paragraph" => replaceTag(el, "section")
         case "quote" => replaceTag(el, "blockquote")
         case "hide" => handle_hide(el)
-        case "frame" => {
+        case "frame" =>
           el.removeClass("frame")
           el.addClass("c-bodybox")
-        }
         case "full" | "wrapicon" | "no_icon" => el.unwrap()
+        case cellContent if cellContent contains "ndla_table_cell_content" => el.unwrap()
+        case cell if cell contains "ndla_table_cell" => replaceTag(el, "td")
+        case row if row contains "ndla_table_row" => replaceTag(el, "tr")
+        case table if table contains "ndla_table" => replaceTag(el, "table")
         case _ => el.removeAttr("class")
       }
     }
