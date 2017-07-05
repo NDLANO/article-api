@@ -12,7 +12,7 @@ package no.ndla.articleapi
 import com.amazonaws.regions.Regions
 import com.amazonaws.services.s3.AmazonS3ClientBuilder
 import no.ndla.articleapi.auth.{Role, User}
-import no.ndla.articleapi.controller.{ArticleController, HealthController, InternController}
+import no.ndla.articleapi.controller.{ArticleController, ArticleControllerV2, HealthController, InternController}
 import no.ndla.articleapi.integration._
 import no.ndla.articleapi.repository.ArticleRepository
 import no.ndla.articleapi.service._
@@ -28,6 +28,7 @@ object ComponentRegistry
   extends DataSource
     with InternController
     with ArticleController
+    with ArticleControllerV2
     with HealthController
     with ArticleRepository
     with ElasticClient
@@ -75,6 +76,7 @@ object ComponentRegistry
   lazy val extractConvertStoreContent = new ExtractConvertStoreContent
   lazy val internController = new InternController
   lazy val articleController = new ArticleController
+  lazy val articleControllerV2 = new ArticleControllerV2
   lazy val resourcesApp = new ResourcesApp
   lazy val healthController = new HealthController
 
