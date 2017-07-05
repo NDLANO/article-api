@@ -387,6 +387,15 @@ class HTMLCleanerTest extends UnitSuite with TestEnvironment {
     result.content should equal (expectedResult)
   }
 
+  test("embed-images inside nested p tags are moved out of p tag and p is removed if empty") {
+    val image = s"""<$resourceHtmlEmbedTag data-resource="image" data-url="http://some.url.org/img1.jpg" />"""
+    val content = TestData.sampleContent.copy(content=s"""<section><p><strong>$image</strong></p></section>""")
+
+    val expectedResult = s"""<section>$image</section>"""
+    val Success((result, _)) = htmlCleaner.convert(content, defaultImportStatus)
+    result.content should equal (expectedResult)
+  }
+
   test("p tags without images are left untouched") {
     val originalContent = """<section><p>sample text</p></section>"""
     val content = TestData.sampleContent.copy(content=originalContent)
@@ -394,4 +403,5 @@ class HTMLCleanerTest extends UnitSuite with TestEnvironment {
 
     result.content should equal (originalContent)
   }
+
 }
