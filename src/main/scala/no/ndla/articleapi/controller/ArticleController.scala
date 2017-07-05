@@ -162,7 +162,7 @@ trait ArticleController {
     get("/", operation(getAllArticles)) {
       val query = paramOrNone("query")
       val sort = Sort.valueOf(paramOrDefault("sort", ""))
-      val language = paramOrDefault("language", Language.DefaultLanguage)
+      val language = paramOrDefault("language", Language.AllLanguages)
       val license = paramOrNone("license")
       val pageSize = intOrDefault("page-size", ArticleApiProperties.DefaultPageSize)
       val page = intOrDefault("page", 1)

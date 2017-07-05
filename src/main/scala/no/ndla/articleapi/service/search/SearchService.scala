@@ -37,14 +37,14 @@ trait SearchService {
 
     private val noCopyright = QueryBuilders.boolQuery().mustNot(QueryBuilders.termQuery("license", "copyrighted"))
 
-    def getHits(response: JestSearchResult): Seq[ArticleSummary] = {
+    def getHits(response: JestSearchResult, language: String): Seq[ArticleSummary] = {
       var resultList = Seq[ArticleSummary]()
       response.getTotal match {
         case count: Integer if count > 0 => {
           val resultArray = response.getJsonObject.get("hits").asInstanceOf[JsonObject].get("hits").getAsJsonArray
           val iterator = resultArray.iterator()
           while (iterator.hasNext) {
-            resultList = resultList :+ hitAsArticleSummary(iterator.next().asInstanceOf[JsonObject].get("_source").asInstanceOf[JsonObject])
+            resultList = resultList :+ hitAsArticleSummary(iterator.next().asInstanceOf[JsonObject].get("_source").asInstanceOf[JsonObject], language)
           }
           resultList
         }
@@ -52,17 +52,28 @@ trait SearchService {
       }
     }
 
-    def hitAsArticleSummary(hit: JsonObject): ArticleSummary = {
+    def hitAsArticleSummary(hit: JsonObject, language: String): ArticleSummary = {
       import scala.collection.JavaConversions._
+
+      val titles = hit.get("title").getAsJsonObject.entrySet().to[Seq]
+        .map(entr => ArticleTitle(entr.getValue.getAsString, Some(entr.getKey)))
+
+      val supportedLanguages = titles.map(_.language.getOrElse(Language.NoLanguage))
+
+      val title = titles
+        .find(title => title.language.getOrElse(Language.NoLanguage) == (if (language == Language.AllLanguages) Language.DefaultLanguage else language))
+        .getOrElse(titles.head)
+        .title
 
       ArticleSummary(
         hit.get("id").getAsString,
-        hit.get("title").getAsJsonObject.entrySet().to[Seq].map(entr => ArticleTitle(entr.getValue.getAsString, Some(entr.getKey))),
+        title,
         hit.get("visualElement").getAsJsonObject.entrySet().to[Seq].map(entr => VisualElement(entr.getValue.getAsString, Some(entr.getKey))),
         hit.get("introduction").getAsJsonObject.entrySet().to[Seq].map(entr => ArticleIntroduction(entr.getValue.getAsString, Some(entr.getKey))),
         ApplicationUrl.get + hit.get("id").getAsString,
         hit.get("license").getAsString,
-        hit.get("articleType").getAsString
+        hit.get("articleType").getAsString,
+        supportedLanguages
       )
 
     }
@@ -75,7 +86,7 @@ trait SearchService {
 
     def matchingQuery(query: Iterable[String], withIdIn: List[Long], language: String, license: Option[String], page: Int, pageSize: Int, sort: Sort.Value, articleTypes: Seq[String]): SearchResult = {
       logger.info(s"articletypes: $articleTypes")
-      val searchLanguage = language
+      val searchLanguage = if (language == Language.AllLanguages) Language.DefaultLanguage else language
 
       val titleSearch = QueryBuilders.matchQuery(s"title.$searchLanguage", query.mkString(" ")).operator(Operator.AND)
       val contentSearch = QueryBuilders.matchQuery(s"content.$searchLanguage", query.mkString(" ")).operator(Operator.AND)
@@ -92,9 +103,16 @@ trait SearchService {
     }
 
     def executeSearch(withIdIn: List[Long], language: String, license: Option[String], sort: Sort.Value, page: Int, pageSize: Int, queryBuilder: BoolQueryBuilder): SearchResult = {
-      val filteredSearch = license match {
-        case None => queryBuilder.filter(noCopyright)
-        case Some(lic) => queryBuilder.filter(QueryBuilders.termQuery("license", lic))
+      val (filteredSearch, searchLanguage) = {
+        val licenseFilteredSearch = license match {
+          case None => queryBuilder.filter(noCopyright)
+          case Some(lic) => queryBuilder.filter(QueryBuilders.termQuery("license", lic))
+        }
+
+        language match {
+          case Language.AllLanguages => (licenseFilteredSearch, Language.DefaultLanguage)
+          case _ => (licenseFilteredSearch.filter(QueryBuilders.nestedQuery("title", QueryBuilders.existsQuery(s"title.$language"), ScoreMode.Avg)), language)
+        }
       }
 
       val idFilteredSearch = withIdIn match {
@@ -102,7 +120,7 @@ trait SearchService {
         case Nil => filteredSearch
       }
 
-      val searchQuery = new SearchSourceBuilder().query(idFilteredSearch).sort(getSortDefinition(sort, language))
+      val searchQuery = new SearchSourceBuilder().query(idFilteredSearch).sort(getSortDefinition(sort, searchLanguage))
 
       val (startAt, numResults) = getStartAtAndNumResults(page, pageSize)
       val request = new Search.Builder(searchQuery.toString)
@@ -110,7 +128,7 @@ trait SearchService {
         .setParameter(Parameters.SIZE, numResults) .setParameter("from", startAt)
 
         jestClient.execute(request.build()) match {
-        case Success(response) => SearchResult(response.getTotal.toLong, page, numResults, getHits(response))
+        case Success(response) => SearchResult(response.getTotal.toLong, page, numResults, language, getHits(response, language))
         case Failure(f) => errorHandler(Failure(f))
       }
     }
