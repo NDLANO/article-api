@@ -14,20 +14,20 @@ import no.ndla.articleapi.ArticleApiProperties.RoleWithWriteAccess
 import no.ndla.articleapi.auth.Role
 import no.ndla.articleapi.model.api._
 import no.ndla.articleapi.model.domain.{ArticleType, Language, Sort}
-import no.ndla.articleapi.service.{ReadService, WriteService}
 import no.ndla.articleapi.service.search.SearchService
+import no.ndla.articleapi.service.{ReadService, WriteService}
 import org.json4s.native.Serialization.read
 import org.json4s.{DefaultFormats, Formats}
-import org.scalatra.{Created, NotFound, Ok}
 import org.scalatra.swagger.{ResponseMessage, Swagger, SwaggerSupport}
+import org.scalatra.{Created, NotFound, Ok}
 
 import scala.util.{Failure, Success, Try}
 
-trait ArticleController {
+trait ArticleControllerV2 {
   this: ReadService with WriteService with SearchService with Role =>
-  val articleController: ArticleController
+  val articleControllerV2: ArticleControllerV2
 
-  class ArticleController(implicit val swagger: Swagger) extends NdlaController with SwaggerSupport {
+  class ArticleControllerV2(implicit val swagger: Swagger) extends NdlaController with SwaggerSupport {
     protected implicit override val jsonFormats: Formats = DefaultFormats
     protected val applicationDescription = "API for accessing articles from ndla.no."
 
@@ -164,7 +164,7 @@ trait ArticleController {
     get("/", operation(getAllArticles)) {
       val query = paramOrNone("query")
       val sort = Sort.valueOf(paramOrDefault("sort", ""))
-      val language = paramOrDefault("language", Language.AllLanguages)
+      val language = paramOrDefault("language", Language.DefaultLanguage)
       val license = paramOrNone("license")
       val pageSize = intOrDefault("page-size", ArticleApiProperties.DefaultPageSize)
       val page = intOrDefault("page", 1)

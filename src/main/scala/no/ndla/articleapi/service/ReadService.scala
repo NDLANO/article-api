@@ -36,8 +36,15 @@ trait ReadService {
       article.copy(content = articleWithUrls, visualElement = visualElementWithUrls)
     }
 
-    def getNMostUsedTags(n: Int): Seq[api.ArticleTag] = {
-      getTagUsageMap().map { case (lang, tags) =>
+    def getNMostUsedTags(n: Int, language: String = Language.AllLanguages): Seq[api.ArticleTag] = {
+      val tagUsageMap =
+        if (language == Language.AllLanguages)
+          getTagUsageMap()
+        else
+          getTagUsageMap().filterKeys(lang => lang.getOrElse("") == language)
+
+      tagUsageMap.map {
+        case (lang, tags) =>
           api.ArticleTag(tags.getNMostFrequent(n), lang)
       }.toSeq
     }
