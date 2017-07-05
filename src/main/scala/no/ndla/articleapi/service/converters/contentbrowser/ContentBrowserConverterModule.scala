@@ -16,6 +16,7 @@ import no.ndla.articleapi.repository.ArticleRepository
 import no.ndla.articleapi.service._
 import no.ndla.articleapi.service.converters.HtmlTagGenerator
 import no.ndla.articleapi.service.search.{IndexService, SearchConverterService, SearchIndexService}
+import no.ndla.articleapi.validation.ArticleValidator
 import no.ndla.network.NdlaClient
 
 import scala.util.Try
@@ -61,3 +62,4 @@ trait ContentBrowserConverterModules
   with HtmlTagGenerator
   with UnsupportedContentConverter
   with User
+  with ArticleValidator
