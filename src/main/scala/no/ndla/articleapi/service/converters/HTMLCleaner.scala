@@ -34,6 +34,8 @@ trait HTMLCleaner {
       val metaDescription = prepareMetaDescription(content.metaDescription)
       val ingress = getIngress(content, element)
 
+      moveMisplacedAsideTags(element)
+
       Success((content.copy(content=jsoupDocumentToString(element), ingress=ingress, metaDescription=metaDescription),
         ImportStatus(importStatus.messages ++ illegalTags ++ illegalAttributes, importStatus.visitedNodes)))
     }
@@ -181,7 +183,7 @@ trait HTMLCleaner {
       elementToExtract.text()
     }
 
-    private def wrapStandaloneTextInPTag (element: Element) : Element = {
+    private def wrapStandaloneTextInPTag(element: Element): Element = {
       val sections = element.select("body>section").asScala
       sections.map(node => node.childNodes().asScala.map(child => {
         if (child.nodeName() == "#text" && !child.asInstanceOf[TextNode].isBlank) {
@@ -192,8 +194,21 @@ trait HTMLCleaner {
 
       element
     }
-  }
 
+    private def moveMisplacedAsideTags(element: Element) = {
+      val aside = element.select("body>section:eq(0)>aside:eq(0)").asScala.headOption
+      aside match {
+        case None =>
+        case Some(e) =>
+          val sibling = e.siblingElements().asScala.lift(0)
+          sibling.map(s =>
+            s.before(e)
+          )
+      }
+      element
+    }
+
+  }
 }
 
 object HTMLCleaner {
