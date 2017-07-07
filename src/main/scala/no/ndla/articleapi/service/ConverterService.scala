@@ -83,30 +83,21 @@ trait ConverterService {
 
       val titles = hit.get("title").getAsJsonObject.entrySet().to[Seq]
         .map(entr => ArticleTitle(entr.getValue.getAsString, Some(entr.getKey)))
-
       val searchLanguage = if (language == Language.AllLanguages) Language.DefaultLanguage else language
 
+      /*
+      * Find a title that matches the language parameter,
+      * the first title if no such language exists,
+      * or an empty string if there are no titles.
+      * */
       val title = titles
         .find(title => title.language.getOrElse(Language.NoLanguage) == searchLanguage)
-        .getOrElse(titles.head)
-        .title
+        .orElse(titles.headOption).map(_.title)
+        .getOrElse("")
 
-      val visualElement = {
-        hit.get("visualElement").getAsJsonObject.entrySet().to[Seq].find(entr => entr.getKey == searchLanguage) match {
-          case Some(element) => element.getValue.getAsString
-          case None => ""
-        }
-      }
-
-      val introduction = {
-        hit.get("introduction").getAsJsonObject.entrySet().to[Seq].find(entr => entr.getKey == searchLanguage) match {
-          case Some(element) => element.getValue.getAsString
-          case None => ""
-        }
-      }
-
-      val supportedLanguages = hit.get("title").getAsJsonObject.entrySet().to[Seq].map(entr => entr.getKey)
-
+      val visualElement = getValueByFieldAndLanguage(hit, "visualElement", searchLanguage)
+      val introduction = getValueByFieldAndLanguage(hit, "introduction", searchLanguage)
+      val supportedLanguages = titles.map(_.language.getOrElse(Language.NoLanguage))
 
       ArticleSummaryV2(
         hit.get("id").getAsString,
@@ -118,6 +109,15 @@ trait ConverterService {
         hit.get("articleType").getAsString,
         supportedLanguages
       )
+    }
+
+    def getValueByFieldAndLanguage(hit: JsonObject, fieldPath: String, searchLanguage: String): String = {
+      import scala.collection.JavaConversions._
+
+      hit.get(fieldPath).getAsJsonObject.entrySet().to[Seq].find(entr => entr.getKey == searchLanguage) match {
+        case Some(element) => element.getValue.getAsString
+        case None => ""
+      }
     }
 
     def toDomainArticle(nodeToConvert: NodeToConvert, importStatus: ImportStatus): Try[(Article, ImportStatus)] = {
