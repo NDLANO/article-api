@@ -137,34 +137,37 @@ trait ArticleControllerV2 {
     }
 
     private def search(query: Option[String], sort: Option[Sort.Value], language: String, license: Option[String], page: Int, pageSize: Int, idList: List[Long], articleTypesFilter: Seq[String]) = {
-      query match {
-        case Some(q) => {
-          val searchResult = searchService.matchingQuery(
-            query = q.toLowerCase.split(" ").map(_.trim),
-            withIdIn = idList,
-            language = language,
-            license = license,
-            page = page,
-            pageSize = pageSize,
-            sort = sort.getOrElse(Sort.ByRelevanceDesc),
-            if (articleTypesFilter.isEmpty) ArticleType.all else articleTypesFilter
-          )
-          converterService.getHitsV2(searchResult.response, language)
-        }
+      val searchResult = query match {
+        case Some(q) => searchService.matchingQuery(
+          query = q.toLowerCase.split(" ").map(_.trim),
+          withIdIn = idList,
+          language = language,
+          license = license,
+          page = page,
+          pageSize = pageSize,
+          sort = sort.getOrElse(Sort.ByRelevanceDesc),
+          if (articleTypesFilter.isEmpty) ArticleType.all else articleTypesFilter
+        )
 
-        case None => {
-          val searchResult = searchService.all(
-            withIdIn = idList,
-            language = language,
-            license = license,
-            page = page,
-            pageSize = pageSize,
-            sort = sort.getOrElse(Sort.ByTitleAsc),
-            if (articleTypesFilter.isEmpty) ArticleType.all else articleTypesFilter
-          )
-          converterService.getHitsV2(searchResult.response, language)
-        }
+        case None => searchService.all(
+          withIdIn = idList,
+          language = language,
+          license = license,
+          page = page,
+          pageSize = pageSize,
+          sort = sort.getOrElse(Sort.ByTitleAsc),
+          if (articleTypesFilter.isEmpty) ArticleType.all else articleTypesFilter
+        )
       }
+
+      val hitResult = converterService.getHitsV2(searchResult.response, language)
+      SearchResultV2(
+        searchResult.totalCount,
+        searchResult.page,
+        searchResult.pageSize,
+        searchResult.language,
+        hitResult
+      )
     }
 
     get("/", operation(getAllArticles)) {

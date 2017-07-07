@@ -136,9 +136,8 @@ trait ArticleController {
     }
 
     private def search(query: Option[String], sort: Option[Sort.Value], language: String, license: Option[String], page: Int, pageSize: Int, idList: List[Long], articleTypesFilter: Seq[String]) = {
-      query match {
-        case Some(q) => {
-          val searchResult = searchService.matchingQuery(
+      val searchResult = query match {
+        case Some(q) => searchService.matchingQuery(
             query = q.toLowerCase.split(" ").map(_.trim),
             withIdIn = idList,
             language = language,
@@ -147,12 +146,9 @@ trait ArticleController {
             pageSize = pageSize,
             sort = sort.getOrElse(Sort.ByRelevanceDesc),
             if (articleTypesFilter.isEmpty) ArticleType.all else articleTypesFilter
-          )
-          converterService.getHits(searchResult.response)
-        }
+        )
 
-        case None => {
-          val searchResult = searchService.all(
+        case None => searchService.all(
             withIdIn = idList,
             language = language,
             license = license,
@@ -161,9 +157,16 @@ trait ArticleController {
             sort = sort.getOrElse(Sort.ByTitleAsc),
             if (articleTypesFilter.isEmpty) ArticleType.all else articleTypesFilter
           )
-          converterService.getHits(searchResult.response)
-        }
       }
+
+      val hitResult = converterService.getHits(searchResult.response)
+      SearchResult(
+        searchResult.totalCount,
+        searchResult.page,
+        searchResult.pageSize,
+        searchResult.language,
+        hitResult
+      )
     }
 
     get("/", operation(getAllArticles)) {

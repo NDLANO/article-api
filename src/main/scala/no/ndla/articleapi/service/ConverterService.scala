@@ -105,6 +105,9 @@ trait ConverterService {
         }
       }
 
+      val supportedLanguages = hit.get("title").getAsJsonObject.entrySet().to[Seq].map(entr => entr.getKey)
+
+
       ArticleSummaryV2(
         hit.get("id").getAsString,
         title,
@@ -113,7 +116,7 @@ trait ConverterService {
         ApplicationUrl.get + hit.get("id").getAsString,
         hit.get("license").getAsString,
         hit.get("articleType").getAsString,
-        hit.get("title").getAsJsonObject.entrySet().to[Seq].map(entr => entr.getKey)
+        supportedLanguages
       )
     }
 

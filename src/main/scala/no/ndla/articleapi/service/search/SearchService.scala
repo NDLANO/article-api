@@ -87,7 +87,7 @@ trait SearchService {
         .setParameter(Parameters.SIZE, numResults) .setParameter("from", startAt)
 
         jestClient.execute(request.build()) match {
-        case Success(response) => SearchResult(response.getTotal.toLong, page, numResults, language, response)
+        case Success(response) => SearchResult(response.getTotal.toLong, page, numResults, searchLanguage, response)
         case Failure(f) => errorHandler(Failure(f))
       }
     }
