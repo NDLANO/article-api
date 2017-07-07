@@ -9,6 +9,7 @@
 
 package no.ndla.articleapi.service
 
+import com.google.gson.JsonObject
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.articleapi.ArticleApiProperties.maxConvertionRounds
 import no.ndla.articleapi.auth.User
@@ -18,7 +19,10 @@ import no.ndla.articleapi.model.api
 import no.ndla.articleapi.repository.ArticleRepository
 import no.ndla.mapping.License.getLicense
 import no.ndla.articleapi.integration.ConverterModule.{jsoupDocumentToString, stringToJsoupDocument}
+import no.ndla.articleapi.model.api.{ArticleSummary, ArticleSummaryV2}
 import no.ndla.articleapi.service.converters.{Attributes, HTMLCleaner, ResourceType}
+import no.ndla.network.ApplicationUrl
+import io.searchbox.core.{SearchResult => JestSearchResult}
 
 import scala.annotation.tailrec
 import scala.util.{Failure, Success, Try}
@@ -29,6 +33,93 @@ trait ConverterService {
   val converterService: ConverterService
 
   class ConverterService extends LazyLogging {
+
+    def getHits(response: JestSearchResult): Seq[ArticleSummary] = {
+      var resultList = Seq[ArticleSummary]()
+      response.getTotal match {
+        case count: Integer if count > 0 => {
+          val resultArray = response.getJsonObject.get("hits").asInstanceOf[JsonObject].get("hits").getAsJsonArray
+          val iterator = resultArray.iterator()
+          while (iterator.hasNext) {
+            resultList = resultList :+ hitAsArticleSummary(iterator.next().asInstanceOf[JsonObject].get("_source").asInstanceOf[JsonObject])
+          }
+          resultList
+        }
+        case _ => Seq()
+      }
+    }
+
+    def hitAsArticleSummary(hit: JsonObject): ArticleSummary = {
+      import scala.collection.JavaConversions._
+
+      ArticleSummary(
+        hit.get("id").getAsString,
+        hit.get("title").getAsJsonObject.entrySet().to[Seq].map(entr => api.ArticleTitle(entr.getValue.getAsString, Some(entr.getKey))),
+        hit.get("visualElement").getAsJsonObject.entrySet().to[Seq].map(entr => api.VisualElement(entr.getValue.getAsString, Some(entr.getKey))),
+        hit.get("introduction").getAsJsonObject.entrySet().to[Seq].map(entr => api.ArticleIntroduction(entr.getValue.getAsString, Some(entr.getKey))),
+        ApplicationUrl.get + hit.get("id").getAsString,
+        hit.get("license").getAsString,
+        hit.get("articleType").getAsString
+      )
+    }
+
+    def getHitsV2(response: JestSearchResult, language: String): Seq[ArticleSummaryV2] = {
+      var resultList = Seq[ArticleSummaryV2]()
+      response.getTotal match {
+        case count: Integer if count > 0 => {
+          val resultArray = response.getJsonObject.get("hits").asInstanceOf[JsonObject].get("hits").getAsJsonArray
+          val iterator = resultArray.iterator()
+          while (iterator.hasNext) {
+            resultList = resultList :+ hitAsArticleSummaryV2(iterator.next().asInstanceOf[JsonObject].get("_source").asInstanceOf[JsonObject], language)
+          }
+          resultList
+        }
+        case _ => Seq()
+      }
+    }
+
+    def hitAsArticleSummaryV2(hit: JsonObject, language: String): ArticleSummaryV2 = {
+      import scala.collection.JavaConversions._
+
+      val titles = hit.get("title").getAsJsonObject.entrySet().to[Seq]
+        .map(entr => ArticleTitle(entr.getValue.getAsString, Some(entr.getKey)))
+      val searchLanguage = if (language == Language.AllLanguages) Language.DefaultLanguage else language
+
+      /*
+      * Find a title that matches the language parameter,
+      * the first title if no such language exists,
+      * or an empty string if there are no titles.
+      * */
+      val title = titles
+        .find(title => title.language.getOrElse(Language.NoLanguage) == searchLanguage)
+        .orElse(titles.headOption).map(_.title)
+        .getOrElse("")
+
+      val visualElement = getValueByFieldAndLanguage(hit, "visualElement", searchLanguage)
+      val introduction = getValueByFieldAndLanguage(hit, "introduction", searchLanguage)
+      val supportedLanguages = titles.map(_.language.getOrElse(Language.NoLanguage))
+
+      ArticleSummaryV2(
+        hit.get("id").getAsString,
+        title,
+        visualElement,
+        introduction,
+        ApplicationUrl.get + hit.get("id").getAsString,
+        hit.get("license").getAsString,
+        hit.get("articleType").getAsString,
+        supportedLanguages
+      )
+    }
+
+    def getValueByFieldAndLanguage(hit: JsonObject, fieldPath: String, searchLanguage: String): String = {
+      import scala.collection.JavaConversions._
+
+      hit.get(fieldPath).getAsJsonObject.entrySet().to[Seq].find(entr => entr.getKey == searchLanguage) match {
+        case Some(element) => element.getValue.getAsString
+        case None => ""
+      }
+    }
+
     def toDomainArticle(nodeToConvert: NodeToConvert, importStatus: ImportStatus): Try[(Article, ImportStatus)] = {
       val updatedVisitedNodes = importStatus.visitedNodes ++ nodeToConvert.contents.map(_.nid)
 

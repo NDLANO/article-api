@@ -15,7 +15,7 @@ import no.ndla.articleapi.auth.Role
 import no.ndla.articleapi.model.api._
 import no.ndla.articleapi.model.domain.{ArticleType, Language, Sort}
 import no.ndla.articleapi.service.search.SearchService
-import no.ndla.articleapi.service.{ReadService, WriteService}
+import no.ndla.articleapi.service.{ConverterService, ReadService, WriteService}
 import org.json4s.native.Serialization.read
 import org.json4s.{DefaultFormats, Formats}
 import org.scalatra.swagger.{ResponseMessage, Swagger, SwaggerSupport}
@@ -24,7 +24,7 @@ import org.scalatra.{Created, NotFound, Ok}
 import scala.util.{Failure, Success, Try}
 
 trait ArticleControllerV2 {
-  this: ReadService with WriteService with SearchService with Role =>
+  this: ReadService with WriteService with SearchService with ConverterService with Role =>
   val articleControllerV2: ArticleControllerV2
 
   class ArticleControllerV2(implicit val swagger: Swagger) extends NdlaController with SwaggerSupport {
@@ -35,6 +35,7 @@ trait ArticleControllerV2 {
     registerModel[ValidationError]()
     registerModel[Error]()
 
+    val converterService = new ConverterService
     val response400 = ResponseMessage(400, "Validation Error", Some("ValidationError"))
     val response403 = ResponseMessage(403, "Access Denied", Some("Error"))
     val response404 = ResponseMessage(404, "Not found", Some("Error"))
@@ -136,7 +137,7 @@ trait ArticleControllerV2 {
     }
 
     private def search(query: Option[String], sort: Option[Sort.Value], language: String, license: Option[String], page: Int, pageSize: Int, idList: List[Long], articleTypesFilter: Seq[String]) = {
-      query match {
+      val searchResult = query match {
         case Some(q) => searchService.matchingQuery(
           query = q.toLowerCase.split(" ").map(_.trim),
           withIdIn = idList,
@@ -159,6 +160,14 @@ trait ArticleControllerV2 {
         )
       }
 
+      val hitResult = converterService.getHitsV2(searchResult.response, language)
+      SearchResultV2(
+        searchResult.totalCount,
+        searchResult.page,
+        searchResult.pageSize,
+        searchResult.language,
+        hitResult
+      )
     }
 
     get("/", operation(getAllArticles)) {

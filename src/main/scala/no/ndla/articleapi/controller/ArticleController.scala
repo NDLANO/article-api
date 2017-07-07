@@ -14,7 +14,7 @@ import no.ndla.articleapi.ArticleApiProperties.RoleWithWriteAccess
 import no.ndla.articleapi.auth.Role
 import no.ndla.articleapi.model.api._
 import no.ndla.articleapi.model.domain.{ArticleType, Language, Sort}
-import no.ndla.articleapi.service.{ReadService, WriteService}
+import no.ndla.articleapi.service.{ConverterService, ReadService, WriteService}
 import no.ndla.articleapi.service.search.SearchService
 import org.json4s.native.Serialization.read
 import org.json4s.{DefaultFormats, Formats}
@@ -24,7 +24,7 @@ import org.scalatra.swagger.{ResponseMessage, Swagger, SwaggerSupport}
 import scala.util.{Failure, Success, Try}
 
 trait ArticleController {
-  this: ReadService with WriteService with SearchService with Role =>
+  this: ReadService with WriteService with SearchService with ConverterService with Role =>
   val articleController: ArticleController
 
   class ArticleController(implicit val swagger: Swagger) extends NdlaController with SwaggerSupport {
@@ -34,7 +34,7 @@ trait ArticleController {
     // Additional models used in error responses
     registerModel[ValidationError]()
     registerModel[Error]()
-
+    val converterService = new ConverterService
     val response400 = ResponseMessage(400, "Validation Error", Some("ValidationError"))
     val response403 = ResponseMessage(403, "Access Denied", Some("Error"))
     val response404 = ResponseMessage(404, "Not found", Some("Error"))
@@ -136,35 +136,43 @@ trait ArticleController {
     }
 
     private def search(query: Option[String], sort: Option[Sort.Value], language: String, license: Option[String], page: Int, pageSize: Int, idList: List[Long], articleTypesFilter: Seq[String]) = {
-      query match {
+      val searchResult = query match {
         case Some(q) => searchService.matchingQuery(
-          query = q.toLowerCase.split(" ").map(_.trim),
-          withIdIn = idList,
-          language = language,
-          license = license,
-          page = page,
-          pageSize = pageSize,
-          sort = sort.getOrElse(Sort.ByRelevanceDesc),
-          if (articleTypesFilter.isEmpty) ArticleType.all else articleTypesFilter
+            query = q.toLowerCase.split(" ").map(_.trim),
+            withIdIn = idList,
+            language = language,
+            license = license,
+            page = page,
+            pageSize = pageSize,
+            sort = sort.getOrElse(Sort.ByRelevanceDesc),
+            if (articleTypesFilter.isEmpty) ArticleType.all else articleTypesFilter
         )
 
         case None => searchService.all(
-          withIdIn = idList,
-          language = language,
-          license = license,
-          page = page,
-          pageSize = pageSize,
-          sort = sort.getOrElse(Sort.ByTitleAsc),
-          if (articleTypesFilter.isEmpty) ArticleType.all else articleTypesFilter
-        )
+            withIdIn = idList,
+            language = language,
+            license = license,
+            page = page,
+            pageSize = pageSize,
+            sort = sort.getOrElse(Sort.ByTitleAsc),
+            if (articleTypesFilter.isEmpty) ArticleType.all else articleTypesFilter
+          )
       }
 
+      val hitResult = converterService.getHits(searchResult.response)
+      SearchResult(
+        searchResult.totalCount,
+        searchResult.page,
+        searchResult.pageSize,
+        searchResult.language,
+        hitResult
+      )
     }
 
     get("/", operation(getAllArticles)) {
       val query = paramOrNone("query")
       val sort = Sort.valueOf(paramOrDefault("sort", ""))
-      val language = paramOrDefault("language", Language.DefaultLanguage)
+      val language = paramOrDefault("language", Language.AllLanguages)
       val license = paramOrNone("license")
       val pageSize = intOrDefault("page-size", ArticleApiProperties.DefaultPageSize)
       val page = intOrDefault("page", 1)
