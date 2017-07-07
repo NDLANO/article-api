@@ -15,8 +15,8 @@ import io.searchbox.core.{Count, Search, SearchResult => JestSearchResult}
 import io.searchbox.params.Parameters
 import no.ndla.articleapi.ArticleApiProperties
 import no.ndla.articleapi.integration.ElasticClient
-import no.ndla.articleapi.model.api.{ArticleIntroduction, ArticleSummary, ArticleTitle, SearchResult, VisualElement}
-import no.ndla.articleapi.model.domain._
+import no.ndla.articleapi.model.api.{ArticleIntroduction, ArticleSummary, ArticleTitle, VisualElement}
+import no.ndla.articleapi.model.domain.{Language, SearchResult, Sort, NdlaSearchException}
 import no.ndla.network.ApplicationUrl
 import org.apache.lucene.search.join.ScoreMode
 import org.elasticsearch.ElasticsearchException
@@ -36,47 +36,6 @@ trait SearchService {
   class SearchService extends LazyLogging {
 
     private val noCopyright = QueryBuilders.boolQuery().mustNot(QueryBuilders.termQuery("license", "copyrighted"))
-
-    def getHits(response: JestSearchResult, language: String): Seq[ArticleSummary] = {
-      var resultList = Seq[ArticleSummary]()
-      response.getTotal match {
-        case count: Integer if count > 0 => {
-          val resultArray = response.getJsonObject.get("hits").asInstanceOf[JsonObject].get("hits").getAsJsonArray
-          val iterator = resultArray.iterator()
-          while (iterator.hasNext) {
-            resultList = resultList :+ hitAsArticleSummary(iterator.next().asInstanceOf[JsonObject].get("_source").asInstanceOf[JsonObject], language)
-          }
-          resultList
-        }
-        case _ => Seq()
-      }
-    }
-
-    def hitAsArticleSummary(hit: JsonObject, language: String): ArticleSummary = {
-      import scala.collection.JavaConversions._
-
-      val titles = hit.get("title").getAsJsonObject.entrySet().to[Seq]
-        .map(entr => ArticleTitle(entr.getValue.getAsString, Some(entr.getKey)))
-
-      val supportedLanguages = titles.map(_.language.getOrElse(Language.NoLanguage))
-
-      val title = titles
-        .find(title => title.language.getOrElse(Language.NoLanguage) == (if (language == Language.AllLanguages) Language.DefaultLanguage else language))
-        .getOrElse(titles.head)
-        .title
-
-      ArticleSummary(
-        hit.get("id").getAsString,
-        title,
-        hit.get("visualElement").getAsJsonObject.entrySet().to[Seq].map(entr => VisualElement(entr.getValue.getAsString, Some(entr.getKey))),
-        hit.get("introduction").getAsJsonObject.entrySet().to[Seq].map(entr => ArticleIntroduction(entr.getValue.getAsString, Some(entr.getKey))),
-        ApplicationUrl.get + hit.get("id").getAsString,
-        hit.get("license").getAsString,
-        hit.get("articleType").getAsString,
-        supportedLanguages
-      )
-
-    }
 
     def all(withIdIn: List[Long], language: String, license: Option[String], page: Int, pageSize: Int, sort: Sort.Value, articleTypes: Seq[String]): SearchResult = {
       logger.info(s"articletypes: $articleTypes")
@@ -128,7 +87,7 @@ trait SearchService {
         .setParameter(Parameters.SIZE, numResults) .setParameter("from", startAt)
 
         jestClient.execute(request.build()) match {
-        case Success(response) => SearchResult(response.getTotal.toLong, page, numResults, language, getHits(response, language))
+        case Success(response) => SearchResult(response.getTotal.toLong, page, numResults, language, response)
         case Failure(f) => errorHandler(Failure(f))
       }
     }
