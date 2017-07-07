@@ -191,10 +191,11 @@ trait ArticleControllerV2 {
 
     get("/:article_id", operation(getArticleById)) {
       val articleId = long("article_id")
+      val language = paramOrDefault("language", Language.AllLanguages)
 
       logger.info(s"get article $articleId")
 
-      readService.withId(articleId) match {
+      readService.withIdV2(articleId, language) match {
         case Some(article) => article
         case None => NotFound(body = Error(Error.NOT_FOUND, s"No article with id $articleId found"))
       }

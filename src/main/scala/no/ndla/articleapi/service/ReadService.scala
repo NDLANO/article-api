@@ -29,6 +29,15 @@ trait ReadService {
         .map(addUrlsAndIdsOnEmbedResources)
         .map(converterService.toApiArticle)
 
+    def withIdV2(id: Long, language: String): Option[api.ArticleV2] = {
+      articleRepository.withId(id).map(addUrlsAndIdsOnEmbedResources) match {
+        case Some(article) =>
+          Some(converterService.toApiArticleV2(article, language))
+        case _ =>
+          None
+      }
+    }
+
     private[service] def addUrlsAndIdsOnEmbedResources(article: Article): Article = {
       val articleWithUrls = article.content.map(content => content.copy(content=addIdAndUrlOnResource(content.content)))
       val visualElementWithUrls = article.visualElement.map(visual => visual.copy(resource=addIdAndUrlOnResource(visual.resource)))

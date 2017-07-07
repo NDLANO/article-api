@@ -18,7 +18,6 @@ import no.ndla.articleapi.model.api
 import no.ndla.articleapi.repository.ArticleRepository
 import no.ndla.mapping.License.getLicense
 import no.ndla.articleapi.integration.ConverterModule.{jsoupDocumentToString, stringToJsoupDocument}
-import no.ndla.articleapi.model.api.{ValidationException, ValidationMessage}
 import no.ndla.articleapi.service.converters.{Attributes, HTMLCleaner, ResourceType}
 
 import scala.annotation.tailrec
@@ -192,6 +191,37 @@ trait ConverterService {
       )
     }
 
+    def toApiArticleV2(article: Article, language: String = Language.DefaultLanguage): api.ArticleV2 = {
+      val title = article.title.find(title => title.language.getOrElse("") == language).getOrElse("").toString
+      val articleContent = toApiArticleContentV2(article.content.find(content => content.language.getOrElse("") == language).getOrElse(ArticleContent("", None, None)))
+      val tags = article.tags.find(tags => tags.language.getOrElse("") == language).getOrElse(ArticleTag(Seq.empty[String], None)).tags
+      val visualElement = article.visualElement.find(vElement => vElement.language.getOrElse("") == language).getOrElse(VisualElement("", None)).resource
+      val introduction = article.introduction.find(intro => intro.language.getOrElse("") == language).getOrElse(ArticleIntroduction("", None)).introduction
+      val meta = article.metaDescription.find(meta => meta.language.getOrElse("") == language).getOrElse(ArticleMetaDescription("", None)).content
+
+
+      api.ArticleV2(
+        article.id.get.toString,
+        article.id.flatMap(getLinkToOldNdla),
+        article.revision.get,
+        language,
+        title,
+        articleContent.content,
+        articleContent.footNotes,
+        toApiCopyright(article.copyright),
+        tags,
+        article.requiredLibraries.map(toApiRequiredLibrary),
+        visualElement,
+        introduction,
+        meta,
+        article.created,
+        article.updated,
+        article.updatedBy,
+        article.articleType,
+        getSupportedLanguages(article)
+      )
+    }
+
     def toApiArticleTitle(title: ArticleTitle): api.ArticleTitle = {
       api.ArticleTitle(title.title, title.language)
     }
@@ -201,6 +231,13 @@ trait ConverterService {
         content.content,
         content.footNotes.map(_ map {case (key, value) => key -> toApiFootNoteItem(value)}),
         content.language)
+    }
+
+    def toApiArticleContentV2(content: ArticleContent): api.ArticleContentV2 = {
+      api.ArticleContentV2(
+        content.content,
+        content.footNotes.map(_ map { case (key, value) => key -> toApiFootNoteItem(value)})
+      )
     }
 
     def toApiFootNoteItem(footNote: FootNoteItem): api.FootNoteItem = {
@@ -247,6 +284,17 @@ trait ConverterService {
     }
 
     def createLinkToOldNdla(nodeId: String): String = s"//red.ndla.no/node/$nodeId"
+
+    def getSupportedLanguages(article: Article): Seq[String] = {
+      article.title.map(_.language.getOrElse(Language.UnknownLanguage))
+        .++:(article.content.map(_.language.getOrElse(Language.UnknownLanguage)))
+        .++:(article.tags.map(_.language.getOrElse(Language.UnknownLanguage)))
+        .++:(article.visualElement.map(_.language.getOrElse(Language.UnknownLanguage)))
+        .++:(article.introduction.map(_.language.getOrElse(Language.UnknownLanguage)))
+        .++:(article.metaDescription.map(_.language.getOrElse(Language.UnknownLanguage)))
+        .distinct
+        .filterNot(_ == Language.UnknownLanguage)
+    }
 
   }
 }
