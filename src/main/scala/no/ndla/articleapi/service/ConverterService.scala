@@ -328,14 +328,16 @@ trait ConverterService {
       )
     }
 
-    def toApiArticleV2(article: Article, language: String = Language.DefaultLanguage): api.ArticleV2 = {
-      val title =           findValueByLanguage[String](article.title, language).getOrElse("")
-      val visualElement =   findValueByLanguage[String](article.visualElement, language).getOrElse("")
-      val introduction =    findValueByLanguage[String](article.introduction, language).getOrElse("")
-      val meta =            findValueByLanguage[String](article.metaDescription, language).getOrElse("")
-      val tags =            findValueByLanguage[Seq[String]](article.tags, language).getOrElse(Seq.empty[String])
+    def toApiArticleV2(article: Article, language: String): api.ArticleV2 = {
+      val searchLanguage = if (language == Language.AllLanguages) Language.DefaultLanguage else language
+
+      val title =           findValueByLanguage[String](article.title, searchLanguage).getOrElse("")
+      val visualElement =   findValueByLanguage[String](article.visualElement, searchLanguage).getOrElse("")
+      val introduction =    findValueByLanguage[String](article.introduction, searchLanguage).getOrElse("")
+      val meta =            findValueByLanguage[String](article.metaDescription, searchLanguage).getOrElse("")
+      val tags =            findValueByLanguage[Seq[String]](article.tags, searchLanguage).getOrElse(Seq.empty[String])
       val articleContent =  toApiArticleContentV2(
-                              findByLanguage[String](article.content, language)
+                              findByLanguage[String](article.content, searchLanguage)
                                 .getOrElse(ArticleContent("", None, None))
                                 .asInstanceOf[ArticleContent])
 
@@ -343,7 +345,7 @@ trait ConverterService {
         article.id.get.toString,
         article.id.flatMap(getLinkToOldNdla),
         article.revision.get,
-        language,
+        searchLanguage,
         title,
         articleContent.content,
         articleContent.footNotes,
