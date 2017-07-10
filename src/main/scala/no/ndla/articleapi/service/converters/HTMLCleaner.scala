@@ -19,6 +19,7 @@ trait HTMLCleaner {
   val htmlCleaner: HTMLCleaner
 
   class HTMLCleaner extends ConverterModule with LazyLogging {
+    private def NBSP = "\u00a0" // \u00a0 is the unicode representation of &nbsp;
 
     override def convert(content: LanguageContent, importStatus: ImportStatus): Try[(LanguageContent, ImportStatus)] = {
       val element = stringToJsoupDocument(content.content)
@@ -80,7 +81,7 @@ trait HTMLCleaner {
         val caption = el.attr("data-caption")
         el.replaceWith(new TextNode(caption, ""))
       }
-      extractElement(element)
+      extractElement(element).replace(NBSP, " ").trim
     }
 
     private def removeAttributes(el: Element): Seq[String] = {
@@ -120,7 +121,7 @@ trait HTMLCleaner {
     }
 
     private def removeNbsp(el: Element) {
-      el.html(el.html().replace("\u00a0", "")) // \u00a0 is the unicode representation of &nbsp;
+      el.html(el.html().replace(NBSP, ""))
     }
 
     private def getIngressText(el: Element): Option[Seq[Element]] = {
