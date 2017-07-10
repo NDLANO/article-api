@@ -317,12 +317,16 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
 
   test("toDomainArticleShould should remove unneeded attributes on embed-tags") {
     val content = s"""<h1>hello</h1><embed ${Attributes.DataResource}="${ResourceType.Image}" ${Attributes.DataUrl}="http://some-url" ${Attributes.DataId}=1 data-random="hehe" />"""
-    val expected = s"""<h1>hello</h1><embed ${Attributes.DataResource}="${ResourceType.Image}" />"""
+    val expectedContent = s"""<h1>hello</h1><embed ${Attributes.DataResource}="${ResourceType.Image}" />"""
+    val visualElement = s"""<embed ${Attributes.DataResource}="${ResourceType.Image}" ${Attributes.DataUrl}="http://some-url" ${Attributes.DataId}=1 data-random="hehe" />"""
+    val expectedVisualElement = s"""<embed ${Attributes.DataResource}="${ResourceType.Image}" />"""
     val articleContent = api.ArticleContent(content, None, Some("en"))
-    val apiArticle = TestData.newArticle.copy(content=Seq(articleContent))
+    val articleVisualElement = api.VisualElement(visualElement, Some("en"))
+    val apiArticle = TestData.newArticle.copy(content=Seq(articleContent), visualElement=Some(Seq(articleVisualElement)))
 
     val result = service.toDomainArticle(apiArticle)
-    result.content.head.content should equal (expected)
+    result.content.head.content should equal (expectedContent)
+    result.visualElement.head.resource should equal (expectedVisualElement)
   }
 
   test("VisualElement should be converted") {
@@ -333,6 +337,19 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
 
     val Success((convertedArticle, _)) = service.toDomainArticle(node, ImportStatus.empty)
     convertedArticle.visualElement should equal (Seq(VisualElement(expectedResult, Some("en"))))
+  }
+
+  test("That divs with class 'ndla_table' is converted to table") {
+    val sampleLanguageContent: LanguageContent = TestData.sampleContent.copy(content="<article><div class=\"ndla_table another_class\">nobody builds walls better than me, believe me</div></article>")
+    val node = sampleNode.copy(contents=List(sampleLanguageContent))
+    val expectedResult = "<article><table>nobody builds walls better than me, believe me</table></article>"
+    val result = service.toDomainArticle(node, ImportStatus.empty)
+    result.isSuccess should be (true)
+
+    val Success((content, _)) = result
+
+    content.content.head.content should equal (expectedResult)
+    content.requiredLibraries.length should equal (0)
   }
 
 }

@@ -4,7 +4,7 @@ import java.io.File
 
 import no.ndla.articleapi.integration.JestClientFactory
 import no.ndla.articleapi.model.domain._
-import no.ndla.articleapi.service.converters.{DivTableConverter, MathMLConverter, SimpleTagConverter, TableConverter}
+import no.ndla.articleapi.service.converters.{MathMLConverter, SimpleTagConverter, TableConverter}
 import no.ndla.articleapi.{ArticleApiProperties, IntegrationSuite, TestEnvironment}
 import no.ndla.tag.IntegrationTest
 import org.json4s.native.Serialization.read
@@ -39,7 +39,7 @@ class ArticleConverterRegressionTest extends IntegrationSuite with TestEnvironme
   override val biblioConverter = new BiblioConverter
   override val htmlCleaner = new HTMLCleaner
   override val converterModules = List(contentBrowserConverter)
-  override val postProcessorModules = List(SimpleTagConverter, biblioConverter, DivTableConverter, TableConverter, MathMLConverter, htmlCleaner, VisualElementConverter)
+  override val postProcessorModules = List(SimpleTagConverter, biblioConverter, TableConverter, MathMLConverter, htmlCleaner, VisualElementConverter)
 
   override val readService = new ReadService
   override val writeService = new WriteService
