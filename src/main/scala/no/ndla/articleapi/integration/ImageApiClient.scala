@@ -12,6 +12,7 @@ import no.ndla.articleapi.ArticleApiProperties
 import no.ndla.articleapi.model.domain.{Author, Copyright}
 import no.ndla.network.NdlaClient
 
+import scala.util.{Success, Try}
 import scalaj.http.{Http, HttpRequest}
 
 trait ImageApiClient {
@@ -19,9 +20,10 @@ trait ImageApiClient {
   val imageApiClient: ImageApiClient
 
   class ImageApiClient {
-    private val imageApiInternEndpointURL = s"http://${ArticleApiProperties.internalImageApiUrl}/intern"
+    private val imageApiInternEndpointURL = s"http://${ArticleApiProperties.ImageHost}/intern"
     private val imageApiImportImageURL = s"$imageApiInternEndpointURL/import/:external_id"
     private val imageApiGetByExternalIdURL = s"$imageApiInternEndpointURL/extern/:external_id"
+    private val ImageApiHealthEndpoint = s"http://${ArticleApiProperties.ImageHost}/health"
 
     def getMetaByExternId(externId: String): Option[ImageMetaInformation] = {
       val request: HttpRequest = Http(s"$imageApiGetByExternalIdURL".replace(":external_id", externId))
@@ -38,6 +40,13 @@ trait ImageApiClient {
       getMetaByExternId(externId) match {
         case None => importImage(externId)
         case Some(image) => Some(image)
+      }
+    }
+
+    def isHealthy: Boolean = {
+      Try(Http(ImageApiHealthEndpoint).execute()) match {
+        case Success(resp) => resp.isSuccess
+        case _ => false
       }
     }
 

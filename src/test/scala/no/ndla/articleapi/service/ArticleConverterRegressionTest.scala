@@ -11,7 +11,7 @@ import org.json4s.native.Serialization.read
 import org.json4s.{DefaultFormats, Formats}
 import scalikejdbc.{ConnectionPool, DataSourceConnectionPool}
 
-import scala.util.{Failure, Success}
+import scala.util.{Failure, Success, Try}
 
 @IntegrationTest
 class ArticleConverterRegressionTest extends IntegrationSuite with TestEnvironment {
@@ -56,6 +56,10 @@ class ArticleConverterRegressionTest extends IntegrationSuite with TestEnvironme
 
   override def beforeAll() = {
     ConnectionPool.singleton(new DataSourceConnectionPool(getDataSource))
+    if (!audioApiClient.isHealthy)
+      throw new RuntimeException("Audio API must be running in order for the regression tests to run")
+    if (!imageApiClient.isHealthy)
+      throw new RuntimeException("Image API must be running in order for the regression tests to run")
   }
 
   def originalFiles: List[File] = {
@@ -78,14 +82,19 @@ class ArticleConverterRegressionTest extends IntegrationSuite with TestEnvironme
     fields.find(f => f.language.getOrElse("") == lang)
   }
 
-  def verifyNoLanguageContentChanges[T <: LanguageField](perfect: Seq[T], imported: Seq[T]) = {
+  def verifyNoLanguageContentChanges[T <: LanguageField](perfect: Seq[T], imported: Seq[T], nodeId: String) = {
     val importedContentLanguages = imported.map(_.language).toSet
     val originalContentLanguages = perfect.map(_.language).toSet
     importedContentLanguages should equal (originalContentLanguages)
 
     perfect.foreach(origContent => {
       val Some(importedContent) = getByLanguage(imported, origContent.language.getOrElse(""))
-      importedContent should equal(origContent)
+      Try(importedContent should equal(origContent)) match {
+        case Success(_) =>
+        case Failure(ex) =>
+          println(s"Regression in article with node id $nodeId!")
+          throw ex
+      }
     })
   }
 
@@ -97,9 +106,9 @@ class ArticleConverterRegressionTest extends IntegrationSuite with TestEnvironme
     }
 
     val importedArticle = articleRepository.withId(articleId).get
-    verifyNoLanguageContentChanges(article.content, importedArticle.content)
-    verifyNoLanguageContentChanges(article.introduction, importedArticle.introduction)
-    verifyNoLanguageContentChanges(article.metaDescription, importedArticle.metaDescription)
+    verifyNoLanguageContentChanges(article.content, importedArticle.content, article.nodeId)
+    verifyNoLanguageContentChanges(article.introduction, importedArticle.introduction, article.nodeId)
+    verifyNoLanguageContentChanges(article.metaDescription, importedArticle.metaDescription, article.nodeId)
   }
 
   test("import routine should not break perfectly looking articles") {
