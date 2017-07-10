@@ -329,13 +329,15 @@ trait ConverterService {
     }
 
     def toApiArticleV2(article: Article, language: String = Language.DefaultLanguage): api.ArticleV2 = {
-      val title = article.title.find(title => title.language.getOrElse("") == language).getOrElse("").toString
-      val articleContent = toApiArticleContentV2(article.content.find(content => content.language.getOrElse("") == language).getOrElse(ArticleContent("", None, None)))
-      val tags = article.tags.find(tags => tags.language.getOrElse("") == language).getOrElse(ArticleTag(Seq.empty[String], None)).tags
-      val visualElement = article.visualElement.find(vElement => vElement.language.getOrElse("") == language).getOrElse(VisualElement("", None)).resource
-      val introduction = article.introduction.find(intro => intro.language.getOrElse("") == language).getOrElse(ArticleIntroduction("", None)).introduction
-      val meta = article.metaDescription.find(meta => meta.language.getOrElse("") == language).getOrElse(ArticleMetaDescription("", None)).content
-
+      val title =           findValueByLanguage[String](article.title, language).getOrElse("")
+      val visualElement =   findValueByLanguage[String](article.visualElement, language).getOrElse("")
+      val introduction =    findValueByLanguage[String](article.introduction, language).getOrElse("")
+      val meta =            findValueByLanguage[String](article.metaDescription, language).getOrElse("")
+      val tags =            findValueByLanguage[Seq[String]](article.tags, language).getOrElse(Seq.empty[String])
+      val articleContent =  toApiArticleContentV2(
+                              findByLanguage[String](article.content, language)
+                                .getOrElse(ArticleContent("", None, None))
+                                .asInstanceOf[ArticleContent])
 
       api.ArticleV2(
         article.id.get.toString,
@@ -451,14 +453,26 @@ trait ConverterService {
     def createLinkToOldNdla(nodeId: String): String = s"//red.ndla.no/node/$nodeId"
 
     def getSupportedLanguages(article: Article): Seq[String] = {
-      article.title.map(_.language.getOrElse(Language.UnknownLanguage))
-        .++:(article.content.map(_.language.getOrElse(Language.UnknownLanguage)))
-        .++:(article.tags.map(_.language.getOrElse(Language.UnknownLanguage)))
-        .++:(article.visualElement.map(_.language.getOrElse(Language.UnknownLanguage)))
-        .++:(article.introduction.map(_.language.getOrElse(Language.UnknownLanguage)))
-        .++:(article.metaDescription.map(_.language.getOrElse(Language.UnknownLanguage)))
+      def mapLanguage[T](sequence: Seq[LanguageField[T]]): Seq[String] = {
+        sequence.map(_.language.getOrElse(Language.UnknownLanguage))
+      }
+
+      mapLanguage[String](article.title)
+        .++:(mapLanguage[String](article.content))
+        .++:(mapLanguage[Seq[String]](article.tags))
+        .++:(mapLanguage[String](article.visualElement))
+        .++:(mapLanguage[String](article.introduction))
+        .++:(mapLanguage[String](article.metaDescription))
         .distinct
         .filterNot(_ == Language.UnknownLanguage)
+    }
+
+    def findByLanguage[T](sequence: Seq[LanguageField[T]], lang: String): Option[LanguageField[T]] = {
+      sequence.find(_.language.getOrElse("") == lang)
+    }
+
+    def findValueByLanguage[T](sequence: Seq[LanguageField[T]], lang: String): Option[T] = {
+      findByLanguage[T](sequence, lang).map(_.value)
     }
 
   }
