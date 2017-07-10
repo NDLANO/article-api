@@ -222,7 +222,7 @@ trait ArticleControllerV2 {
       authRole.assertHasRole(RoleWithWriteAccess)
 
       val articleId = long("article_id")
-      val updatedArticle = extract[UpdatedArticle](request.body)
+      val updatedArticle = converterService.toUpdatedArticle(extract[UpdatedArticleV2](request.body))
       writeService.updateArticle(articleId, updatedArticle) match {
         case Success(article) => Ok(body=article)
         case Failure(exception) => errorHandler(exception)

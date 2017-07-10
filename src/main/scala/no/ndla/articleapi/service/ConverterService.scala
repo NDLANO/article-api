@@ -420,6 +420,34 @@ trait ConverterService {
       api.ArticleMetaDescription(metaDescription.content, metaDescription.language)
     }
 
+    def toUpdatedArticle(updatedArticle: api.UpdatedArticleV2): api.UpdatedArticle = {
+      val title =         Seq(api.ArticleTitle(updatedArticle.title, Some(updatedArticle.language)))
+      val content =       Seq(api.ArticleContent(updatedArticle.content, updatedArticle.footNotes, Some(updatedArticle.language)))
+      val tags =          Seq(api.ArticleTag(updatedArticle.tags, Some(updatedArticle.language)))
+      val introduction =  if (updatedArticle.introduction.isDefined) Seq(api.ArticleIntroduction(updatedArticle.introduction.get, Some(updatedArticle.language)))
+                          else Seq.empty[api.ArticleIntroduction]
+      val meta =          if (updatedArticle.metaDescription.isDefined) Seq(api.ArticleMetaDescription(updatedArticle.metaDescription.get, Some(updatedArticle.language)))
+                          else Seq.empty[api.ArticleMetaDescription]
+      val vElement =      if (updatedArticle.visualElement.isDefined) Seq(api.VisualElement(updatedArticle.visualElement.get, Some(updatedArticle.language)))
+                          else Seq.empty[api.VisualElement]
+      val reqLibraries =  if (updatedArticle.requiredLibrary.isDefined) Seq(updatedArticle.requiredLibrary.get)
+                          else Seq.empty[api.RequiredLibrary]
+
+      api.UpdatedArticle(
+        title,
+        updatedArticle.revision,
+        content,
+        tags,
+        introduction,
+        meta,
+        updatedArticle.metaImageId,
+        vElement,
+        updatedArticle.copyright,
+        reqLibraries,
+        updatedArticle.articleType
+      )
+    }
+
     def createLinkToOldNdla(nodeId: String): String = s"//red.ndla.no/node/$nodeId"
 
     def getSupportedLanguages(article: Article): Seq[String] = {
