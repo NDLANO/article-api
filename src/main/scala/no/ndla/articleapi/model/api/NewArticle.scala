@@ -27,7 +27,8 @@ case class NewArticle(@(ApiModelProperty@field)(description = "The title of the 
 
 @ApiModel(description = "Information about the article")
 case class NewArticleV2(@(ApiModelProperty@field)(description = "The title of the article") title: String,
-                        @(ApiModelProperty@field)(description = "The content of the article") content: ArticleContent,
+                        @(ApiModelProperty@field)(description = "The content of the article") content: String,
+                        @(ApiModelProperty@field)(description = "Foot notes referred to within the html article") footNotes: Option[Map[String, FootNoteItem]],
                         @(ApiModelProperty@field)(description = "Searchable tags") tags: Seq[String],
                         @(ApiModelProperty@field)(description = "An introduction") introduction: Option[String],
                         @(ApiModelProperty@field)(description = "A meta description") metaDescription: Option[String],

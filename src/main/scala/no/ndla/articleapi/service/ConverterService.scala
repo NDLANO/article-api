@@ -210,7 +210,7 @@ trait ConverterService {
         id=None,
         revision=None,
         title=toDomainTitleV2(newArticle.title, articleLanguage),
-        content=toDomainContentV2(newArticle.content, articleLanguage),
+        content=toDomainContentV2(newArticle.content, newArticle.footNotes, articleLanguage),
         copyright=toDomainCopyright(newArticle.copyright),
         tags=toDomainTagV2(newArticle.tags, articleLanguage),
         requiredLibraries=newArticle.requiredLibraries.getOrElse(Seq()).map(toDomainRequiredLibraries),
@@ -237,8 +237,8 @@ trait ConverterService {
       ArticleContent(removeUnknownEmbedTagAttributes(articleContent.content), articleContent.footNotes.map(toDomainFootNotes), articleContent.language)
     }
 
-    def toDomainContentV2(articleContent: api.ArticleContent, language: Option[String]): Seq[ArticleContent]= {
-      Seq(ArticleContent(removeUnknownEmbedTagAttributes(articleContent.content), articleContent.footNotes.map(toDomainFootNotes), language))
+    def toDomainContentV2(articleContent: String, footNotes: Option[Map[String, api.FootNoteItem]], language: Option[String]): Seq[ArticleContent]= {
+      Seq(ArticleContent(removeUnknownEmbedTagAttributes(articleContent), footNotes.map(toDomainFootNotes), language))
     }
 
     def toDomainTag(tag: api.ArticleTag): ArticleTag = {
