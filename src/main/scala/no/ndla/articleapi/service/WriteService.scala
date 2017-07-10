@@ -36,7 +36,7 @@ trait WriteService {
       articleValidator.validateArticle(domainArticle)
       val article = articleRepository.insert(domainArticle)
       indexService.indexDocument(article)
-      converterService.toApiArticle(article)
+      converterService.toApiArticleV2(article, newArticle.language)
     }
 
     private[service] def mergeLanguageFields[A <: LanguageField](existing: Seq[A], updated: Seq[A]): Seq[A] = {
