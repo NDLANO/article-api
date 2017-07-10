@@ -16,11 +16,12 @@ import no.ndla.articleapi.model.domain.{Article, ImportStatus, NodeToConvert}
 import no.ndla.articleapi.repository.ArticleRepository
 import no.ndla.articleapi.service.search.{IndexService, SearchIndexService}
 import no.ndla.articleapi.ArticleApiProperties.supportedContentTypes
+import no.ndla.articleapi.validation.ArticleValidator
 
 import scala.util.{Failure, Success, Try}
 
 trait ExtractConvertStoreContent {
-  this: ExtractService with MigrationApiClient with ConverterService with ArticleRepository with SearchIndexService with IndexService =>
+  this: ExtractService with MigrationApiClient with ConverterService with ArticleRepository with SearchIndexService with IndexService with ArticleValidator =>
 
   val extractConvertStoreContent: ExtractConvertStoreContent
 
@@ -36,6 +37,7 @@ trait ExtractConvertStoreContent {
       val importedArticle = for {
         (node, mainNodeId) <- extract(externalId)
         (convertedArticle, updatedImportStatus) <- convert(node, importStatus)
+        _ <- articleValidator.validateArticle(convertedArticle)
         newId <- store(convertedArticle, mainNodeId)
         _ <- searchIndexService.indexDocument(convertedArticle.copy(id = Some(newId)))
       } yield (newId, updatedImportStatus ++ ImportStatus(Seq(s"Successfully imported node $externalId: $newId")))

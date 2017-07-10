@@ -80,7 +80,7 @@ object ArticleApiProperties extends LazyLogging {
 
   val H5PResizerScriptUrl = "//ndla.no/sites/all/modules/h5p/library/js/h5p-resizer.js"
   val NDLABrightcoveVideoScriptUrl = s"//players.brightcove.net/$NDLABrightcoveAccountId/${NDLABrightcovePlayerId}_default/index.min.js"
-  val NRKVideoScriptUrl = "//www.nrk.no/serum/latest/js/video_embed.js"
+  val NRKVideoScriptUrl = Seq("//www.nrk.no/serum/latest/js/video_embed.js", "//nrk.no/serum/latest/js/video_embed.js")
 
   lazy val secrets = readSecrets(SecretsFile) match {
      case Success(values) => values
