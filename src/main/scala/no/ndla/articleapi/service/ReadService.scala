@@ -30,12 +30,9 @@ trait ReadService {
         .map(converterService.toApiArticle)
 
     def withIdV2(id: Long, language: String): Option[api.ArticleV2] = {
-      articleRepository.withId(id).map(addUrlsAndIdsOnEmbedResources) match {
-        case Some(article) =>
-          Some(converterService.toApiArticleV2(article, language))
-        case _ =>
-          None
-      }
+      articleRepository.withId(id)
+        .map(addUrlsAndIdsOnEmbedResources)
+        .map(article => converterService.toApiArticleV2(article, language))
     }
 
     private[service] def addUrlsAndIdsOnEmbedResources(article: Article): Article = {
