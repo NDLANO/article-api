@@ -51,7 +51,7 @@ trait ArticleControllerV2 {
           queryParam[Option[String]]("articleTypes").description("Return only articles of specific type(s). To provide multiple types, separate by comma (,)."),
           queryParam[Option[String]]("query").description("Return only articles with content matching the specified query."),
           queryParam[Option[String]]("ids").description("Return only articles that have one of the provided ids. To provide multiple ids, separate by comma (,)."),
-          queryParam[Option[String]]("language").description("The ISO 639-1 language code describing language used in query-params."),
+          queryParam[Option[String]]("language").description("Only return results on the given language. Default is nb"),
           queryParam[Option[String]]("license").description("Return only articles with provided license."),
           queryParam[Option[Int]]("page").description("The page number of the search hits to display."),
           queryParam[Option[Int]]("page-size").description("The number of search hits to display for each page."),
@@ -71,6 +71,7 @@ trait ArticleControllerV2 {
         parameters(
         headerParam[Option[String]]("X-Correlation-ID").description("User supplied correlation-id"),
         headerParam[Option[String]]("app-key").description("Your app-key"),
+        queryParam[Option[String]]("language").description("Only return results on the given language. Default is nb"),
         bodyParam[SearchParams]
       )
         authorizations "oauth2"
@@ -211,9 +212,8 @@ trait ArticleControllerV2 {
 
     post("/", operation(newArticle)) {
       authRole.assertHasRole(RoleWithWriteAccess)
-
-      val newArticle = extract[NewArticle](request.body)
-      val article = writeService.newArticle(newArticle)
+      val newArticle = extract[NewArticleV2](request.body)
+      val article = writeService.newArticleV2(newArticle)
       Created(body=article)
     }
 

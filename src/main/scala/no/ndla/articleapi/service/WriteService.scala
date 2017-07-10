@@ -31,6 +31,14 @@ trait WriteService {
       converterService.toApiArticle(article)
     }
 
+    def newArticleV2(newArticle: api.NewArticleV2) = {
+      val domainArticle = converterService.toDomainArticleV2(newArticle)
+      articleValidator.validateArticle(domainArticle)
+      val article = articleRepository.insert(domainArticle)
+      indexService.indexDocument(article)
+      converterService.toApiArticle(article)
+    }
+
     private[service] def mergeLanguageFields[A <: LanguageField](existing: Seq[A], updated: Seq[A]): Seq[A] = {
       val toKeep = existing.filterNot(item => updated.map(_.language).contains(item.language))
       (toKeep ++ updated).filterNot(_.value.isEmpty)

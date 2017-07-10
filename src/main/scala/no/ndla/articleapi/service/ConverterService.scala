@@ -183,14 +183,6 @@ trait ConverterService {
       Copyright(license, origin, authorsExcludingOrigin)
     }
 
-    def toDomainVisualElement(visual: api.VisualElement): VisualElement = {
-      VisualElement(removeUnknownEmbedTagAttributes(visual.content), visual.language)
-    }
-
-    def toDomainMetaDescription(meta: api.ArticleMetaDescription): ArticleMetaDescription = {
-      ArticleMetaDescription(meta.metaDescription, meta.language)
-    }
-
     def toDomainArticle(newArticle: api.NewArticle): Article = {
       Article(
         id=None,
@@ -211,23 +203,74 @@ trait ConverterService {
       )
     }
 
+    def toDomainArticleV2(newArticle: api.NewArticleV2): Article = {
+      val articleLanguage = Some(newArticle.language)
+
+      Article(
+        id=None,
+        revision=None,
+        title=toDomainTitleV2(newArticle.title, articleLanguage),
+        content=toDomainContentV2(newArticle.content, articleLanguage),
+        copyright=toDomainCopyright(newArticle.copyright),
+        tags=toDomainTagV2(newArticle.tags, articleLanguage),
+        requiredLibraries=newArticle.requiredLibraries.getOrElse(Seq()).map(toDomainRequiredLibraries),
+        visualElement=toDomainVisualElementV2(newArticle.visualElement, articleLanguage),
+        introduction=toDomainIntroductionV2(newArticle.introduction, articleLanguage),
+        metaDescription=toDomainMetaDescriptionV2(newArticle.metaDescription, articleLanguage),
+        metaImageId=newArticle.metaImageId,
+        created=clock.now(),
+        updated=clock.now(),
+        updatedBy=authUser.id(),
+        newArticle.articleType
+      )
+    }
+
     def toDomainTitle(articleTitle: api.ArticleTitle): ArticleTitle = {
       ArticleTitle(articleTitle.title, articleTitle.language)
     }
 
-    private def removeUnknownEmbedTagAttributes(html: String): String = {
-      val document = stringToJsoupDocument(html)
-      document.select("embed").asScala.map(el => {
-          ResourceType.valueOf(el.attr(Attributes.DataResource.toString))
-          .map(EmbedTag.requiredAttributesForResourceType)
-          .map(requiredAttributes => HTMLCleaner.removeIllegalAttributes(el, requiredAttributes.map(_.toString)))
-      })
-
-      jsoupDocumentToString(document)
+    def toDomainTitleV2(articleTitle: String, language: Option[String]): Seq[ArticleTitle] = {
+      Seq(ArticleTitle(articleTitle, language))
     }
 
     def toDomainContent(articleContent: api.ArticleContent): ArticleContent = {
       ArticleContent(removeUnknownEmbedTagAttributes(articleContent.content), articleContent.footNotes.map(toDomainFootNotes), articleContent.language)
+    }
+
+    def toDomainContentV2(articleContent: api.ArticleContent, language: Option[String]): Seq[ArticleContent]= {
+      Seq(ArticleContent(removeUnknownEmbedTagAttributes(articleContent.content), articleContent.footNotes.map(toDomainFootNotes), language))
+    }
+
+    def toDomainTag(tag: api.ArticleTag): ArticleTag = {
+      ArticleTag(tag.tags, tag.language)
+    }
+
+    def toDomainTagV2(tag: Seq[String], language: Option[String]): Seq[ArticleTag] = {
+      Seq(ArticleTag(tag, language))
+    }
+
+    def toDomainVisualElement(visual: api.VisualElement): VisualElement = {
+      VisualElement(removeUnknownEmbedTagAttributes(visual.content), visual.language)
+    }
+
+    def toDomainVisualElementV2(visual: Option[String], language: Option[String]): Seq[VisualElement] = {
+      Seq(VisualElement(removeUnknownEmbedTagAttributes(visual.getOrElse("")), language))
+    }
+
+    def toDomainIntroduction(intro: api.ArticleIntroduction): ArticleIntroduction = {
+      ArticleIntroduction(intro.introduction, intro.language)
+    }
+
+    def toDomainIntroductionV2(intro: Option[String], language: Option[String]): Seq[ArticleIntroduction] = {
+      Seq(ArticleIntroduction(intro.getOrElse(""), language))
+    }
+
+    def toDomainMetaDescription(meta: api.ArticleMetaDescription): ArticleMetaDescription = {
+      ArticleMetaDescription(meta.metaDescription, meta.language)
+    }
+
+    def toDomainMetaDescriptionV2(meta: Option[String], language: Option[String]): Seq[ArticleMetaDescription]= {
+      Seq(ArticleMetaDescription(meta.getOrElse(""), language))
     }
 
     def toDomainFootNotes(footNotes: Map[String, api.FootNoteItem]): Map[String, FootNoteItem] = {
@@ -246,20 +289,23 @@ trait ConverterService {
       Author(author.`type`, author.name)
     }
 
-    def toDomainTag(tag: api.ArticleTag): ArticleTag = {
-      ArticleTag(tag.tags, tag.language)
-    }
-
     def toDomainRequiredLibraries(requiredLibs: api.RequiredLibrary): RequiredLibrary = {
       RequiredLibrary(requiredLibs.mediaType, requiredLibs.name, requiredLibs.url)
     }
 
-    def toDomainIntroduction(intro: api.ArticleIntroduction): ArticleIntroduction = {
-      ArticleIntroduction(intro.introduction, intro.language)
-    }
-
     private def getLinkToOldNdla(id: Long): Option[String] = {
       articleRepository.getExternalIdFromId(id).map(createLinkToOldNdla)
+    }
+
+    private def removeUnknownEmbedTagAttributes(html: String): String = {
+      val document = stringToJsoupDocument(html)
+      document.select("embed").asScala.map(el => {
+        ResourceType.valueOf(el.attr(Attributes.DataResource.toString))
+          .map(EmbedTag.requiredAttributesForResourceType)
+          .map(requiredAttributes => HTMLCleaner.removeIllegalAttributes(el, requiredAttributes.map(_.toString)))
+      })
+
+      jsoupDocumentToString(document)
     }
 
     def toApiArticle(article: Article): api.Article = {
