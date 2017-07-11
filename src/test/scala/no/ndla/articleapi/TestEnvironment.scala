@@ -11,7 +11,7 @@ package no.ndla.articleapi
 
 import com.amazonaws.services.s3.AmazonS3Client
 import no.ndla.articleapi.auth.{Role, User}
-import no.ndla.articleapi.controller.{ArticleController, HealthController, InternController}
+import no.ndla.articleapi.controller.{ArticleController, ArticleControllerV2, HealthController, InternController}
 import no.ndla.articleapi.integration._
 import no.ndla.articleapi.repository.ArticleRepository
 import no.ndla.articleapi.service._
@@ -28,6 +28,7 @@ trait TestEnvironment
     with IndexService
     with SearchIndexService
     with ArticleController
+    with ArticleControllerV2
     with InternController
     with HealthController
     with DataSource
@@ -63,6 +64,8 @@ trait TestEnvironment
 
   val internController = mock[InternController]
   val articleController = mock[ArticleController]
+  val articleControllerV2 = mock[ArticleControllerV2]
+
   val healthController = mock[HealthController]
 
   val dataSource = mock[javax.sql.DataSource]

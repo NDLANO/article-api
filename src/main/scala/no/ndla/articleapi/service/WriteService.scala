@@ -32,7 +32,7 @@ trait WriteService {
     }
 
     def newArticleV2(newArticle: api.NewArticleV2) = {
-      val domainArticle = converterService.toDomainArticleV2(newArticle)
+      val domainArticle = converterService.toDomainArticle(newArticle)
       articleValidator.validateArticle(domainArticle)
       val article = articleRepository.insert(domainArticle)
       indexService.indexDocument(article)

@@ -203,14 +203,20 @@ trait ConverterService {
       )
     }
 
-    def toDomainArticleV2(newArticle: api.NewArticleV2): Article = {
+    def toDomainArticle(newArticle: api.NewArticleV2): Article = {
       val articleLanguage = Some(newArticle.language)
+      val domainTitle = Seq(ArticleTitle(newArticle.title, articleLanguage))
+      val domainContent = Seq(ArticleContent(
+        removeUnknownEmbedTagAttributes(newArticle.content),
+        newArticle.footNotes.map(toDomainFootNotes),
+        articleLanguage)
+      )
 
       Article(
         id=None,
         revision=None,
-        title=toDomainTitleV2(newArticle.title, articleLanguage),
-        content=toDomainContentV2(newArticle.content, newArticle.footNotes, articleLanguage),
+        title=domainTitle,
+        content=domainContent,
         copyright=toDomainCopyright(newArticle.copyright),
         tags=toDomainTagV2(newArticle.tags, articleLanguage),
         requiredLibraries=newArticle.requiredLibraries.getOrElse(Seq()).map(toDomainRequiredLibraries),
@@ -229,16 +235,8 @@ trait ConverterService {
       ArticleTitle(articleTitle.title, articleTitle.language)
     }
 
-    def toDomainTitleV2(articleTitle: String, language: Option[String]): Seq[ArticleTitle] = {
-      Seq(ArticleTitle(articleTitle, language))
-    }
-
     def toDomainContent(articleContent: api.ArticleContent): ArticleContent = {
       ArticleContent(removeUnknownEmbedTagAttributes(articleContent.content), articleContent.footNotes.map(toDomainFootNotes), articleContent.language)
-    }
-
-    def toDomainContentV2(articleContent: String, footNotes: Option[Map[String, api.FootNoteItem]], language: Option[String]): Seq[ArticleContent]= {
-      Seq(ArticleContent(removeUnknownEmbedTagAttributes(articleContent), footNotes.map(toDomainFootNotes), language))
     }
 
     def toDomainTag(tag: api.ArticleTag): ArticleTag = {
@@ -246,7 +244,11 @@ trait ConverterService {
     }
 
     def toDomainTagV2(tag: Seq[String], language: Option[String]): Seq[ArticleTag] = {
-      Seq(ArticleTag(tag, language))
+      if (tag.isEmpty) {
+        Seq.empty[ArticleTag]
+      } else {
+        Seq(ArticleTag(tag, language))
+      }
     }
 
     def toDomainVisualElement(visual: api.VisualElement): VisualElement = {
@@ -254,7 +256,11 @@ trait ConverterService {
     }
 
     def toDomainVisualElementV2(visual: Option[String], language: Option[String]): Seq[VisualElement] = {
-      Seq(VisualElement(removeUnknownEmbedTagAttributes(visual.getOrElse("")), language))
+      if (visual.isEmpty) {
+        Seq.empty[VisualElement]
+      } else {
+        Seq(VisualElement(removeUnknownEmbedTagAttributes(visual.getOrElse("")), language))
+      }
     }
 
     def toDomainIntroduction(intro: api.ArticleIntroduction): ArticleIntroduction = {
@@ -262,7 +268,11 @@ trait ConverterService {
     }
 
     def toDomainIntroductionV2(intro: Option[String], language: Option[String]): Seq[ArticleIntroduction] = {
-      Seq(ArticleIntroduction(intro.getOrElse(""), language))
+      if (intro.isEmpty) {
+        Seq.empty[ArticleIntroduction]
+      } else {
+        Seq(ArticleIntroduction(intro.getOrElse(""), language))
+      }
     }
 
     def toDomainMetaDescription(meta: api.ArticleMetaDescription): ArticleMetaDescription = {
@@ -270,7 +280,11 @@ trait ConverterService {
     }
 
     def toDomainMetaDescriptionV2(meta: Option[String], language: Option[String]): Seq[ArticleMetaDescription]= {
-      Seq(ArticleMetaDescription(meta.getOrElse(""), language))
+      if (meta.isEmpty) {
+        Seq.empty[ArticleMetaDescription]
+      } else {
+        Seq(ArticleMetaDescription(meta.getOrElse(""), language))
+      }
     }
 
     def toDomainFootNotes(footNotes: Map[String, api.FootNoteItem]): Map[String, FootNoteItem] = {
