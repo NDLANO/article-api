@@ -14,6 +14,8 @@ import no.ndla.articleapi.model.domain._
 import no.ndla.mapping.ISO639.get6391CodeFor6392CodeMappings
 import no.ndla.mapping.License.getLicense
 
+import scala.util.{Failure, Success, Try}
+
 trait ArticleValidator {
   val articleValidator: ArticleValidator
 
@@ -21,7 +23,7 @@ trait ArticleValidator {
     private val NoHtmlValidator = new TextValidator(allowHtml=false)
     private val HtmlValidator = new TextValidator(allowHtml=true)
 
-    def validateArticle(article: Article) = {
+    def validateArticle(article: Article): Try[Article] = {
       val validationErrors = article.content.flatMap(validateContent) ++
         article.introduction.flatMap(validateIntroduction) ++
         article.metaDescription.flatMap(validateMetaDescription) ++
@@ -33,8 +35,12 @@ trait ArticleValidator {
         article.visualElement.flatMap(validateVisualElement) ++
         validateArticleType(article.articleType)
 
-      if (validationErrors.nonEmpty)
-        throw new ValidationException(errors=validationErrors)
+      if (validationErrors.isEmpty) {
+        Success(article)
+      } else {
+        Failure(new ValidationException(errors = validationErrors))
+      }
+
     }
 
     def validateArticleType(articleType: String): Seq[ValidationMessage] = {
@@ -97,7 +103,7 @@ trait ArticleValidator {
     }
 
     def validateRequiredLibrary(requiredLibrary: RequiredLibrary): Option[ValidationMessage] = {
-      val permittedLibraries = Seq(NDLABrightcoveVideoScriptUrl, H5PResizerScriptUrl, NRKVideoScriptUrl) // TODO find better way of generating this list. (avoid hardcoding list?)
+      val permittedLibraries = Seq(NDLABrightcoveVideoScriptUrl, H5PResizerScriptUrl) ++ NRKVideoScriptUrl
       permittedLibraries.contains(requiredLibrary.url) match {
         case false => Some(ValidationMessage("requiredLibraries.url", s"${requiredLibrary.url} is not a permitted script. Allowed scripts are: ${permittedLibraries.mkString(",")}"))
         case true => None

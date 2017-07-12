@@ -19,6 +19,7 @@ trait HTMLCleaner {
   val htmlCleaner: HTMLCleaner
 
   class HTMLCleaner extends ConverterModule with LazyLogging {
+    private def NBSP = "\u00a0" // \u00a0 is the unicode representation of &nbsp;
 
     override def convert(content: LanguageContent, importStatus: ImportStatus): Try[(LanguageContent, ImportStatus)] = {
       val element = stringToJsoupDocument(content.content)
@@ -34,15 +35,19 @@ trait HTMLCleaner {
       val metaDescription = prepareMetaDescription(content.metaDescription)
       val ingress = getIngress(content, element)
 
+      moveMisplacedAsideTags(element)
+
       Success((content.copy(content=jsoupDocumentToString(element), ingress=ingress, metaDescription=metaDescription),
         ImportStatus(importStatus.messages ++ illegalTags ++ illegalAttributes, importStatus.visitedNodes)))
     }
 
     private def moveImagesOutOfPTags(element: Element) {
-      for (el <- element.select("p").select(s"""$resourceHtmlEmbedTag[$DataResource=image]""").asScala) {
-        el.parent.before(el.outerHtml())
-        el.remove()
-      }
+      element.select("p").asScala.foreach(pTag => {
+        pTag.select(s"""$resourceHtmlEmbedTag[$DataResource=image]""").asScala.toList.foreach(el => {
+          pTag.before(el.outerHtml())
+          el.remove()
+        })
+      })
     }
 
     private def getIngress(content: LanguageContent, element: Element): Option[LanguageIngress] = {
@@ -80,7 +85,7 @@ trait HTMLCleaner {
         val caption = el.attr("data-caption")
         el.replaceWith(new TextNode(caption, ""))
       }
-      extractElement(element)
+      extractElement(element).replace(NBSP, " ").trim
     }
 
     private def removeAttributes(el: Element): Seq[String] = {
@@ -120,7 +125,7 @@ trait HTMLCleaner {
     }
 
     private def removeNbsp(el: Element) {
-      el.html(el.html().replace("\u00a0", "")) // \u00a0 is the unicode representation of &nbsp;
+      el.html(el.html().replace(NBSP, ""))
     }
 
     private def getIngressText(el: Element): Option[Seq[Element]] = {
@@ -179,7 +184,7 @@ trait HTMLCleaner {
       elementToExtract.text()
     }
 
-    private def wrapStandaloneTextInPTag (element: Element) : Element = {
+    private def wrapStandaloneTextInPTag(element: Element): Element = {
       val sections = element.select("body>section").asScala
       sections.map(node => node.childNodes().asScala.map(child => {
         if (child.nodeName() == "#text" && !child.asInstanceOf[TextNode].isBlank) {
@@ -190,8 +195,21 @@ trait HTMLCleaner {
 
       element
     }
-  }
 
+    private def moveMisplacedAsideTags(element: Element) = {
+      val aside = element.select("body>section:eq(0)>aside:eq(0)").asScala.headOption
+      aside match {
+        case None =>
+        case Some(e) =>
+          val sibling = e.siblingElements().asScala.lift(0)
+          sibling.map(s =>
+            s.before(e)
+          )
+      }
+      element
+    }
+
+  }
 }
 
 object HTMLCleaner {

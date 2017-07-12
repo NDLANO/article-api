@@ -387,6 +387,15 @@ class HTMLCleanerTest extends UnitSuite with TestEnvironment {
     result.content should equal (expectedResult)
   }
 
+  test("embed-images inside nested p tags are moved out of p tag and p is removed if empty") {
+    val image = s"""<$resourceHtmlEmbedTag data-resource="image" data-url="http://some.url.org/img1.jpg" />"""
+    val content = TestData.sampleContent.copy(content=s"""<section><p><strong>$image</strong></p></section>""")
+
+    val expectedResult = s"""<section>$image</section>"""
+    val Success((result, _)) = htmlCleaner.convert(content, defaultImportStatus)
+    result.content should equal (expectedResult)
+  }
+
   test("p tags without images are left untouched") {
     val originalContent = """<section><p>sample text</p></section>"""
     val content = TestData.sampleContent.copy(content=originalContent)
@@ -394,4 +403,26 @@ class HTMLCleanerTest extends UnitSuite with TestEnvironment {
 
     result.content should equal (originalContent)
   }
+
+  test("moveMisplacedAsideTags should move aside tags located at the start of the article further down") {
+    val image = s"""<$resourceHtmlEmbedTag data-resource="image" data-url="http://some.url.org/img1.jpg" />"""
+    val paragraph = "<p>sample text</p>"
+    val aside = "<aside>This block should not be on top</aside>"
+
+    val originalContent = s"""<section>$aside$image$paragraph</section>"""
+    val expectedContent = s"""<section>$image$aside$paragraph</section>"""
+    val Success((result1, _)) = htmlCleaner.convert(TestData.sampleContent.copy(content=originalContent), defaultImportStatus)
+    result1.content should equal (expectedContent)
+
+    val originalContent2 = s"""<section>$aside$image</section>"""
+    val expectedContent2 = s"""<section>$image$aside</section>"""
+    val Success((result2, _)) = htmlCleaner.convert(TestData.sampleContent.copy(content=originalContent2), defaultImportStatus)
+    result2.content should equal (expectedContent2)
+
+    val originalContent3 = s"""<section>$aside</section>"""
+    val expectedContent3 = s"""<section>$aside</section>"""
+    val Success((result3, _)) = htmlCleaner.convert(TestData.sampleContent.copy(content=originalContent3), defaultImportStatus)
+    result3.content should equal (expectedContent3)
+  }
+
 }

@@ -22,6 +22,7 @@ trait AudioApiClient {
     private val AudioMetaInternEndpoint = s"http://${ArticleApiProperties.AudioHost}/intern"
     private val AudioMetaFromExternalIdEndpoint = s"$AudioMetaInternEndpoint/:external_id"
     private val ImportAudioEndpoint = s"$AudioMetaInternEndpoint/import/:external_id"
+    private val AudioHealthEndpoint = s"http://${ArticleApiProperties.AudioHost}/health"
 
     def getOrImportAudio(externalId: String): Try[Long] = {
       getAudioFromExternalId(externalId) match {
@@ -41,6 +42,12 @@ trait AudioApiClient {
       ndlaClient.fetch[AudioApiMetaInformation](request).map(_.id)
     }
 
+    def isHealthy: Boolean = {
+      Try(Http(AudioHealthEndpoint).execute()) match {
+        case Success(resp) => resp.isSuccess
+        case _ => false
+      }
+    }
   }
 }
 

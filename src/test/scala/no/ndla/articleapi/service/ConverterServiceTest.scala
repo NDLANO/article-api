@@ -316,4 +316,17 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     convertedArticle.visualElement should equal (Seq(VisualElement(expectedResult, Some("en"))))
   }
 
+  test("That divs with class 'ndla_table' is converted to table") {
+    val sampleLanguageContent: LanguageContent = TestData.sampleContent.copy(content="<article><div class=\"ndla_table another_class\">nobody builds walls better than me, believe me</div></article>")
+    val node = sampleNode.copy(contents=List(sampleLanguageContent))
+    val expectedResult = "<article><table>nobody builds walls better than me, believe me</table></article>"
+    val result = service.toDomainArticle(node, ImportStatus.empty)
+    result.isSuccess should be (true)
+
+    val Success((content, _)) = result
+
+    content.content.head.content should equal (expectedResult)
+    content.requiredLibraries.length should equal (0)
+  }
+
 }

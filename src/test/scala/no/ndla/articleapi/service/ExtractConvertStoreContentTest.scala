@@ -12,7 +12,7 @@ package no.ndla.articleapi.service
 import java.util.Date
 
 import no.ndla.articleapi.integration.{LanguageIngress, MigrationSubjectMeta}
-import no.ndla.articleapi.model.api.OptimisticLockException
+import no.ndla.articleapi.model.api.{OptimisticLockException, ValidationError, ValidationException, ValidationMessage}
 import no.ndla.articleapi.model.domain._
 import no.ndla.articleapi.{TestData, TestEnvironment, UnitSuite}
 import org.mockito.Matchers._
@@ -42,6 +42,7 @@ class ExtractConvertStoreContentTest extends UnitSuite with TestEnvironment {
     when(articleRepository.getIdFromExternalId(nodeId2)).thenReturn(None)
     when(migrationApiClient.getSubjectForNode(nodeId)).thenReturn(Try(Seq(MigrationSubjectMeta("52", "helsearbeider vg2"))))
 
+    when(articleValidator.validateArticle(any[Article])).thenReturn(Success(TestData.sampleArticleWithByNcSa))
     when(articleRepository.exists(sampleNode.contents.head.nid)).thenReturn(false)
     when(articleRepository.insertWithExternalIds(any[Article], any[String], any[Seq[String]])(any[DBSession])).thenReturn(newNodeid)
     when(extractConvertStoreContent.processNode("9876")).thenReturn(Try(1: Long, ImportStatus(Seq(), Seq())))
@@ -70,6 +71,22 @@ class ExtractConvertStoreContentTest extends UnitSuite with TestEnvironment {
     result.isFailure should be (true)
   }
 
+  test("ETL should return a Failure if validation fails") {
+    val validationMessage = ValidationMessage("content.content", "Content can not be empty")
+    when(articleValidator.validateArticle(any[Article])).thenReturn(Failure(new ValidationException(errors=Seq(validationMessage))))
+    when(articleRepository.getIdFromExternalId(nodeId)).thenReturn(Some(1: Long))
+    when(articleRepository.getIdFromExternalId(nodeId2)).thenReturn(Some(2: Long))
+
+    val result = eCSService.processNode(nodeId, ImportStatus(Seq(), Seq()))
+
+    result.isFailure should be (true)
+    result.failed.get.isInstanceOf[ValidationException] should be (true)
+    verify(articleRepository, times(1)).delete(1: Long)
+    verify(articleRepository, times(0)).delete(2: Long)
+    verify(indexService, times(1)).deleteDocument(1)
+    verify(indexService, times(0)).deleteDocument(2)
+  }
+
   test("That ETL returns a Failure if failed to persist the converted article") {
     when(articleRepository.updateWithExternalId(any[Article], any[String])).thenReturn(Failure(new OptimisticLockException()))
     when(articleRepository.exists(sampleNode.contents.head.nid)).thenReturn(true)
@@ -88,6 +105,7 @@ class ExtractConvertStoreContentTest extends UnitSuite with TestEnvironment {
   }
 
   test("Articles that fails to import should be deleted from database if it exists") {
+    reset(articleRepository, indexService)
     when(searchIndexService.indexDocument(any[Article])).thenReturn(Failure(mock[RuntimeException]))
     when(articleRepository.getIdFromExternalId(any[String])(any[DBSession])).thenReturn(Some(1: Long))
 
