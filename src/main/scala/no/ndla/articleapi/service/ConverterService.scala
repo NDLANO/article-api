@@ -9,7 +9,9 @@
 
 package no.ndla.articleapi.service
 
-import com.google.gson.JsonObject
+import java.util.Map.Entry
+
+import com.google.gson.{JsonElement, JsonObject}
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.articleapi.ArticleApiProperties.maxConvertionRounds
 import no.ndla.articleapi.auth.User
@@ -79,25 +81,16 @@ trait ConverterService {
     }
 
     def hitAsArticleSummaryV2(hit: JsonObject, language: String): ArticleSummaryV2 = {
-      import scala.collection.JavaConversions._
+      val titles =          getEntrySetSeq(hit, "title")        .map(entr => ArticleTitle        (entr.getValue.getAsString, Some(entr.getKey)))
+      val visualElements =  getEntrySetSeq(hit, "visualElement").map(entr => VisualElement       (entr.getValue.getAsString, Some(entr.getKey)))
+      val introductions =   getEntrySetSeq(hit, "introduction") .map(entr => ArticleIntroduction (entr.getValue.getAsString, Some(entr.getKey)))
 
-      val titles = hit.get("title").getAsJsonObject.entrySet().to[Seq]
-        .map(entr => ArticleTitle(entr.getValue.getAsString, Some(entr.getKey)))
-      val searchLanguage = if (language == Language.AllLanguages) Language.DefaultLanguage else language
+      val supportedLanguages =  Language.getSupportedLanguages(Seq(titles, visualElements, introductions))
+      val searchLanguage =      Language.getSearchLanguage(language, supportedLanguages)
 
-      /*
-      * Find a title that matches the language parameter,
-      * the first title if no such language exists,
-      * or an empty string if there are no titles.
-      * */
-      val title = titles
-        .find(title => title.language.getOrElse(Language.NoLanguage) == searchLanguage)
-        .orElse(titles.headOption).map(_.title)
-        .getOrElse("")
-
-      val visualElement = getValueByFieldAndLanguage(hit, "visualElement", searchLanguage)
-      val introduction = getValueByFieldAndLanguage(hit, "introduction", searchLanguage)
-      val supportedLanguages = titles.map(_.language.getOrElse(Language.NoLanguage))
+      val title =         Language.findValueByLanguage(titles,          searchLanguage).getOrElse("")
+      val visualElement = Language.findValueByLanguage(visualElements,  searchLanguage).getOrElse("")
+      val introduction =  Language.findValueByLanguage(introductions,   searchLanguage).getOrElse("")
 
       ArticleSummaryV2(
         hit.get("id").getAsString,
@@ -109,6 +102,11 @@ trait ConverterService {
         hit.get("articleType").getAsString,
         supportedLanguages
       )
+    }
+
+    def getEntrySetSeq(hit: JsonObject, fieldPath: String): Seq[Entry[String, JsonElement]] = {
+      import scala.collection.JavaConversions._
+      hit.get(fieldPath).getAsJsonObject.entrySet().to[Seq]
     }
 
     def getValueByFieldAndLanguage(hit: JsonObject, fieldPath: String, searchLanguage: String): String = {
