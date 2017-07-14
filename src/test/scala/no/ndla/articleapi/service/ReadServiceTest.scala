@@ -74,8 +74,10 @@ class ReadServiceTest extends UnitSuite with TestEnvironment {
   }
 
   test("getNMostUsedTags should return the N most used tags") {
-    val expectedResult = Seq(api.ArticleTag(Seq("a", "b"), Some("nb")), api.ArticleTag(Seq("d", "e"), Some("en")))
-    readService.getNMostUsedTags(2) should equal (expectedResult)
+    val expectedResult1 = Seq(api.ArticleTag(Seq("a", "b"), Some("nb")))
+    val expectedResult2 = Seq(api.ArticleTag(Seq("d", "e"), Some("en")))
+    readService.getNMostUsedTags(2) should equal (expectedResult1)
+    readService.getNMostUsedTags(2, "en") should equal (expectedResult2)
   }
 
   test("MostFrequentOccurencesList.getNMostFrequent returns the N most frequent entries in a list") {

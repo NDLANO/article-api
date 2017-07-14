@@ -17,6 +17,7 @@ import no.ndla.articleapi.ArticleApiProperties.maxConvertionRounds
 import no.ndla.articleapi.auth.User
 import no.ndla.articleapi.integration.ImageApiClient
 import no.ndla.articleapi.model.domain._
+import no.ndla.articleapi.model.domain.Language._
 import no.ndla.articleapi.model.api
 import no.ndla.articleapi.repository.ArticleRepository
 import no.ndla.mapping.License.getLicense
@@ -341,15 +342,18 @@ trait ConverterService {
     }
 
     def toApiArticleV2(article: Article, language: String): api.ArticleV2 = {
-      val searchLanguage = if (language == Language.AllLanguages) Language.DefaultLanguage else language
+      val supportedLanguages = getSupportedLanguages(
+        Seq(article.title, article.visualElement, article.introduction, article.metaDescription, article.tags, article.content)
+      )
+      val searchLanguage = getSearchLanguage(language, supportedLanguages)
 
-      val title =           findValueByLanguage[String](article.title, searchLanguage).getOrElse("")
-      val visualElement =   findValueByLanguage[String](article.visualElement, searchLanguage).getOrElse("")
-      val introduction =    findValueByLanguage[String](article.introduction, searchLanguage).getOrElse("")
-      val meta =            findValueByLanguage[String](article.metaDescription, searchLanguage).getOrElse("")
-      val tags =            findValueByLanguage[Seq[String]](article.tags, searchLanguage).getOrElse(Seq.empty[String])
+      val title =           findValueByLanguage(article.title, searchLanguage).getOrElse("")
+      val visualElement =   findValueByLanguage(article.visualElement, searchLanguage).getOrElse("")
+      val introduction =    findValueByLanguage(article.introduction, searchLanguage).getOrElse("")
+      val meta =            findValueByLanguage(article.metaDescription, searchLanguage).getOrElse("")
+      val tags =            findValueByLanguage(article.tags, searchLanguage).getOrElse(Seq.empty[String])
       val articleContent =  toApiArticleContentV2(
-                              findByLanguage[String](article.content, searchLanguage)
+                              findByLanguage(article.content, searchLanguage)
                                 .getOrElse(ArticleContent("", None, None))
                                 .asInstanceOf[ArticleContent])
 
@@ -371,7 +375,7 @@ trait ConverterService {
         article.updated,
         article.updatedBy,
         article.articleType,
-        getSupportedLanguages(article)
+        supportedLanguages
       )
     }
 
@@ -465,29 +469,5 @@ trait ConverterService {
     }
 
     def createLinkToOldNdla(nodeId: String): String = s"//red.ndla.no/node/$nodeId"
-
-    def getSupportedLanguages(article: Article): Seq[String] = {
-      def mapLanguage[T](sequence: Seq[LanguageField[T]]): Seq[String] = {
-        sequence.map(_.language.getOrElse(Language.UnknownLanguage))
-      }
-
-      mapLanguage[String](article.title)
-        .++:(mapLanguage[String](article.content))
-        .++:(mapLanguage[Seq[String]](article.tags))
-        .++:(mapLanguage[String](article.visualElement))
-        .++:(mapLanguage[String](article.introduction))
-        .++:(mapLanguage[String](article.metaDescription))
-        .distinct
-        .filterNot(_ == Language.UnknownLanguage)
-    }
-
-    def findByLanguage[T](sequence: Seq[LanguageField[T]], lang: String): Option[LanguageField[T]] = {
-      sequence.find(_.language.getOrElse("") == lang)
-    }
-
-    def findValueByLanguage[T](sequence: Seq[LanguageField[T]], lang: String): Option[T] = {
-      findByLanguage[T](sequence, lang).map(_.value)
-    }
-
   }
 }

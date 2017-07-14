@@ -31,7 +31,7 @@ object Language {
   val supportedLanguages = languageAnalyzers.map(_.lang)
 
   def getSupportedLanguages(sequences: Seq[Seq[WithLanguage]]): Seq[String] = {
-    sequences.flatMap(_.flatMap(_.language))
+    sequences.flatMap(_.flatMap(_.language)).distinct
   }
 
   def getSearchLanguage(languageParam: String, supportedLanguages: Seq[String]): String = {

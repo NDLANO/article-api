@@ -13,6 +13,7 @@ import no.ndla.articleapi.caching.MemoizeAutoRenew
 import no.ndla.articleapi.integration.ConverterModule.{jsoupDocumentToString, stringToJsoupDocument}
 import no.ndla.articleapi.model.api
 import no.ndla.articleapi.model.domain._
+import no.ndla.articleapi.model.domain.Language._
 import no.ndla.articleapi.repository.ArticleRepository
 import no.ndla.articleapi.service.converters.Attributes
 import org.jsoup.nodes.Element
@@ -43,16 +44,15 @@ trait ReadService {
     }
 
     def getNMostUsedTags(n: Int, language: String = Language.AllLanguages): Seq[api.ArticleTag] = {
-      val tagUsageMap =
-        if (language == Language.AllLanguages)
-          getTagUsageMap()
-        else
-          getTagUsageMap().filterKeys(lang => lang.getOrElse("") == language)
+      val tagUsageMap = getTagUsageMap()
+      val supportedLanguages = tagUsageMap.flatMap(_._1).toSeq.distinct
+      val searchLanguage = getSearchLanguage(language, supportedLanguages)
 
-      tagUsageMap.map {
-        case (lang, tags) =>
+      tagUsageMap
+        .filterKeys(lang => lang.getOrElse("") == searchLanguage)
+        .map { case (lang, tags) =>
           api.ArticleTag(tags.getNMostFrequent(n), lang)
-      }.toSeq
+        }.toSeq
     }
 
     val getTagUsageMap = MemoizeAutoRenew(() => {
