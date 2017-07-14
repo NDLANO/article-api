@@ -34,7 +34,7 @@ trait ArticleController {
     // Additional models used in error responses
     registerModel[ValidationError]()
     registerModel[Error]()
-    val converterService = new ConverterService
+
     val response400 = ResponseMessage(400, "Validation Error", Some("ValidationError"))
     val response403 = ResponseMessage(403, "Access Denied", Some("Error"))
     val response404 = ResponseMessage(404, "Not found", Some("Error"))
@@ -138,14 +138,14 @@ trait ArticleController {
     private def search(query: Option[String], sort: Option[Sort.Value], language: String, license: Option[String], page: Int, pageSize: Int, idList: List[Long], articleTypesFilter: Seq[String]) = {
       val searchResult = query match {
         case Some(q) => searchService.matchingQuery(
-            query = q.toLowerCase.split(" ").map(_.trim),
-            withIdIn = idList,
-            language = language,
-            license = license,
-            page = page,
-            pageSize = pageSize,
-            sort = sort.getOrElse(Sort.ByRelevanceDesc),
-            if (articleTypesFilter.isEmpty) ArticleType.all else articleTypesFilter
+          query = q,
+          withIdIn = idList,
+          language = language,
+          license = license,
+          page = page,
+          pageSize = pageSize,
+          sort = sort.getOrElse(Sort.ByRelevanceDesc),
+          if (articleTypesFilter.isEmpty) ArticleType.all else articleTypesFilter
         )
 
         case None => searchService.all(

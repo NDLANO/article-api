@@ -107,6 +107,16 @@ class SearchServiceTest extends UnitSuite with TestEnvironment {
     updated = today.minusDays(5).toDate,
     articleType = ArticleType.TopicArticle.toString
   )
+  val article9 = TestData.sampleArticleWithPublicDomain.copy(
+    id = Option(9),
+    title = List(ArticleTitle("Baldur har mareritt om Ragnarok", Some("nb"))),
+    introduction = List(ArticleIntroduction("Baldur", Some("nb"))),
+    content = List(ArticleContent("<p>Bilde av <em>Baldurs</em> som har  mareritt.", None, Some("nb"))),
+    tags = List(ArticleTag(List("baldur"), Some("nb"))),
+    created = today.minusDays(10).toDate,
+    updated = today.minusDays(5).toDate,
+    articleType = ArticleType.TopicArticle.toString
+  )
 
   override def beforeAll = {
     indexService.createIndexWithName(ArticleApiProperties.SearchIndex)
@@ -119,8 +129,9 @@ class SearchServiceTest extends UnitSuite with TestEnvironment {
     indexService.indexDocument(article6)
     indexService.indexDocument(article7)
     indexService.indexDocument(article8)
+    indexService.indexDocument(article9)
 
-    blockUntil(() => searchService.countDocuments() == 8)
+    blockUntil(() => searchService.countDocuments() == 9)
   }
 
   override def afterAll() = {
@@ -190,7 +201,7 @@ class SearchServiceTest extends UnitSuite with TestEnvironment {
   }
 
   test("That all returns all documents ordered by title descending") {
-    val results = searchService.all(List(), Language.DefaultLanguage, None, 10, 10, Sort.ByTitleDesc, Seq.empty)
+    val results = searchService.all(List(), Language.DefaultLanguage, None, 1, 10, Sort.ByTitleDesc, Seq.empty)
     val hits = converterService.getHits(results.response)
 
     results.totalCount should be(7)
@@ -268,58 +279,78 @@ class SearchServiceTest extends UnitSuite with TestEnvironment {
   }
 
   test("mathcingQuery should filter results based on an article type filter") {
-    val results = searchService.matchingQuery(Seq("bil"), List(), "nb", None, 1, 10, Sort.ByRelevanceDesc, Seq(ArticleType.TopicArticle.toString))
+    val results = searchService.matchingQuery("bil", List(), "nb", None, 1, 10, Sort.ByRelevanceDesc, Seq(ArticleType.TopicArticle.toString))
     results.totalCount should be(0)
 
-    val results2 = searchService.matchingQuery(Seq("bil"), List(), "nb", None, 1, 10, Sort.ByRelevanceDesc, Seq(ArticleType.Standard.toString))
+    val results2 = searchService.matchingQuery("bil", List(), "nb", None, 1, 10, Sort.ByRelevanceDesc, Seq(ArticleType.Standard.toString))
     results2.totalCount should be(3)
   }
 
   test("That search matches title and html-content ordered by relevance descending") {
-    val results = searchService.matchingQuery(Seq("bil"), List(), "nb", None, 1, 10, Sort.ByRelevanceDesc, Seq.empty)
+    val results = searchService.matchingQuery("bil", List(), "nb", None, 1, 10, Sort.ByRelevanceDesc, Seq.empty)
     val hits = converterService.getHits(results.response)
     results.totalCount should be(3)
-    hits.head.id should be("5")
-    hits(1).id should be("1")
+    hits.head.id should be("1")
+    hits(1).id should be("5")
     hits.last.id should be("3")
   }
 
   test("That search combined with filter by id only returns documents matching the query with one of the given ids") {
-    val results = searchService.matchingQuery(Seq("bil"), List(3), "nb", None, 1, 10, Sort.ByRelevanceDesc, Seq.empty)
+    val results = searchService.matchingQuery("bil", List(3), "nb", None, 1, 10, Sort.ByRelevanceDesc, Seq.empty)
     val hits = converterService.getHits(results.response)
-
     results.totalCount should be(1)
     hits.head.id should be("3")
     hits.last.id should be("3")
   }
 
   test("That search matches title") {
-    val results = searchService.matchingQuery(Seq("Pingvinen"), List(), "nb", None, 1, 10, Sort.ByTitleAsc, Seq.empty)
+    val results = searchService.matchingQuery("Pingvinen", List(), "nb", None, 1, 10, Sort.ByTitleAsc, Seq.empty)
     val hits = converterService.getHits(results.response)
-
     results.totalCount should be(1)
     hits.head.id should be("2")
   }
 
   test("That search matches tags") {
-    val results = searchService.matchingQuery(Seq("and"), List(), "nb", None, 1, 10, Sort.ByTitleAsc, Seq.empty)
+    val results = searchService.matchingQuery("and", List(), "nb", None, 1, 10, Sort.ByTitleAsc, Seq.empty)
     val hits = converterService.getHits(results.response)
-
     results.totalCount should be(1)
     hits.head.id should be("3")
   }
 
   test("That search does not return superman since it has license copyrighted and license is not specified") {
-    val results = searchService.matchingQuery(Seq("supermann"), List(), "nb", None, 1, 10, Sort.ByTitleAsc, Seq.empty)
+    val results = searchService.matchingQuery("supermann", List(), "nb", None, 1, 10, Sort.ByTitleAsc, Seq.empty)
     results.totalCount should be(0)
   }
 
   test("That search returns superman since license is specified as copyrighted") {
-    val results = searchService.matchingQuery(Seq("supermann"), List(), "nb", Some("copyrighted"), 1, 10, Sort.ByTitleAsc, Seq.empty)
+    val results = searchService.matchingQuery("supermann", List(), "nb", Some("copyrighted"), 1, 10, Sort.ByTitleAsc, Seq.empty)
     val hits = converterService.getHits(results.response)
-
     results.totalCount should be(1)
     hits.head.id should be("4")
+  }
+
+  test("Searching with logical AND only returns results with all terms") {
+    val search1 = searchService.matchingQuery("bilde AND bil", List(), "nb", None, 1, 10, Sort.ByTitleAsc, Seq.empty)
+    val hits1 = converterService.getHits(search1.response)
+    hits1.map(_.id) should equal (Seq("1", "3", "5"))
+
+    val search2 = searchService.matchingQuery("batmen AND bil", List(), "nb", None, 1, 10, Sort.ByTitleAsc, Seq.empty)
+    val hits2 = converterService.getHits(search1.response)
+    hits2.map(_.id) should equal (Seq("1"))
+
+    val search3 = searchService.matchingQuery("bil AND bilde AND NOT flaggermusmann", List(), "nb", None, 1, 10, Sort.ByTitleAsc, Seq.empty)
+    val hits3 = converterService.getHits(search1.response)
+    hits3.map(_.id) should equal (Seq("3", "5"))
+
+    val search4 = searchService.matchingQuery("bil AND NOT hulken", List(), "nb", None, 1, 10, Sort.ByTitleAsc, Seq.empty)
+    val hits4 = converterService.getHits(search1.response)
+    hits4.map(_.id) should equal (Seq("1", "3"))
+  }
+
+  test("search in content should be ranked lower than introduction and title") {
+    val search = searchService.matchingQuery("mareritt + ragnarok", List(), "nb", None, 1, 10, Sort.ByRelevanceDesc, Seq.empty)
+    val hits = converterService.getHits(search.response)
+    hits.map(_.id) should equal (Seq("9", "8"))
   }
 
   def blockUntil(predicate: () => Boolean) = {

@@ -16,7 +16,7 @@ import io.searchbox.params.Parameters
 import no.ndla.articleapi.ArticleApiProperties
 import no.ndla.articleapi.integration.ElasticClient
 import no.ndla.articleapi.model.api.{ArticleIntroduction, ArticleSummary, ArticleTitle, VisualElement}
-import no.ndla.articleapi.model.domain.{Language, SearchResult, Sort, NdlaSearchException}
+import no.ndla.articleapi.model.domain._
 import no.ndla.network.ApplicationUrl
 import org.apache.lucene.search.join.ScoreMode
 import org.elasticsearch.ElasticsearchException
@@ -38,27 +38,29 @@ trait SearchService {
     private val noCopyright = QueryBuilders.boolQuery().mustNot(QueryBuilders.termQuery("license", "copyrighted"))
 
     def all(withIdIn: List[Long], language: String, license: Option[String], page: Int, pageSize: Int, sort: Sort.Value, articleTypes: Seq[String]): SearchResult = {
-      logger.info(s"articletypes: $articleTypes")
-      val fullSearch = QueryBuilders.boolQuery().filter(QueryBuilders.constantScoreQuery(QueryBuilders.termsQuery("articleType", articleTypes:_*)))
+      val articleTypesFilter = if (articleTypes.nonEmpty) articleTypes else ArticleType.all
+      val fullSearch = QueryBuilders.boolQuery()
+        .filter(QueryBuilders.constantScoreQuery(QueryBuilders.termsQuery("articleType", articleTypesFilter:_*)))
       executeSearch(withIdIn, language, license, sort, page, pageSize, fullSearch)
     }
 
-    def matchingQuery(query: Iterable[String], withIdIn: List[Long], language: String, license: Option[String], page: Int, pageSize: Int, sort: Sort.Value, articleTypes: Seq[String]): SearchResult = {
-      logger.info(s"articletypes: $articleTypes")
+    def matchingQuery(query: String, withIdIn: List[Long], language: String, license: Option[String], page: Int, pageSize: Int, sort: Sort.Value, articleTypes: Seq[String]): SearchResult = {
       val searchLanguage = if (language == Language.AllLanguages) Language.DefaultLanguage else language
+      val articleTypesFilter = if (articleTypes.nonEmpty) articleTypes else ArticleType.all
+      val titleSearch = QueryBuilders.simpleQueryStringQuery(query).field(s"title.$searchLanguage")
+      val introSearch = QueryBuilders.simpleQueryStringQuery(query).field(s"introduction.$searchLanguage")
+      val contentSearch = QueryBuilders.simpleQueryStringQuery(query).field(s"content.$searchLanguage")
+      val tagSearch = QueryBuilders.simpleQueryStringQuery(query).field(s"tags.$searchLanguage")
 
-      val titleSearch = QueryBuilders.matchQuery(s"title.$searchLanguage", query.mkString(" ")).operator(Operator.AND)
-      val contentSearch = QueryBuilders.matchQuery(s"content.$searchLanguage", query.mkString(" ")).operator(Operator.AND)
-      val tagSearch = QueryBuilders.matchQuery(s"tags.$searchLanguage", query.mkString(" ")).operator(Operator.AND)
-
-      val fullSearch = QueryBuilders.boolQuery()
+      val fullQuery = QueryBuilders.boolQuery()
         .must(QueryBuilders.boolQuery()
-          .should(QueryBuilders.nestedQuery("title", titleSearch, ScoreMode.Avg))
-          .should(QueryBuilders.nestedQuery("content", contentSearch, ScoreMode.Avg))
-          .should(QueryBuilders.nestedQuery("tags", tagSearch, ScoreMode.Avg)))
-        .filter(QueryBuilders.constantScoreQuery(QueryBuilders.termsQuery("articleType", articleTypes:_*)))
+          .should(QueryBuilders.nestedQuery("title", titleSearch, ScoreMode.Avg).boost(2))
+          .should(QueryBuilders.nestedQuery("introduction", introSearch, ScoreMode.Avg).boost(2))
+          .should(QueryBuilders.nestedQuery("content", contentSearch, ScoreMode.Avg).boost(1))
+          .should(QueryBuilders.nestedQuery("tags", tagSearch, ScoreMode.Avg).boost(2)))
+        .filter(QueryBuilders.constantScoreQuery(QueryBuilders.termsQuery("articleType", articleTypesFilter:_*)))
 
-      executeSearch(withIdIn, searchLanguage, license, sort, page, pageSize, fullSearch)
+      executeSearch(withIdIn, searchLanguage, license, sort, page, pageSize, fullQuery)
     }
 
     def executeSearch(withIdIn: List[Long], language: String, license: Option[String], sort: Sort.Value, page: Int, pageSize: Int, queryBuilder: BoolQueryBuilder): SearchResult = {
