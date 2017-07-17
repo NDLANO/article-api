@@ -84,7 +84,8 @@ trait ArticleControllerV2 {
         parameters(
           headerParam[Option[String]]("X-Correlation-ID").description("User supplied correlation-id. May be omitted."),
           headerParam[Option[String]]("app-key").description("Your app-key. May be omitted to access api anonymously, but rate limiting applies on anonymous access."),
-          pathParam[Long]("article_id").description("Id of the article that is to be returned")
+          pathParam[Long]("article_id").description("Id of the article that is to be returned"),
+          queryParam[Option[String]]("language").description("Only return results on the given language. Default is nb")
         )
         authorizations "oauth2"
         responseMessages(response404, response500))
@@ -121,12 +122,13 @@ trait ArticleControllerV2 {
         parameters(
           queryParam[Option[Int]]("size").description("Limit the number of results to this many elements"),
           headerParam[Option[String]]("X-Correlation-ID").description("User supplied correlation-id. May be omitted."),
-          headerParam[Option[String]]("app-key").description("Your app-key.")
+          headerParam[Option[String]]("app-key").description("Your app-key."),
+          queryParam[Option[String]]("language").description("Only return results on the given language. Default is nb")
         )
         responseMessages response500
         authorizations "oauth2")
 
-    get("/tags/", operation(getTags)) {
+    get("/tags/?", operation(getTags)) {
       val defaultSize = 20
       val language = paramOrDefault("language", Language.AllLanguages)
       val size = intOrDefault("size", defaultSize) match {
