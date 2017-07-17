@@ -13,18 +13,18 @@ import no.ndla.articleapi.caching.MemoizeAutoRenew
 import no.ndla.articleapi.integration.ConverterModule.{jsoupDocumentToString, stringToJsoupDocument}
 import no.ndla.articleapi.model.api
 import no.ndla.articleapi.model.domain._
-import no.ndla.articleapi.repository.ArticleRepository
+import no.ndla.articleapi.repository.{ArticleRepository, ConceptRepository}
 import no.ndla.articleapi.service.converters.Attributes
 import org.jsoup.nodes.Element
 
 import scala.collection.JavaConverters._
 
 trait ReadService {
-  this: ArticleRepository with ConverterService =>
+  this: ArticleRepository with ConceptRepository with ConverterService =>
   val readService: ReadService
 
   class ReadService {
-    def withId(id: Long): Option[api.Article] =
+    def articleWithId(id: Long): Option[api.Article] =
       articleRepository.withId(id)
         .map(addUrlsAndIdsOnEmbedResources)
         .map(converterService.toApiArticle)
@@ -80,6 +80,9 @@ trait ReadService {
 
       def getNMostFrequent(n: Int): Seq[String] = mostFrequentOccorencesDec.slice(0, n)
     }
+
+    def conceptWithId(id: Long, language: String): Option[api.Concept] =
+      conceptRepository.withId(id).flatMap(concept => converterService.toApiConcept(concept, language))
 
   }
 }

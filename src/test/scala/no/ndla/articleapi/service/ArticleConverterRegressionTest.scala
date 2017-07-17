@@ -78,11 +78,7 @@ class ArticleConverterRegressionTest extends IntegrationSuite with TestEnvironme
     read[PerfectArticle](json)
   }
 
-  def getByLanguage[T <: LanguageField](fields: Seq[T], lang: String): Option[T] = {
-    fields.find(f => f.language.getOrElse("") == lang)
-  }
-
-  def verifyNoLanguageContentChanges[T <: LanguageField](perfect: Seq[T], imported: Seq[T], nodeId: String) = {
+  def verifyNoLanguageContentChanges[T <: LanguageField[String]](perfect: Seq[T], imported: Seq[T], nodeId: String) = {
     val importedContentLanguages = imported.map(_.language).toSet
     val originalContentLanguages = perfect.map(_.language).toSet
     importedContentLanguages should equal (originalContentLanguages)

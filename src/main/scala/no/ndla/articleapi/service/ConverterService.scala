@@ -12,18 +12,17 @@ package no.ndla.articleapi.service
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.articleapi.ArticleApiProperties.maxConvertionRounds
 import no.ndla.articleapi.auth.User
-import no.ndla.articleapi.integration.ImageApiClient
-import no.ndla.articleapi.model.domain._
-import no.ndla.articleapi.model.api
-import no.ndla.articleapi.repository.ArticleRepository
-import no.ndla.mapping.License.getLicense
 import no.ndla.articleapi.integration.ConverterModule.{jsoupDocumentToString, stringToJsoupDocument}
-import no.ndla.articleapi.model.api.{ValidationException, ValidationMessage}
+import no.ndla.articleapi.integration.ImageApiClient
+import no.ndla.articleapi.model.api
+import no.ndla.articleapi.model.domain._
+import no.ndla.articleapi.repository.ArticleRepository
 import no.ndla.articleapi.service.converters.{Attributes, HTMLCleaner, ResourceType}
+import no.ndla.mapping.License.getLicense
 
 import scala.annotation.tailrec
-import scala.util.{Failure, Success, Try}
 import scala.collection.JavaConverters._
+import scala.util.{Failure, Success, Try}
 
 trait ConverterService {
   this: ConverterModules with ExtractConvertStoreContent with ImageApiClient with Clock with ArticleRepository with User =>
@@ -247,6 +246,18 @@ trait ConverterService {
     }
 
     def createLinkToOldNdla(nodeId: String): String = s"//red.ndla.no/node/$nodeId"
+
+    def toApiConcept(concept: Concept, language: String): Option[api.Concept] = {
+      concept.supportedLanguage(language).map(lang => {
+        api.Concept(
+          concept.id.get,
+          concept.title(lang).getOrElse(""),
+          concept.content(lang).getOrElse(""),
+          lang,
+          concept.supportedLanguages
+        )
+      })
+    }
 
   }
 }

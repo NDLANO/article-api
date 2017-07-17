@@ -14,10 +14,10 @@ import no.ndla.articleapi.ArticleApiProperties
 import no.ndla.articleapi.integration.DataSource
 import no.ndla.articleapi.model.api.OptimisticLockException
 import no.ndla.articleapi.model.domain.{Article, ArticleIds, ArticleTag}
-import org.json4s.native.Serialization.write
 import org.json4s.native.JsonMethods._
+import org.json4s.native.Serialization.write
 import org.postgresql.util.PGobject
-import scalikejdbc.{ConnectionPool, DataSourceConnectionPool, _}
+import scalikejdbc._
 
 import scala.util.{Failure, Success, Try}
 

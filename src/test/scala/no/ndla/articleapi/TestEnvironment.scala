@@ -13,7 +13,7 @@ import com.amazonaws.services.s3.AmazonS3Client
 import no.ndla.articleapi.auth.{Role, User}
 import no.ndla.articleapi.controller.{ArticleController, HealthController, InternController}
 import no.ndla.articleapi.integration._
-import no.ndla.articleapi.repository.ArticleRepository
+import no.ndla.articleapi.repository.{ArticleRepository, ConceptRepository}
 import no.ndla.articleapi.service._
 import no.ndla.articleapi.service.converters._
 import no.ndla.articleapi.service.converters.contentbrowser._
@@ -32,6 +32,7 @@ trait TestEnvironment
     with HealthController
     with DataSource
     with ArticleRepository
+    with ConceptRepository
     with MockitoSugar
     with MigrationApiClient
     with ExtractService
@@ -67,6 +68,7 @@ trait TestEnvironment
 
   val dataSource = mock[javax.sql.DataSource]
   val articleRepository = mock[ArticleRepository]
+  val conceptRepository = mock[ConceptRepository]
   val amazonClient = mock[AmazonS3Client]
   val attachmentStorageName = "testStorageName"
 

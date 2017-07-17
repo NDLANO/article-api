@@ -12,9 +12,9 @@ package no.ndla.articleapi
 import com.amazonaws.regions.Regions
 import com.amazonaws.services.s3.AmazonS3ClientBuilder
 import no.ndla.articleapi.auth.{Role, User}
-import no.ndla.articleapi.controller.{ArticleController, HealthController, InternController}
+import no.ndla.articleapi.controller.{ArticleController, ConceptController, HealthController, InternController}
 import no.ndla.articleapi.integration._
-import no.ndla.articleapi.repository.ArticleRepository
+import no.ndla.articleapi.repository.{ArticleRepository, ConceptRepository}
 import no.ndla.articleapi.service._
 import no.ndla.articleapi.service.converters._
 import no.ndla.articleapi.service.converters.contentbrowser._
@@ -28,8 +28,10 @@ object ComponentRegistry
   extends DataSource
     with InternController
     with ArticleController
+    with ConceptController
     with HealthController
     with ArticleRepository
+    with ConceptRepository
     with ElasticClient
     with SearchService
     with IndexService
@@ -61,7 +63,7 @@ object ComponentRegistry
 
   implicit val swagger = new ArticleSwagger
 
-  lazy val dataSource = new PGPoolingDataSource()
+  lazy val dataSource = new PGPoolingDataSource
   dataSource.setUser(ArticleApiProperties.MetaUserName)
   dataSource.setPassword(ArticleApiProperties.MetaPassword)
   dataSource.setDatabaseName(ArticleApiProperties.MetaResource)
@@ -75,10 +77,12 @@ object ComponentRegistry
   lazy val extractConvertStoreContent = new ExtractConvertStoreContent
   lazy val internController = new InternController
   lazy val articleController = new ArticleController
+  lazy val conceptController = new ConceptController
   lazy val resourcesApp = new ResourcesApp
   lazy val healthController = new HealthController
 
   lazy val articleRepository = new ArticleRepository
+  lazy val conceptRepository = new ConceptRepository
   lazy val searchService = new SearchService
   lazy val indexService = new IndexService
   lazy val searchIndexService = new SearchIndexService

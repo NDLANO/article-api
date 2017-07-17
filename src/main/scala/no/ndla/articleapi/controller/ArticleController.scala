@@ -192,7 +192,7 @@ trait ArticleController {
 
       logger.info(s"get article $articleId")
 
-      readService.withId(articleId) match {
+      readService.articleWithId(articleId) match {
         case Some(article) => article
         case None => NotFound(body = Error(Error.NOT_FOUND, s"No article with id $articleId found"))
       }
