@@ -24,8 +24,6 @@ import org.scalatra._
 import org.scalatra.json.NativeJsonSupport
 import org.scalatra.{BadRequest, InternalServerError, NotFound, ScalatraServlet}
 
-import scala.util.{Failure, Success, Try}
-
 abstract class NdlaController extends ScalatraServlet with NativeJsonSupport with LazyLogging {
   protected implicit override val jsonFormats: Formats = DefaultFormats
 

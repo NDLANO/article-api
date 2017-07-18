@@ -64,3 +64,4 @@ trait ContentBrowserConverterModules
   with UnsupportedContentConverter
   with User
   with ArticleValidator
+  with ReadService

@@ -17,7 +17,9 @@ import org.json4s.FieldSerializer._
 import org.json4s.native.Serialization._
 import scalikejdbc._
 
-sealed trait Content
+sealed trait Content {
+  def id: Option[Long]
+}
 
 case class Article(id: Option[Long],
                    revision: Option[Int],

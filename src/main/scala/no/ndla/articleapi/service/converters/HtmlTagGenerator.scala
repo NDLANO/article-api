@@ -61,6 +61,14 @@ trait HtmlTagGenerator {
       buildEmbedContent(dataAttributes)
     }
 
+    def buildConceptEmbedContent(conceptId: Long, linkText: String) = {
+      val dataAttributes = Map(
+        Attributes.DataResource -> ResourceType.ConceptLink.toString,
+        Attributes.DataContentId -> s"$conceptId",
+        Attributes.DataLinkText -> linkText)
+      buildEmbedContent(dataAttributes)
+    }
+
     def buildExternalInlineEmbedContent(url: String) = {
       val dataAttributes = Map(
         Attributes.DataResource -> ResourceType.ExternalContent.toString,
@@ -103,6 +111,7 @@ object ResourceType extends Enumeration {
   val ContentLink = Value("content-link")
   val ExternalContent = Value("external")
   val NRKContent = Value("nrk")
+  val ConceptLink = Value("concept")
 
   def all: Set[String] = ResourceType.values.map(_.toString)
 

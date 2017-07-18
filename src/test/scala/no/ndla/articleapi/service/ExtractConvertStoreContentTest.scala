@@ -43,25 +43,28 @@ class ExtractConvertStoreContentTest extends UnitSuite with TestEnvironment {
     when(articleRepository.getIdFromExternalId(nodeId2)).thenReturn(None)
     when(migrationApiClient.getSubjectForNode(nodeId)).thenReturn(Try(Seq(MigrationSubjectMeta("52", "helsearbeider vg2"))))
 
+    when(readService.getContentByExternalId(any[String])).thenReturn(None)
     when(articleValidator.validate(any[Article])).thenReturn(Success(TestData.sampleArticleWithByNcSa))
     when(articleRepository.exists(sampleNode.contents.head.nid)).thenReturn(false)
-    when(articleRepository.insertWithExternalIds(any[Article], any[String], any[Seq[String]])(any[DBSession])).thenReturn(newNodeid)
-    when(extractConvertStoreContent.processNode("9876")).thenReturn(Try(1: Long, ImportStatus(Seq(), Seq())))
+    when(articleRepository.insertWithExternalIds(any[Article], any[String], any[Seq[String]])(any[DBSession])).thenReturn(TestData.sampleArticleWithPublicDomain)
+    when(extractConvertStoreContent.processNode("9876")).thenReturn(Try(TestData.sampleArticleWithPublicDomain, ImportStatus(Seq(), Seq())))
     when(searchIndexService.indexDocument(any[Article])).thenReturn(Success(mock[Article]))
   }
 
   test("That ETL extracts, translates and loads a node correctly") {
-    when(extractConvertStoreContent.processNode(nodeId2, ImportStatus(Seq(), Seq(nodeId)))).thenReturn(Try((newNodeid, ImportStatus(Seq(), Seq(nodeId, nodeId2)))))
+    val sampleArticle = TestData.sampleArticleWithPublicDomain
+    when(extractConvertStoreContent.processNode(nodeId2, ImportStatus(Seq(), Seq(nodeId)))).thenReturn(Try((sampleArticle, ImportStatus(Seq(), Seq(nodeId, nodeId2)))))
 
     val result = eCSService.processNode(nodeId)
-    result should equal(Success(newNodeid, ImportStatus(List(s"Successfully imported node $nodeId: $newNodeid"), List(nodeId, nodeId2))))
+    result should equal(Success(sampleArticle, ImportStatus(List(s"Successfully imported node $nodeId: 1"), List(nodeId, nodeId2))))
   }
 
   test("That ETL returns a list of visited nodes") {
-    when(extractConvertStoreContent.processNode(nodeId2, ImportStatus(Seq(), Seq("9876", nodeId)))).thenReturn(Try((newNodeid, ImportStatus(Seq(), Seq("9876", nodeId, nodeId2)))))
+    val sampleArticle = TestData.sampleArticleWithPublicDomain
+    when(extractConvertStoreContent.processNode(nodeId2, ImportStatus(Seq(), Seq("9876", nodeId)))).thenReturn(Try((sampleArticle, ImportStatus(Seq(), Seq("9876", nodeId, nodeId2)))))
 
     val result = eCSService.processNode(nodeId, ImportStatus(Seq(), Seq("9876")))
-    result should equal(Success(newNodeid, ImportStatus(List(s"Successfully imported node $nodeId: $newNodeid"), List("9876", nodeId, nodeId2))))
+    result should equal(Success(sampleArticle, ImportStatus(List(s"Successfully imported node $nodeId: 1"), List("9876", nodeId, nodeId2))))
   }
 
   test("That ETL returns a Failure if the node was not found") {

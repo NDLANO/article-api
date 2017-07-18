@@ -29,6 +29,7 @@ class GeneralContentConverterTest extends UnitSuite with TestEnvironment {
   val sampleArticleSummary = ArticleSummary(1, Seq(ArticleTitle("title", Some("nb"))), Seq(), Seq(), "http://url", "publicdomain")
   val sampleNodeToConvert = NodeToConvert(Seq(ArticleTitle("title", Some("en"))), Seq(), "publicdomain", Seq(), Seq(), "fagstoff", "fagstoff", new Date(0), new Date(1), ArticleType.Standard)
   val sampleContent = TestData.sampleContent.copy(content="<div>sample content</div>")
+  val sampleArticle = TestData.sampleArticleWithByNcSa
 
   val generalContentConverter = new GeneralContentConverter {
     override val typeName: String = "test"
@@ -58,7 +59,7 @@ class GeneralContentConverterTest extends UnitSuite with TestEnvironment {
     val expectedResult = s"<details><summary>Tittel</summary>${sampleFagstoff1.content}</details>"
 
     when(extractService.getNodeGeneralContent(nodeId)).thenReturn(Seq(sampleFagstoff1, sampleFagstoff2))
-    when(articleRepository.getIdFromExternalId(nodeId)).thenReturn(Some(1: Long))
+    when(readService.getContentByExternalId(nodeId)).thenReturn(Some(sampleArticle))
     val Success((result, requiredLibraries, status)) = generalContentConverter.convert(content, Seq())
 
     result should equal (expectedResult)
@@ -73,7 +74,7 @@ class GeneralContentConverterTest extends UnitSuite with TestEnvironment {
     val expectedResult = s""" <$resourceHtmlEmbedTag data-content-id="1" data-link-text="Tittel" data-resource="content-link" />"""
 
     when(extractService.getNodeGeneralContent(nodeId)).thenReturn(Seq(sampleFagstoff1, sampleFagstoff2))
-    when(articleRepository.getIdFromExternalId(nodeId)).thenReturn(Some(1: Long))
+    when(readService.getContentByExternalId(nodeId)).thenReturn(Some(sampleArticle))
     val Success((result, requiredLibraries, status)) = generalContentConverter.convert(content, Seq())
 
     result should equal (expectedResult)
@@ -87,7 +88,7 @@ class GeneralContentConverterTest extends UnitSuite with TestEnvironment {
     val expectedResult = s""" <$resourceHtmlEmbedTag data-content-id="1" data-link-text="Tittel" data-resource="content-link" />"""
 
     when(extractService.getNodeGeneralContent(nodeId)).thenReturn(Seq(sampleFagstoff1, sampleFagstoff2))
-    when(articleRepository.getIdFromExternalId(nodeId)).thenReturn(Some(1: Long))
+    when(readService.getContentByExternalId(nodeId)).thenReturn(Some(sampleArticle))
     val Success((result, requiredLibraries, status)) = generalContentConverter.convert(content, Seq())
 
     result should equal (expectedResult)
@@ -101,7 +102,7 @@ class GeneralContentConverterTest extends UnitSuite with TestEnvironment {
     val expectedResult = s""" <$resourceHtmlEmbedTag data-content-id="1" data-link-text="Tittel" data-resource="content-link" />"""
 
     when(extractService.getNodeGeneralContent(nodeId)).thenReturn(Seq(sampleFagstoff1, sampleFagstoff2))
-    when(articleRepository.getIdFromExternalId(nodeId)).thenReturn(Some(1: Long))
+    when(readService.getContentByExternalId(nodeId)).thenReturn(Some(sampleArticle))
 
     val Success((result, requiredLibraries, status)) = generalContentConverter.convert(content, Seq())
 
@@ -117,8 +118,8 @@ class GeneralContentConverterTest extends UnitSuite with TestEnvironment {
     val expectedResult = s""" <$resourceHtmlEmbedTag data-content-id="1111" data-link-text="Tittel" data-resource="content-link" />"""
 
     when(extractService.getNodeGeneralContent(nodeId)).thenReturn(Seq(sampleFagstoff1, sampleFagstoff2))
-    when(articleRepository.getIdFromExternalId(nodeId)).thenReturn(None)
-    when(extractConvertStoreContent.processNode(nodeId, ImportStatus(Seq(), Seq(nodeId2)))).thenReturn(Try((newNodeid, ImportStatus(Seq(), Seq(nodeId2, nodeId)))))
+    when(readService.getContentByExternalId(nodeId)).thenReturn(None)
+    when(extractConvertStoreContent.processNode(nodeId, ImportStatus(Seq(), Seq(nodeId2)))).thenReturn(Try((TestData.sampleArticleWithByNcSa.copy(id=Some(newNodeid)), ImportStatus(Seq(), Seq(nodeId2, nodeId)))))
 
     val languageContent = sampleContent.copy(content="<div>sample content</div>")
     val Success((result, _, status)) = generalContentConverter.convert(content, Seq(nodeId2))
@@ -133,7 +134,7 @@ class GeneralContentConverterTest extends UnitSuite with TestEnvironment {
     val expectedResult = s""" <a href="http://ndla.no/node/$nodeId" title="">Tittel</a>"""
 
     when(extractService.getNodeGeneralContent(nodeId)).thenReturn(Seq(sampleFagstoff1, sampleFagstoff2))
-    when(articleRepository.getIdFromExternalId(nodeId)).thenReturn(None)
+    when(readService.getContentByExternalId(nodeId)).thenReturn(None)
     when(extractConvertStoreContent.processNode(nodeId, ImportStatus(Seq(), Seq(nodeId2)))).thenReturn(Failure(NotFoundException("Node was not found")))
 
     generalContentConverter.convert(content, Seq(nodeId2)).isFailure should be (true)

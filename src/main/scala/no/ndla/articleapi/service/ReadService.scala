@@ -84,5 +84,7 @@ trait ReadService {
     def conceptWithId(id: Long, language: String): Option[api.Concept] =
       conceptRepository.withId(id).flatMap(concept => converterService.toApiConcept(concept, language))
 
+    def getContentByExternalId(externalId: String): Option[Content] =
+      articleRepository.withExternalId(externalId) orElse conceptRepository.withExternalId(externalId)
   }
 }

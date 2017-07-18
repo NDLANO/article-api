@@ -1,3 +1,11 @@
+/*
+ * Part of NDLA article_api.
+ * Copyright (C) 2017 NDLA
+ *
+ * See LICENSE
+ *
+ */
+
 package no.ndla.articleapi.controller
 
 import no.ndla.articleapi.model.api.Error

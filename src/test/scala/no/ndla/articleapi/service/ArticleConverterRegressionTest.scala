@@ -97,7 +97,7 @@ class ArticleConverterRegressionTest extends IntegrationSuite with TestEnvironme
 
   def verifyNoChanges(article: PerfectArticle): Unit = {
     val articleId = extractConvertStoreContent.processNode(article.nodeId) match {
-      case Success((newId, _)) => newId
+      case Success((content, _)) => content.id.get
       case Failure(exc) => throw exc
     }
 

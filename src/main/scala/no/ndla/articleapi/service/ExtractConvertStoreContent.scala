@@ -28,15 +28,16 @@ trait ExtractConvertStoreContent {
     with ConceptRepository
     with SearchIndexService
     with IndexService
+    with ReadService
     with ArticleValidator =>
 
   val extractConvertStoreContent: ExtractConvertStoreContent
 
   class ExtractConvertStoreContent extends LazyLogging {
-    def processNode(externalId: String, importStatus: ImportStatus = ImportStatus(Seq(), Seq())): Try[(Long, ImportStatus)] = {
+    def processNode(externalId: String, importStatus: ImportStatus = ImportStatus(Seq(), Seq())): Try[(Content, ImportStatus)] = {
       if (importStatus.visitedNodes.contains(externalId)) {
-        return getMainNodeId(externalId).flatMap(mainNodeId => articleRepository.getIdFromExternalId(mainNodeId)) match {
-          case Some(id) => Success(id, importStatus)
+        return getMainNodeId(externalId).flatMap(readService.getContentByExternalId) match {
+          case Some(content) => Success(content, importStatus)
           case None => Failure(NotFoundException(s"Content with external id $externalId was not found"))
         }
       }
@@ -45,9 +46,9 @@ trait ExtractConvertStoreContent {
         (node, mainNodeId) <- extract(externalId)
         (convertedContent, updatedImportStatus) <- convert(node, importStatus)
         _ <- articleValidator.validate(convertedContent)
-        newId <- store(convertedContent, mainNodeId)
-        _ <- indexContent(convertedContent, newId)
-      } yield (newId, updatedImportStatus ++ ImportStatus(Seq(s"Successfully imported node $externalId: $newId")))
+        concept <- store(convertedContent, mainNodeId)
+        _ <- indexContent(concept)
+      } yield (concept, updatedImportStatus ++ ImportStatus(Seq(s"Successfully imported node $externalId: ${concept.id.get}")))
 
       if (importedArticle.isFailure) {
         deleteArticleByExternalId(externalId)
@@ -83,14 +84,14 @@ trait ExtractConvertStoreContent {
     private def convert(nodeToConvert: NodeToConvert, importStatus: ImportStatus): Try[(Content, ImportStatus)] =
       converterService.toDomainArticle(nodeToConvert, importStatus)
 
-    private def store(content: Content, mainNodeId: String): Try[Long] = {
+    private def store(content: Content, mainNodeId: String): Try[Content] = {
       content match {
         case article: Article => storeArticle(article, mainNodeId)
         case concept: Concept => storeConcept(concept, mainNodeId)
       }
     }
 
-    private def storeArticle(article: Article, mainNodeNid: String): Try[Long] = {
+    private def storeArticle(article: Article, mainNodeNid: String): Try[Content] = {
       val subjectIds = getSubjectIds(mainNodeNid)
       articleRepository.exists(mainNodeNid) match {
         case true => articleRepository.updateWithExternalId(article, mainNodeNid)
@@ -98,16 +99,16 @@ trait ExtractConvertStoreContent {
       }
     }
 
-    private def storeConcept(concept: Concept, mainNodeNid: String): Try[Long] = {
+    private def storeConcept(concept: Concept, mainNodeNid: String): Try[Content] = {
       articleRepository.exists(mainNodeNid) match {
         case true => conceptRepository.updateWithExternalId(concept, mainNodeNid)
         case false => Try(conceptRepository.insertWithExternalId(concept, mainNodeNid))
       }
     }
 
-    private def indexContent(content: Content, newId: Long): Try[Content] = {
+    private def indexContent(content: Content): Try[Content] = {
       content match {
-        case a: Article => searchIndexService.indexDocument(a.copy(id = Some(newId)))
+        case a: Article => searchIndexService.indexDocument(a)
         case c: Content => Failure(new NotImplementedError)
       }
     }

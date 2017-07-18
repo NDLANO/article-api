@@ -11,15 +11,14 @@ package no.ndla.articleapi.service.converters.contentbrowser
 
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.articleapi.model.api.ImportException
-import no.ndla.articleapi.model.domain.{ImportStatus, RequiredLibrary}
-import no.ndla.articleapi.repository.ArticleRepository
+import no.ndla.articleapi.model.domain._
 import no.ndla.articleapi.service.converters.HtmlTagGenerator
-import no.ndla.articleapi.service.{ExtractConvertStoreContent, ExtractService}
+import no.ndla.articleapi.service.{ExtractConvertStoreContent, ExtractService, ReadService}
 
 import scala.util.{Failure, Success, Try}
 
 trait GeneralContentConverterModule {
-  this: ExtractService with ArticleRepository with ExtractConvertStoreContent with HtmlTagGenerator =>
+  this: ExtractService with ReadService with ExtractConvertStoreContent with HtmlTagGenerator =>
 
   abstract class GeneralContentConverter extends ContentBrowserConverterModule with LazyLogging {
     override def convert(contentBrowser: ContentBrowser, visitedNodes: Seq[String]): Try[(String, Seq[RequiredLibrary], ImportStatus)] = {
@@ -43,29 +42,32 @@ trait GeneralContentConverterModule {
         case "collapsed_body" =>
           Success(HtmlTagGenerator.buildDetailsSummaryContent(contentBrowser.get("link_text"), content), ImportStatus(Seq(), visitedNodes))
         case "link" => insertLink(contentBrowser, visitedNodes)
-        case _ => {
+        case _ =>
           val warnMessage = s"""Unhandled insertion method '$insertionMethod' on '${contentBrowser.get("link_text")}'. Defaulting to link."""
           logger.warn(warnMessage)
           insertLink(contentBrowser, visitedNodes) map { case (insertString, importStatus) =>
             (insertString, ImportStatus(importStatus.messages :+ warnMessage, importStatus.visitedNodes))
           }
-        }
       }
     }
 
     def insertLink(contentBrowser: ContentBrowser, visitedNodes: Seq[String]): Try[(String, ImportStatus)] = {
       getContentId(contentBrowser.get("nid"), visitedNodes) match {
-        case Success((id, importStatus)) => {
-          val embedContent = HtmlTagGenerator.buildLinkEmbedContent(id.toString, contentBrowser.get("link_text"))
+        case Success((article: Article, importStatus)) =>
+          val embedContent = HtmlTagGenerator.buildLinkEmbedContent(article.id.get.toString, contentBrowser.get("link_text"))
           Success(s" $embedContent", importStatus)
-        }
+
+        case Success((concept: Concept, importStatus)) =>
+          val embedContent = HtmlTagGenerator.buildConceptEmbedContent(concept.id.get, contentBrowser.get("link_text"))
+          Success(s" $embedContent", importStatus)
+
         case Failure(e) => Failure(e)
       }
     }
 
-    def getContentId(externalId: String, visitedNodes: Seq[String]): Try[(Long, ImportStatus)] = {
-      articleRepository.getIdFromExternalId(externalId) match {
-        case Some(id) => Success(id, ImportStatus(Seq(), (visitedNodes :+ externalId).distinct))
+    def getContentId(externalId: String, visitedNodes: Seq[String]): Try[(Content, ImportStatus)] = {
+      readService.getContentByExternalId(externalId) match {
+        case Some(content) => Success(content, ImportStatus(Seq(), (visitedNodes :+ externalId).distinct))
         case None => extractConvertStoreContent.processNode(externalId, ImportStatus(Seq(), visitedNodes))
       }
     }

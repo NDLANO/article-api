@@ -1,3 +1,11 @@
+/*
+ * Part of NDLA article_api.
+ * Copyright (C) 2017 NDLA
+ *
+ * See LICENSE
+ *
+ */
+
 package no.ndla.articleapi.repository
 
 import com.typesafe.scalalogging.LazyLogging
@@ -17,24 +25,24 @@ trait ConceptRepository {
   class ConceptRepository extends LazyLogging {
     implicit val formats: Formats = org.json4s.DefaultFormats + Concept.JSonSerializer
 
-    def insertWithExternalId(article: Concept, externalId: String)(implicit session: DBSession = AutoSession): Long = {
+    def insertWithExternalId(concept: Concept, externalId: String)(implicit session: DBSession = AutoSession): Concept = {
       val dataObject = new PGobject()
       dataObject.setType("jsonb")
-      dataObject.setValue(write(article))
+      dataObject.setValue(write(concept))
 
-      val articleId: Long = sql"insert into ${Concept.table} (document, external_id) values (${dataObject}, ${externalId})".updateAndReturnGeneratedKey.apply
+      val conceptId: Long = sql"insert into ${Concept.table} (document, external_id) values (${dataObject}, ${externalId})".updateAndReturnGeneratedKey.apply
 
-      logger.info(s"Inserted new concept: $articleId")
-      articleId
+      logger.info(s"Inserted new concept: $conceptId")
+      concept.copy(id=Some(conceptId))
     }
 
-    def updateWithExternalId(article: Concept, externalId: String)(implicit session: DBSession = AutoSession): Try[Long] = {
+    def updateWithExternalId(concept: Concept, externalId: String)(implicit session: DBSession = AutoSession): Try[Concept] = {
       val dataObject = new PGobject()
       dataObject.setType("jsonb")
-      dataObject.setValue(write(article))
+      dataObject.setValue(write(concept))
 
       Try(sql"update ${Concept.table} set document=${dataObject} where external_id=${externalId}".updateAndReturnGeneratedKey.apply) match {
-        case Success(id) => Success(id)
+        case Success(id) => Success(concept.copy(id=Some(id)))
         case Failure(ex) =>
           logger.warn(s"Failed to update concept with external id $externalId: ${ex.getMessage}")
           Failure(ex)
@@ -43,6 +51,9 @@ trait ConceptRepository {
 
     def withId(id: Long): Option[Concept] =
       conceptWhere(sqls"co.id=${id.toInt}")
+
+    def withExternalId(externalId: String): Option[Concept] =
+      conceptWhere(sqls"co.external_id=$externalId")
 
     private def conceptWhere(whereClause: SQLSyntax)(implicit session: DBSession = ReadOnlyAutoSession): Option[Concept] = {
       val co = Concept.syntax("co")

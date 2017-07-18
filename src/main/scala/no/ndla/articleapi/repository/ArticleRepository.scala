@@ -58,7 +58,7 @@ trait ArticleRepository {
       }
     }
 
-    def insertWithExternalIds(article: Article, externalId: String, externalSubjectId: Seq[String])(implicit session: DBSession = AutoSession): Long = {
+    def insertWithExternalIds(article: Article, externalId: String, externalSubjectId: Seq[String])(implicit session: DBSession = AutoSession): Article = {
       val startRevision = 1
       val dataObject = new PGobject()
       dataObject.setType("jsonb")
@@ -67,10 +67,10 @@ trait ArticleRepository {
       val articleId: Long = sql"insert into ${Article.table} (external_id, external_subject_id, document) values (${externalId}, ARRAY[${externalSubjectId}]::text[], ${dataObject})".updateAndReturnGeneratedKey().apply
 
       logger.info(s"Inserted node $externalId: $articleId")
-      articleId
+      article.copy(id=Some(articleId))
     }
 
-    def updateWithExternalId(article: Article, externalId: String)(implicit session: DBSession = AutoSession): Try[Long] = {
+    def updateWithExternalId(article: Article, externalId: String)(implicit session: DBSession = AutoSession): Try[Article] = {
       val dataObject = new PGobject()
       dataObject.setType("jsonb")
       dataObject.setValue(write(article))
@@ -79,7 +79,7 @@ trait ArticleRepository {
       Try(sql"update ${Article.table} set document=${dataObject} where external_id=${externalId} and revision=$expectedArticleRevision".updateAndReturnGeneratedKey().apply) match {
         case Success(articleId) => {
           logger.info(s"Updated article with external_id=$externalId, id=$articleId")
-          Success(articleId)
+          Success(article.copy(id=Some(articleId)))
         }
         case Failure(ex) => {
           val message = "The revision stored in the database is newer than the one being updated. Please use the latest version from database when updating."
@@ -96,6 +96,9 @@ trait ArticleRepository {
 
     def withId(articleId: Long): Option[Article] =
       articleWhere(sqls"ar.id=${articleId.toInt}")
+
+    def withExternalId(externalId: String): Option[Article] =
+      articleWhere(sqls"ar.external_id=$externalId")
 
     def exists(externalId: String): Boolean =
       articleWhere(sqls"ar.external_id=$externalId").isDefined
