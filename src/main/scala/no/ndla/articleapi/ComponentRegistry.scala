@@ -104,8 +104,10 @@ object ComponentRegistry
   lazy val contentBrowserConverter = new ContentBrowserConverter
   lazy val biblioConverter = new BiblioConverter
   lazy val htmlCleaner = new HTMLCleaner
-  lazy val converterModules = List(contentBrowserConverter)
-  lazy val postProcessorModules = List(SimpleTagConverter, biblioConverter, TableConverter, MathMLConverter, htmlCleaner, VisualElementConverter)
+  lazy val articleConverterModules = List(contentBrowserConverter)
+  lazy val articlePostProcessorModules = List(SimpleTagConverter, biblioConverter, TableConverter, MathMLConverter, htmlCleaner, VisualElementConverter)
+  lazy val conceptConverterModules = List(contentBrowserConverter)
+  lazy val conceptPostProcessorModules = List(ConceptConverter)
 
   lazy val jestClient: NdlaJestClient = JestClientFactory.getClient()
   lazy val audioApiClient = new AudioApiClient
@@ -114,5 +116,4 @@ object ComponentRegistry
   lazy val clock = new SystemClock
   lazy val authRole = new AuthRole
   lazy val authUser = new AuthUser
-
 }

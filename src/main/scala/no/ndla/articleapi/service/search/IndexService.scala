@@ -41,10 +41,8 @@ trait IndexService {
       new Index.Builder(source).index(indexName).`type`(ArticleApiProperties.SearchDocument).id(article.id.get.toString).build
     }
 
-    def indexDocument(article: Article): Try[Article] = {
-      val result = jestClient.execute(createIndexRequest(article, ArticleApiProperties.SearchIndex))
-      result.map(_ => article)
-    }
+    def indexDocument(article: Article): Try[Article] =
+      jestClient.execute(createIndexRequest(article, ArticleApiProperties.SearchIndex)).map(_ => article)
 
     def indexDocuments(articles: List[Article], indexName: String): Try[Int] = {
       val bulkBuilder = new Bulk.Builder()

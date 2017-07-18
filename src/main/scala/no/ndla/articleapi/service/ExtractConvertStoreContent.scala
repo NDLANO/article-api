@@ -12,8 +12,8 @@ package no.ndla.articleapi.service
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.articleapi.integration.MigrationApiClient
 import no.ndla.articleapi.model.api.{ImportException, NotFoundException}
-import no.ndla.articleapi.model.domain.{Article, ImportStatus, NodeToConvert}
-import no.ndla.articleapi.repository.ArticleRepository
+import no.ndla.articleapi.model.domain._
+import no.ndla.articleapi.repository.{ArticleRepository, ConceptRepository}
 import no.ndla.articleapi.service.search.{IndexService, SearchIndexService}
 import no.ndla.articleapi.ArticleApiProperties.supportedContentTypes
 import no.ndla.articleapi.validation.ArticleValidator
@@ -21,7 +21,14 @@ import no.ndla.articleapi.validation.ArticleValidator
 import scala.util.{Failure, Success, Try}
 
 trait ExtractConvertStoreContent {
-  this: ExtractService with MigrationApiClient with ConverterService with ArticleRepository with SearchIndexService with IndexService with ArticleValidator =>
+  this: ExtractService
+    with MigrationApiClient
+    with ConverterService
+    with ArticleRepository
+    with ConceptRepository
+    with SearchIndexService
+    with IndexService
+    with ArticleValidator =>
 
   val extractConvertStoreContent: ExtractConvertStoreContent
 
@@ -36,10 +43,10 @@ trait ExtractConvertStoreContent {
 
       val importedArticle = for {
         (node, mainNodeId) <- extract(externalId)
-        (convertedArticle, updatedImportStatus) <- convert(node, importStatus)
-        _ <- articleValidator.validateArticle(convertedArticle)
-        newId <- store(convertedArticle, mainNodeId)
-        _ <- searchIndexService.indexDocument(convertedArticle.copy(id = Some(newId)))
+        (convertedContent, updatedImportStatus) <- convert(node, importStatus)
+        _ <- articleValidator.validate(convertedContent)
+        newId <- store(convertedContent, mainNodeId)
+        _ <- indexContent(convertedContent, newId)
       } yield (newId, updatedImportStatus ++ ImportStatus(Seq(s"Successfully imported node $externalId: $newId")))
 
       if (importedArticle.isFailure) {
@@ -73,14 +80,35 @@ trait ExtractConvertStoreContent {
       }
     }
 
-    private def convert(nodeToConvert: NodeToConvert, importStatus: ImportStatus): Try[(Article, ImportStatus)] =
+    private def convert(nodeToConvert: NodeToConvert, importStatus: ImportStatus): Try[(Content, ImportStatus)] =
       converterService.toDomainArticle(nodeToConvert, importStatus)
 
-    private def store(article: Article, mainNodeNid: String): Try[Long] = {
+    private def store(content: Content, mainNodeId: String): Try[Long] = {
+      content match {
+        case article: Article => storeArticle(article, mainNodeId)
+        case concept: Concept => storeConcept(concept, mainNodeId)
+      }
+    }
+
+    private def storeArticle(article: Article, mainNodeNid: String): Try[Long] = {
       val subjectIds = getSubjectIds(mainNodeNid)
       articleRepository.exists(mainNodeNid) match {
         case true => articleRepository.updateWithExternalId(article, mainNodeNid)
         case false => Try(articleRepository.insertWithExternalIds(article, mainNodeNid, subjectIds))
+      }
+    }
+
+    private def storeConcept(concept: Concept, mainNodeNid: String): Try[Long] = {
+      articleRepository.exists(mainNodeNid) match {
+        case true => conceptRepository.updateWithExternalId(concept, mainNodeNid)
+        case false => Try(conceptRepository.insertWithExternalId(concept, mainNodeNid))
+      }
+    }
+
+    private def indexContent(content: Content, newId: Long): Try[Content] = {
+      content match {
+        case a: Article => searchIndexService.indexDocument(a.copy(id = Some(newId)))
+        case c: Content => Failure(new NotImplementedError)
       }
     }
 

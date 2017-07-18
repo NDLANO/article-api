@@ -38,8 +38,8 @@ class ArticleConverterRegressionTest extends IntegrationSuite with TestEnvironme
   override val contentBrowserConverter = new ContentBrowserConverter
   override val biblioConverter = new BiblioConverter
   override val htmlCleaner = new HTMLCleaner
-  override val converterModules = List(contentBrowserConverter)
-  override val postProcessorModules = List(SimpleTagConverter, biblioConverter, TableConverter, MathMLConverter, htmlCleaner, VisualElementConverter)
+  override val articleConverterModules = List(contentBrowserConverter)
+  override val articlePostProcessorModules = List(SimpleTagConverter, biblioConverter, TableConverter, MathMLConverter, htmlCleaner, VisualElementConverter)
 
   override val readService = new ReadService
   override val writeService = new WriteService

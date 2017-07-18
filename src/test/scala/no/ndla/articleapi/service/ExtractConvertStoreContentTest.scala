@@ -11,6 +11,7 @@ package no.ndla.articleapi.service
 
 import java.util.Date
 
+import io.searchbox.client.JestResult
 import no.ndla.articleapi.integration.{LanguageIngress, MigrationSubjectMeta}
 import no.ndla.articleapi.model.api.{OptimisticLockException, ValidationError, ValidationException, ValidationMessage}
 import no.ndla.articleapi.model.domain._
@@ -42,11 +43,11 @@ class ExtractConvertStoreContentTest extends UnitSuite with TestEnvironment {
     when(articleRepository.getIdFromExternalId(nodeId2)).thenReturn(None)
     when(migrationApiClient.getSubjectForNode(nodeId)).thenReturn(Try(Seq(MigrationSubjectMeta("52", "helsearbeider vg2"))))
 
-    when(articleValidator.validateArticle(any[Article])).thenReturn(Success(TestData.sampleArticleWithByNcSa))
+    when(articleValidator.validate(any[Article])).thenReturn(Success(TestData.sampleArticleWithByNcSa))
     when(articleRepository.exists(sampleNode.contents.head.nid)).thenReturn(false)
     when(articleRepository.insertWithExternalIds(any[Article], any[String], any[Seq[String]])(any[DBSession])).thenReturn(newNodeid)
     when(extractConvertStoreContent.processNode("9876")).thenReturn(Try(1: Long, ImportStatus(Seq(), Seq())))
-    when(searchIndexService.indexDocument(any[Article])).thenReturn(Success())
+    when(searchIndexService.indexDocument(any[Article])).thenReturn(Success(mock[Article]))
   }
 
   test("That ETL extracts, translates and loads a node correctly") {
@@ -73,7 +74,7 @@ class ExtractConvertStoreContentTest extends UnitSuite with TestEnvironment {
 
   test("ETL should return a Failure if validation fails") {
     val validationMessage = ValidationMessage("content.content", "Content can not be empty")
-    when(articleValidator.validateArticle(any[Article])).thenReturn(Failure(new ValidationException(errors=Seq(validationMessage))))
+    when(articleValidator.validate(any[Article])).thenReturn(Failure(new ValidationException(errors=Seq(validationMessage))))
     when(articleRepository.getIdFromExternalId(nodeId)).thenReturn(Some(1: Long))
     when(articleRepository.getIdFromExternalId(nodeId2)).thenReturn(Some(2: Long))
 
@@ -97,7 +98,7 @@ class ExtractConvertStoreContentTest extends UnitSuite with TestEnvironment {
   }
 
   test("That ETL returns a Failure if failed to index the converted article") {
-    when(searchIndexService.indexDocument(any[Article])).thenReturn(any[Failure[NdlaSearchException]])
+    when(searchIndexService.indexDocument(any[Article])).thenReturn(Failure(mock[NdlaSearchException]))
     when(articleRepository.getIdFromExternalId(nodeId)).thenReturn(None)
 
     val result = eCSService.processNode(nodeId, ImportStatus(Seq(), Seq("9876")))

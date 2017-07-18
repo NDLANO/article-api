@@ -17,6 +17,8 @@ import org.json4s.FieldSerializer._
 import org.json4s.native.Serialization._
 import scalikejdbc._
 
+sealed trait Content
+
 case class Article(id: Option[Long],
                    revision: Option[Int],
                    title: Seq[ArticleTitle],
@@ -31,7 +33,7 @@ case class Article(id: Option[Long],
                    created: Date,
                    updated: Date,
                    updatedBy: String,
-                   articleType: String)
+                   articleType: String) extends Content
 
 
 object Article extends SQLSyntaxSupport[Article] {
@@ -75,4 +77,53 @@ object ArticleType extends Enumeration {
   def valueOf(s:String): Option[ArticleType.Value] = ArticleType.values.find(_.toString == s)
   def valueOfOrError(s: String): ArticleType.Value =
     valueOf(s).getOrElse(throw new ValidationException(errors = List(ValidationMessage("articleType", s"'$s' is not a valid article type. Valid options are ${all.mkString(",")}."))))
+}
+
+case class Concept(id: Option[Long],
+                   title: Seq[ConceptTitle],
+                   content: Seq[ConceptContent]) extends Content {
+
+  def title(lang: String): Option[String] = getByLanguage(title, lang)
+  def content(lang: String): Option[String] = getByLanguage(content, lang)
+
+  val supportedLanguages: Seq[String] = {
+    (content ++ title)
+      .map(_.language.getOrElse(Language.UnknownLanguage))
+      .distinct
+  }
+
+  def supportedLanguage(lang: String): Option[String] = {
+    lang match {
+      case Language.NoLanguage =>
+        if (supportedLanguages.contains(Language.DefaultLanguage))
+          Some(Language.DefaultLanguage)
+        else
+          supportedLanguages.headOption
+      case l if supportedLanguages.contains(l) => Some(l)
+      case _ => None
+    }
+  }
+
+}
+
+
+object Concept extends SQLSyntaxSupport[Concept] {
+  implicit val formats = org.json4s.DefaultFormats
+  override val tableName = "conceptdata"
+  override val schemaName = Some(ArticleApiProperties.MetaSchema)
+
+  def apply(lp: SyntaxProvider[Concept])(rs:WrappedResultSet): Concept = apply(lp.resultName)(rs)
+  def apply(lp: ResultName[Concept])(rs: WrappedResultSet): Concept = {
+    val meta = read[Concept](rs.string(lp.c("document")))
+    Concept(
+      Some(rs.long(lp.c("id"))),
+      meta.title,
+      meta.content
+    )
+  }
+
+  val JSonSerializer = FieldSerializer[Concept](
+    ignore("id") orElse
+      ignore("revision")
+  )
 }

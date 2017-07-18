@@ -25,7 +25,7 @@ trait WriteService {
   class WriteService {
     def newArticle(newArticle: api.NewArticle) = {
       val domainArticle = converterService.toDomainArticle(newArticle)
-      articleValidator.validateArticle(domainArticle)
+      articleValidator.validate(domainArticle)
       val article = articleRepository.insert(domainArticle)
       indexService.indexDocument(article)
       converterService.toApiArticle(article)
@@ -59,7 +59,7 @@ trait WriteService {
             updated = clock.now(),
             updatedBy = authUser.id()
           )
-          articleValidator.validateArticle(toUpdate)
+          articleValidator.validate(toUpdate)
           for {
             article <- articleRepository.update(toUpdate)
             x <- indexService.indexDocument(article)

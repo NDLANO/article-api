@@ -12,7 +12,7 @@ package no.ndla.articleapi.service.converters.contentbrowser
 import no.ndla.articleapi.auth.User
 import no.ndla.articleapi.integration._
 import no.ndla.articleapi.model.domain.{ImportStatus, RequiredLibrary}
-import no.ndla.articleapi.repository.ArticleRepository
+import no.ndla.articleapi.repository.{ArticleRepository, ConceptRepository}
 import no.ndla.articleapi.service._
 import no.ndla.articleapi.service.converters.HtmlTagGenerator
 import no.ndla.articleapi.service.search.{IndexService, SearchConverterService, SearchIndexService}
@@ -36,6 +36,7 @@ trait ContentBrowserConverterModules
   with Clock
   with DataSource
   with ArticleRepository
+  with ConceptRepository
   with ExtractConvertStoreContent
   with IndexService
   with SearchIndexService

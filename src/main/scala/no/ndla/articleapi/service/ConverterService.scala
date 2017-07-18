@@ -10,7 +10,7 @@
 package no.ndla.articleapi.service
 
 import com.typesafe.scalalogging.LazyLogging
-import no.ndla.articleapi.ArticleApiProperties.maxConvertionRounds
+import no.ndla.articleapi.ArticleApiProperties.{maxConvertionRounds, nodeTypeBegrep}
 import no.ndla.articleapi.auth.User
 import no.ndla.articleapi.integration.ConverterModule.{jsoupDocumentToString, stringToJsoupDocument}
 import no.ndla.articleapi.integration.ImageApiClient
@@ -29,12 +29,14 @@ trait ConverterService {
   val converterService: ConverterService
 
   class ConverterService extends LazyLogging {
-    def toDomainArticle(nodeToConvert: NodeToConvert, importStatus: ImportStatus): Try[(Article, ImportStatus)] = {
+    def toDomainArticle(nodeToConvert: NodeToConvert, importStatus: ImportStatus): Try[(Content, ImportStatus)] = {
       val updatedVisitedNodes = importStatus.visitedNodes ++ nodeToConvert.contents.map(_.nid)
 
       convert(nodeToConvert, maxConvertionRounds, importStatus.copy(visitedNodes = updatedVisitedNodes.distinct))
           .flatMap { case (content, status) => postProcess(content, status) } match {
         case Failure(f) => Failure(f)
+        case Success((convertedContent, converterStatus)) if convertedContent.nodeType == nodeTypeBegrep =>
+          Success((toDomainConcept(convertedContent), converterStatus))
         case Success((convertedContent, converterStatus)) => Success((toDomainArticle(convertedContent), converterStatus))
       }
     }
@@ -83,6 +85,14 @@ trait ConverterService {
         nodeToConvert.updated,
         "content-import-client",
         nodeToConvert.articleType.toString
+      )
+    }
+
+    private def toDomainConcept(convertedNode: NodeToConvert): Concept = {
+      Concept(
+        None,
+        convertedNode.titles.map(title => ConceptTitle(title.title, title.language)),
+        convertedNode.contents.map(content => ConceptContent(content.content, content.language))
       )
     }
 

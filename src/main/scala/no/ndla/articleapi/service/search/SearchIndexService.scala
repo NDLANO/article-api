@@ -22,7 +22,7 @@ trait SearchIndexService {
 
   class SearchIndexService extends LazyLogging {
 
-    def indexDocument(imported: Article): Try[Any] = {
+    def indexDocument(imported: Article): Try[Article] = {
       for {
         _ <- indexService.aliasTarget.map {
           case Some(index) => Success(index)

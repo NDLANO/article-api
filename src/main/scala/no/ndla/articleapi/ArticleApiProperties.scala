@@ -57,7 +57,8 @@ object ArticleApiProperties extends LazyLogging {
   val ImageHost = propOrElse("IMAGE_API_URL", "image-api.ndla-local")
   val ApiClientsCacheAgeInMs: Long = 1000 * 60 * 60 // 1 hour caching
 
-  val supportedContentTypes = Set("fagstoff", "oppgave", "veiledning", "aktualitet", "emneartikkel")
+  val nodeTypeBegrep: String = "begrep"
+  val supportedContentTypes = Set("fagstoff", "oppgave", "veiledning", "aktualitet", "emneartikkel", nodeTypeBegrep)
 
 
   // When converting a content node, the converter may run several times over the content to make sure
