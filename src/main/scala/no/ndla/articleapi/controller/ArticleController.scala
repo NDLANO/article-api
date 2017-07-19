@@ -15,7 +15,7 @@ import no.ndla.articleapi.auth.Role
 import no.ndla.articleapi.model.api._
 import no.ndla.articleapi.model.domain.{ArticleType, Language, Sort}
 import no.ndla.articleapi.service.{ReadService, WriteService}
-import no.ndla.articleapi.service.search.SearchService
+import no.ndla.articleapi.service.search.ArticleSearchService
 import org.json4s.native.Serialization.read
 import org.json4s.{DefaultFormats, Formats}
 import org.scalatra.{Created, NotFound, Ok}
@@ -24,7 +24,7 @@ import org.scalatra.swagger.{ResponseMessage, Swagger, SwaggerSupport}
 import scala.util.{Failure, Success, Try}
 
 trait ArticleController {
-  this: ReadService with WriteService with SearchService with Role =>
+  this: ReadService with WriteService with ArticleSearchService with Role =>
   val articleController: ArticleController
 
   class ArticleController(implicit val swagger: Swagger) extends NdlaController with SwaggerSupport {
@@ -135,7 +135,7 @@ trait ArticleController {
 
     private def search(query: Option[String], sort: Option[Sort.Value], language: String, license: Option[String], page: Int, pageSize: Int, idList: List[Long], articleTypesFilter: Seq[String]) = {
       query match {
-        case Some(q) => searchService.matchingQuery(
+        case Some(q) => articleSearchService.matchingQuery(
           query = q,
           withIdIn = idList,
           searchLanguage = language,
@@ -146,7 +146,7 @@ trait ArticleController {
           if (articleTypesFilter.isEmpty) ArticleType.all else articleTypesFilter
         )
 
-        case None => searchService.all(
+        case None => articleSearchService.all(
           withIdIn = idList,
           language = language,
           license = license,

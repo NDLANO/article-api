@@ -21,7 +21,7 @@ import org.mockito.Mockito._
 
 import scala.util.{Success, Try}
 
-class ConverterServiceTest extends UnitSuite with TestEnvironment {
+class ConverterServiceTestArticle extends UnitSuite with TestEnvironment {
 
   val service = new ConverterService
   val contentTitle = ArticleTitle("", Some(""))

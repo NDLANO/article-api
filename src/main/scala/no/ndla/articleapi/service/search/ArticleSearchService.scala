@@ -29,12 +29,11 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 import scala.util.{Failure, Success}
 
-trait SearchService {
+trait ArticleSearchService {
   this: ElasticClient with SearchIndexService with SearchConverterService =>
-  val searchService: SearchService
+  val articleSearchService: ArticleSearchService
 
-  class SearchService extends LazyLogging {
-
+  class ArticleSearchService extends LazyLogging {
     private val noCopyright = QueryBuilders.boolQuery().mustNot(QueryBuilders.termQuery("license", "copyrighted"))
 
     def getHits(response: JestSearchResult): Seq[ArticleSummary] = {

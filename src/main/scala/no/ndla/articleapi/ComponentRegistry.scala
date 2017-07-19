@@ -18,7 +18,7 @@ import no.ndla.articleapi.repository.{ArticleRepository, ConceptRepository}
 import no.ndla.articleapi.service._
 import no.ndla.articleapi.service.converters._
 import no.ndla.articleapi.service.converters.contentbrowser._
-import no.ndla.articleapi.service.search.{IndexService, SearchConverterService, SearchIndexService, SearchService}
+import no.ndla.articleapi.service.search.{IndexService, SearchConverterService, SearchIndexService, ArticleSearchService}
 import no.ndla.articleapi.validation.ArticleValidator
 import no.ndla.network.NdlaClient
 import org.postgresql.ds.PGPoolingDataSource
@@ -33,7 +33,7 @@ object ComponentRegistry
     with ArticleRepository
     with ConceptRepository
     with ElasticClient
-    with SearchService
+    with ArticleSearchService
     with IndexService
     with SearchIndexService
     with ExtractService
@@ -83,7 +83,7 @@ object ComponentRegistry
 
   lazy val articleRepository = new ArticleRepository
   lazy val conceptRepository = new ConceptRepository
-  lazy val searchService = new SearchService
+  lazy val articleSearchService = new ArticleSearchService
   lazy val indexService = new IndexService
   lazy val searchIndexService = new SearchIndexService
 

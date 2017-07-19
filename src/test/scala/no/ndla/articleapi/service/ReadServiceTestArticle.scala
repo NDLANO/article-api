@@ -17,7 +17,7 @@ import org.mockito.Mockito._
 import org.mockito.Matchers._
 import scalikejdbc.DBSession
 
-class ReadServiceTest extends UnitSuite with TestEnvironment {
+class ReadServiceTestArticle extends UnitSuite with TestEnvironment {
 
   val externalImageApiUrl = externalApiUrls("image")
   val idAttr = s"${Attributes.DataId}"

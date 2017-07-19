@@ -17,14 +17,14 @@ import no.ndla.articleapi.repository.{ArticleRepository, ConceptRepository}
 import no.ndla.articleapi.service._
 import no.ndla.articleapi.service.converters._
 import no.ndla.articleapi.service.converters.contentbrowser._
-import no.ndla.articleapi.service.search.{IndexService, SearchConverterService, SearchIndexService, SearchService}
+import no.ndla.articleapi.service.search.{IndexService, SearchConverterService, SearchIndexService, ArticleSearchService}
 import no.ndla.articleapi.validation.ArticleValidator
 import no.ndla.network.NdlaClient
 import org.scalatest.mockito.MockitoSugar
 
 trait TestEnvironment
   extends ElasticClient
-    with SearchService
+    with ArticleSearchService
     with IndexService
     with SearchIndexService
     with ArticleController
@@ -58,7 +58,7 @@ trait TestEnvironment
     with Clock
     with User
     with Role {
-  val searchService = mock[SearchService]
+  val articleSearchService = mock[ArticleSearchService]
   val indexService = mock[IndexService]
   val searchIndexService = mock[SearchIndexService]
 
