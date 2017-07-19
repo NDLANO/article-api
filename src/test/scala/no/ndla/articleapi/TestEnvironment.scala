@@ -89,6 +89,7 @@ trait TestEnvironment
   val readService = mock[ReadService]
   val writeService = mock[WriteService]
   val articleValidator = mock[ArticleValidator]
+  val importValidator = mock[ArticleValidator]
 
   val ndlaClient = mock[NdlaClient]
   val tagsService = mock[TagsService]

@@ -81,10 +81,7 @@ object ArticleType extends Enumeration {
     valueOf(s).getOrElse(throw new ValidationException(errors = List(ValidationMessage("articleType", s"'$s' is not a valid article type. Valid options are ${all.mkString(",")}."))))
 }
 
-case class Concept(id: Option[Long],
-                   title: Seq[ConceptTitle],
-                   content: Seq[ConceptContent]) extends Content {
-
+case class Concept(id: Option[Long], title: Seq[ConceptTitle], content: Seq[ConceptContent]) extends Content {
   def title(lang: String): Option[String] = getByLanguage(title, lang)
   def content(lang: String): Option[String] = getByLanguage(content, lang)
 

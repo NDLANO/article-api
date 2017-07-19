@@ -14,7 +14,7 @@ import no.ndla.articleapi.model.domain._
 import no.ndla.articleapi.{TestData, TestEnvironment, UnitSuite}
 
 class ArticleValidatorTest extends UnitSuite with TestEnvironment {
-  override val articleValidator = new ArticleValidator
+  override val articleValidator = new ArticleValidator(allowEmptyLanguageField = false)
   val validDocument = """<h1>heisann</h1><h2>heia</h2>"""
   val invalidDocument = """<article><invalid></invalid></article>"""
 

@@ -94,7 +94,8 @@ object ComponentRegistry
   lazy val migrationApiClient = new MigrationApiClient
   lazy val extractService = new ExtractService
   lazy val converterService = new ConverterService
-  lazy val articleValidator = new ArticleValidator
+  lazy val articleValidator = new ArticleValidator(allowEmptyLanguageField = false)
+  lazy val importValidator = new ArticleValidator(allowEmptyLanguageField = true)
 
   lazy val ndlaClient = new NdlaClient
   lazy val tagsService = new TagsService

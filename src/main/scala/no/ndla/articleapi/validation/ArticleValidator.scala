@@ -18,20 +18,21 @@ import scala.util.{Failure, Success, Try}
 
 trait ArticleValidator {
   val articleValidator: ArticleValidator
+  val importValidator: ArticleValidator
 
-  class ArticleValidator {
+  class ArticleValidator(allowEmptyLanguageField: Boolean) {
     private val NoHtmlValidator = new TextValidator(allowHtml=false)
     private val HtmlValidator = new TextValidator(allowHtml=true)
 
     def validate(content: Content): Try[Content] = {
       content match {
-        case concept: Concept => Failure(new NotImplementedError)
+        case concept: Concept => validateConcept(concept)
         case article: Article => validateArticle(article)
       }
     }
 
     def validateArticle(article: Article): Try[Article] = {
-      val validationErrors = article.content.flatMap(validateContent) ++
+      val validationErrors = article.content.flatMap(validateArticleContent) ++
         article.introduction.flatMap(validateIntroduction) ++
         article.metaDescription.flatMap(validateMetaDescription) ++
         article.title.flatMap(validateTitle) ++
@@ -50,6 +51,17 @@ trait ArticleValidator {
 
     }
 
+    private def validateConcept(concept: Concept): Try[Concept] = {
+      val validationErrors = concept.content.flatMap(validateConceptContent) ++
+        concept.title.flatMap(validateTitle)
+
+      if (validationErrors.isEmpty) {
+        Success(concept)
+      } else {
+        Failure(new ValidationException(errors = validationErrors))
+      }
+    }
+
     private def validateArticleType(articleType: String): Seq[ValidationMessage] = {
       ArticleType.valueOf(articleType) match {
         case None => Seq(ValidationMessage("articleType", s"$articleType is not a valid article type. Valid options are ${ArticleType.all.mkString(",")}"))
@@ -57,8 +69,13 @@ trait ArticleValidator {
       }
     }
 
-    private def validateContent(content: ArticleContent): Seq[ValidationMessage] = {
+    private def validateArticleContent(content: ArticleContent): Seq[ValidationMessage] = {
       HtmlValidator.validate("content.content", content.content).toList ++
+        validateLanguage("content.language", content.language)
+    }
+
+    private def validateConceptContent(content: ConceptContent): Seq[ValidationMessage] = {
+      NoHtmlValidator.validate("content.content", content.content).toList ++
         validateLanguage("content.language", content.language)
     }
 
@@ -77,8 +94,8 @@ trait ArticleValidator {
         validateLanguage("metaDescription.language", content.language)
     }
 
-    private def validateTitle(content: ArticleTitle): Seq[ValidationMessage] = {
-      NoHtmlValidator.validate("title.title", content.title).toList ++
+    private def validateTitle(content: LanguageField[String]): Seq[ValidationMessage] = {
+      NoHtmlValidator.validate("title.title", content.value).toList ++
         validateLanguage("title.language", content.language)
     }
 
@@ -126,6 +143,9 @@ trait ArticleValidator {
     }
 
     private def validateLanguage(fieldPath: String, languageCode: Option[String]): Option[ValidationMessage] = {
+      if (languageCode.isEmpty && allowEmptyLanguageField)
+        return None
+
       languageCode.flatMap(lang =>
         languageCodeSupported6391(lang) match {
           case true => None

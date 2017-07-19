@@ -52,7 +52,7 @@ class ArticleConverterRegressionTest extends IntegrationSuite with TestEnvironme
 
   override val clock = new SystemClock
 
-  override val articleValidator = new ArticleValidator
+  override val importValidator = new ArticleValidator(allowEmptyLanguageField = true)
 
   override def beforeAll() = {
     ConnectionPool.singleton(new DataSourceConnectionPool(getDataSource))

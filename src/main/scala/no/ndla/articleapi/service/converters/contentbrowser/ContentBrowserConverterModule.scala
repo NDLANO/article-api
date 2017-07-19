@@ -57,6 +57,7 @@ trait ContentBrowserConverterModules
   with FilConverterModule
   with VeiledningConverterModule
   with BiblioConverterModule
+  with BegrepConverterModule
   with TagsService
   with NdlaClient
   with MigrationApiClient
