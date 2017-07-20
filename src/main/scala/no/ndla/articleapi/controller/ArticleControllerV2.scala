@@ -42,7 +42,7 @@ trait ArticleControllerV2 {
     val response500 = ResponseMessage(500, "Unknown error", Some("Error"))
 
     val getAllArticles =
-      (apiOperation[List[SearchResult]]("getAllArticles")
+      (apiOperation[List[SearchResultV2]]("getAllArticles")
         summary "Show all articles"
         notes "Shows all articles. You can search it too."
         parameters(
@@ -65,7 +65,7 @@ trait ArticleControllerV2 {
         responseMessages(response500))
 
     val getAllArticlesPost =
-      (apiOperation[List[SearchResult]]("getAllArticlesPost")
+      (apiOperation[List[SearchResultV2]]("getAllArticlesPost")
         summary "Show all articles"
         notes "Shows all articles. You can search it too."
         parameters(
@@ -78,7 +78,7 @@ trait ArticleControllerV2 {
         responseMessages(response400, response500))
 
     val getArticleById =
-      (apiOperation[List[Article]]("getArticleById")
+      (apiOperation[List[ArticleV2]]("getArticleById")
         summary "Show article with a specified Id"
         notes "Shows the article for the specified id."
         parameters(
@@ -91,7 +91,7 @@ trait ArticleControllerV2 {
         responseMessages(response404, response500))
 
     val newArticle =
-      (apiOperation[Article]("newArticle")
+      (apiOperation[ArticleV2]("newArticle")
         summary "Create a new article"
         notes "Creates a new article"
         parameters(
@@ -103,7 +103,7 @@ trait ArticleControllerV2 {
         responseMessages(response400, response403, response500))
 
     val updateArticle =
-      (apiOperation[Article]("updateArticle")
+      (apiOperation[ArticleV2]("updateArticle")
         summary "Update an existing article"
         notes "Update an existing article"
         parameters(
