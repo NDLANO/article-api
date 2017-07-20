@@ -10,6 +10,7 @@
 package no.ndla.articleapi
 
 import com.amazonaws.services.s3.AmazonS3Client
+import com.typesafe.scalalogging.LazyLogging
 import no.ndla.articleapi.auth.{Role, User}
 import no.ndla.articleapi.controller.{ArticleController, HealthController, InternController}
 import no.ndla.articleapi.integration._
@@ -17,7 +18,7 @@ import no.ndla.articleapi.repository.{ArticleRepository, ConceptRepository}
 import no.ndla.articleapi.service._
 import no.ndla.articleapi.service.converters._
 import no.ndla.articleapi.service.converters.contentbrowser._
-import no.ndla.articleapi.service.search.{IndexService, SearchConverterService, SearchIndexService, ArticleSearchService}
+import no.ndla.articleapi.service.search._
 import no.ndla.articleapi.validation.ArticleValidator
 import no.ndla.network.NdlaClient
 import org.scalatest.mockito.MockitoSugar
@@ -25,8 +26,10 @@ import org.scalatest.mockito.MockitoSugar
 trait TestEnvironment
   extends ElasticClient
     with ArticleSearchService
+    with ArticleIndexService
     with IndexService
-    with SearchIndexService
+    with SearchService
+    with LazyLogging
     with ArticleController
     with InternController
     with HealthController
@@ -59,8 +62,7 @@ trait TestEnvironment
     with User
     with Role {
   val articleSearchService = mock[ArticleSearchService]
-  val indexService = mock[IndexService]
-  val searchIndexService = mock[SearchIndexService]
+  val articleIndexService = mock[ArticleIndexService]
 
   val internController = mock[InternController]
   val articleController = mock[ArticleController]

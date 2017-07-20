@@ -93,7 +93,6 @@ case class MigrationMainNodeImport(titles: Seq[MigrationContentTitle], ingresses
   }
 
   def asLanguageContents: Seq[LanguageContent] = {
-
     contents.map(content => {
       LanguageContent(
         content.nid,

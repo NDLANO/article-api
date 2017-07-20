@@ -9,13 +9,14 @@
 
 package no.ndla.articleapi.service.converters.contentbrowser
 
+import com.typesafe.scalalogging.LazyLogging
 import no.ndla.articleapi.auth.User
 import no.ndla.articleapi.integration._
 import no.ndla.articleapi.model.domain.{ImportStatus, RequiredLibrary}
 import no.ndla.articleapi.repository.{ArticleRepository, ConceptRepository}
 import no.ndla.articleapi.service._
 import no.ndla.articleapi.service.converters.HtmlTagGenerator
-import no.ndla.articleapi.service.search.{IndexService, SearchConverterService, SearchIndexService}
+import no.ndla.articleapi.service.search._
 import no.ndla.articleapi.validation.ArticleValidator
 import no.ndla.network.NdlaClient
 
@@ -38,8 +39,10 @@ trait ContentBrowserConverterModules
   with ArticleRepository
   with ConceptRepository
   with ExtractConvertStoreContent
+  with ArticleIndexService
   with IndexService
-  with SearchIndexService
+  with LazyLogging
+  with SearchService
   with ElasticClient
   with SearchConverterService
   with ImageConverterModule

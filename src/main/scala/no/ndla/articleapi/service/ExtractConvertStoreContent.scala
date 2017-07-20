@@ -14,7 +14,7 @@ import no.ndla.articleapi.integration.MigrationApiClient
 import no.ndla.articleapi.model.api.{ImportException, NotFoundException}
 import no.ndla.articleapi.model.domain._
 import no.ndla.articleapi.repository.{ArticleRepository, ConceptRepository}
-import no.ndla.articleapi.service.search.{IndexService, SearchIndexService}
+import no.ndla.articleapi.service.search.ArticleIndexService
 import no.ndla.articleapi.ArticleApiProperties.supportedContentTypes
 import no.ndla.articleapi.validation.ArticleValidator
 
@@ -26,8 +26,8 @@ trait ExtractConvertStoreContent {
     with ConverterService
     with ArticleRepository
     with ConceptRepository
-    with SearchIndexService
-    with IndexService
+    with ArticleIndexService
+    with ArticleIndexService
     with ReadService
     with ArticleValidator =>
 
@@ -61,7 +61,7 @@ trait ExtractConvertStoreContent {
       articleRepository.getIdFromExternalId(externalId).map(articleId => {
         logger.info(s"Deleting previously imported article (id=$articleId, external id=$externalId) from database because the article could not be re-imported")
         articleRepository.delete(articleId)
-        indexService.deleteDocument(articleId)
+        articleIndexService.deleteDocument(articleId)
       })
     }
 
@@ -108,7 +108,7 @@ trait ExtractConvertStoreContent {
 
     private def indexContent(content: Content): Try[Content] = {
       content match {
-        case a: Article => searchIndexService.indexDocument(a)
+        case a: Article => articleIndexService.indexDocument(a)
         case c: Content => Failure(new NotImplementedError)
       }
     }

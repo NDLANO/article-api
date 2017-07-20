@@ -11,6 +11,7 @@ package no.ndla.articleapi
 
 import com.amazonaws.regions.Regions
 import com.amazonaws.services.s3.AmazonS3ClientBuilder
+import com.typesafe.scalalogging.LazyLogging
 import no.ndla.articleapi.auth.{Role, User}
 import no.ndla.articleapi.controller.{ArticleController, ConceptController, HealthController, InternController}
 import no.ndla.articleapi.integration._
@@ -18,7 +19,7 @@ import no.ndla.articleapi.repository.{ArticleRepository, ConceptRepository}
 import no.ndla.articleapi.service._
 import no.ndla.articleapi.service.converters._
 import no.ndla.articleapi.service.converters.contentbrowser._
-import no.ndla.articleapi.service.search.{IndexService, SearchConverterService, SearchIndexService, ArticleSearchService}
+import no.ndla.articleapi.service.search._
 import no.ndla.articleapi.validation.ArticleValidator
 import no.ndla.network.NdlaClient
 import org.postgresql.ds.PGPoolingDataSource
@@ -29,13 +30,17 @@ object ComponentRegistry
     with InternController
     with ArticleController
     with ConceptController
+    with ConceptSearchService
+    with ConceptIndexService
     with HealthController
     with ArticleRepository
     with ConceptRepository
     with ElasticClient
     with ArticleSearchService
     with IndexService
-    with SearchIndexService
+    with ArticleIndexService
+    with SearchService
+    with LazyLogging
     with ExtractService
     with ConverterModules
     with ConverterService
@@ -84,8 +89,9 @@ object ComponentRegistry
   lazy val articleRepository = new ArticleRepository
   lazy val conceptRepository = new ConceptRepository
   lazy val articleSearchService = new ArticleSearchService
-  lazy val indexService = new IndexService
-  lazy val searchIndexService = new SearchIndexService
+  lazy val articleIndexService = new ArticleIndexService
+  lazy val conceptSearchService = new ConceptSearchService
+  lazy val conceptIndexService = new ConceptIndexService
 
   val amazonClient = AmazonS3ClientBuilder.standard().withRegion(Regions.EU_CENTRAL_1).build()
   lazy val attachmentStorageName = ArticleApiProperties.AttachmentStorageName

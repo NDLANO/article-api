@@ -25,7 +25,7 @@ trait ArticleRepository {
   this: DataSource =>
   val articleRepository: ArticleRepository
 
-  class ArticleRepository extends LazyLogging {
+  class ArticleRepository extends LazyLogging with Repository[Article] {
     implicit val formats = org.json4s.DefaultFormats + Article.JSonSerializer
 
     def insert(article: Article)(implicit session: DBSession = AutoSession): Article = {
@@ -126,7 +126,7 @@ trait ArticleRepository {
         }.toList
     }
 
-    def minMaxId(implicit session: DBSession = AutoSession): (Long, Long) = {
+    override def minMaxId(implicit session: DBSession = AutoSession): (Long, Long) = {
       sql"select coalesce(MIN(id),0) as mi, coalesce(MAX(id),0) as ma from ${Article.table}".map(rs => {
         (rs.long("mi"), rs.long("ma"))
       }).single().apply() match {
@@ -155,7 +155,8 @@ trait ArticleRepository {
     def allWithExternalSubjectId(externalSubjectId: String): Seq[Article] =
       articlesWhere(sqls"$externalSubjectId=ANY(ar.external_subject_id)")
 
-    def articlesWithIdBetween(min: Long, max: Long): List[Article] = articlesWhere(sqls"ar.id between $min and $max").toList
+    override def documentsWithIdBetween(min: Long, max: Long): List[Article] =
+      articlesWhere(sqls"ar.id between $min and $max").toList
 
     private def articleWhere(whereClause: SQLSyntax)(implicit session: DBSession = ReadOnlyAutoSession): Option[Article] = {
       val ar = Article.syntax("ar")

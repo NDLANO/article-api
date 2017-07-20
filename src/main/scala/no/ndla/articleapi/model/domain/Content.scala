@@ -86,7 +86,7 @@ case class Concept(id: Option[Long], title: Seq[ConceptTitle], content: Seq[Conc
   def content(lang: String): Option[String] = getByLanguage(content, lang)
 
   val supportedLanguages: Seq[String] = {
-    (content ++ title)
+    (content union title)
       .map(_.language.getOrElse(Language.UnknownLanguage))
       .distinct
   }

@@ -17,14 +17,14 @@ import no.ndla.tag.IntegrationTest
 import org.joda.time.DateTime
 
 @IntegrationTest
-class ArticleArticleSearchServiceTest extends UnitSuite with TestEnvironment {
+class ArticleSearchServiceTest extends UnitSuite with TestEnvironment {
 
   val esPort = 9200
 
   override val jestClient = JestClientFactory.getClient(searchServer = s"http://localhost:$esPort")
 
   override val articleSearchService = new ArticleSearchService
-  override val indexService = new IndexService
+  override val articleIndexService = new ArticleIndexService
   override val searchConverterService = new SearchConverterService
 
   val byNcSa = Copyright("by-nc-sa", "Gotham City", List(Author("Forfatter", "DC Comics")))
@@ -116,23 +116,23 @@ class ArticleArticleSearchServiceTest extends UnitSuite with TestEnvironment {
   )
 
   override def beforeAll = {
-    indexService.createIndexWithName(ArticleApiProperties.SearchIndex)
+    articleIndexService.createIndexWithName(ArticleApiProperties.ArticleSearchIndex)
 
-    indexService.indexDocument(article1)
-    indexService.indexDocument(article2)
-    indexService.indexDocument(article3)
-    indexService.indexDocument(article4)
-    indexService.indexDocument(article5)
-    indexService.indexDocument(article6)
-    indexService.indexDocument(article7)
-    indexService.indexDocument(article8)
-    indexService.indexDocument(article9)
+    articleIndexService.indexDocument(article1)
+    articleIndexService.indexDocument(article2)
+    articleIndexService.indexDocument(article3)
+    articleIndexService.indexDocument(article4)
+    articleIndexService.indexDocument(article5)
+    articleIndexService.indexDocument(article6)
+    articleIndexService.indexDocument(article7)
+    articleIndexService.indexDocument(article8)
+    articleIndexService.indexDocument(article9)
 
-    blockUntil(() => articleSearchService.countDocuments() == 9)
+    blockUntil(() => articleSearchService.countDocuments == 9)
   }
 
   override def afterAll() = {
-    indexService.deleteIndex(Some(ArticleApiProperties.SearchIndex))
+    articleIndexService.deleteIndex(Some(ArticleApiProperties.ArticleSearchIndex))
   }
 
   test("That getStartAtAndNumResults returns SEARCH_MAX_PAGE_SIZE for value greater than SEARCH_MAX_PAGE_SIZE") {

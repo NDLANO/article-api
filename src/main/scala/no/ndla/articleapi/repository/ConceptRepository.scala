@@ -22,7 +22,7 @@ trait ConceptRepository {
   this: DataSource =>
   val conceptRepository: ConceptRepository
 
-  class ConceptRepository extends LazyLogging {
+  class ConceptRepository extends LazyLogging with Repository[Concept] {
     implicit val formats: Formats = org.json4s.DefaultFormats + Concept.JSonSerializer
 
     def insertWithExternalId(concept: Concept, externalId: String)(implicit session: DBSession = AutoSession): Concept = {
@@ -55,9 +55,26 @@ trait ConceptRepository {
     def withExternalId(externalId: String): Option[Concept] =
       conceptWhere(sqls"co.external_id=$externalId")
 
+    override def minMaxId(implicit session: DBSession = AutoSession): (Long, Long) = {
+      sql"select coalesce(MIN(id),0) as mi, coalesce(MAX(id),0) as ma from ${Concept.table}".map(rs => {
+        (rs.long("mi"), rs.long("ma"))
+      }).single().apply() match {
+        case Some(minmax) => minmax
+        case None => (0L, 0L)
+      }
+    }
+
+    override def documentsWithIdBetween(min: Long, max: Long): List[Concept] =
+      conceptsWhere(sqls"co.id between $min and $max")
+
     private def conceptWhere(whereClause: SQLSyntax)(implicit session: DBSession = ReadOnlyAutoSession): Option[Concept] = {
       val co = Concept.syntax("co")
       sql"select ${co.result.*} from ${Concept.as(co)} where $whereClause".map(Concept(co)).single.apply()
+    }
+
+    private def conceptsWhere(whereClause: SQLSyntax)(implicit session: DBSession = ReadOnlyAutoSession): List[Concept] = {
+      val co = Concept.syntax("co")
+      sql"select ${co.result.*} from ${Concept.as(co)} where $whereClause".map(Concept(co)).list.apply()
     }
 
   }

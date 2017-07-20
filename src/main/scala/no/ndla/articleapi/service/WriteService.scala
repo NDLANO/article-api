@@ -13,13 +13,13 @@ import no.ndla.articleapi.model.api
 import no.ndla.articleapi.model.api.NotFoundException
 import no.ndla.articleapi.model.domain._
 import no.ndla.articleapi.repository.ArticleRepository
-import no.ndla.articleapi.service.search.IndexService
+import no.ndla.articleapi.service.search.ArticleIndexService
 import no.ndla.articleapi.validation.ArticleValidator
 
 import scala.util.{Failure, Try}
 
 trait WriteService {
-  this: ArticleRepository with ConverterService with ArticleValidator with IndexService with Clock with User =>
+  this: ArticleRepository with ConverterService with ArticleValidator with ArticleIndexService with Clock with User =>
   val writeService: WriteService
 
   class WriteService {
@@ -27,7 +27,7 @@ trait WriteService {
       val domainArticle = converterService.toDomainArticle(newArticle)
       articleValidator.validate(domainArticle)
       val article = articleRepository.insert(domainArticle)
-      indexService.indexDocument(article)
+      articleIndexService.indexDocument(article)
       converterService.toApiArticle(article)
     }
 
@@ -62,7 +62,7 @@ trait WriteService {
           articleValidator.validate(toUpdate)
           for {
             article <- articleRepository.update(toUpdate)
-            x <- indexService.indexDocument(article)
+            x <- articleIndexService.indexDocument(article)
           } yield converterService.toApiArticle(article)
          }
       }

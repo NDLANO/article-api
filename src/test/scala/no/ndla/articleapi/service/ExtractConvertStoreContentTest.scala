@@ -48,7 +48,7 @@ class ExtractConvertStoreContentTest extends UnitSuite with TestEnvironment {
     when(articleRepository.exists(sampleNode.contents.head.nid)).thenReturn(false)
     when(articleRepository.insertWithExternalIds(any[Article], any[String], any[Seq[String]])(any[DBSession])).thenReturn(TestData.sampleArticleWithPublicDomain)
     when(extractConvertStoreContent.processNode("9876")).thenReturn(Try(TestData.sampleArticleWithPublicDomain, ImportStatus(Seq(), Seq())))
-    when(searchIndexService.indexDocument(any[Article])).thenReturn(Success(mock[Article]))
+    when(articleIndexService.indexDocument(any[Article])).thenReturn(Success(mock[Article]))
   }
 
   test("That ETL extracts, translates and loads a node correctly") {
@@ -87,8 +87,8 @@ class ExtractConvertStoreContentTest extends UnitSuite with TestEnvironment {
     result.failed.get.isInstanceOf[ValidationException] should be (true)
     verify(articleRepository, times(1)).delete(1: Long)
     verify(articleRepository, times(0)).delete(2: Long)
-    verify(indexService, times(1)).deleteDocument(1)
-    verify(indexService, times(0)).deleteDocument(2)
+    verify(articleIndexService, times(1)).deleteDocument(1)
+    verify(articleIndexService, times(0)).deleteDocument(2)
   }
 
   test("That ETL returns a Failure if failed to persist the converted article") {
@@ -101,7 +101,7 @@ class ExtractConvertStoreContentTest extends UnitSuite with TestEnvironment {
   }
 
   test("That ETL returns a Failure if failed to index the converted article") {
-    when(searchIndexService.indexDocument(any[Article])).thenReturn(Failure(mock[NdlaSearchException]))
+    when(articleIndexService.indexDocument(any[Article])).thenReturn(Failure(mock[NdlaSearchException]))
     when(articleRepository.getIdFromExternalId(nodeId)).thenReturn(None)
 
     val result = eCSService.processNode(nodeId, ImportStatus(Seq(), Seq("9876")))
@@ -109,15 +109,15 @@ class ExtractConvertStoreContentTest extends UnitSuite with TestEnvironment {
   }
 
   test("Articles that fails to import should be deleted from database if it exists") {
-    reset(articleRepository, indexService)
-    when(searchIndexService.indexDocument(any[Article])).thenReturn(Failure(mock[RuntimeException]))
+    reset(articleRepository, articleIndexService)
+    when(articleIndexService.indexDocument(any[Article])).thenReturn(Failure(mock[RuntimeException]))
     when(articleRepository.getIdFromExternalId(any[String])(any[DBSession])).thenReturn(Some(1: Long))
 
     val result = eCSService.processNode(nodeId, ImportStatus(Seq.empty, Seq.empty))
     result.isFailure should be (true)
 
     verify(articleRepository, times(1)).delete(1)
-    verify(indexService, times(1)).deleteDocument(1)
+    verify(articleIndexService, times(1)).deleteDocument(1)
   }
 
 }

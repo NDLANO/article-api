@@ -22,8 +22,7 @@ class ArticleConverterRegressionTest extends IntegrationSuite with TestEnvironme
 
   override val jestClient = JestClientFactory.getClient(searchServer = "http://localhost:9200")
   override val articleSearchService = new ArticleSearchService
-  override val indexService = new IndexService
-  override val searchIndexService = new SearchIndexService
+  override val articleIndexService = new ArticleIndexService
   override val searchConverterService = new SearchConverterService
 
   override val attachmentStorageName = ArticleApiProperties.AttachmentStorageName

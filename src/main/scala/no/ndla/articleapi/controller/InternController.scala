@@ -12,7 +12,7 @@ package no.ndla.articleapi.controller
 import no.ndla.articleapi.model.domain.ImportStatus
 import no.ndla.articleapi.repository.ArticleRepository
 import no.ndla.articleapi.service._
-import no.ndla.articleapi.service.search.SearchIndexService
+import no.ndla.articleapi.service.search.ArticleIndexService
 import org.json4s.{DefaultFormats, Formats}
 import org.scalatra.{InternalServerError, NotFound, Ok}
 
@@ -20,7 +20,7 @@ import scala.util.{Failure, Success}
 
 trait InternController {
   this: ReadService with ExtractService with ConverterService with ArticleRepository with ArticleContentInformation
-    with ExtractConvertStoreContent with SearchIndexService =>
+    with ExtractConvertStoreContent with ArticleIndexService =>
   val internController: InternController
 
   class InternController extends NdlaController {
@@ -28,7 +28,7 @@ trait InternController {
     protected implicit override val jsonFormats: Formats = DefaultFormats
 
     post("/index") {
-      searchIndexService.indexDocuments match {
+      articleIndexService.indexDocuments match {
         case Success(reindexResult) => {
           val result = s"Completed indexing of ${reindexResult.totalIndexed} documents in ${reindexResult.millisUsed} ms."
           logger.info(result)
