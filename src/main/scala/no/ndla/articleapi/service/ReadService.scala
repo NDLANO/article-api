@@ -33,7 +33,7 @@ trait ReadService {
     def withIdV2(id: Long, language: String): Option[api.ArticleV2] = {
       articleRepository.withId(id)
         .map(addUrlsAndIdsOnEmbedResources)
-        .map(article => converterService.toApiArticleV2(article, language))
+        .flatMap(article => converterService.toApiArticleV2(article, language))
     }
 
     private[service] def addUrlsAndIdsOnEmbedResources(article: Article): Article = {
@@ -43,16 +43,18 @@ trait ReadService {
       article.copy(content = articleWithUrls, visualElement = visualElementWithUrls)
     }
 
-    def getNMostUsedTags(n: Int, language: String = Language.AllLanguages): Seq[api.ArticleTag] = {
+    def getNMostUsedTags(n: Int, language: String): Option[Seq[api.ArticleTag]] = {
       val tagUsageMap = getTagUsageMap()
       val supportedLanguages = tagUsageMap.flatMap(_._1).toSeq.distinct
       val searchLanguage = getSearchLanguage(language, supportedLanguages)
 
-      tagUsageMap
+      if (supportedLanguages.isEmpty || (!supportedLanguages.contains(language) && language != AllLanguages)) return None
+
+      Some(tagUsageMap
         .filterKeys(lang => lang.getOrElse("") == searchLanguage)
         .map { case (lang, tags) =>
           api.ArticleTag(tags.getNMostFrequent(n), lang)
-        }.toSeq
+        }.toSeq)
     }
 
     val getTagUsageMap = MemoizeAutoRenew(() => {

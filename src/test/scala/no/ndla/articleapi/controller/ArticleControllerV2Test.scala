@@ -69,7 +69,7 @@ class ArticleControllerV2Test extends UnitSuite with TestEnvironment with Scalat
   }
 
   test("POST / should return 201 on created") {
-    when(writeService.newArticleV2(any[NewArticleV2])).thenReturn(TestData.sampleArticleV2)
+    when(writeService.newArticleV2(any[NewArticleV2])).thenReturn(Some(TestData.sampleArticleV2))
     post("/test/", TestData.requestNewArticleV2Body, headers = Map("Authorization" -> authHeaderWithWriteRole)) {
       status should equal(201)
     }

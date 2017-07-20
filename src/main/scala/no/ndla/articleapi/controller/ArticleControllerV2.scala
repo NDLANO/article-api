@@ -135,8 +135,12 @@ trait ArticleControllerV2 {
         case toSmall if toSmall < 1 => defaultSize
         case x => x
       }
-
-      readService.getNMostUsedTags(size, language)
+      val tags = readService.getNMostUsedTags(size, language)
+      if (tags.isEmpty) {
+        NotFound(body = Error(Error.NOT_FOUND, s"No tags with language $language was found"))
+      } else {
+        tags
+      }
     }
 
     private def search(query: Option[String], sort: Option[Sort.Value], language: String, license: Option[String], page: Int, pageSize: Int, idList: List[Long], articleTypesFilter: Seq[String]) = {
@@ -209,7 +213,7 @@ trait ArticleControllerV2 {
 
       readService.withIdV2(articleId, language) match {
         case Some(article) => article
-        case None => NotFound(body = Error(Error.NOT_FOUND, s"No article with id $articleId found"))
+        case None => NotFound(body = Error(Error.NOT_FOUND, s"No article with id $articleId and language $language found"))
       }
     }
 

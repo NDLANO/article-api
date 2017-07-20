@@ -341,10 +341,12 @@ trait ConverterService {
       )
     }
 
-    def toApiArticleV2(article: Article, language: String): api.ArticleV2 = {
+    def toApiArticleV2(article: Article, language: String): Option[api.ArticleV2] = {
       val supportedLanguages = getSupportedLanguages(
         Seq(article.title, article.visualElement, article.introduction, article.metaDescription, article.tags, article.content)
       )
+
+      if (supportedLanguages.isEmpty || (!supportedLanguages.contains(language) && language != AllLanguages)) return None
       val searchLanguage = getSearchLanguage(language, supportedLanguages)
 
       val title =           findValueByLanguage(article.title, searchLanguage).getOrElse("")
@@ -357,7 +359,7 @@ trait ConverterService {
                                 .getOrElse(ArticleContent("", None, None))
                                 .asInstanceOf[ArticleContent])
 
-      api.ArticleV2(
+      Some(api.ArticleV2(
         article.id.get.toString,
         article.id.flatMap(getLinkToOldNdla),
         article.revision.get,
@@ -376,7 +378,7 @@ trait ConverterService {
         article.updatedBy,
         article.articleType,
         supportedLanguages
-      )
+      ))
     }
 
     def toApiArticleTitle(title: ArticleTitle): api.ArticleTitle = {

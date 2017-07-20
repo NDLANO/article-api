@@ -289,7 +289,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
 
   test("toApiArticleV2 converts a domain.Article to an api.ArticleV2") {
     when(articleRepository.getExternalIdFromId(TestData.articleId)).thenReturn(Some(TestData.externalId))
-    service.toApiArticleV2(TestData.sampleDomainArticle, "nb") should equal(TestData.apiArticleV2)
+    service.toApiArticleV2(TestData.sampleDomainArticle, "nb") should equal(Some(TestData.apiArticleV2))
   }
 
   test("toDomainArticleShould should remove unneeded attributes on embed-tags") {
