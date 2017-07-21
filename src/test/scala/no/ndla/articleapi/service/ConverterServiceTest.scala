@@ -292,6 +292,12 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     service.toApiArticleV2(TestData.sampleDomainArticle, "nb") should equal(Some(TestData.apiArticleV2))
   }
 
+  test("toApiArticleV2 returns None when language is not supported") {
+    when(articleRepository.getExternalIdFromId(TestData.articleId)).thenReturn(Some(TestData.externalId))
+    service.toApiArticleV2(TestData.sampleDomainArticle, "someRandomLanguage") should be(None)
+    service.toApiArticleV2(TestData.sampleDomainArticle, "") should be(None)
+  }
+
   test("toDomainArticleShould should remove unneeded attributes on embed-tags") {
     val content = s"""<h1>hello</h1><embed ${Attributes.DataResource}="${ResourceType.Image}" ${Attributes.DataUrl}="http://some-url" ${Attributes.DataId}=1 data-random="hehe" />"""
     val expectedContent = s"""<h1>hello</h1><embed ${Attributes.DataResource}="${ResourceType.Image}" />"""

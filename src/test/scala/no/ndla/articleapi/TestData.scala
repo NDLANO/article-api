@@ -25,7 +25,7 @@ object TestData {
   val (articleId, externalId) = (1, "751234")
 
   val sampleArticleV2 = api.ArticleV2(
-    id="1",
+    id=1,
     oldNdlaUrl = None,
     revision=1,
     language="nb",
@@ -35,8 +35,8 @@ object TestData {
     copyright = api.Copyright(api.License("licence", None, None), "origin", Seq(api.Author("developer", "Per"))),
     tags = Seq("tag"),
     requiredLibraries = Seq(api.RequiredLibrary("JS", "JavaScript", "url")),
-    visualElement = "visual",
-    introduction = "intro",
+    visualElement = None,
+    introduction = None,
     metaDescription = "metaDesc",
     created = new DateTime(2017, 1, 1, 12, 15, 32, DateTimeZone.UTC).toDate,
     updated = new DateTime(2017, 4, 1, 12, 15, 32, DateTimeZone.UTC).toDate,
@@ -84,7 +84,7 @@ object TestData {
     Seq(),
     Seq(),
     Seq(),
-    Seq(api.ArticleIntroduction("introduction", Option("nb"))),
+    Seq(),
     Seq(api.ArticleMetaDescription("meta description", Option("nb"))),
     today,
     today,
@@ -93,7 +93,7 @@ object TestData {
   )
 
   val apiArticleV2 = api.ArticleV2(
-    articleId.toString,
+    articleId,
     Some(s"//red.ndla.no/node/$externalId"),
     2,
     "nb",
@@ -103,8 +103,8 @@ object TestData {
     api.Copyright(api.License("by", Some("Creative Commons Attribution 2.0 Generic"), Some("https://creativecommons.org/licenses/by/2.0/")), "", Seq()),
     Seq(),
     Seq(),
-    "",
-    "introduction",
+    None,
+    None,
     "meta description",
     today,
     today,
@@ -176,7 +176,7 @@ object TestData {
     Seq(),
     Seq(),
     Seq(),
-    Seq(ArticleIntroduction("introduction", Option("nb"))),
+    Seq(),
     Seq(ArticleMetaDescription("meta description", Option("nb"))),
     None,
     today,

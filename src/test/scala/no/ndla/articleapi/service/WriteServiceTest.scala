@@ -10,7 +10,7 @@ package no.ndla.articleapi.service
 
 import no.ndla.articleapi.model.domain.{Article, ArticleContent, ArticleTitle}
 import no.ndla.articleapi.{TestData, TestEnvironment, UnitSuite}
-import org.joda.time.{DateTime, DateTimeZone}
+import org.joda.time.{DateTime}
 import org.mockito.Mockito._
 import org.mockito.Matchers._
 import org.mockito.Mockito
@@ -36,8 +36,19 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
   test("newArticle should insert a given article") {
     when(articleRepository.insert(any[Article])(any[DBSession])).thenReturn(article)
     when(articleRepository.getExternalIdFromId(any[Long])(any[DBSession])).thenReturn(None)
+    when(articleValidator.validateArticle(any[Article])).thenReturn(Success(article))
 
-    service.newArticle(newArticle).id should equal(article.id.get.toString)
+    service.newArticle(newArticle).get.id should equal(article.id.get.toString)
+    verify(articleRepository, times(1)).insert(any[Article])
+    verify(indexService, times(1)).indexDocument(any[Article])
+  }
+
+  test("newArticleV2 should insert a given articleV2") {
+    when(articleRepository.insert(any[Article])(any[DBSession])).thenReturn(article)
+    when(articleRepository.getExternalIdFromId(any[Long])(any[DBSession])).thenReturn(None)
+    when(articleValidator.validateArticle(any[Article])).thenReturn(Success(article))
+
+    service.newArticleV2(TestData.newArticleV2).get.id.toString should equal(article.id.get.toString)
     verify(articleRepository, times(1)).insert(any[Article])
     verify(indexService, times(1)).indexDocument(any[Article])
   }
