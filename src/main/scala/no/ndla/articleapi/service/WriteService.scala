@@ -10,28 +10,44 @@ package no.ndla.articleapi.service
 
 import no.ndla.articleapi.auth.User
 import no.ndla.articleapi.model.api
-import no.ndla.articleapi.model.api.NotFoundException
+import no.ndla.articleapi.model.api.{ArticleV2, NotFoundException}
 import no.ndla.articleapi.model.domain._
 import no.ndla.articleapi.repository.ArticleRepository
 import no.ndla.articleapi.service.search.IndexService
 import no.ndla.articleapi.validation.ArticleValidator
 
-import scala.util.{Failure, Try}
+import scala.util.{Failure, Success, Try}
 
 trait WriteService {
   this: ArticleRepository with ConverterService with ArticleValidator with IndexService with Clock with User =>
   val writeService: WriteService
 
   class WriteService {
-    def newArticle(newArticle: api.NewArticle) = {
+    def newArticle(newArticle: api.NewArticle): Try[api.Article] = {
       val domainArticle = converterService.toDomainArticle(newArticle)
-      articleValidator.validateArticle(domainArticle)
-      val article = articleRepository.insert(domainArticle)
-      indexService.indexDocument(article)
-      converterService.toApiArticle(article)
+      articleValidator.validateArticle(domainArticle) match {
+        case Success(_) => {
+          val article = articleRepository.insert(domainArticle)
+          indexService.indexDocument(article)
+          Success(converterService.toApiArticle(article))
+        }
+        case Failure(exception) => Failure(exception)
+      }
     }
 
-    private[service] def mergeLanguageFields[A <: LanguageField](existing: Seq[A], updated: Seq[A]): Seq[A] = {
+    def newArticleV2(newArticle: api.NewArticleV2): Try[ArticleV2] = {
+      val domainArticle = converterService.toDomainArticle(newArticle)
+      articleValidator.validateArticle(domainArticle) match {
+        case Success(_) => {
+          val article = articleRepository.insert(domainArticle)
+          indexService.indexDocument(article)
+          Success(converterService.toApiArticleV2(article, newArticle.language).get)
+        }
+        case Failure(exception) => Failure(exception)
+      }
+    }
+
+    private[service] def mergeLanguageFields[A <: LanguageField[String]](existing: Seq[A], updated: Seq[A]): Seq[A] = {
       val toKeep = existing.filterNot(item => updated.map(_.language).contains(item.language))
       (toKeep ++ updated).filterNot(_.value.isEmpty)
     }

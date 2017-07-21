@@ -78,17 +78,17 @@ class ArticleConverterRegressionTest extends IntegrationSuite with TestEnvironme
     read[PerfectArticle](json)
   }
 
-  def getByLanguage[T <: LanguageField](fields: Seq[T], lang: String): Option[T] = {
+  def getByLanguage[A, T <: LanguageField[A]](fields: Seq[T], lang: String): Option[T] = {
     fields.find(f => f.language.getOrElse("") == lang)
   }
 
-  def verifyNoLanguageContentChanges[T <: LanguageField](perfect: Seq[T], imported: Seq[T], nodeId: String) = {
+  def verifyNoLanguageContentChanges[A, T <: LanguageField[A]](perfect: Seq[T], imported: Seq[T], nodeId: String) = {
     val importedContentLanguages = imported.map(_.language).toSet
     val originalContentLanguages = perfect.map(_.language).toSet
     importedContentLanguages should equal (originalContentLanguages)
 
     perfect.foreach(origContent => {
-      val Some(importedContent) = getByLanguage(imported, origContent.language.getOrElse(""))
+      val Some(importedContent) = getByLanguage[A, T](imported, origContent.language.getOrElse(""))
       Try(importedContent should equal(origContent)) match {
         case Success(_) =>
         case Failure(ex) =>
@@ -106,9 +106,9 @@ class ArticleConverterRegressionTest extends IntegrationSuite with TestEnvironme
     }
 
     val importedArticle = articleRepository.withId(articleId).get
-    verifyNoLanguageContentChanges(article.content, importedArticle.content, article.nodeId)
-    verifyNoLanguageContentChanges(article.introduction, importedArticle.introduction, article.nodeId)
-    verifyNoLanguageContentChanges(article.metaDescription, importedArticle.metaDescription, article.nodeId)
+    verifyNoLanguageContentChanges[String, ArticleContent](article.content, importedArticle.content, article.nodeId)
+    verifyNoLanguageContentChanges[String, ArticleIntroduction](article.introduction, importedArticle.introduction, article.nodeId)
+    verifyNoLanguageContentChanges[String, ArticleMetaDescription](article.metaDescription, importedArticle.metaDescription, article.nodeId)
   }
 
   test("import routine should not break perfectly looking articles") {
