@@ -350,8 +350,8 @@ trait ConverterService {
       val searchLanguage = getSearchLanguage(language, supportedLanguages)
 
       val title =           findValueByLanguage(article.title, searchLanguage).getOrElse("")
-      val visualElement =   findValueByLanguage(article.visualElement, searchLanguage).getOrElse("")
-      val introduction =    findValueByLanguage(article.introduction, searchLanguage).getOrElse("")
+      val visualElement =   findValueByLanguage(article.visualElement, searchLanguage)
+      val introduction =    findValueByLanguage(article.introduction, searchLanguage)
       val meta =            findValueByLanguage(article.metaDescription, searchLanguage).getOrElse("")
       val tags =            findValueByLanguage(article.tags, searchLanguage).getOrElse(Seq.empty[String])
       val articleContent =  toApiArticleContentV2(
@@ -360,7 +360,7 @@ trait ConverterService {
                                 .asInstanceOf[ArticleContent])
 
       Some(api.ArticleV2(
-        article.id.get.toString,
+        article.id.get,
         article.id.flatMap(getLinkToOldNdla),
         article.revision.get,
         searchLanguage,

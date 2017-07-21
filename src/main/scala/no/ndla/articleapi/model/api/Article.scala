@@ -32,7 +32,7 @@ case class Article(@(ApiModelProperty@field)(description = "The unique id of the
                    @(ApiModelProperty@field)(description = "The type of article this is. Possible values are topic-article,standard") articleType: String
                   )
 
-case class ArticleV2(@(ApiModelProperty@field)(description = "The unique id of the article") id: String,
+case class ArticleV2(@(ApiModelProperty@field)(description = "The unique id of the article") id: Long,
                      @(ApiModelProperty@field)(description = "Link to article on old platform") oldNdlaUrl: Option[String],
                      @(ApiModelProperty@field)(description = "The revision number for the article") revision: Int,
                      @(ApiModelProperty@field)(description = "The chosen language") language: String,
@@ -42,8 +42,8 @@ case class ArticleV2(@(ApiModelProperty@field)(description = "The unique id of t
                      @(ApiModelProperty@field)(description = "Describes the copyright information for the article") copyright: Copyright,
                      @(ApiModelProperty@field)(description = "Searchable tags for the article") tags: Seq[String],
                      @(ApiModelProperty@field)(description = "Required libraries in order to render the article") requiredLibraries: Seq[RequiredLibrary],
-                     @(ApiModelProperty@field)(description = "A visual element article") visualElement: String,
-                     @(ApiModelProperty@field)(description = "An introduction for the article") introduction: String,
+                     @(ApiModelProperty@field)(description = "A visual element article") visualElement: Option[String],
+                     @(ApiModelProperty@field)(description = "An introduction for the article") introduction: Option[String],
                      @(ApiModelProperty@field)(description = "Meta description for the article") metaDescription: String,
                      @(ApiModelProperty@field)(description = "When the article was created") created: Date,
                      @(ApiModelProperty@field)(description = "When the article was last updated") updated: Date,

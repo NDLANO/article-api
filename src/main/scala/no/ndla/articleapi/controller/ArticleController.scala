@@ -212,8 +212,10 @@ trait ArticleController {
       authRole.assertHasRole(RoleWithWriteAccess)
 
       val newArticle = extract[NewArticle](request.body)
-      val article = writeService.newArticle(newArticle)
-      Created(body=article)
+      writeService.newArticle(newArticle) match {
+        case Success(article) => Created(body=article)
+        case Failure(exception) => errorHandler(exception)
+      }
     }
 
     patch("/:article_id", operation(updateArticle)) {
