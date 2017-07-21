@@ -13,6 +13,7 @@ import no.ndla.articleapi.caching.MemoizeAutoRenew
 import no.ndla.articleapi.integration.ConverterModule.{jsoupDocumentToString, stringToJsoupDocument}
 import no.ndla.articleapi.model.api
 import no.ndla.articleapi.model.domain._
+import no.ndla.articleapi.model.domain.Language._
 import no.ndla.articleapi.repository.{ArticleRepository, ConceptRepository}
 import no.ndla.articleapi.service.converters.Attributes
 import org.jsoup.nodes.Element
@@ -29,6 +30,12 @@ trait ReadService {
         .map(addUrlsAndIdsOnEmbedResources)
         .map(converterService.toApiArticle)
 
+    def withIdV2(id: Long, language: String): Option[api.ArticleV2] = {
+      articleRepository.withId(id)
+        .map(addUrlsAndIdsOnEmbedResources)
+        .flatMap(article => converterService.toApiArticleV2(article, language))
+    }
+
     private[service] def addUrlsAndIdsOnEmbedResources(article: Article): Article = {
       val articleWithUrls = article.content.map(content => content.copy(content=addIdAndUrlOnResource(content.content)))
       val visualElementWithUrls = article.visualElement.map(visual => visual.copy(resource=addIdAndUrlOnResource(visual.resource)))
@@ -36,10 +43,18 @@ trait ReadService {
       article.copy(content = articleWithUrls, visualElement = visualElementWithUrls)
     }
 
-    def getNMostUsedTags(n: Int): Seq[api.ArticleTag] = {
-      getTagUsageMap().map { case (lang, tags) =>
+    def getNMostUsedTags(n: Int, language: String): Option[Seq[api.ArticleTag]] = {
+      val tagUsageMap = getTagUsageMap()
+      val supportedLanguages = tagUsageMap.flatMap(_._1).toSeq.distinct
+      val searchLanguage = getSearchLanguage(language, supportedLanguages)
+
+      if (supportedLanguages.isEmpty || (!supportedLanguages.contains(language) && language != AllLanguages)) return None
+
+      Some(tagUsageMap
+        .filterKeys(lang => lang.getOrElse("") == searchLanguage)
+        .map { case (lang, tags) =>
           api.ArticleTag(tags.getNMostFrequent(n), lang)
-      }.toSeq
+        }.toSeq)
     }
 
     val getTagUsageMap = MemoizeAutoRenew(() => {

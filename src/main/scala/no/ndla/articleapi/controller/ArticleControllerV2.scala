@@ -14,19 +14,20 @@ import no.ndla.articleapi.ArticleApiProperties.RoleWithWriteAccess
 import no.ndla.articleapi.auth.Role
 import no.ndla.articleapi.model.api._
 import no.ndla.articleapi.model.domain.{ArticleType, Language, Sort}
+import no.ndla.articleapi.service.search.{ArticleSearchService, SearchService}
 import no.ndla.articleapi.service.{ConverterService, ReadService, WriteService}
-import no.ndla.articleapi.service.search.ArticleSearchService
+import org.json4s.native.Serialization.read
 import org.json4s.{DefaultFormats, Formats}
-import org.scalatra.{Created, NotFound, Ok}
 import org.scalatra.swagger.{ResponseMessage, Swagger, SwaggerSupport}
+import org.scalatra.{Created, NotFound, Ok}
 
 import scala.util.{Failure, Success, Try}
 
-trait ArticleController {
+trait ArticleControllerV2 {
   this: ReadService with WriteService with ArticleSearchService with ConverterService with Role =>
-  val articleController: ArticleController
+  val articleControllerV2: ArticleControllerV2
 
-  class ArticleController(implicit val swagger: Swagger) extends NdlaController with SwaggerSupport {
+  class ArticleControllerV2(implicit val swagger: Swagger) extends NdlaController with SwaggerSupport {
     protected implicit override val jsonFormats: Formats = DefaultFormats
     protected val applicationDescription = "API for accessing articles from ndla.no."
 
@@ -34,13 +35,14 @@ trait ArticleController {
     registerModel[ValidationError]()
     registerModel[Error]()
 
+    val converterService = new ConverterService
     val response400 = ResponseMessage(400, "Validation Error", Some("ValidationError"))
     val response403 = ResponseMessage(403, "Access Denied", Some("Error"))
     val response404 = ResponseMessage(404, "Not found", Some("Error"))
     val response500 = ResponseMessage(500, "Unknown error", Some("Error"))
 
     val getAllArticles =
-      (apiOperation[List[ArticleSearchResult]]("getAllArticles")
+      (apiOperation[List[SearchResultV2]]("getAllArticles")
         summary "Show all articles"
         notes "Shows all articles. You can search it too."
         parameters(
@@ -49,7 +51,7 @@ trait ArticleController {
           queryParam[Option[String]]("articleTypes").description("Return only articles of specific type(s). To provide multiple types, separate by comma (,)."),
           queryParam[Option[String]]("query").description("Return only articles with content matching the specified query."),
           queryParam[Option[String]]("ids").description("Return only articles that have one of the provided ids. To provide multiple ids, separate by comma (,)."),
-          queryParam[Option[String]]("language").description("The ISO 639-1 language code describing language used in query-params."),
+          queryParam[Option[String]]("language").description("Only return results on the given language. Default is nb"),
           queryParam[Option[String]]("license").description("Return only articles with provided license."),
           queryParam[Option[Int]]("page").description("The page number of the search hits to display."),
           queryParam[Option[Int]]("page-size").description("The number of search hits to display for each page."),
@@ -63,31 +65,33 @@ trait ArticleController {
         responseMessages(response500))
 
     val getAllArticlesPost =
-      (apiOperation[List[ArticleSearchResult]]("getAllArticlesPost")
+      (apiOperation[List[SearchResultV2]]("getAllArticlesPost")
         summary "Show all articles"
         notes "Shows all articles. You can search it too."
         parameters(
         headerParam[Option[String]]("X-Correlation-ID").description("User supplied correlation-id"),
         headerParam[Option[String]]("app-key").description("Your app-key"),
+        queryParam[Option[String]]("language").description("Only return results on the given language. Default is nb"),
         bodyParam[ArticleSearchParams]
       )
         authorizations "oauth2"
         responseMessages(response400, response500))
 
     val getArticleById =
-      (apiOperation[List[Article]]("getArticleById")
+      (apiOperation[List[ArticleV2]]("getArticleById")
         summary "Show article with a specified Id"
         notes "Shows the article for the specified id."
         parameters(
           headerParam[Option[String]]("X-Correlation-ID").description("User supplied correlation-id. May be omitted."),
           headerParam[Option[String]]("app-key").description("Your app-key. May be omitted to access api anonymously, but rate limiting applies on anonymous access."),
-          pathParam[Long]("article_id").description("Id of the article that is to be returned")
+          pathParam[Long]("article_id").description("Id of the article that is to be returned"),
+          queryParam[Option[String]]("language").description("Only return results on the given language. Default is nb")
         )
         authorizations "oauth2"
         responseMessages(response404, response500))
 
     val newArticle =
-      (apiOperation[Article]("newArticle")
+      (apiOperation[ArticleV2]("newArticle")
         summary "Create a new article"
         notes "Creates a new article"
         parameters(
@@ -99,7 +103,7 @@ trait ArticleController {
         responseMessages(response400, response403, response500))
 
     val updateArticle =
-      (apiOperation[Article]("updateArticle")
+      (apiOperation[ArticleV2]("updateArticle")
         summary "Update an existing article"
         notes "Update an existing article"
         parameters(
@@ -118,20 +122,25 @@ trait ArticleController {
         parameters(
           queryParam[Option[Int]]("size").description("Limit the number of results to this many elements"),
           headerParam[Option[String]]("X-Correlation-ID").description("User supplied correlation-id. May be omitted."),
-          headerParam[Option[String]]("app-key").description("Your app-key.")
+          headerParam[Option[String]]("app-key").description("Your app-key."),
+          queryParam[Option[String]]("language").description("Only return results on the given language. Default is nb")
         )
         responseMessages response500
         authorizations "oauth2")
 
-    get("/tags/", operation(getTags)) {
+    get("/tags/?", operation(getTags)) {
       val defaultSize = 20
       val language = paramOrDefault("language", Language.AllLanguages)
       val size = intOrDefault("size", defaultSize) match {
         case toSmall if toSmall < 1 => defaultSize
         case x => x
       }
-
-      readService.getNMostUsedTags(size, language)
+      val tags = readService.getNMostUsedTags(size, language)
+      if (tags.isEmpty) {
+        NotFound(body = Error(Error.NOT_FOUND, s"No tags with language $language was found"))
+      } else {
+        tags
+      }
     }
 
     private def search(query: Option[String], sort: Option[Sort.Value], language: String, license: Option[String], page: Int, pageSize: Int, idList: List[Long], articleTypesFilter: Seq[String]) = {
@@ -148,18 +157,18 @@ trait ArticleController {
         )
 
         case None => articleSearchService.all(
-            withIdIn = idList,
-            language = language,
-            license = license,
-            page = page,
-            pageSize = pageSize,
-            sort = sort.getOrElse(Sort.ByTitleAsc),
-            if (articleTypesFilter.isEmpty) ArticleType.all else articleTypesFilter
-          )
+          withIdIn = idList,
+          language = language,
+          license = license,
+          page = page,
+          pageSize = pageSize,
+          sort = sort.getOrElse(Sort.ByTitleAsc),
+          if (articleTypesFilter.isEmpty) ArticleType.all else articleTypesFilter
+        )
       }
 
-      val hitResult = converterService.getHits(searchResult.response)
-      SearchResult(
+      val hitResult = converterService.getHitsV2(searchResult.response, language)
+      SearchResultV2(
         searchResult.totalCount,
         searchResult.page,
         searchResult.pageSize,
@@ -171,7 +180,7 @@ trait ArticleController {
     get("/", operation(getAllArticles)) {
       val query = paramOrNone("query")
       val sort = Sort.valueOf(paramOrDefault("sort", ""))
-      val language = paramOrDefault("language", Language.AllLanguages)
+      val language = paramOrDefault("language", Language.DefaultLanguage)
       val license = paramOrNone("license")
       val pageSize = intOrDefault("page-size", ArticleApiProperties.DefaultPageSize)
       val page = intOrDefault("page", 1)
@@ -198,20 +207,20 @@ trait ArticleController {
 
     get("/:article_id", operation(getArticleById)) {
       val articleId = long("article_id")
+      val language = paramOrDefault("language", Language.AllLanguages)
 
       logger.info(s"get article $articleId")
 
-      readService.articleWithId(articleId) match {
+      readService.withIdV2(articleId, language) match {
         case Some(article) => article
-        case None => NotFound(body = Error(Error.NOT_FOUND, s"No article with id $articleId found"))
+        case None => NotFound(body = Error(Error.NOT_FOUND, s"No article with id $articleId and language $language found"))
       }
     }
 
     post("/", operation(newArticle)) {
       authRole.assertHasRole(RoleWithWriteAccess)
-
-      val newArticle = extract[NewArticle](request.body)
-      writeService.newArticle(newArticle) match {
+      val newArticle = extract[NewArticleV2](request.body)
+      writeService.newArticleV2(newArticle) match {
         case Success(article) => Created(body=article)
         case Failure(exception) => errorHandler(exception)
       }
@@ -221,7 +230,7 @@ trait ArticleController {
       authRole.assertHasRole(RoleWithWriteAccess)
 
       val articleId = long("article_id")
-      val updatedArticle = extract[UpdatedArticle](request.body)
+      val updatedArticle = converterService.toUpdatedArticle(extract[UpdatedArticleV2](request.body))
       writeService.updateArticle(articleId, updatedArticle) match {
         case Success(article) => Ok(body=article)
         case Failure(exception) => errorHandler(exception)

@@ -16,6 +16,8 @@ import no.ndla.articleapi.ArticleApiProperties.DefaultPageSize
 import no.ndla.tag.IntegrationTest
 import org.joda.time.DateTime
 
+import scala.util.parsing.json.JSONObject
+
 @IntegrationTest
 class ArticleSearchServiceTest extends UnitSuite with TestEnvironment {
 
@@ -25,6 +27,7 @@ class ArticleSearchServiceTest extends UnitSuite with TestEnvironment {
 
   override val articleSearchService = new ArticleSearchService
   override val articleIndexService = new ArticleIndexService
+  override val converterService = new ConverterService
   override val searchConverterService = new SearchConverterService
 
   val byNcSa = Copyright("by-nc-sa", "Gotham City", List(Author("Forfatter", "DC Comics")))
@@ -154,7 +157,7 @@ class ArticleSearchServiceTest extends UnitSuite with TestEnvironment {
   test("all should return only articles of a given type if a type filter is specified") {
     val results = articleSearchService.all(List(), Language.DefaultLanguage, None, 1, 10, Sort.ByIdAsc, Seq(ArticleType.TopicArticle.toString))
     results.totalCount should be(1)
-    results.results.head.id should be("8")
+    converterService.getHits(results.response).head.id should be ("8")
 
     val results2 = articleSearchService.all(List(), Language.DefaultLanguage, None, 1, 10, Sort.ByIdAsc, ArticleType.all)
     results2.totalCount should be(7)
@@ -162,99 +165,108 @@ class ArticleSearchServiceTest extends UnitSuite with TestEnvironment {
 
   test("That all returns all documents ordered by id ascending") {
     val results = articleSearchService.all(List(), Language.DefaultLanguage, None, 1, 10, Sort.ByIdAsc, Seq.empty)
+    val hits = converterService.getHits(results.response)
     results.totalCount should be(7)
-    results.results.head.id should be("1")
-    results.results(1).id should be("2")
-    results.results(2).id should be("3")
-    results.results(3).id should be("5")
-    results.results(4).id should be("6")
-    results.results(5).id should be("7")
-    results.results.last.id should be("8")
+    hits.head.id should be("1")
+    hits(1).id should be("2")
+    hits(2).id should be("3")
+    hits(3).id should be("5")
+    hits(4).id should be("6")
+    hits(5).id should be("7")
+    hits.last.id should be("8")
   }
 
   test("That all returns all documents ordered by id descending") {
     val results = articleSearchService.all(List(), Language.DefaultLanguage, None, 1, 10, Sort.ByIdDesc, Seq.empty)
+    val hits = converterService.getHits(results.response)
     results.totalCount should be(7)
-    results.results.head.id should be("8")
-    results.results.last.id should be("1")
+    hits.head.id should be ("8")
+    hits.last.id should be ("1")
   }
 
   test("That all returns all documents ordered by title ascending") {
     val results = articleSearchService.all(List(), Language.DefaultLanguage, None, 1, 10, Sort.ByTitleAsc, Seq.empty)
+    val hits = converterService.getHits(results.response)
     results.totalCount should be(7)
-    results.results.head.id should be("8")
-    results.results(1).id should be("1")
-    results.results(2).id should be("3")
-    results.results(3).id should be("5")
-    results.results(4).id should be("6")
-    results.results(5).id should be("2")
-    results.results.last.id should be("7")
+    hits.head.id should be("8")
+    hits(1).id should be("1")
+    hits(2).id should be("3")
+    hits(3).id should be("5")
+    hits(4).id should be("6")
+    hits(5).id should be("2")
+    hits.last.id should be("7")
   }
 
   test("That all returns all documents ordered by title descending") {
     val results = articleSearchService.all(List(), Language.DefaultLanguage, None, 1, 10, Sort.ByTitleDesc, Seq.empty)
+    val hits = converterService.getHits(results.response)
     results.totalCount should be(7)
-    results.results.head.id should be("7")
-    results.results(1).id should be("2")
-    results.results(2).id should be("6")
-    results.results(3).id should be("5")
-    results.results(4).id should be("3")
-    results.results(5).id should be("1")
-    results.results.last.id should be("8")
+    hits.head.id should be("7")
+    hits(1).id should be("2")
+    hits(2).id should be("6")
+    hits(3).id should be("5")
+    hits(4).id should be("3")
+    hits(5).id should be("1")
+    hits.last.id should be("8")
 
   }
 
   test("That all returns all documents ordered by lastUpdated descending") {
     val results = articleSearchService.all(List(), Language.DefaultLanguage, None, 1, 10, Sort.ByLastUpdatedDesc, Seq.empty)
+    val hits = converterService.getHits(results.response)
     results.totalCount should be(7)
-
-    results.results.head.id should be("3")
-    results.results.last.id should be("5")
+    hits.head.id should be("3")
+    hits.last.id should be("5")
   }
 
   test("That all returns all documents ordered by lastUpdated ascending") {
     val results = articleSearchService.all(List(), Language.DefaultLanguage, None, 1, 10, Sort.ByLastUpdatedAsc, Seq.empty)
+    val hits = converterService.getHits(results.response)
     results.totalCount should be(7)
-    results.results.head.id should be("5")
-    results.results(1).id should be("6")
-    results.results(2).id should be("7")
-    results.results(3).id should be("8")
-    results.results(4).id should be("1")
-    results.results(5).id should be("2")
-    results.results.last.id should be("3")
+    hits.head.id should be("5")
+    hits(1).id should be("6")
+    hits(2).id should be("7")
+    hits(3).id should be("8")
+    hits(4).id should be("1")
+    hits(5).id should be("2")
+    hits.last.id should be("3")
   }
 
   test("That all filtering on license only returns documents with given license") {
     val results = articleSearchService.all(List(), Language.DefaultLanguage, Some("publicdomain"), 1, 10, Sort.ByTitleAsc, Seq.empty)
+    val hits = converterService.getHits(results.response)
     results.totalCount should be(6)
-    results.results.head.id should be("8")
-    results.results(1).id should be("3")
-    results.results(2).id should be("5")
-    results.results(3).id should be("6")
-    results.results(4).id should be("2")
-    results.results.last.id should be("7")
+    hits.head.id should be("8")
+    hits(1).id should be("3")
+    hits(2).id should be("5")
+    hits(3).id should be("6")
+    hits(4).id should be("2")
+    hits.last.id should be("7")
   }
 
   test("That all filtered by id only returns documents with the given ids") {
     val results = articleSearchService.all(List(1, 3), Language.DefaultLanguage, None, 1, 10, Sort.ByIdAsc, Seq.empty)
+    val hits = converterService.getHits(results.response)
     results.totalCount should be(2)
-    results.results.head.id should be("1")
-    results.results.last.id should be("3")
+    hits.head.id should be("1")
+    hits.last.id should be("3")
   }
 
   test("That paging returns only hits on current page and not more than page-size") {
     val page1 = articleSearchService.all(List(), Language.DefaultLanguage, None, 1, 2, Sort.ByTitleAsc, Seq.empty)
     val page2 = articleSearchService.all(List(), Language.DefaultLanguage, None, 2, 2, Sort.ByTitleAsc, Seq.empty)
+    val hits1 = converterService.getHits(page1.response)
+    val hits2 = converterService.getHits(page1.response)
     page1.totalCount should be(7)
     page1.page should be(1)
-    page1.results.size should be(2)
-    page1.results.head.id should be("8")
-    page1.results.last.id should be("1")
+    hits1.size should be(2)
+    hits1.head.id should be("8")
+    hits1.last.id should be("1")
     page2.totalCount should be(7)
     page2.page should be(2)
-    page2.results.size should be(2)
-    page2.results.head.id should be("3")
-    page2.results.last.id should be("5")
+    hits2.size should be(2)
+    hits2.head.id should be("3")
+    hits2.last.id should be("5")
   }
 
   test("mathcingQuery should filter results based on an article type filter") {
@@ -267,30 +279,33 @@ class ArticleSearchServiceTest extends UnitSuite with TestEnvironment {
 
   test("That search matches title and html-content ordered by relevance descending") {
     val results = articleSearchService.matchingQuery("bil", List(), "nb", None, 1, 10, Sort.ByRelevanceDesc, Seq.empty)
-
+    val hits = converterService.getHits(results.response)
     results.totalCount should be(3)
-    results.results.head.id should be("1")
-    results.results(1).id should be("5")
-    results.results.last.id should be("3")
+    hits.head.id should be("1")
+    hits(1).id should be("5")
+    hits.last.id should be("3")
   }
 
   test("That search combined with filter by id only returns documents matching the query with one of the given ids") {
     val results = articleSearchService.matchingQuery("bil", List(3), "nb", None, 1, 10, Sort.ByRelevanceDesc, Seq.empty)
+    val hits = converterService.getHits(results.response)
     results.totalCount should be(1)
-    results.results.head.id should be("3")
-    results.results.last.id should be("3")
+    hits.head.id should be("3")
+    hits.last.id should be("3")
   }
 
   test("That search matches title") {
     val results = articleSearchService.matchingQuery("Pingvinen", List(), "nb", None, 1, 10, Sort.ByTitleAsc, Seq.empty)
+    val hits = converterService.getHits(results.response)
     results.totalCount should be(1)
-    results.results.head.id should be("2")
+    hits.head.id should be("2")
   }
 
   test("That search matches tags") {
     val results = articleSearchService.matchingQuery("and", List(), "nb", None, 1, 10, Sort.ByTitleAsc, Seq.empty)
+    val hits = converterService.getHits(results.response)
     results.totalCount should be(1)
-    results.results.head.id should be("3")
+    hits.head.id should be("3")
   }
 
   test("That search does not return superman since it has license copyrighted and license is not specified") {
@@ -300,27 +315,33 @@ class ArticleSearchServiceTest extends UnitSuite with TestEnvironment {
 
   test("That search returns superman since license is specified as copyrighted") {
     val results = articleSearchService.matchingQuery("supermann", List(), "nb", Some("copyrighted"), 1, 10, Sort.ByTitleAsc, Seq.empty)
+    val hits = converterService.getHits(results.response)
     results.totalCount should be(1)
-    results.results.head.id should be("4")
+    hits.head.id should be("4")
   }
 
   test("Searching with logical AND only returns results with all terms") {
     val search1 = articleSearchService.matchingQuery("bilde AND bil", List(), "nb", None, 1, 10, Sort.ByTitleAsc, Seq.empty)
-    search1.results.map(_.id) should equal (Seq("1", "3", "5"))
+    val hits1 = converterService.getHits(search1.response)
+    hits1.map(_.id) should equal (Seq("1", "3", "5"))
 
     val search2 = articleSearchService.matchingQuery("batmen AND bil", List(), "nb", None, 1, 10, Sort.ByTitleAsc, Seq.empty)
-    search2.results.map(_.id) should equal (Seq("1"))
+    val hits2 = converterService.getHits(search1.response)
+    hits2.map(_.id) should equal (Seq("1"))
 
     val search3 = articleSearchService.matchingQuery("bil AND bilde AND NOT flaggermusmann", List(), "nb", None, 1, 10, Sort.ByTitleAsc, Seq.empty)
-    search3.results.map(_.id) should equal (Seq("3", "5"))
+    val hits3 = converterService.getHits(search1.response)
+    hits3.map(_.id) should equal (Seq("3", "5"))
 
     val search4 = articleSearchService.matchingQuery("bil AND NOT hulken", List(), "nb", None, 1, 10, Sort.ByTitleAsc, Seq.empty)
-    search4.results.map(_.id) should equal (Seq("1", "3"))
+    val hits4 = converterService.getHits(search1.response)
+    hits4.map(_.id) should equal (Seq("1", "3"))
   }
 
   test("search in content should be ranked lower than introduction and title") {
     val search = articleSearchService.matchingQuery("mareritt + ragnarok", List(), "nb", None, 1, 10, Sort.ByRelevanceDesc, Seq.empty)
-    search.results.map(_.id) should equal (Seq("9", "8"))
+    val hits = converterService.getHits(search.response)
+    hits.map(_.id) should equal (Seq("9", "8"))
   }
 
   def blockUntil(predicate: () => Boolean) = {

@@ -14,11 +14,9 @@ import no.ndla.articleapi.{TestData, TestEnvironment, UnitSuite}
 import no.ndla.articleapi.integration._
 import no.ndla.articleapi.model.domain._
 import no.ndla.articleapi.model.api
-import no.ndla.articleapi.service.converters.{Attributes, MathMLConverter, ResourceType, TableConverter}
+import no.ndla.articleapi.service.converters.{Attributes, ResourceType, TableConverter}
 import no.ndla.articleapi.ArticleApiProperties.resourceHtmlEmbedTag
-import org.joda.time.DateTime
 import org.mockito.Mockito._
-
 import scala.util.{Success, Try}
 
 class ConverterServiceTestArticle extends UnitSuite with TestEnvironment {
@@ -252,6 +250,18 @@ class ConverterServiceTestArticle extends UnitSuite with TestEnvironment {
     result.requiredLibraries.isEmpty should equal (true)
   }
 
+  test("toDomainArticle convert a NewArticle to Article") {
+    service.toDomainArticle(TestData.newArticle) should equal(
+      TestData.sampleDomainArticle2.copy(created=clock.now, updated=clock.now, updatedBy=null)
+    )
+  }
+
+  test("toDomainArticle convert a NewArticleV2 to Article") {
+    service.toDomainArticle(TestData.newArticleV2) should equal(
+      TestData.sampleDomainArticle2.copy(created=clock.now, updated=clock.now, updatedBy=null)
+    )
+  }
+
   test("toDomainArticle should return Failure if convertion fails") {
     val nodeId = 123123
     val contentString = s"[contentbrowser ==nid=$nodeId==imagecache=Fullbredde==width===alt=$sampleAlt==link===node_link=1==link_type=link_to_content==lightbox_size===remove_fields[76661]=1==remove_fields[76663]=1==remove_fields[76664]=1==remove_fields[76666]=1==insertion===link_title_text= ==link_text= ==text_align===css_class=contentbrowser contentbrowser]"
@@ -273,46 +283,19 @@ class ConverterServiceTestArticle extends UnitSuite with TestEnvironment {
   }
 
   test("toApiArticle converts a domain.Article to an api.Article") {
-    val (articleId, externalId) = (1, "751234")
-    val today = new DateTime().toDate
-    val domainArticle = Article(
-      Option(articleId),
-      Option(2),
-      Seq(ArticleTitle("title", Option("nb"))),
-      Seq(ArticleContent("content", None, Option("nb"))),
-      Copyright("by", "", Seq()),
-      Seq(),
-      Seq(),
-      Seq(),
-      Seq(ArticleIntroduction("introduction", Option("nb"))),
-      Seq(ArticleMetaDescription("meta description", Option("nb"))),
-      None,
-      today,
-      today,
-      "ndalId54321",
-      ArticleType.Standard.toString
-    )
+    when(articleRepository.getExternalIdFromId(TestData.articleId)).thenReturn(Some(TestData.externalId))
+    service.toApiArticle(TestData.sampleDomainArticle) should equal(TestData.sampleArticle)
+  }
 
-    val apiArticle = api.Article(
-      articleId.toString,
-      Some(s"//red.ndla.no/node/$externalId"),
-      2,
-      Seq(api.ArticleTitle("title", Option("nb"))),
-      Seq(api.ArticleContent("content", None, Option("nb"))),
-      api.Copyright(api.License("by", Some("Creative Commons Attribution 2.0 Generic"), Some("https://creativecommons.org/licenses/by/2.0/")), "", Seq()),
-      Seq(),
-      Seq(),
-      Seq(),
-      Seq(api.ArticleIntroduction("introduction", Option("nb"))),
-      Seq(api.ArticleMetaDescription("meta description", Option("nb"))),
-      today,
-      today,
-      "ndalId54321",
-      "standard"
-    )
+  test("toApiArticleV2 converts a domain.Article to an api.ArticleV2") {
+    when(articleRepository.getExternalIdFromId(TestData.articleId)).thenReturn(Some(TestData.externalId))
+    service.toApiArticleV2(TestData.sampleDomainArticle, "nb") should equal(Some(TestData.apiArticleV2))
+  }
 
-    when(articleRepository.getExternalIdFromId(articleId)).thenReturn(Some(externalId))
-    service.toApiArticle(domainArticle) should equal(apiArticle)
+  test("toApiArticleV2 returns None when language is not supported") {
+    when(articleRepository.getExternalIdFromId(TestData.articleId)).thenReturn(Some(TestData.externalId))
+    service.toApiArticleV2(TestData.sampleDomainArticle, "someRandomLanguage") should be(None)
+    service.toApiArticleV2(TestData.sampleDomainArticle, "") should be(None)
   }
 
   test("toDomainArticleShould should remove unneeded attributes on embed-tags") {

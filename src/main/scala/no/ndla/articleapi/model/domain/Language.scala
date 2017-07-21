@@ -14,6 +14,7 @@ object Language {
   val DefaultLanguage = "nb"
   val UnknownLanguage = "unknown"
   val NoLanguage = ""
+  val AllLanguages = "all"
 
   val languageAnalyzers = Seq(
     LanguageAnalyzer(DefaultLanguage, NorwegianLanguageAnalyzer),
@@ -28,6 +29,26 @@ object Language {
   )
 
   val supportedLanguages = languageAnalyzers.map(_.lang)
+
+  def getSupportedLanguages(sequences: Seq[Seq[WithLanguage]]): Seq[String] = {
+    sequences.flatMap(_.flatMap(_.language)).distinct
+  }
+
+  def getSearchLanguage(languageParam: String, supportedLanguages: Seq[String]): String = {
+    val l = if (languageParam == AllLanguages) DefaultLanguage else languageParam
+    if (supportedLanguages.contains(l))
+      l
+    else
+      supportedLanguages.head
+  }
+
+  def findByLanguage[T](sequence: Seq[LanguageField[T]], lang: String): Option[LanguageField[T]] = {
+    sequence.find(_.language.getOrElse("") == lang)
+  }
+
+  def findValueByLanguage[T](sequence: Seq[LanguageField[T]], lang: String): Option[T] = {
+    findByLanguage(sequence, lang).map(_.value)
+  }
 }
 
 case class LanguageAnalyzer(lang: String, analyzer: Analyzer)

@@ -50,19 +50,20 @@ trait ArticleSearchService {
       )
     }
 
-    def all(withIdIn: List[Long], language: String, license: Option[String], page: Int, pageSize: Int, sort: Sort.Value, articleTypes: Seq[String]): api.ArticleSearchResult = {
+    def all(withIdIn: List[Long], language: String, license: Option[String], page: Int, pageSize: Int, sort: Sort.Value, articleTypes: Seq[String]): SearchResult = {
       val articleTypesFilter = if (articleTypes.nonEmpty) articleTypes else ArticleType.all
       val fullSearch = QueryBuilders.boolQuery()
         .filter(QueryBuilders.constantScoreQuery(QueryBuilders.termsQuery("articleType", articleTypesFilter:_*)))
       executeSearch(withIdIn, language, license, sort, page, pageSize, fullSearch)
     }
 
-    def matchingQuery(query: String, withIdIn: List[Long], searchLanguage: String, license: Option[String], page: Int, pageSize: Int, sort: Sort.Value, articleTypes: Seq[String]): api.ArticleSearchResult = {
+    def matchingQuery(query: String, withIdIn: List[Long], searchLanguage: String, license: Option[String], page: Int, pageSize: Int, sort: Sort.Value, articleTypes: Seq[String]): SearchResult = {
+      val language = if (searchLanguage == Language.AllLanguages) Language.DefaultLanguage else searchLanguage
       val articleTypesFilter = if (articleTypes.nonEmpty) articleTypes else ArticleType.all
-      val titleSearch = QueryBuilders.simpleQueryStringQuery(query).field(s"title.$searchLanguage")
-      val introSearch = QueryBuilders.simpleQueryStringQuery(query).field(s"introduction.$searchLanguage")
-      val contentSearch = QueryBuilders.simpleQueryStringQuery(query).field(s"content.$searchLanguage")
-      val tagSearch = QueryBuilders.simpleQueryStringQuery(query).field(s"tags.$searchLanguage")
+      val titleSearch = QueryBuilders.simpleQueryStringQuery(query).field(s"title.$language")
+      val introSearch = QueryBuilders.simpleQueryStringQuery(query).field(s"introduction.$language")
+      val contentSearch = QueryBuilders.simpleQueryStringQuery(query).field(s"content.$language")
+      val tagSearch = QueryBuilders.simpleQueryStringQuery(query).field(s"tags.$language")
 
       val fullQuery = QueryBuilders.boolQuery()
         .must(QueryBuilders.boolQuery()
@@ -72,13 +73,20 @@ trait ArticleSearchService {
           .should(QueryBuilders.nestedQuery("tags", tagSearch, ScoreMode.Avg).boost(2)))
         .filter(QueryBuilders.constantScoreQuery(QueryBuilders.termsQuery("articleType", articleTypesFilter:_*)))
 
-      executeSearch(withIdIn, searchLanguage, license, sort, page, pageSize, fullQuery)
+      executeSearch(withIdIn, language, license, sort, page, pageSize, fullQuery)
     }
 
-    def executeSearch(withIdIn: List[Long], language: String, license: Option[String], sort: Sort.Value, page: Int, pageSize: Int, queryBuilder: BoolQueryBuilder): api.ArticleSearchResult = {
-      val filteredSearch = license match {
-        case None => queryBuilder.filter(noCopyright)
-        case Some(lic) => queryBuilder.filter(QueryBuilders.termQuery("license", lic))
+    def executeSearch(withIdIn: List[Long], language: String, license: Option[String], sort: Sort.Value, page: Int, pageSize: Int, queryBuilder: BoolQueryBuilder): SearchResult = {
+      val (filteredSearch, searchLanguage) = {
+        val licenseFilteredSearch = license match {
+          case None => queryBuilder.filter(noCopyright)
+          case Some(lic) => queryBuilder.filter(QueryBuilders.termQuery("license", lic))
+        }
+
+        language match {
+          case Language.AllLanguages => (licenseFilteredSearch, Language.DefaultLanguage)
+          case _ => (licenseFilteredSearch.filter(QueryBuilders.nestedQuery("title", QueryBuilders.existsQuery(s"title.$language"), ScoreMode.Avg)), language)
+        }
       }
 
       val idFilteredSearch = withIdIn match {
@@ -86,16 +94,16 @@ trait ArticleSearchService {
         case Nil => filteredSearch
       }
 
-      val searchQuery = new SearchSourceBuilder().query(idFilteredSearch).sort(getSortDefinition(sort, language))
+      val searchQuery = new SearchSourceBuilder().query(idFilteredSearch).sort(getSortDefinition(sort, searchLanguage))
 
       val (startAt, numResults) = getStartAtAndNumResults(page, pageSize)
       val request = new Search.Builder(searchQuery.toString)
         .addIndex(searchIndex)
         .setParameter(Parameters.SIZE, numResults) .setParameter("from", startAt)
 
-        jestClient.execute(request.build()) match {
-          case Success(response) => api.ArticleSearchResult(response.getTotal.toLong, page, numResults, getHits(response, language))
-          case Failure(f) => errorHandler(Failure(f))
+      jestClient.execute(request.build()) match {
+        case Success(response) => SearchResult(response.getTotal.toLong, page, numResults, searchLanguage, response)
+        case Failure(f) => errorHandler(Failure(f))
       }
     }
 
