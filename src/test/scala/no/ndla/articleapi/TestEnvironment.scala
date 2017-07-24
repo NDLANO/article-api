@@ -12,7 +12,7 @@ package no.ndla.articleapi
 import com.amazonaws.services.s3.AmazonS3Client
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.articleapi.auth.{Role, User}
-import no.ndla.articleapi.controller.{ArticleController, ArticleControllerV2, HealthController, InternController}
+import no.ndla.articleapi.controller._
 import no.ndla.articleapi.integration._
 import no.ndla.articleapi.repository.{ArticleRepository, ConceptRepository}
 import no.ndla.articleapi.service._
@@ -36,6 +36,7 @@ trait TestEnvironment
     with ArticleControllerV2
     with InternController
     with HealthController
+    with ConceptController
     with DataSource
     with ArticleRepository
     with ConceptRepository
@@ -72,6 +73,7 @@ trait TestEnvironment
   val internController = mock[InternController]
   val articleController = mock[ArticleController]
   val articleControllerV2 = mock[ArticleControllerV2]
+  val conceptController = mock[ConceptController]
 
   val healthController = mock[HealthController]
 

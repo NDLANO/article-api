@@ -294,6 +294,14 @@ object TestData {
     Seq(ConceptContent("Innhold for begrep", Some("nb")))
   )
 
+  val sampleApiConcept = api.Concept(
+    1,
+    "Tittel for begrep",
+    "Innhold for begrep",
+    "nb",
+    Seq("nb")
+  )
+
 }
 
 
