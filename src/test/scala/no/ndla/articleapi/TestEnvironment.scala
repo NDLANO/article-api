@@ -27,6 +27,8 @@ trait TestEnvironment
   extends ElasticClient
     with ArticleSearchService
     with ArticleIndexService
+    with ConceptSearchService
+    with ConceptIndexService
     with IndexService
     with SearchService
     with LazyLogging
@@ -64,6 +66,8 @@ trait TestEnvironment
     with Role {
   val articleSearchService = mock[ArticleSearchService]
   val articleIndexService = mock[ArticleIndexService]
+  val conceptSearchService = mock[ConceptSearchService]
+  val conceptIndexService = mock[ConceptIndexService]
 
   val internController = mock[InternController]
   val articleController = mock[ArticleController]
