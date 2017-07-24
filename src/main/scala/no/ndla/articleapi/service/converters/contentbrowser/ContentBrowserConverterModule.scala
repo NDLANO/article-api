@@ -40,6 +40,7 @@ trait ContentBrowserConverterModules
   with ConceptRepository
   with ExtractConvertStoreContent
   with ArticleIndexService
+  with ConceptIndexService
   with IndexService
   with LazyLogging
   with SearchService

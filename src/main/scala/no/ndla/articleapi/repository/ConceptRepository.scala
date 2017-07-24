@@ -55,6 +55,9 @@ trait ConceptRepository {
     def withExternalId(externalId: String): Option[Concept] =
       conceptWhere(sqls"co.external_id=$externalId")
 
+    def exists(externalId: String): Boolean =
+      conceptWhere(sqls"co.external_id=$externalId").isDefined
+
     override def minMaxId(implicit session: DBSession = AutoSession): (Long, Long) = {
       sql"select coalesce(MIN(id),0) as mi, coalesce(MAX(id),0) as ma from ${Concept.table}".map(rs => {
         (rs.long("mi"), rs.long("ma"))

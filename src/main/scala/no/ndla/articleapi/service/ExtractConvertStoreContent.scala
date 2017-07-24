@@ -14,7 +14,7 @@ import no.ndla.articleapi.integration.MigrationApiClient
 import no.ndla.articleapi.model.api.{ImportException, NotFoundException}
 import no.ndla.articleapi.model.domain._
 import no.ndla.articleapi.repository.{ArticleRepository, ConceptRepository}
-import no.ndla.articleapi.service.search.ArticleIndexService
+import no.ndla.articleapi.service.search.{ArticleIndexService, ConceptIndexService}
 import no.ndla.articleapi.ArticleApiProperties.supportedContentTypes
 import no.ndla.articleapi.validation.ContentValidator
 
@@ -27,7 +27,7 @@ trait ExtractConvertStoreContent {
     with ArticleRepository
     with ConceptRepository
     with ArticleIndexService
-    with ArticleIndexService
+    with ConceptIndexService
     with ReadService
     with ContentValidator =>
 
@@ -100,7 +100,7 @@ trait ExtractConvertStoreContent {
     }
 
     private def storeConcept(concept: Concept, mainNodeNid: String): Try[Content] = {
-      articleRepository.exists(mainNodeNid) match {
+      conceptRepository.exists(mainNodeNid) match {
         case true => conceptRepository.updateWithExternalId(concept, mainNodeNid)
         case false => Try(conceptRepository.insertWithExternalId(concept, mainNodeNid))
       }
@@ -109,7 +109,7 @@ trait ExtractConvertStoreContent {
     private def indexContent(content: Content): Try[Content] = {
       content match {
         case a: Article => articleIndexService.indexDocument(a)
-        case c: Content => Failure(new NotImplementedError)
+        case c: Concept => conceptIndexService.indexDocument(c)
       }
     }
 
