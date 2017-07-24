@@ -13,22 +13,19 @@ import java.util.Map.Entry
 
 import com.google.gson.{JsonElement, JsonObject}
 import com.typesafe.scalalogging.LazyLogging
+import io.searchbox.core.{SearchResult => JestSearchResult}
 import no.ndla.articleapi.ArticleApiProperties.{maxConvertionRounds, nodeTypeBegrep}
 import no.ndla.articleapi.auth.User
 import no.ndla.articleapi.integration.ConverterModule.{jsoupDocumentToString, stringToJsoupDocument}
 import no.ndla.articleapi.integration.ImageApiClient
-import no.ndla.articleapi.model.domain._
-import no.ndla.articleapi.model.domain.Language._
 import no.ndla.articleapi.model.api
+import no.ndla.articleapi.model.api.{ArticleSummary, ArticleSummaryV2}
+import no.ndla.articleapi.model.domain.Language._
 import no.ndla.articleapi.model.domain._
 import no.ndla.articleapi.repository.ArticleRepository
-import no.ndla.mapping.License.getLicense
-import no.ndla.articleapi.integration.ConverterModule.{jsoupDocumentToString, stringToJsoupDocument}
-import no.ndla.articleapi.model.api.{ArticleSummary, ArticleSummaryV2}
 import no.ndla.articleapi.service.converters.{Attributes, HTMLCleaner, ResourceType}
-import no.ndla.network.ApplicationUrl
-import io.searchbox.core.{SearchResult => JestSearchResult}
 import no.ndla.mapping.License.getLicense
+import no.ndla.network.ApplicationUrl
 
 import scala.annotation.tailrec
 import scala.collection.JavaConverters._
@@ -56,13 +53,11 @@ trait ConverterService {
     }
 
     def hitAsArticleSummary(hit: JsonObject): ArticleSummary = {
-      import scala.collection.JavaConversions._
-
       ArticleSummary(
         hit.get("id").getAsString,
-        hit.get("title").getAsJsonObject.entrySet().to[Seq].map(entr => api.ArticleTitle(entr.getValue.getAsString, Some(entr.getKey))),
-        hit.get("visualElement").getAsJsonObject.entrySet().to[Seq].map(entr => api.VisualElement(entr.getValue.getAsString, Some(entr.getKey))),
-        hit.get("introduction").getAsJsonObject.entrySet().to[Seq].map(entr => api.ArticleIntroduction(entr.getValue.getAsString, Some(entr.getKey))),
+        hit.get("title").getAsJsonObject.entrySet.asScala.to[Seq].map(entr => api.ArticleTitle(entr.getValue.getAsString, Some(entr.getKey))),
+        hit.get("visualElement").getAsJsonObject.entrySet.asScala.to[Seq].map(entr => api.VisualElement(entr.getValue.getAsString, Some(entr.getKey))),
+        hit.get("introduction").getAsJsonObject.entrySet.asScala.to[Seq].map(entr => api.ArticleIntroduction(entr.getValue.getAsString, Some(entr.getKey))),
         ApplicationUrl.get + hit.get("id").getAsString,
         hit.get("license").getAsString,
         hit.get("articleType").getAsString
@@ -109,14 +104,11 @@ trait ConverterService {
     }
 
     def getEntrySetSeq(hit: JsonObject, fieldPath: String): Seq[Entry[String, JsonElement]] = {
-      import scala.collection.JavaConversions._
-      hit.get(fieldPath).getAsJsonObject.entrySet().to[Seq]
+      hit.get(fieldPath).getAsJsonObject.entrySet.asScala.to[Seq]
     }
 
     def getValueByFieldAndLanguage(hit: JsonObject, fieldPath: String, searchLanguage: String): String = {
-      import scala.collection.JavaConversions._
-
-      hit.get(fieldPath).getAsJsonObject.entrySet().to[Seq].find(entr => entr.getKey == searchLanguage) match {
+      hit.get(fieldPath).getAsJsonObject.entrySet.asScala.to[Seq].find(entr => entr.getKey == searchLanguage) match {
         case Some(element) => element.getValue.getAsString
         case None => ""
       }

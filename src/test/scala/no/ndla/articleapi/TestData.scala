@@ -72,7 +72,7 @@ object TestData {
                       |  "license": "by-sa",
                       |  "articleType": "standard"
                       |}
-                """.stripMargin
+                    """.stripMargin
 
   val sampleArticle = api.Article(
     articleId.toString,
@@ -115,40 +115,40 @@ object TestData {
 
 
   val requestNewArticleV2Body = """
-                      |{
-                      |  "copyright": {
-                      |    "license": {
-                      |      "license": "by-sa",
-                      |      "description": "something"
-                      |    },
-                      |    "origin": "fromSomeWhere",
-                      |    "authors": [
-                      |      {
-                      |        "type": "string",
-                      |        "name": "Christian P"
-                      |      }
-                      |    ]
-                      |  },
-                      |  "language": "nb",
-                      |  "visualElement": "string",
-                      |  "introduction": "string",
-                      |  "metaDescription": "string",
-                      |  "tags": [
-                      |	    "string"
-                      |	  ],
-                      |  "content": "string",
-                      |  "footNotes": [ "string " ],
-                      |  "title": "string",
-                      |  "articleType": "standard",
-                      |  "metaImageId": "22",
-                      |  "requiredLibraries": [
-                      |    {
-                      |      "mediaType": "string",
-                      |      "name": "string"
-                      |    }
-                      |  ]
-                      |}
-                    """.stripMargin
+                                  |{
+                                  |  "copyright": {
+                                  |    "license": {
+                                  |      "license": "by-sa",
+                                  |      "description": "something"
+                                  |    },
+                                  |    "origin": "fromSomeWhere",
+                                  |    "authors": [
+                                  |      {
+                                  |        "type": "string",
+                                  |        "name": "Christian P"
+                                  |      }
+                                  |    ]
+                                  |  },
+                                  |  "language": "nb",
+                                  |  "visualElement": "string",
+                                  |  "introduction": "string",
+                                  |  "metaDescription": "string",
+                                  |  "tags": [
+                                  |	    "string"
+                                  |	  ],
+                                  |  "content": "string",
+                                  |  "footNotes": [ "string " ],
+                                  |  "title": "string",
+                                  |  "articleType": "standard",
+                                  |  "metaImageId": "22",
+                                  |  "requiredLibraries": [
+                                  |    {
+                                  |      "mediaType": "string",
+                                  |      "name": "string"
+                                  |    }
+                                  |  ]
+                                  |}
+                                """.stripMargin
 
   val sampleArticleWithPublicDomain = Article(
     Option(1),
@@ -278,8 +278,8 @@ object TestData {
 
   val visualElement = VisualElement(s"""<$resourceHtmlEmbedTag  data-align="" data-alt="" data-caption="" data-resource="image" data-resource_id="1" data-size="" />""", Some("nb"))
 
- val sampleImageMetaInformation = ImageMetaInformation(
-     "1",
+  val sampleImageMetaInformation = ImageMetaInformation(
+    "1",
     List(ImageTitle("Sample title", Some("nb"))),
     List(ImageAltText("alt text", Some("nb"))),
     "://image-url.com/image/img.jpg",
@@ -287,6 +287,13 @@ object TestData {
     "application/jpeg",
     ImageCopyright(ImageLicense("by", "Creative Commons", None), "pix", Seq.empty),
     List(ImageTag(Seq("sample tag"), Some("nb"))))
+
+  val sampleConcept = Concept(
+    Some(1),
+    Seq(ConceptTitle("Tittel for begrep", Some("nb"))),
+    Seq(ConceptContent("Innhold for begrep", Some("nb")))
+  )
+
 }
 
 

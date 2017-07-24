@@ -17,7 +17,7 @@ import scala.util.{Success, Try}
 object ConceptConverter extends ConverterModule {
   override def convert(content: LanguageContent, importStatus: ImportStatus): Try[(LanguageContent, ImportStatus)] = {
     val element = stringToJsoupDocument(content.content)
-    Success(content.copy(content=element.text), importStatus)
+    Success(content.copy(content=element.text), importStatus) // Content should be text only
   }
 
 }

@@ -19,7 +19,7 @@ import no.ndla.articleapi.ArticleApiProperties.resourceHtmlEmbedTag
 import org.mockito.Mockito._
 import scala.util.{Success, Try}
 
-class ConverterServiceTestArticle extends UnitSuite with TestEnvironment {
+class ConverterServiceTest extends UnitSuite with TestEnvironment {
 
   val service = new ConverterService
   val contentTitle = ArticleTitle("", Some(""))
@@ -335,4 +335,13 @@ class ConverterServiceTestArticle extends UnitSuite with TestEnvironment {
     content.requiredLibraries.length should equal (0)
   }
 
+  test("Concepts should only contain plain text") {
+    val sampleLanguageContent: LanguageContent = TestData.sampleContent.copy(content="<h1>Nobody builds walls better than <strong>me, believe me</strong></h1>")
+    val node = sampleNode.copy(contents=List(sampleLanguageContent), nodeType="begrep")
+    val expectedResult = "Nobody builds walls better than me, believe me"
+
+    val Success((result: Concept, _)) = service.toDomainArticle(node, ImportStatus.empty)
+
+    result.content.head.content should equal(expectedResult)
+  }
 }
