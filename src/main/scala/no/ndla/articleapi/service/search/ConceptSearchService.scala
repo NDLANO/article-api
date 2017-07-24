@@ -31,7 +31,7 @@ trait ConceptSearchService {
   this: ElasticClient with SearchService with ConceptIndexService =>
   val conceptSearchService: ConceptSearchService
 
-  class ConceptSearchService extends LazyLogging with SearchService[api.Concept] {
+  class ConceptSearchService extends LazyLogging with SearchService[api.ConceptSummary] {
     override val searchIndex: String = ArticleApiProperties.ConceptSearchIndex
 
     private def getSearchLanguage(supportedLanguages: Seq[String], language: String): String = {
@@ -42,7 +42,7 @@ trait ConceptSearchService {
       }
     }
 
-    override def hitToApiModel(hit: JsonObject, language: String): api.Concept = {
+    override def hitToApiModel(hit: JsonObject, language: String): api.ConceptSummary = {
       val titles = hit.get("title").getAsJsonObject.entrySet.asScala.to[Seq]
       val concepts = hit.get("content").getAsJsonObject.entrySet.asScala.to[Seq]
       val supportedLanguages = titles.map(_.getKey).union(concepts.map(_.getKey)).distinct
@@ -51,7 +51,7 @@ trait ConceptSearchService {
       val title = titles.find(_.getKey == searchLanguage).map(_.getValue.getAsString).getOrElse("")
       val concept = concepts.find(_.getKey == searchLanguage).map(_.getValue.getAsString).getOrElse("")
 
-      api.Concept(
+      api.ConceptSummary(
         hit.get("id").getAsLong,
         title,
         concept.toString,

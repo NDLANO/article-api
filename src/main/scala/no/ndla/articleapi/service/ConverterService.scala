@@ -177,7 +177,10 @@ trait ConverterService {
       Concept(
         None,
         convertedNode.titles.map(title => ConceptTitle(title.title, title.language)),
-        convertedNode.contents.map(content => ConceptContent(content.content, content.language))
+        convertedNode.contents.map(content => ConceptContent(content.content, content.language)),
+        convertedNode.authors,
+        convertedNode.created,
+        convertedNode.updated
       )
     }
 
@@ -483,6 +486,9 @@ trait ConverterService {
           concept.id.get,
           concept.title(lang).getOrElse(""),
           concept.content(lang).getOrElse(""),
+          concept.authors.map(toApiAuthor),
+          concept.created,
+          concept.updated,
           lang,
           concept.supportedLanguages
         )
