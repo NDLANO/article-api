@@ -17,7 +17,7 @@ import no.ndla.articleapi.repository.{ArticleRepository, ConceptRepository}
 import no.ndla.articleapi.service._
 import no.ndla.articleapi.service.converters.HtmlTagGenerator
 import no.ndla.articleapi.service.search._
-import no.ndla.articleapi.validation.ArticleValidator
+import no.ndla.articleapi.validation.ContentValidator
 import no.ndla.network.NdlaClient
 
 import scala.util.Try
@@ -67,5 +67,5 @@ trait ContentBrowserConverterModules
   with HtmlTagGenerator
   with UnsupportedContentConverter
   with User
-  with ArticleValidator
+  with ContentValidator
   with ReadService

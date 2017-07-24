@@ -14,18 +14,18 @@ import no.ndla.articleapi.model.api.{ArticleV2, NotFoundException}
 import no.ndla.articleapi.model.domain._
 import no.ndla.articleapi.repository.ArticleRepository
 import no.ndla.articleapi.service.search.ArticleIndexService
-import no.ndla.articleapi.validation.ArticleValidator
+import no.ndla.articleapi.validation.ContentValidator
 
 import scala.util.{Failure, Success, Try}
 
 trait WriteService {
-  this: ArticleRepository with ConverterService with ArticleValidator with ArticleIndexService with Clock with User =>
+  this: ArticleRepository with ConverterService with ContentValidator with ArticleIndexService with Clock with User =>
   val writeService: WriteService
 
   class WriteService {
     def newArticle(newArticle: api.NewArticle): Try[api.Article] = {
       val domainArticle = converterService.toDomainArticle(newArticle)
-      articleValidator.validateArticle(domainArticle) match {
+      contentValidator.validateArticle(domainArticle) match {
         case Success(_) =>
           val article = articleRepository.insert(domainArticle)
           articleIndexService.indexDocument(article)
@@ -36,7 +36,7 @@ trait WriteService {
 
     def newArticleV2(newArticle: api.NewArticleV2): Try[ArticleV2] = {
       val domainArticle = converterService.toDomainArticle(newArticle)
-      articleValidator.validateArticle(domainArticle) match {
+      contentValidator.validateArticle(domainArticle) match {
         case Success(_) => {
           val article = articleRepository.insert(domainArticle)
           articleIndexService.indexDocument(article)
@@ -74,7 +74,7 @@ trait WriteService {
             updated = clock.now(),
             updatedBy = authUser.id()
           )
-          articleValidator.validate(toUpdate)
+          contentValidator.validate(toUpdate)
           for {
             article <- articleRepository.update(toUpdate)
             x <- articleIndexService.indexDocument(article)

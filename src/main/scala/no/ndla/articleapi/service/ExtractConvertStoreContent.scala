@@ -16,7 +16,7 @@ import no.ndla.articleapi.model.domain._
 import no.ndla.articleapi.repository.{ArticleRepository, ConceptRepository}
 import no.ndla.articleapi.service.search.ArticleIndexService
 import no.ndla.articleapi.ArticleApiProperties.supportedContentTypes
-import no.ndla.articleapi.validation.ArticleValidator
+import no.ndla.articleapi.validation.ContentValidator
 
 import scala.util.{Failure, Success, Try}
 
@@ -29,7 +29,7 @@ trait ExtractConvertStoreContent {
     with ArticleIndexService
     with ArticleIndexService
     with ReadService
-    with ArticleValidator =>
+    with ContentValidator =>
 
   val extractConvertStoreContent: ExtractConvertStoreContent
 

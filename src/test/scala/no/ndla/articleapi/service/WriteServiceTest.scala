@@ -18,7 +18,7 @@ import scalikejdbc.DBSession
 
 import scala.util.Success
 
-class WriteServiceTestArticle extends UnitSuite with TestEnvironment {
+class WriteServiceTest extends UnitSuite with TestEnvironment {
   override val converterService = new ConverterService
   val today = DateTime.now().toDate
   val yesterday = DateTime.now().minusDays(1).toDate
@@ -36,7 +36,7 @@ class WriteServiceTestArticle extends UnitSuite with TestEnvironment {
   test("newArticle should insert a given article") {
     when(articleRepository.insert(any[Article])(any[DBSession])).thenReturn(article)
     when(articleRepository.getExternalIdFromId(any[Long])(any[DBSession])).thenReturn(None)
-    when(articleValidator.validateArticle(any[Article])).thenReturn(Success(article))
+    when(contentValidator.validateArticle(any[Article])).thenReturn(Success(article))
 
     service.newArticle(newArticle).get.id should equal(article.id.get.toString)
     verify(articleRepository, times(1)).insert(any[Article])
@@ -46,7 +46,7 @@ class WriteServiceTestArticle extends UnitSuite with TestEnvironment {
   test("newArticleV2 should insert a given articleV2") {
     when(articleRepository.insert(any[Article])(any[DBSession])).thenReturn(article)
     when(articleRepository.getExternalIdFromId(any[Long])(any[DBSession])).thenReturn(None)
-    when(articleValidator.validateArticle(any[Article])).thenReturn(Success(article))
+    when(contentValidator.validateArticle(any[Article])).thenReturn(Success(article))
 
     service.newArticleV2(TestData.newArticleV2).get.id.toString should equal(article.id.get.toString)
     verify(articleRepository, times(1)).insert(any[Article])

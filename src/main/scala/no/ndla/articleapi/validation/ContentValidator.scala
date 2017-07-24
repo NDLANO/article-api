@@ -16,11 +16,11 @@ import no.ndla.mapping.License.getLicense
 
 import scala.util.{Failure, Success, Try}
 
-trait ArticleValidator {
-  val articleValidator: ArticleValidator
-  val importValidator: ArticleValidator
+trait ContentValidator {
+  val contentValidator: ContentValidator
+  val importValidator: ContentValidator
 
-  class ArticleValidator(allowEmptyLanguageField: Boolean) {
+  class ContentValidator(allowEmptyLanguageField: Boolean) {
     private val NoHtmlValidator = new TextValidator(allowHtml=false)
     private val HtmlValidator = new TextValidator(allowHtml=true)
 

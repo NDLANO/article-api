@@ -19,7 +19,7 @@ import no.ndla.articleapi.service._
 import no.ndla.articleapi.service.converters._
 import no.ndla.articleapi.service.converters.contentbrowser._
 import no.ndla.articleapi.service.search._
-import no.ndla.articleapi.validation.ArticleValidator
+import no.ndla.articleapi.validation.ContentValidator
 import no.ndla.network.NdlaClient
 import org.scalatest.mockito.MockitoSugar
 
@@ -56,7 +56,7 @@ trait TestEnvironment
     with SearchConverterService
     with ReadService
     with WriteService
-    with ArticleValidator
+    with ContentValidator
     with HtmlTagGenerator
     with HTMLCleaner
     with Clock
@@ -93,8 +93,8 @@ trait TestEnvironment
   val attachmentStorageService = mock[AmazonStorageService]
   val readService = mock[ReadService]
   val writeService = mock[WriteService]
-  val articleValidator = mock[ArticleValidator]
-  val importValidator = mock[ArticleValidator]
+  val contentValidator = mock[ContentValidator]
+  val importValidator = mock[ContentValidator]
 
   val ndlaClient = mock[NdlaClient]
   val tagsService = mock[TagsService]

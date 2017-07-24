@@ -21,7 +21,7 @@ import no.ndla.articleapi.service._
 import no.ndla.articleapi.service.converters._
 import no.ndla.articleapi.service.converters.contentbrowser._
 import no.ndla.articleapi.service.search._
-import no.ndla.articleapi.validation.ArticleValidator
+import no.ndla.articleapi.validation.ContentValidator
 import no.ndla.network.NdlaClient
 import org.postgresql.ds.PGPoolingDataSource
 import scalikejdbc.{ConnectionPool, DataSourceConnectionPool}
@@ -61,7 +61,7 @@ object ComponentRegistry
     with SearchConverterService
     with ReadService
     with WriteService
-    with ArticleValidator
+    with ContentValidator
     with HTMLCleaner
     with HtmlTagGenerator
     with Clock
@@ -103,8 +103,8 @@ object ComponentRegistry
   lazy val migrationApiClient = new MigrationApiClient
   lazy val extractService = new ExtractService
   lazy val converterService = new ConverterService
-  lazy val articleValidator = new ArticleValidator(allowEmptyLanguageField = false)
-  lazy val importValidator = new ArticleValidator(allowEmptyLanguageField = true)
+  lazy val contentValidator = new ContentValidator(allowEmptyLanguageField = false)
+  lazy val importValidator = new ContentValidator(allowEmptyLanguageField = true)
 
   lazy val ndlaClient = new NdlaClient
   lazy val tagsService = new TagsService

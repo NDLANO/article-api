@@ -16,7 +16,7 @@ import org.mockito.Mockito._
 
 import scala.util.Success
 
-class AttachmentStorageServiceTestArticle extends UnitSuite with TestEnvironment {
+class AttachmentStorageServiceTest extends UnitSuite with TestEnvironment {
   override val attachmentStorageService = new AmazonStorageService
 
   test("That uploadFile returns None if upload fails") {
