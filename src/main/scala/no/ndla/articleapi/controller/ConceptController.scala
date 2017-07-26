@@ -9,7 +9,7 @@
 package no.ndla.articleapi.controller
 
 import no.ndla.articleapi.ArticleApiProperties
-import no.ndla.articleapi.model.api.{ArticleSearchParams, ConceptSearchParams, ConceptSearchResult, Error}
+import no.ndla.articleapi.model.api.{ConceptSearchParams, ConceptSearchResult, Error}
 import no.ndla.articleapi.model.domain.{Language, Sort}
 import no.ndla.articleapi.service.ReadService
 import no.ndla.articleapi.service.search.ConceptSearchService
@@ -39,8 +39,8 @@ trait ConceptController {
         parameters(
           headerParam[Option[String]]("X-Correlation-ID").description("User supplied correlation-id. May be omitted."),
           headerParam[Option[String]]("app-key").description("Your app-key. May be omitted to access api anonymously, but rate limiting applies on anonymous access."),
-          queryParam[Option[String]]("query").description("Return only articles with content matching the specified query."),
-          queryParam[Option[String]]("ids").description("Return only articles that have one of the provided ids. To provide multiple ids, separate by comma (,)."),
+          queryParam[Option[String]]("query").description("Return only concepts with content matching the specified query."),
+          queryParam[Option[String]]("ids").description("Return only concepts that have one of the provided ids. To provide multiple ids, separate by comma (,)."),
           queryParam[Option[String]]("language").description("The ISO 639-1 language code describing language used in query-params."),
           queryParam[Option[Int]]("page").description("The page number of the search hits to display."),
           queryParam[Option[Int]]("page-size").description("The number of search hits to display for each page."),
@@ -66,9 +66,9 @@ trait ConceptController {
         responseMessages(response404, response500))
 
     val getAllConceptsPost =
-      (apiOperation[ConceptSearchResult]("getAllArticlesPost")
-        summary "Show all articles"
-        notes "Shows all articles. You can search it too."
+      (apiOperation[ConceptSearchResult]("searchConcepts")
+        summary "Show all concepts"
+        notes "Shows all concepts. You can search it too."
         parameters(
           headerParam[Option[String]]("X-Correlation-ID").description("User supplied correlation-id"),
           headerParam[Option[String]]("app-key").description("Your app-key"),
