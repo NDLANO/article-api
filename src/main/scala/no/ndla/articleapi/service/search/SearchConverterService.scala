@@ -41,12 +41,21 @@ trait SearchConverterService {
         title = searchableArticle.title.languageValues.map(lv => ArticleTitle(lv.value, lv.lang)),
         visualElement = searchableArticle.visualElement.languageValues.map(lv => VisualElement(lv.value, lv.lang)),
         introduction = searchableArticle.introduction.languageValues.map(lv => ArticleIntroduction(lv.value, lv.lang)),
-        url = createUrlToLearningPath(searchableArticle.id),
+        url = createUrlToArticle(searchableArticle.id),
         license = searchableArticle.license)
     }
 
-    def createUrlToLearningPath(id: Long): String = {
+    def createUrlToArticle(id: Long): String = {
       s"${ApplicationUrl.get}$id"
     }
+
+    def asSearchableConcept(c: Concept): SearchableConcept = {
+      SearchableConcept(
+        c.id.get,
+        SearchableLanguageValues(c.title.map(title => LanguageValue(title.language, title.title))),
+        SearchableLanguageValues(c.content.map(content => LanguageValue(content.language, content.content)))
+      )
+    }
+
   }
 }

@@ -30,34 +30,34 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
   val newArticle = TestData.newArticle
 
   override def beforeEach() = {
-    Mockito.reset(indexService, articleRepository)
+    Mockito.reset(articleIndexService, articleRepository)
   }
 
   test("newArticle should insert a given article") {
     when(articleRepository.insert(any[Article])(any[DBSession])).thenReturn(article)
     when(articleRepository.getExternalIdFromId(any[Long])(any[DBSession])).thenReturn(None)
-    when(articleValidator.validateArticle(any[Article])).thenReturn(Success(article))
+    when(contentValidator.validateArticle(any[Article])).thenReturn(Success(article))
 
     service.newArticle(newArticle).get.id should equal(article.id.get.toString)
     verify(articleRepository, times(1)).insert(any[Article])
-    verify(indexService, times(1)).indexDocument(any[Article])
+    verify(articleIndexService, times(1)).indexDocument(any[Article])
   }
 
   test("newArticleV2 should insert a given articleV2") {
     when(articleRepository.insert(any[Article])(any[DBSession])).thenReturn(article)
     when(articleRepository.getExternalIdFromId(any[Long])(any[DBSession])).thenReturn(None)
-    when(articleValidator.validateArticle(any[Article])).thenReturn(Success(article))
+    when(contentValidator.validateArticle(any[Article])).thenReturn(Success(article))
 
     service.newArticleV2(TestData.newArticleV2).get.id.toString should equal(article.id.get.toString)
     verify(articleRepository, times(1)).insert(any[Article])
-    verify(indexService, times(1)).indexDocument(any[Article])
+    verify(articleIndexService, times(1)).indexDocument(any[Article])
   }
 
   test("updateArticle should return Failure when trying to update a non-existing article") {
     when(articleRepository.withId(articleId)).thenReturn(None)
     service.updateArticle(articleId, updatedArticle).isFailure should equal(true)
     verify(articleRepository, times(0)).update(any[Article])
-    verify(indexService, times(0)).indexDocument(any[Article])
+    verify(articleIndexService, times(0)).indexDocument(any[Article])
   }
 
   test("updateArticle should update the updated field of an article") {
@@ -69,7 +69,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
 
     service.updateArticle(articleId, updatedArticle)
     verify(articleRepository, times(1)).update(expectedUpdatedArticle)
-    verify(indexService, times(1)).indexDocument(any[Article])
+    verify(articleIndexService, times(1)).indexDocument(any[Article])
   }
 
   test("That mergeLanguageFields returns original list when updated is empty") {

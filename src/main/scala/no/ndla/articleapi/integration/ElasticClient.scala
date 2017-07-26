@@ -56,7 +56,7 @@ object JestClientFactory {
       override def get(): LocalDateTime = LocalDateTime.now(ZoneOffset.UTC)
     }
 
-    val awsSigner = new AWSSigner(new DefaultAWSCredentialsProviderChain(), ArticleApiProperties.SearchRegion, "es", clock);
+    val awsSigner = new AWSSigner(new DefaultAWSCredentialsProviderChain(), ArticleApiProperties.SearchRegion, "es", clock)
     val requestInterceptor = new AWSSigningRequestInterceptor(awsSigner)
 
     val factory = new io.searchbox.client.JestClientFactory() {

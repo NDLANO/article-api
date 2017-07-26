@@ -14,10 +14,10 @@ import no.ndla.articleapi.ArticleApiProperties
 import no.ndla.articleapi.integration.DataSource
 import no.ndla.articleapi.model.api.OptimisticLockException
 import no.ndla.articleapi.model.domain.{Article, ArticleIds, ArticleTag}
-import org.json4s.native.Serialization.write
 import org.json4s.native.JsonMethods._
+import org.json4s.native.Serialization.write
 import org.postgresql.util.PGobject
-import scalikejdbc.{ConnectionPool, DataSourceConnectionPool, _}
+import scalikejdbc._
 
 import scala.util.{Failure, Success, Try}
 
@@ -25,7 +25,7 @@ trait ArticleRepository {
   this: DataSource =>
   val articleRepository: ArticleRepository
 
-  class ArticleRepository extends LazyLogging {
+  class ArticleRepository extends LazyLogging with Repository[Article] {
     implicit val formats = org.json4s.DefaultFormats + Article.JSonSerializer
 
     def insert(article: Article)(implicit session: DBSession = AutoSession): Article = {
@@ -58,7 +58,7 @@ trait ArticleRepository {
       }
     }
 
-    def insertWithExternalIds(article: Article, externalId: String, externalSubjectId: Seq[String])(implicit session: DBSession = AutoSession): Long = {
+    def insertWithExternalIds(article: Article, externalId: String, externalSubjectId: Seq[String])(implicit session: DBSession = AutoSession): Article = {
       val startRevision = 1
       val dataObject = new PGobject()
       dataObject.setType("jsonb")
@@ -67,10 +67,10 @@ trait ArticleRepository {
       val articleId: Long = sql"insert into ${Article.table} (external_id, external_subject_id, document) values (${externalId}, ARRAY[${externalSubjectId}]::text[], ${dataObject})".updateAndReturnGeneratedKey().apply
 
       logger.info(s"Inserted node $externalId: $articleId")
-      articleId
+      article.copy(id=Some(articleId))
     }
 
-    def updateWithExternalId(article: Article, externalId: String)(implicit session: DBSession = AutoSession): Try[Long] = {
+    def updateWithExternalId(article: Article, externalId: String)(implicit session: DBSession = AutoSession): Try[Article] = {
       val dataObject = new PGobject()
       dataObject.setType("jsonb")
       dataObject.setValue(write(article))
@@ -79,7 +79,7 @@ trait ArticleRepository {
       Try(sql"update ${Article.table} set document=${dataObject} where external_id=${externalId} and revision=$expectedArticleRevision".updateAndReturnGeneratedKey().apply) match {
         case Success(articleId) => {
           logger.info(s"Updated article with external_id=$externalId, id=$articleId")
-          Success(articleId)
+          Success(article.copy(id=Some(articleId)))
         }
         case Failure(ex) => {
           val message = "The revision stored in the database is newer than the one being updated. Please use the latest version from database when updating."
@@ -96,6 +96,9 @@ trait ArticleRepository {
 
     def withId(articleId: Long): Option[Article] =
       articleWhere(sqls"ar.id=${articleId.toInt}")
+
+    def withExternalId(externalId: String): Option[Article] =
+      articleWhere(sqls"ar.external_id=$externalId")
 
     def exists(externalId: String): Boolean =
       articleWhere(sqls"ar.external_id=$externalId").isDefined
@@ -123,7 +126,7 @@ trait ArticleRepository {
         }.toList
     }
 
-    def minMaxId(implicit session: DBSession = AutoSession): (Long, Long) = {
+    override def minMaxId(implicit session: DBSession = AutoSession): (Long, Long) = {
       sql"select coalesce(MIN(id),0) as mi, coalesce(MAX(id),0) as ma from ${Article.table}".map(rs => {
         (rs.long("mi"), rs.long("ma"))
       }).single().apply() match {
@@ -152,7 +155,8 @@ trait ArticleRepository {
     def allWithExternalSubjectId(externalSubjectId: String): Seq[Article] =
       articlesWhere(sqls"$externalSubjectId=ANY(ar.external_subject_id)")
 
-    def articlesWithIdBetween(min: Long, max: Long): List[Article] = articlesWhere(sqls"ar.id between $min and $max").toList
+    override def documentsWithIdBetween(min: Long, max: Long): List[Article] =
+      articlesWhere(sqls"ar.id between $min and $max").toList
 
     private def articleWhere(whereClause: SQLSyntax)(implicit session: DBSession = ReadOnlyAutoSession): Option[Article] = {
       val ar = Article.syntax("ar")

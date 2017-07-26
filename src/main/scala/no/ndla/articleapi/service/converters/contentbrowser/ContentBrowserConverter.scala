@@ -38,7 +38,8 @@ trait ContentBrowserConverter {
       VeiledningConverter.typeName -> VeiledningConverter,
       AudioConverter.typeName -> AudioConverter,
       FilConverter.typeName -> FilConverter,
-      BiblioConverter.typeName -> BiblioConverter)
+      BiblioConverter.typeName -> BiblioConverter,
+      BegrepConverter.typeName -> BegrepConverter)
 
     private def getConverterModule(contentBrowser: ContentBrowser) = {
       val nodeType = extractService.getNodeType(contentBrowser.get("nid")).getOrElse(NonExistentNodeConverter.typeName)

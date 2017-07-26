@@ -51,7 +51,7 @@ class ArticleRepositoryTest extends IntegrationSuite with TestEnvironment {
 
   test("updateWithExternalId does not update revision number") {
     val externalId = "123"
-    val articleId = repository.insertWithExternalIds(sampleArticle, externalId, Seq("52"))
+    val articleId = repository.insertWithExternalIds(sampleArticle, externalId, Seq("52")).id.get
 
     val firstUpdate = repository.updateWithExternalId(sampleArticle, externalId)
     val secondUpdate = repository.updateWithExternalId(sampleArticle.copy(title = Seq(ArticleTitle("new title", Some("en")))), externalId)
@@ -68,18 +68,18 @@ class ArticleRepositoryTest extends IntegrationSuite with TestEnvironment {
 
   test("updateWithExternalId returns a Failure if article has been updated on new platform") {
     val externalId = "123"
-    val articleId = repository.insertWithExternalIds(sampleArticle, externalId, Seq("52"))
+    val article = repository.insertWithExternalIds(sampleArticle, externalId, Seq("52"))
 
-    repository.update(sampleArticle.copy(id=Some(articleId)))
-    val result = repository.updateWithExternalId(sampleArticle.copy(id=Some(articleId)), externalId)
+    repository.update(sampleArticle.copy(id=article.id))
+    val result = repository.updateWithExternalId(sampleArticle.copy(id=article.id), externalId)
     result.isFailure should be (true)
 
-    repository.delete(articleId)
+    repository.delete(article.id.get)
   }
 
   test("getAllIds returns a list with all ids in the database") {
     val externalIds = (100 to 150).map(_.toString)
-    val ids = externalIds.map(exId => repository.insertWithExternalIds(sampleArticle, exId, Seq("52")))
+    val ids = externalIds.map(exId => repository.insertWithExternalIds(sampleArticle, exId, Seq("52")).id.get)
     val expected = ids.zip(externalIds).map { case (id, exId) => ArticleIds(id, Some(exId)) }
 
     repository.getAllIds should equal(expected)

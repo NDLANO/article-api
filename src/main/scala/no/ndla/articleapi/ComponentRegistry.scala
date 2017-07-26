@@ -11,15 +11,17 @@ package no.ndla.articleapi
 
 import com.amazonaws.regions.Regions
 import com.amazonaws.services.s3.AmazonS3ClientBuilder
+import com.typesafe.scalalogging.LazyLogging
 import no.ndla.articleapi.auth.{Role, User}
+import no.ndla.articleapi.controller.{ArticleController, ConceptController, HealthController, InternController}
 import no.ndla.articleapi.controller.{ArticleController, ArticleControllerV2, HealthController, InternController}
 import no.ndla.articleapi.integration._
-import no.ndla.articleapi.repository.ArticleRepository
+import no.ndla.articleapi.repository.{ArticleRepository, ConceptRepository}
 import no.ndla.articleapi.service._
 import no.ndla.articleapi.service.converters._
 import no.ndla.articleapi.service.converters.contentbrowser._
-import no.ndla.articleapi.service.search.{IndexService, SearchConverterService, SearchIndexService, SearchService}
-import no.ndla.articleapi.validation.ArticleValidator
+import no.ndla.articleapi.service.search._
+import no.ndla.articleapi.validation.ContentValidator
 import no.ndla.network.NdlaClient
 import org.postgresql.ds.PGPoolingDataSource
 import scalikejdbc.{ConnectionPool, DataSourceConnectionPool}
@@ -28,13 +30,19 @@ object ComponentRegistry
   extends DataSource
     with InternController
     with ArticleController
+    with ConceptController
+    with ConceptSearchService
+    with ConceptIndexService
     with ArticleControllerV2
     with HealthController
     with ArticleRepository
+    with ConceptRepository
     with ElasticClient
-    with SearchService
+    with ArticleSearchService
     with IndexService
-    with SearchIndexService
+    with ArticleIndexService
+    with SearchService
+    with LazyLogging
     with ExtractService
     with ConverterModules
     with ConverterService
@@ -53,7 +61,7 @@ object ComponentRegistry
     with SearchConverterService
     with ReadService
     with WriteService
-    with ArticleValidator
+    with ContentValidator
     with HTMLCleaner
     with HtmlTagGenerator
     with Clock
@@ -62,7 +70,7 @@ object ComponentRegistry
 
   implicit val swagger = new ArticleSwagger
 
-  lazy val dataSource = new PGPoolingDataSource()
+  lazy val dataSource = new PGPoolingDataSource
   dataSource.setUser(ArticleApiProperties.MetaUserName)
   dataSource.setPassword(ArticleApiProperties.MetaPassword)
   dataSource.setDatabaseName(ArticleApiProperties.MetaResource)
@@ -77,13 +85,16 @@ object ComponentRegistry
   lazy val internController = new InternController
   lazy val articleController = new ArticleController
   lazy val articleControllerV2 = new ArticleControllerV2
+  lazy val conceptController = new ConceptController
   lazy val resourcesApp = new ResourcesApp
   lazy val healthController = new HealthController
 
   lazy val articleRepository = new ArticleRepository
-  lazy val searchService = new SearchService
-  lazy val indexService = new IndexService
-  lazy val searchIndexService = new SearchIndexService
+  lazy val conceptRepository = new ConceptRepository
+  lazy val articleSearchService = new ArticleSearchService
+  lazy val articleIndexService = new ArticleIndexService
+  lazy val conceptSearchService = new ConceptSearchService
+  lazy val conceptIndexService = new ConceptIndexService
 
   val amazonClient = AmazonS3ClientBuilder.standard().withRegion(Regions.EU_CENTRAL_1).build()
   lazy val attachmentStorageName = ArticleApiProperties.AttachmentStorageName
@@ -92,7 +103,8 @@ object ComponentRegistry
   lazy val migrationApiClient = new MigrationApiClient
   lazy val extractService = new ExtractService
   lazy val converterService = new ConverterService
-  lazy val articleValidator = new ArticleValidator
+  lazy val contentValidator = new ContentValidator(allowEmptyLanguageField = false)
+  lazy val importValidator = new ContentValidator(allowEmptyLanguageField = true)
 
   lazy val ndlaClient = new NdlaClient
   lazy val tagsService = new TagsService
@@ -102,8 +114,10 @@ object ComponentRegistry
   lazy val contentBrowserConverter = new ContentBrowserConverter
   lazy val biblioConverter = new BiblioConverter
   lazy val htmlCleaner = new HTMLCleaner
-  lazy val converterModules = List(contentBrowserConverter)
-  lazy val postProcessorModules = List(SimpleTagConverter, biblioConverter, TableConverter, MathMLConverter, htmlCleaner, VisualElementConverter)
+  lazy val articleConverterModules = List(contentBrowserConverter)
+  lazy val articlePostProcessorModules = List(SimpleTagConverter, biblioConverter, TableConverter, MathMLConverter, htmlCleaner, VisualElementConverter)
+  lazy val conceptConverterModules = List(contentBrowserConverter)
+  lazy val conceptPostProcessorModules = List(ConceptConverter)
 
   lazy val jestClient: NdlaJestClient = JestClientFactory.getClient()
   lazy val audioApiClient = new AudioApiClient
@@ -112,5 +126,4 @@ object ComponentRegistry
   lazy val clock = new SystemClock
   lazy val authRole = new AuthRole
   lazy val authUser = new AuthUser
-
 }

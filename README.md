@@ -55,8 +55,8 @@ The embed tag contains a set of attributes which define what content should be i
 * **data-caption** - a caption to display along with the resource. Present in brightcove and image
 * **data-account** - the brightcove account id. Present in brightcove
 * **data-videoid** - a video identifier. Present in brightcove
-* **data-link-text** - the text to display in a link. Present in content-link
-* **data-content-id** - the id to the article content to be inserted. Present in content-link
+* **data-link-text** - the text to display in a link. Present in content-link and concept
+* **data-content-id** - the id to the article content to be inserted. Present in content-link and concept
 * **data-nrk-video-id** - an ID to nrk videos. Present in nrk
 * **data-resource_id** - an ID to an internal resource to be inserted. Present in image and audio
 

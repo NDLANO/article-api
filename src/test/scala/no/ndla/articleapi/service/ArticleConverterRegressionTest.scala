@@ -21,9 +21,8 @@ class ArticleConverterRegressionTest extends IntegrationSuite with TestEnvironme
   override val articleRepository = new ArticleRepository()
 
   override val jestClient = JestClientFactory.getClient(searchServer = "http://localhost:9200")
-  override val searchService = new SearchService
-  override val indexService = new IndexService
-  override val searchIndexService = new SearchIndexService
+  override val articleSearchService = new ArticleSearchService
+  override val articleIndexService = new ArticleIndexService
   override val searchConverterService = new SearchConverterService
 
   override val attachmentStorageName = ArticleApiProperties.AttachmentStorageName
@@ -38,8 +37,8 @@ class ArticleConverterRegressionTest extends IntegrationSuite with TestEnvironme
   override val contentBrowserConverter = new ContentBrowserConverter
   override val biblioConverter = new BiblioConverter
   override val htmlCleaner = new HTMLCleaner
-  override val converterModules = List(contentBrowserConverter)
-  override val postProcessorModules = List(SimpleTagConverter, biblioConverter, TableConverter, MathMLConverter, htmlCleaner, VisualElementConverter)
+  override val articleConverterModules = List(contentBrowserConverter)
+  override val articlePostProcessorModules = List(SimpleTagConverter, biblioConverter, TableConverter, MathMLConverter, htmlCleaner, VisualElementConverter)
 
   override val readService = new ReadService
   override val writeService = new WriteService
@@ -52,7 +51,7 @@ class ArticleConverterRegressionTest extends IntegrationSuite with TestEnvironme
 
   override val clock = new SystemClock
 
-  override val articleValidator = new ArticleValidator
+  override val importValidator = new ContentValidator(allowEmptyLanguageField = true)
 
   override def beforeAll() = {
     ConnectionPool.singleton(new DataSourceConnectionPool(getDataSource))
@@ -78,17 +77,17 @@ class ArticleConverterRegressionTest extends IntegrationSuite with TestEnvironme
     read[PerfectArticle](json)
   }
 
-  def getByLanguage[A, T <: LanguageField[A]](fields: Seq[T], lang: String): Option[T] = {
+  def getByLanguage[T <: LanguageField[String]](fields: Seq[T], lang: String): Option[T] = {
     fields.find(f => f.language.getOrElse("") == lang)
   }
 
-  def verifyNoLanguageContentChanges[A, T <: LanguageField[A]](perfect: Seq[T], imported: Seq[T], nodeId: String) = {
+  def verifyNoLanguageContentChanges[T <: LanguageField[String]](perfect: Seq[T], imported: Seq[T], nodeId: String) = {
     val importedContentLanguages = imported.map(_.language).toSet
     val originalContentLanguages = perfect.map(_.language).toSet
     importedContentLanguages should equal (originalContentLanguages)
 
     perfect.foreach(origContent => {
-      val Some(importedContent) = getByLanguage[A, T](imported, origContent.language.getOrElse(""))
+      val Some(importedContent) = getByLanguage[T](imported, origContent.language.getOrElse(""))
       Try(importedContent should equal(origContent)) match {
         case Success(_) =>
         case Failure(ex) =>
@@ -101,14 +100,14 @@ class ArticleConverterRegressionTest extends IntegrationSuite with TestEnvironme
 
   def verifyNoChanges(article: PerfectArticle): Unit = {
     val articleId = extractConvertStoreContent.processNode(article.nodeId) match {
-      case Success((newId, _)) => newId
+      case Success((content, _)) => content.id.get
       case Failure(exc) => throw exc
     }
 
     val importedArticle = articleRepository.withId(articleId).get
-    verifyNoLanguageContentChanges[String, ArticleContent](article.content, importedArticle.content, article.nodeId)
-    verifyNoLanguageContentChanges[String, ArticleIntroduction](article.introduction, importedArticle.introduction, article.nodeId)
-    verifyNoLanguageContentChanges[String, ArticleMetaDescription](article.metaDescription, importedArticle.metaDescription, article.nodeId)
+    verifyNoLanguageContentChanges(article.content, importedArticle.content, article.nodeId)
+    verifyNoLanguageContentChanges(article.introduction, importedArticle.introduction, article.nodeId)
+    verifyNoLanguageContentChanges(article.metaDescription, importedArticle.metaDescription, article.nodeId)
   }
 
   test("import routine should not break perfectly looking articles") {

@@ -23,8 +23,9 @@ import org.json4s.{DefaultFormats, Formats}
 import org.scalatra._
 import org.scalatra.json.NativeJsonSupport
 import org.scalatra.{BadRequest, InternalServerError, NotFound, ScalatraServlet}
+import org.json4s.native.Serialization.read
 
-import scala.util.Try
+import scala.util.{Failure, Success, Try}
 
 abstract class NdlaController extends ScalatraServlet with NativeJsonSupport with LazyLogging {
   protected implicit override val jsonFormats: Formats = DefaultFormats
@@ -94,6 +95,18 @@ abstract class NdlaController extends ScalatraServlet with NativeJsonSupport wit
           throw new ValidationException(errors=Seq(ValidationMessage(paramName, s"Invalid value for $paramName. Only (list of) digits are allowed.")))
         }
         strings.map(_.toLong)
+    }
+  }
+
+  def extract[T](json: String)(implicit mf: scala.reflect.Manifest[T]): T = {
+    Try {
+      read[T](json)
+    } match {
+      case Failure(e) => {
+        logger.error(e.getMessage, e)
+        throw new ValidationException(errors=Seq(ValidationMessage("body", e.getMessage)))
+      }
+      case Success(data) => data
     }
   }
 

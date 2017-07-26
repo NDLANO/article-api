@@ -11,6 +11,7 @@ package no.ndla.articleapi.service
 
 import java.util.Date
 
+import io.searchbox.client.JestResult
 import no.ndla.articleapi.integration.{LanguageIngress, MigrationSubjectMeta}
 import no.ndla.articleapi.model.api.{OptimisticLockException, ValidationError, ValidationException, ValidationMessage}
 import no.ndla.articleapi.model.domain._
@@ -42,25 +43,28 @@ class ExtractConvertStoreContentTest extends UnitSuite with TestEnvironment {
     when(articleRepository.getIdFromExternalId(nodeId2)).thenReturn(None)
     when(migrationApiClient.getSubjectForNode(nodeId)).thenReturn(Try(Seq(MigrationSubjectMeta("52", "helsearbeider vg2"))))
 
-    when(articleValidator.validateArticle(any[Article])).thenReturn(Success(TestData.sampleArticleWithByNcSa))
+    when(readService.getContentByExternalId(any[String])).thenReturn(None)
+    when(importValidator.validate(any[Article])).thenReturn(Success(TestData.sampleArticleWithByNcSa))
     when(articleRepository.exists(sampleNode.contents.head.nid)).thenReturn(false)
-    when(articleRepository.insertWithExternalIds(any[Article], any[String], any[Seq[String]])(any[DBSession])).thenReturn(newNodeid)
-    when(extractConvertStoreContent.processNode("9876")).thenReturn(Try(1: Long, ImportStatus(Seq(), Seq())))
-    when(searchIndexService.indexDocument(any[Article])).thenReturn(Success())
+    when(articleRepository.insertWithExternalIds(any[Article], any[String], any[Seq[String]])(any[DBSession])).thenReturn(TestData.sampleArticleWithPublicDomain)
+    when(extractConvertStoreContent.processNode("9876")).thenReturn(Try(TestData.sampleArticleWithPublicDomain, ImportStatus(Seq(), Seq())))
+    when(articleIndexService.indexDocument(any[Article])).thenReturn(Success(mock[Article]))
   }
 
   test("That ETL extracts, translates and loads a node correctly") {
-    when(extractConvertStoreContent.processNode(nodeId2, ImportStatus(Seq(), Seq(nodeId)))).thenReturn(Try((newNodeid, ImportStatus(Seq(), Seq(nodeId, nodeId2)))))
+    val sampleArticle = TestData.sampleArticleWithPublicDomain
+    when(extractConvertStoreContent.processNode(nodeId2, ImportStatus(Seq(), Seq(nodeId)))).thenReturn(Try((sampleArticle, ImportStatus(Seq(), Seq(nodeId, nodeId2)))))
 
     val result = eCSService.processNode(nodeId)
-    result should equal(Success(newNodeid, ImportStatus(List(s"Successfully imported node $nodeId: $newNodeid"), List(nodeId, nodeId2))))
+    result should equal(Success(sampleArticle, ImportStatus(List(s"Successfully imported node $nodeId: 1"), List(nodeId, nodeId2))))
   }
 
   test("That ETL returns a list of visited nodes") {
-    when(extractConvertStoreContent.processNode(nodeId2, ImportStatus(Seq(), Seq("9876", nodeId)))).thenReturn(Try((newNodeid, ImportStatus(Seq(), Seq("9876", nodeId, nodeId2)))))
+    val sampleArticle = TestData.sampleArticleWithPublicDomain
+    when(extractConvertStoreContent.processNode(nodeId2, ImportStatus(Seq(), Seq("9876", nodeId)))).thenReturn(Try((sampleArticle, ImportStatus(Seq(), Seq("9876", nodeId, nodeId2)))))
 
     val result = eCSService.processNode(nodeId, ImportStatus(Seq(), Seq("9876")))
-    result should equal(Success(newNodeid, ImportStatus(List(s"Successfully imported node $nodeId: $newNodeid"), List("9876", nodeId, nodeId2))))
+    result should equal(Success(sampleArticle, ImportStatus(List(s"Successfully imported node $nodeId: 1"), List("9876", nodeId, nodeId2))))
   }
 
   test("That ETL returns a Failure if the node was not found") {
@@ -73,7 +77,7 @@ class ExtractConvertStoreContentTest extends UnitSuite with TestEnvironment {
 
   test("ETL should return a Failure if validation fails") {
     val validationMessage = ValidationMessage("content.content", "Content can not be empty")
-    when(articleValidator.validateArticle(any[Article])).thenReturn(Failure(new ValidationException(errors=Seq(validationMessage))))
+    when(importValidator.validate(any[Article])).thenReturn(Failure(new ValidationException(errors=Seq(validationMessage))))
     when(articleRepository.getIdFromExternalId(nodeId)).thenReturn(Some(1: Long))
     when(articleRepository.getIdFromExternalId(nodeId2)).thenReturn(Some(2: Long))
 
@@ -83,8 +87,8 @@ class ExtractConvertStoreContentTest extends UnitSuite with TestEnvironment {
     result.failed.get.isInstanceOf[ValidationException] should be (true)
     verify(articleRepository, times(1)).delete(1: Long)
     verify(articleRepository, times(0)).delete(2: Long)
-    verify(indexService, times(1)).deleteDocument(1)
-    verify(indexService, times(0)).deleteDocument(2)
+    verify(articleIndexService, times(1)).deleteDocument(1)
+    verify(articleIndexService, times(0)).deleteDocument(2)
   }
 
   test("That ETL returns a Failure if failed to persist the converted article") {
@@ -97,7 +101,7 @@ class ExtractConvertStoreContentTest extends UnitSuite with TestEnvironment {
   }
 
   test("That ETL returns a Failure if failed to index the converted article") {
-    when(searchIndexService.indexDocument(any[Article])).thenReturn(any[Failure[NdlaSearchException]])
+    when(articleIndexService.indexDocument(any[Article])).thenReturn(Failure(mock[NdlaSearchException]))
     when(articleRepository.getIdFromExternalId(nodeId)).thenReturn(None)
 
     val result = eCSService.processNode(nodeId, ImportStatus(Seq(), Seq("9876")))
@@ -105,15 +109,15 @@ class ExtractConvertStoreContentTest extends UnitSuite with TestEnvironment {
   }
 
   test("Articles that fails to import should be deleted from database if it exists") {
-    reset(articleRepository, indexService)
-    when(searchIndexService.indexDocument(any[Article])).thenReturn(Failure(mock[RuntimeException]))
+    reset(articleRepository, articleIndexService)
+    when(articleIndexService.indexDocument(any[Article])).thenReturn(Failure(mock[RuntimeException]))
     when(articleRepository.getIdFromExternalId(any[String])(any[DBSession])).thenReturn(Some(1: Long))
 
     val result = eCSService.processNode(nodeId, ImportStatus(Seq.empty, Seq.empty))
     result.isFailure should be (true)
 
     verify(articleRepository, times(1)).delete(1)
-    verify(indexService, times(1)).deleteDocument(1)
+    verify(articleIndexService, times(1)).deleteDocument(1)
   }
 
 }

@@ -76,7 +76,7 @@ trait ArticleContentInformation {
       val ids = articleRepository.getAllIds
       logger.info(s"Found ${ids.length} article ids")
       ids.map(m => {
-        val article = readService.withId(m.articleId)
+        val article = readService.articleWithId(m.articleId)
         article match {
           case Some(art) => {
             art.content.map(c => {

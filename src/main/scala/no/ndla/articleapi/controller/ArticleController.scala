@@ -15,8 +15,7 @@ import no.ndla.articleapi.auth.Role
 import no.ndla.articleapi.model.api._
 import no.ndla.articleapi.model.domain.{ArticleType, Language, Sort}
 import no.ndla.articleapi.service.{ConverterService, ReadService, WriteService}
-import no.ndla.articleapi.service.search.SearchService
-import org.json4s.native.Serialization.read
+import no.ndla.articleapi.service.search.ArticleSearchService
 import org.json4s.{DefaultFormats, Formats}
 import org.scalatra.{Created, NotFound, Ok}
 import org.scalatra.swagger.{ResponseMessage, Swagger, SwaggerSupport}
@@ -24,7 +23,7 @@ import org.scalatra.swagger.{ResponseMessage, Swagger, SwaggerSupport}
 import scala.util.{Failure, Success, Try}
 
 trait ArticleController {
-  this: ReadService with WriteService with SearchService with ConverterService with Role =>
+  this: ReadService with WriteService with ArticleSearchService with ConverterService with Role =>
   val articleController: ArticleController
 
   class ArticleController(implicit val swagger: Swagger) extends NdlaController with SwaggerSupport {
@@ -41,7 +40,7 @@ trait ArticleController {
     val response500 = ResponseMessage(500, "Unknown error", Some("Error"))
 
     val getAllArticles =
-      (apiOperation[List[SearchResult]]("getAllArticles")
+      (apiOperation[List[ArticleSearchResult]]("getAllArticles")
         summary "Show all articles"
         notes "Shows all articles. You can search it too."
         parameters(
@@ -64,13 +63,13 @@ trait ArticleController {
         responseMessages(response500))
 
     val getAllArticlesPost =
-      (apiOperation[List[SearchResult]]("getAllArticlesPost")
+      (apiOperation[List[ArticleSearchResult]]("getAllArticlesPost")
         summary "Show all articles"
         notes "Shows all articles. You can search it too."
         parameters(
         headerParam[Option[String]]("X-Correlation-ID").description("User supplied correlation-id"),
         headerParam[Option[String]]("app-key").description("Your app-key"),
-        bodyParam[SearchParams]
+        bodyParam[ArticleSearchParams]
       )
         authorizations "oauth2"
         responseMessages(response400, response500))
@@ -137,10 +136,10 @@ trait ArticleController {
 
     private def search(query: Option[String], sort: Option[Sort.Value], language: String, license: Option[String], page: Int, pageSize: Int, idList: List[Long], articleTypesFilter: Seq[String]) = {
       val searchResult = query match {
-        case Some(q) => searchService.matchingQuery(
+        case Some(q) => articleSearchService.matchingQuery(
           query = q,
           withIdIn = idList,
-          language = language,
+          searchLanguage = language,
           license = license,
           page = page,
           pageSize = pageSize,
@@ -148,7 +147,7 @@ trait ArticleController {
           if (articleTypesFilter.isEmpty) ArticleType.all else articleTypesFilter
         )
 
-        case None => searchService.all(
+        case None => articleSearchService.all(
             withIdIn = idList,
             language = language,
             license = license,
@@ -183,7 +182,7 @@ trait ArticleController {
     }
 
     post("/search/", operation(getAllArticlesPost)) {
-      val searchParams = extract[SearchParams](request.body)
+      val searchParams = extract[ArticleSearchParams](request.body)
 
       val query = searchParams.query
       val sort = Sort.valueOf(searchParams.sort.getOrElse(""))
@@ -202,7 +201,7 @@ trait ArticleController {
 
       logger.info(s"get article $articleId")
 
-      readService.withId(articleId) match {
+      readService.articleWithId(articleId) match {
         case Some(article) => article
         case None => NotFound(body = Error(Error.NOT_FOUND, s"No article with id $articleId found"))
       }
@@ -226,18 +225,6 @@ trait ArticleController {
       writeService.updateArticle(articleId, updatedArticle) match {
         case Success(article) => Ok(body=article)
         case Failure(exception) => errorHandler(exception)
-      }
-    }
-
-    def extract[T](json: String)(implicit mf: scala.reflect.Manifest[T]): T = {
-      Try {
-        read[T](json)
-      } match {
-        case Failure(e) => {
-          logger.error(e.getMessage, e)
-          throw new ValidationException(errors=Seq(ValidationMessage("body", e.getMessage)))
-        }
-        case Success(data) => data
       }
     }
 

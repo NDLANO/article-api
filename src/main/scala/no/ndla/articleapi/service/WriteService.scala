@@ -13,34 +13,33 @@ import no.ndla.articleapi.model.api
 import no.ndla.articleapi.model.api.{ArticleV2, NotFoundException}
 import no.ndla.articleapi.model.domain._
 import no.ndla.articleapi.repository.ArticleRepository
-import no.ndla.articleapi.service.search.IndexService
-import no.ndla.articleapi.validation.ArticleValidator
+import no.ndla.articleapi.service.search.ArticleIndexService
+import no.ndla.articleapi.validation.ContentValidator
 
 import scala.util.{Failure, Success, Try}
 
 trait WriteService {
-  this: ArticleRepository with ConverterService with ArticleValidator with IndexService with Clock with User =>
+  this: ArticleRepository with ConverterService with ContentValidator with ArticleIndexService with Clock with User =>
   val writeService: WriteService
 
   class WriteService {
     def newArticle(newArticle: api.NewArticle): Try[api.Article] = {
       val domainArticle = converterService.toDomainArticle(newArticle)
-      articleValidator.validateArticle(domainArticle) match {
-        case Success(_) => {
+      contentValidator.validateArticle(domainArticle) match {
+        case Success(_) =>
           val article = articleRepository.insert(domainArticle)
-          indexService.indexDocument(article)
+          articleIndexService.indexDocument(article)
           Success(converterService.toApiArticle(article))
-        }
         case Failure(exception) => Failure(exception)
       }
     }
 
     def newArticleV2(newArticle: api.NewArticleV2): Try[ArticleV2] = {
       val domainArticle = converterService.toDomainArticle(newArticle)
-      articleValidator.validateArticle(domainArticle) match {
+      contentValidator.validateArticle(domainArticle) match {
         case Success(_) => {
           val article = articleRepository.insert(domainArticle)
-          indexService.indexDocument(article)
+          articleIndexService.indexDocument(article)
           Success(converterService.toApiArticleV2(article, newArticle.language).get)
         }
         case Failure(exception) => Failure(exception)
@@ -75,12 +74,12 @@ trait WriteService {
             updated = clock.now(),
             updatedBy = authUser.id()
           )
-          articleValidator.validateArticle(toUpdate)
+          contentValidator.validate(toUpdate)
           for {
             article <- articleRepository.update(toUpdate)
-            x <- indexService.indexDocument(article)
+            x <- articleIndexService.indexDocument(article)
           } yield converterService.toApiArticle(article)
-         }
+        }
       }
     }
 

@@ -10,20 +10,33 @@
 package no.ndla.articleapi.service
 
 import no.ndla.articleapi.integration.ConverterModule
-import no.ndla.articleapi.model.api.{ImportException, ImportExceptions}
+import no.ndla.articleapi.model.api.ImportExceptions
 import no.ndla.articleapi.model.domain.{ImportStatus, NodeToConvert}
+import no.ndla.articleapi.ArticleApiProperties.nodeTypeBegrep
 
 import scala.util.{Failure, Success, Try}
 
 trait ConverterModules {
-  val converterModules: Seq[ConverterModule]
-  val postProcessorModules: Seq[ConverterModule]
+  val articleConverterModules: Seq[ConverterModule]
+  val articlePostProcessorModules: Seq[ConverterModule]
+  val conceptConverterModules: Seq[ConverterModule]
+  val conceptPostProcessorModules: Seq[ConverterModule]
 
-  def executeConverterModules(nodeToConvert: NodeToConvert, importStatus: ImportStatus): Try[(NodeToConvert, ImportStatus)] =
-    runConverters(converterModules, nodeToConvert, importStatus)
+  def executeConverterModules(nodeToConvert: NodeToConvert, importStatus: ImportStatus): Try[(NodeToConvert, ImportStatus)] = {
+    val modulesToRun = nodeToConvert.nodeType.toLowerCase match {
+      case `nodeTypeBegrep` => conceptConverterModules
+      case _ => articleConverterModules
+    }
+    runConverters(modulesToRun, nodeToConvert, importStatus)
+  }
 
-  def executePostprocessorModules(nodeToConvert: NodeToConvert, importStatus: ImportStatus): Try[(NodeToConvert, ImportStatus)] =
-    runConverters(postProcessorModules, nodeToConvert, importStatus)
+  def executePostprocessorModules(nodeToConvert: NodeToConvert, importStatus: ImportStatus): Try[(NodeToConvert, ImportStatus)] = {
+    val modulesToRun = nodeToConvert.nodeType.toLowerCase match {
+      case `nodeTypeBegrep` => conceptPostProcessorModules
+      case _ => articlePostProcessorModules
+    }
+    runConverters(modulesToRun, nodeToConvert, importStatus)
+  }
 
   private def runConverters(converters: Seq[ConverterModule], nodeToConvert: NodeToConvert, importStatus: ImportStatus): Try[(NodeToConvert, ImportStatus)] = {
      val (convertedNode, finalImportStatus, exceptions) = converters.foldLeft((nodeToConvert, importStatus, Seq[Throwable]()))((element, converter) => {

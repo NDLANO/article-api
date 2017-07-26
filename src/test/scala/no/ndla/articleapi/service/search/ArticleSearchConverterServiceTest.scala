@@ -15,7 +15,7 @@ import no.ndla.articleapi.model.search._
 import no.ndla.articleapi.{TestEnvironment, UnitSuite}
 import no.ndla.articleapi.TestData
 
-class SearchConverterServiceTest extends UnitSuite with TestEnvironment {
+class ArticleSearchConverterServiceTest extends UnitSuite with TestEnvironment {
 
   override val searchConverterService = new SearchConverterService
   val sampleArticle = TestData.sampleArticleWithPublicDomain.copy()

@@ -40,13 +40,14 @@ class InternControllerTest extends UnitSuite with TestEnvironment with ScalatraF
   }
 
   test("That POST /import/:node_id returns a json status-object on success") {
-    val newNodeid: Long = 4444
-    when(extractConvertStoreContent.processNode(nodeId)).thenReturn(Try((newNodeid, ImportStatus(Seq(), Seq()))))
+    val newNodeId: Long = 4444
+    val newArticle = TestData.sampleArticleWithByNcSa.copy(id=Some(newNodeId))
+    when(extractConvertStoreContent.processNode(nodeId)).thenReturn(Try((newArticle, ImportStatus(Seq(), Seq()))))
 
     post(s"/import/$nodeId") {
       status should equal(200)
       val convertedBody = read[ImportStatus](body)
-      convertedBody should equal (ImportStatus(s"Successfully imported node $nodeId: $newNodeid", Seq()))
+      convertedBody should equal (ImportStatus(s"Successfully imported node $nodeId: $newNodeId", Seq()))
     }
   }
 
@@ -62,7 +63,7 @@ class InternControllerTest extends UnitSuite with TestEnvironment with ScalatraF
 
     var test:Seq[ArticleIds] = Nil
     when(articleRepository.getAllIds()).thenReturn(Seq(ArticleIds(1, None)))
-    when(readService.withId(1L)).thenReturn(Some(TestData.apiArticleWithHtmlFault)) //thenReturn(Some(TestData.newArticle))
+    when(readService.articleWithId(1L)).thenReturn(Some(TestData.apiArticleWithHtmlFault)) //thenReturn(Some(TestData.newArticle))
       get(s"/reports/headerElementsInLists"){
         status should equal(200)
         //Very end of line sensitive, do not adjust code with your IDE!

@@ -38,3 +38,9 @@ case class SearchableArticle(
   authors: Seq[String],
   articleType: String
 )
+
+case class SearchableConcept(
+  id: Long,
+  title: SearchableLanguageValues,
+  content: SearchableLanguageValues
+)

@@ -7,6 +7,7 @@
     "nrk": ["data-resource", "data-nrk-video-id", "data-url"],
     "content-link": ["data-resource", "data-content-id", "data-link-text"],
     "brightcove": ["data-resource", "data-caption", "data-videoid", "data-account", "data-player"],
-    "image": ["data-resource", "data-resource_id", "data-size", "data-alt", "data-caption", "data-align"]
+    "image": ["data-resource", "data-resource_id", "data-size", "data-alt", "data-caption", "data-align"],
+    "concept": ["data-resource", "data-content-id", "data-link-text"]
   }
 }
