@@ -52,8 +52,8 @@ trait IndexService {
           val operations = for {
             numIndexed <- sendToElastic(indexName)
             aliasTarget <- getAliasTarget
-            updatedTarget <- updateAliasTarget(aliasTarget, indexName)
-            deleted <- deleteIndex(aliasTarget)
+            _ <- updateAliasTarget(aliasTarget, indexName)
+            _ <- deleteIndex(aliasTarget)
           } yield numIndexed
 
           operations match {
@@ -165,7 +165,7 @@ trait IndexService {
 
     def deleteIndex(optIndexName: Option[String]): Try[_] = {
       optIndexName match {
-        case None => Success()
+        case None => Success(optIndexName)
         case Some(indexName) => {
           if (!indexExists(indexName)) {
             Failure(new IllegalArgumentException(s"No such index: $indexName"))

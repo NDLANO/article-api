@@ -11,7 +11,7 @@ package no.ndla.articleapi.model.domain
 
 import java.net.URL
 import java.util.Date
-
+import scala.language.implicitConversions
 import com.netaporter.uri.dsl._
 import no.ndla.articleapi.integration.LanguageContent
 

@@ -15,7 +15,7 @@ import no.ndla.articleapi.model.domain.ImportStatus
 import no.ndla.articleapi.service.converters.Attributes.XMLNsAttribute
 import org.jsoup.nodes.Element
 
-import scala.collection.JavaConversions._
+import scala.collection.JavaConverters._
 import scala.util.{Success, Try}
 
 object MathMLConverter extends ConverterModule {
@@ -29,7 +29,7 @@ object MathMLConverter extends ConverterModule {
   }
 
   def addMathMlAttributes(el: Element) = {
-    el.select("math").foreach(e => e.attr(s"$XMLNsAttribute", "http://www.w3.org/1998/Math/MathML"))
+    el.select("math").asScala.foreach(e => e.attr(s"$XMLNsAttribute", "http://www.w3.org/1998/Math/MathML"))
   }
 
   def replaceNbsp(el: Element) = el.html(el.html().replace("\u00a0", " "))
