@@ -45,7 +45,6 @@ trait ArticleController {
         notes "Shows all articles. You can search it too."
         parameters(
           headerParam[Option[String]]("X-Correlation-ID").description("User supplied correlation-id. May be omitted."),
-          headerParam[Option[String]]("app-key").description("Your app-key. May be omitted to access api anonymously, but rate limiting applies on anonymous access."),
           queryParam[Option[String]]("articleTypes").description("Return only articles of specific type(s). To provide multiple types, separate by comma (,)."),
           queryParam[Option[String]]("query").description("Return only articles with content matching the specified query."),
           queryParam[Option[String]]("ids").description("Return only articles that have one of the provided ids. To provide multiple ids, separate by comma (,)."),
@@ -68,7 +67,6 @@ trait ArticleController {
         notes "Shows all articles. You can search it too."
         parameters(
         headerParam[Option[String]]("X-Correlation-ID").description("User supplied correlation-id"),
-        headerParam[Option[String]]("app-key").description("Your app-key"),
         bodyParam[ArticleSearchParams]
       )
         authorizations "oauth2"
@@ -80,7 +78,6 @@ trait ArticleController {
         notes "Shows the article for the specified id."
         parameters(
           headerParam[Option[String]]("X-Correlation-ID").description("User supplied correlation-id. May be omitted."),
-          headerParam[Option[String]]("app-key").description("Your app-key. May be omitted to access api anonymously, but rate limiting applies on anonymous access."),
           pathParam[Long]("article_id").description("Id of the article that is to be returned")
         )
         authorizations "oauth2"
@@ -92,7 +89,6 @@ trait ArticleController {
         notes "Creates a new article"
         parameters(
           headerParam[Option[String]]("X-Correlation-ID").description("User supplied correlation-id"),
-          headerParam[Option[String]]("app-key").description("Your app-key"),
           bodyParam[NewArticle]
         )
         authorizations "oauth2"
@@ -104,7 +100,6 @@ trait ArticleController {
         notes "Update an existing article"
         parameters(
           headerParam[Option[String]]("X-Correlation-ID").description("User supplied correlation-id"),
-          headerParam[Option[String]]("app-key").description("Your app-key"),
           pathParam[Long]("article_id").description("Id of the article that is to be updated"),
           bodyParam[UpdatedArticle]
         )
@@ -117,8 +112,7 @@ trait ArticleController {
         notes "Retrieves a list of all previously used tags in articles"
         parameters(
           queryParam[Option[Int]]("size").description("Limit the number of results to this many elements"),
-          headerParam[Option[String]]("X-Correlation-ID").description("User supplied correlation-id. May be omitted."),
-          headerParam[Option[String]]("app-key").description("Your app-key.")
+          headerParam[Option[String]]("X-Correlation-ID").description("User supplied correlation-id. May be omitted.")
         )
         responseMessages response500
         authorizations "oauth2")

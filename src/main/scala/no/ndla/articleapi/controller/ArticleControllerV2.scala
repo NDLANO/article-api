@@ -48,7 +48,6 @@ trait ArticleControllerV2 {
         notes "Shows all articles. You can search it too."
         parameters(
           headerParam[Option[String]]("X-Correlation-ID").description("User supplied correlation-id. May be omitted."),
-          headerParam[Option[String]]("app-key").description("Your app-key. May be omitted to access api anonymously, but rate limiting applies on anonymous access."),
           queryParam[Option[String]]("articleTypes").description("Return only articles of specific type(s). To provide multiple types, separate by comma (,)."),
           queryParam[Option[String]]("query").description("Return only articles with content matching the specified query."),
           queryParam[Option[String]]("ids").description("Return only articles that have one of the provided ids. To provide multiple ids, separate by comma (,)."),
@@ -71,7 +70,6 @@ trait ArticleControllerV2 {
         notes "Shows all articles. You can search it too."
         parameters(
         headerParam[Option[String]]("X-Correlation-ID").description("User supplied correlation-id"),
-        headerParam[Option[String]]("app-key").description("Your app-key"),
         queryParam[Option[String]]("language").description("Only return results on the given language. Default is nb"),
         bodyParam[ArticleSearchParams]
       )
@@ -84,7 +82,6 @@ trait ArticleControllerV2 {
         notes "Shows the article for the specified id."
         parameters(
           headerParam[Option[String]]("X-Correlation-ID").description("User supplied correlation-id. May be omitted."),
-          headerParam[Option[String]]("app-key").description("Your app-key. May be omitted to access api anonymously, but rate limiting applies on anonymous access."),
           pathParam[Long]("article_id").description("Id of the article that is to be returned"),
           queryParam[Option[String]]("language").description("Only return results on the given language. Default is nb")
         )
@@ -97,7 +94,6 @@ trait ArticleControllerV2 {
         notes "Shows all valid licenses"
         parameters(
         headerParam[Option[String]]("X-Correlation-ID").description("User supplied correlation-id. May be omitted."),
-        headerParam[Option[String]]("app-key").description("Your app-key."),
         queryParam[Option[String]]("filter").description("A filter on the license keys. May be omitted"))
         responseMessages(response403, response500)
         authorizations "oauth2")
@@ -108,7 +104,6 @@ trait ArticleControllerV2 {
         notes "Creates a new article"
         parameters(
           headerParam[Option[String]]("X-Correlation-ID").description("User supplied correlation-id"),
-          headerParam[Option[String]]("app-key").description("Your app-key"),
           bodyParam[NewArticle]
         )
         authorizations "oauth2"
@@ -120,7 +115,6 @@ trait ArticleControllerV2 {
         notes "Update an existing article"
         parameters(
           headerParam[Option[String]]("X-Correlation-ID").description("User supplied correlation-id"),
-          headerParam[Option[String]]("app-key").description("Your app-key"),
           pathParam[Long]("article_id").description("Id of the article that is to be updated"),
           bodyParam[UpdatedArticle]
         )
@@ -134,7 +128,6 @@ trait ArticleControllerV2 {
         parameters(
           queryParam[Option[Int]]("size").description("Limit the number of results to this many elements"),
           headerParam[Option[String]]("X-Correlation-ID").description("User supplied correlation-id. May be omitted."),
-          headerParam[Option[String]]("app-key").description("Your app-key."),
           queryParam[Option[String]]("language").description("Only return results on the given language. Default is nb")
         )
         responseMessages response500
