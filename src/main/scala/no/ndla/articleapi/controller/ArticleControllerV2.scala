@@ -14,14 +14,15 @@ import no.ndla.articleapi.ArticleApiProperties.RoleWithWriteAccess
 import no.ndla.articleapi.auth.Role
 import no.ndla.articleapi.model.api._
 import no.ndla.articleapi.model.domain.{ArticleType, Language, Sort}
-import no.ndla.articleapi.service.search.{ArticleSearchService, SearchService}
+import no.ndla.articleapi.service.search.ArticleSearchService
 import no.ndla.articleapi.service.{ConverterService, ReadService, WriteService}
-import org.json4s.native.Serialization.read
+import no.ndla.mapping
+import no.ndla.mapping.LicenseDefinition
 import org.json4s.{DefaultFormats, Formats}
 import org.scalatra.swagger.{ResponseMessage, Swagger, SwaggerSupport}
 import org.scalatra.{Created, NotFound, Ok}
 
-import scala.util.{Failure, Success, Try}
+import scala.util.{Failure, Success}
 
 trait ArticleControllerV2 {
   this: ReadService with WriteService with ArticleSearchService with ConverterService with Role =>
@@ -89,6 +90,17 @@ trait ArticleControllerV2 {
         )
         authorizations "oauth2"
         responseMessages(response404, response500))
+
+    val getLicenses =
+      (apiOperation[List[License]]("getLicenses")
+        summary "Show all valid licenses"
+        notes "Shows all valid licenses"
+        parameters(
+        headerParam[Option[String]]("X-Correlation-ID").description("User supplied correlation-id. May be omitted."),
+        headerParam[Option[String]]("app-key").description("Your app-key."),
+        queryParam[Option[String]]("filter").description("A filter on the license keys. May be omitted"))
+        responseMessages(response403, response500)
+        authorizations "oauth2")
 
     val newArticle =
       (apiOperation[ArticleV2]("newArticle")
@@ -215,6 +227,15 @@ trait ArticleControllerV2 {
         case Some(article) => article
         case None => NotFound(body = Error(Error.NOT_FOUND, s"No article with id $articleId and language $language found"))
       }
+    }
+
+    get("/licenses", operation(getLicenses)) {
+      val licenses: Seq[LicenseDefinition] = paramOrNone("filter") match {
+        case None => mapping.License.getLicenses
+        case Some(filter) => mapping.License.getLicenses.filter(_.license.contains(filter))
+      }
+
+      licenses.map(x => License(x.license, Option(x.description), x.url))
     }
 
     post("/", operation(newArticle)) {

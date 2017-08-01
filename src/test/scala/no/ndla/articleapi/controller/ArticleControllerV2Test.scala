@@ -13,7 +13,8 @@ import no.ndla.articleapi.{ArticleSwagger, TestData, TestEnvironment, UnitSuite}
 import org.scalatra.test.scalatest.ScalatraFunSuite
 import org.mockito.Mockito._
 import org.mockito.Matchers._
-
+import no.ndla.mapping.License.getLicenses
+import org.json4s.native.Serialization.read
 import scala.util.Success
 
 class ArticleControllerV2Test extends UnitSuite with TestEnvironment with ScalatraFunSuite {
@@ -130,4 +131,23 @@ class ArticleControllerV2Test extends UnitSuite with TestEnvironment with Scalat
     }
   }
 
+  test ("That GET /licenses with filter sat to by only returns creative common licenses") {
+    val creativeCommonlicenses = getLicenses.filter(_.license.startsWith("by")).map(l => License(l.license, Option(l.description), l.url)).toSet
+
+    get("/test/licenses", "filter" -> "by") {
+      status should equal (200)
+      val convertedBody = read[Set[License]](body)
+      convertedBody should equal(creativeCommonlicenses)
+    }
+  }
+
+  test ("That GET /licenses with filter not specified returns all licenses") {
+    val allLicenses = getLicenses.map(l => License(l.license, Option(l.description), l.url)).toSet
+
+    get("/test/licenses") {
+      status should equal (200)
+      val convertedBody = read[Set[License]](body)
+      convertedBody should equal(allLicenses)
+    }
+  }
 }
