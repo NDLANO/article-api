@@ -18,7 +18,7 @@ import org.jsoup.Jsoup
 import org.jsoup.nodes.Element
 
 import scala.annotation.tailrec
-import scala.collection.JavaConversions._
+import scala.collection.JavaConverters._
 import scala.collection.immutable
 
 trait ArticleContentInformation {
@@ -33,7 +33,7 @@ trait ArticleContentInformation {
         val node = nodes.head
 
         val tagMaps = node.content.map(article => {
-          val elements = Jsoup.parseBodyFragment(article.content).select("body").first.children.select("*").toList
+          val elements = Jsoup.parseBodyFragment(article.content).select("body").first.children.select("*").asScala.toList
           buildMap(node.id.get, elements)
         }).foldLeft(tagsMap)((map, articleMap) => mergeMaps(map, articleMap))
 
@@ -59,7 +59,7 @@ trait ArticleContentInformation {
         val externalId = articleRepository.getExternalIdFromId(articleInfo.id.get).getOrElse("unknown ID")
         val urls = articleInfo.content.flatMap(content => {
           val elements = Jsoup.parseBodyFragment(content.content).select(s"""$resourceHtmlEmbedTag[data-resource~=(external|nrk)]""")
-          elements.toList.map(el => el.attr("data-url"))
+          elements.asScala.toList.map(el => el.attr("data-url"))
         })
 
         urls.isEmpty match {
@@ -69,21 +69,22 @@ trait ArticleContentInformation {
       }).toMap
     }
 
-    def getFaultyHtmlReport(): String = {
+    def getFaultyHtmlReport: String = {
       logger.info("Start FaultyHtmlReport: searching for header elements in Lists in all articles")
       val start = System.currentTimeMillis()
       var errorMessages: List[HtmlFaultRapport] = immutable.List()
       val ids = articleRepository.getAllIds
+
       logger.info(s"Found ${ids.length} article ids")
-      ids.map(m => {
+      ids.foreach(m => {
         val article = readService.articleWithId(m.articleId)
         article match {
           case Some(art) => {
-            art.content.map(c => {
-              val listElements = stringToJsoupDocument(c.content).select("li")
-              listElements.map(li => {
-                val hTags = li.select("h1, h2, h3, h4, h5, h6")
-                hTags.map(h => {
+            art.content.foreach(c => {
+              val listElements = stringToJsoupDocument(c.content).select("li").asScala
+              listElements.foreach(li => {
+                val hTags = li.select("h1, h2, h3, h4, h5, h6").asScala
+                hTags.foreach(h => {
                 val error = s"html element $h er ikke lov inni: [$li]"
                 errorMessages = HtmlFaultRapport(art.id, error) :: errorMessages
                 })

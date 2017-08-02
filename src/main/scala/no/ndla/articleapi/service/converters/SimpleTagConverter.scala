@@ -14,7 +14,7 @@ import no.ndla.articleapi.integration.{ConverterModule, LanguageContent}
 import no.ndla.articleapi.model.domain.ImportStatus
 import org.jsoup.nodes.Element
 
-import scala.collection.JavaConversions._
+import scala.collection.JavaConverters._
 import scala.util.{Success, Try}
 
 object SimpleTagConverter extends ConverterModule {
@@ -27,7 +27,7 @@ object SimpleTagConverter extends ConverterModule {
   }
 
   def convertDivs(el: Element) {
-    for (el <- el.select("div")) {
+    for (el <- el.select("div").asScala) {
       el.className() match {
         case "right" => replaceTag(el, "aside")
         case "paragraph" => replaceTag(el, "section")
@@ -62,7 +62,7 @@ object SimpleTagConverter extends ConverterModule {
   }
 
   private def convertPres(el: Element) {
-    for (el <- el.select("pre")) {
+    for (el <- el.select("pre").asScala) {
       el.html("<code>" + el.html() + "</code>")
     }
   }

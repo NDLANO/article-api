@@ -18,7 +18,7 @@ import no.ndla.articleapi.service.ExtractService
 import org.jsoup.nodes.Element
 
 import scala.annotation.tailrec
-import scala.collection.JavaConversions._
+import scala.collection.JavaConverters._
 import scala.util.{Failure, Success, Try}
 
 trait BiblioConverter {
@@ -58,7 +58,7 @@ trait BiblioConverter {
         buildReferences(references.tail, referenceNodes :+ nodeId, index + 1)
       }
 
-      buildReferences(element.select("a[id~=biblio-(.*)]").toList, List(), 1)
+      buildReferences(element.select("a[id~=biblio-(.*)]").asScala.toList, List(), 1)
     }
 
     def buildReferenceMap(references: Seq[String]): Try[(Map[String, FootNoteItem], Seq[String])] = {

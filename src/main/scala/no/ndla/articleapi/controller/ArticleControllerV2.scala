@@ -14,14 +14,15 @@ import no.ndla.articleapi.ArticleApiProperties.RoleWithWriteAccess
 import no.ndla.articleapi.auth.Role
 import no.ndla.articleapi.model.api._
 import no.ndla.articleapi.model.domain.{ArticleType, Language, Sort}
-import no.ndla.articleapi.service.search.{ArticleSearchService, SearchService}
+import no.ndla.articleapi.service.search.ArticleSearchService
 import no.ndla.articleapi.service.{ConverterService, ReadService, WriteService}
-import org.json4s.native.Serialization.read
+import no.ndla.mapping
+import no.ndla.mapping.LicenseDefinition
 import org.json4s.{DefaultFormats, Formats}
 import org.scalatra.swagger.{ResponseMessage, Swagger, SwaggerSupport}
 import org.scalatra.{Created, NotFound, Ok}
 
-import scala.util.{Failure, Success, Try}
+import scala.util.{Failure, Success}
 
 trait ArticleControllerV2 {
   this: ReadService with WriteService with ArticleSearchService with ConverterService with Role =>
@@ -47,7 +48,6 @@ trait ArticleControllerV2 {
         notes "Shows all articles. You can search it too."
         parameters(
           headerParam[Option[String]]("X-Correlation-ID").description("User supplied correlation-id. May be omitted."),
-          headerParam[Option[String]]("app-key").description("Your app-key. May be omitted to access api anonymously, but rate limiting applies on anonymous access."),
           queryParam[Option[String]]("articleTypes").description("Return only articles of specific type(s). To provide multiple types, separate by comma (,)."),
           queryParam[Option[String]]("query").description("Return only articles with content matching the specified query."),
           queryParam[Option[String]]("ids").description("Return only articles that have one of the provided ids. To provide multiple ids, separate by comma (,)."),
@@ -70,7 +70,6 @@ trait ArticleControllerV2 {
         notes "Shows all articles. You can search it too."
         parameters(
         headerParam[Option[String]]("X-Correlation-ID").description("User supplied correlation-id"),
-        headerParam[Option[String]]("app-key").description("Your app-key"),
         queryParam[Option[String]]("language").description("Only return results on the given language. Default is nb"),
         bodyParam[ArticleSearchParams]
       )
@@ -83,12 +82,21 @@ trait ArticleControllerV2 {
         notes "Shows the article for the specified id."
         parameters(
           headerParam[Option[String]]("X-Correlation-ID").description("User supplied correlation-id. May be omitted."),
-          headerParam[Option[String]]("app-key").description("Your app-key. May be omitted to access api anonymously, but rate limiting applies on anonymous access."),
           pathParam[Long]("article_id").description("Id of the article that is to be returned"),
           queryParam[Option[String]]("language").description("Only return results on the given language. Default is nb")
         )
         authorizations "oauth2"
         responseMessages(response404, response500))
+
+    val getLicenses =
+      (apiOperation[List[License]]("getLicenses")
+        summary "Show all valid licenses"
+        notes "Shows all valid licenses"
+        parameters(
+        headerParam[Option[String]]("X-Correlation-ID").description("User supplied correlation-id. May be omitted."),
+        queryParam[Option[String]]("filter").description("A filter on the license keys. May be omitted"))
+        responseMessages(response403, response500)
+        authorizations "oauth2")
 
     val newArticle =
       (apiOperation[ArticleV2]("newArticle")
@@ -96,7 +104,6 @@ trait ArticleControllerV2 {
         notes "Creates a new article"
         parameters(
           headerParam[Option[String]]("X-Correlation-ID").description("User supplied correlation-id"),
-          headerParam[Option[String]]("app-key").description("Your app-key"),
           bodyParam[NewArticle]
         )
         authorizations "oauth2"
@@ -108,7 +115,6 @@ trait ArticleControllerV2 {
         notes "Update an existing article"
         parameters(
           headerParam[Option[String]]("X-Correlation-ID").description("User supplied correlation-id"),
-          headerParam[Option[String]]("app-key").description("Your app-key"),
           pathParam[Long]("article_id").description("Id of the article that is to be updated"),
           bodyParam[UpdatedArticle]
         )
@@ -122,7 +128,6 @@ trait ArticleControllerV2 {
         parameters(
           queryParam[Option[Int]]("size").description("Limit the number of results to this many elements"),
           headerParam[Option[String]]("X-Correlation-ID").description("User supplied correlation-id. May be omitted."),
-          headerParam[Option[String]]("app-key").description("Your app-key."),
           queryParam[Option[String]]("language").description("Only return results on the given language. Default is nb")
         )
         responseMessages response500
@@ -215,6 +220,15 @@ trait ArticleControllerV2 {
         case Some(article) => article
         case None => NotFound(body = Error(Error.NOT_FOUND, s"No article with id $articleId and language $language found"))
       }
+    }
+
+    get("/licenses", operation(getLicenses)) {
+      val licenses: Seq[LicenseDefinition] = paramOrNone("filter") match {
+        case None => mapping.License.getLicenses
+        case Some(filter) => mapping.License.getLicenses.filter(_.license.contains(filter))
+      }
+
+      licenses.map(x => License(x.license, Option(x.description), x.url))
     }
 
     post("/", operation(newArticle)) {

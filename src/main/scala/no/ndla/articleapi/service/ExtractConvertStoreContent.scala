@@ -17,7 +17,7 @@ import no.ndla.articleapi.repository.{ArticleRepository, ConceptRepository}
 import no.ndla.articleapi.service.search.{ArticleIndexService, ConceptIndexService}
 import no.ndla.articleapi.ArticleApiProperties.supportedContentTypes
 import no.ndla.articleapi.validation.ContentValidator
-
+import scala.language.postfixOps
 import scala.util.{Failure, Success, Try}
 
 trait ExtractConvertStoreContent {

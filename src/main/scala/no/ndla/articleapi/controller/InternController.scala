@@ -84,7 +84,7 @@ trait InternController {
 
     get("/reports/headerElementsInLists") {
       contentType = "text/csv"
-      ArticleContentInformation.getFaultyHtmlReport()
+      ArticleContentInformation.getFaultyHtmlReport
     }
 
   }
