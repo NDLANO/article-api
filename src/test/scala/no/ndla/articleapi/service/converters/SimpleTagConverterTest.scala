@@ -65,11 +65,11 @@ class SimpleTagConverterTest extends UnitSuite {
 
   test("That divs with class 'hide' converted to details-summary tags") {
     val initialContent = TestData.sampleContent.copy(content="""<div class="hide">Eksempel: <a href="#" class="read-more">les mer</a>
-      <div class="details">
-        <p>Hello, this is content</p>
-        <a class="re-collapse" href="#">skjul</a>
-      </div>
-    </div>""")
+      |<div class="details">
+        |<p>Hello, this is content</p>
+        |<a class="re-collapse" href="#">skjul</a>
+      |</div>
+    |</div>""".stripMargin.replace("\n", ""))
     val expectedResult = "<details><summary>Eksempel: les mer</summary><p>Hello, this is content</p></details>"
     val Success((result, _)) = SimpleTagConverter.convert(initialContent, ImportStatus(Seq(), Seq()))
 

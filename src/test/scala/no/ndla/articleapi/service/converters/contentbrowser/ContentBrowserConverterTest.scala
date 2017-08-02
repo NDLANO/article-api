@@ -34,7 +34,7 @@ class ContentBrowserConverterTest extends UnitSuite with TestEnvironment {
     val (validNodeId, joubelH5PIdId) = ValidH5PNodeIds.head
     val sampleContentString = s"[contentbrowser ==nid=$validNodeId==imagecache=Fullbredde==width===alt=$sampleAlt==link===node_link=1==link_type=link_to_content==lightbox_size===remove_fields[76661]=1==remove_fields[76663]=1==remove_fields[76664]=1==remove_fields[76666]=1==insertion=inline==link_title_text= ==link_text= ==text_align===css_class=contentbrowser contentbrowser]"
     val initialContent = sampleContent.copy(content=s"<article>$sampleContentString</article>")
-    val expectedResult = s"""<article><$resourceHtmlEmbedTag data-resource="h5p" data-url="${JoubelH5PConverter.JoubelH5PBaseUrl}/$joubelH5PIdId" /></article>"""
+    val expectedResult = s"""<article><$resourceHtmlEmbedTag data-resource="h5p" data-url="${JoubelH5PConverter.JoubelH5PBaseUrl}/$joubelH5PIdId"></article>"""
 
     when(extractService.getNodeType(validNodeId)).thenReturn(Some("h5p_content"))
     val Success((result, _)) = contentBrowserConverter.convert(initialContent, ImportStatus(Seq(), Seq()))
@@ -49,7 +49,7 @@ class ContentBrowserConverterTest extends UnitSuite with TestEnvironment {
     val imageMeta = ImageMetaInformation(newId, List(), List(), imageUrl, 256, "", ImageCopyright(ImageLicense("", "", Some("")), "", List()), List())
     val expectedResult =
       s"""|<article>
-          |<$resourceHtmlEmbedTag data-align="" data-alt="$alt" data-caption="" data-resource="image" data-resource_id="1" data-size="fullbredde" />
+          |<$resourceHtmlEmbedTag data-align="" data-alt="$alt" data-caption="" data-resource="image" data-resource_id="1" data-size="fullbredde">
           |</article>""".stripMargin.replace("\n", "")
 
     when(extractService.getNodeType(nodeId)).thenReturn(Some("image"))
@@ -113,7 +113,7 @@ class ContentBrowserConverterTest extends UnitSuite with TestEnvironment {
   }
 
   test("That Content-browser strings of type video are converted into HTML img tags") {
-    val expectedResult = s"""<article><$resourceHtmlEmbedTag data-account="$NDLABrightcoveAccountId" data-caption="" data-player="$NDLABrightcovePlayerId" data-resource="brightcove" data-videoid="ref:$nodeId" /></article>"""
+    val expectedResult = s"""<article><$resourceHtmlEmbedTag data-account="$NDLABrightcoveAccountId" data-caption="" data-player="$NDLABrightcovePlayerId" data-resource="brightcove" data-videoid="ref:$nodeId"></article>"""
     when(extractService.getNodeType(nodeId)).thenReturn(Some("video"))
     val Success((result, _)) = contentBrowserConverter.convert(sampleContent, ImportStatus(Seq(), Seq()))
     val strippedResult = " +".r.replaceAllIn(result.content.replace("\n", ""), " ")

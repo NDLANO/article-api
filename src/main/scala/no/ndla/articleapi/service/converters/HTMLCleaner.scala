@@ -19,7 +19,7 @@ trait HTMLCleaner {
   val htmlCleaner: HTMLCleaner
 
   class HTMLCleaner extends ConverterModule with LazyLogging {
-    private def NBSP = "\u00a0" // \u00a0 is the unicode representation of &nbsp;
+    private def NBSP = "&#xa0;" // jsoup unicode representation of &nbsp;
 
     override def convert(content: LanguageContent, importStatus: ImportStatus): Try[(LanguageContent, ImportStatus)] = {
       val element = stringToJsoupDocument(content.content)

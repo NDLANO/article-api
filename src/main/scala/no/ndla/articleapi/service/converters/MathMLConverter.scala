@@ -32,6 +32,5 @@ object MathMLConverter extends ConverterModule {
     el.select("math").asScala.foreach(e => e.attr(s"$XMLNsAttribute", "http://www.w3.org/1998/Math/MathML"))
   }
 
-  def replaceNbsp(el: Element) = el.html(el.html().replace("\u00a0", " "))
-
+  def replaceNbsp(el: Element) = el.html(el.html().replace("&#xa0;", " "))
 }
