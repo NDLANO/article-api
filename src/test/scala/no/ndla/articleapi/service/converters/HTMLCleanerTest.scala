@@ -24,8 +24,8 @@ class HTMLCleanerTest extends UnitSuite with TestEnvironment {
   }
 
   test("That HTMLCleaner unwraps illegal attributes") {
-    val initialContent = TestData.sampleContent.copy(content="""<body><article><h1 class="useless">heading<div style="width='0px'">hey</div></h1></article></body>""")
-    val expectedResult = "<article><h1>heading<div>hey</div></h1></article>"
+    val initialContent = TestData.sampleContent.copy(content="""<body><h1 class="useless">heading<div style="width='0px'">hey</div></h1></body>""")
+    val expectedResult = "<section><h1>heading<div>hey</div></h1></section>"
     val Success((result, _)) = htmlCleaner.convert(initialContent, defaultImportStatus)
 
     result.content should equal (expectedResult)
@@ -33,8 +33,8 @@ class HTMLCleanerTest extends UnitSuite with TestEnvironment {
   }
 
   test("That HTMLCleaner unwraps illegal tags") {
-    val initialContent = TestData.sampleContent.copy(content="""<article><h1>heading</h1><henriktag>hehe</henriktag></article>""")
-    val expectedResult = "<article><h1>heading</h1>hehe</article>"
+    val initialContent = TestData.sampleContent.copy(content="""<section><h1>heading</h1><henriktag><p>hehe</p></henriktag></section>""")
+    val expectedResult = "<section><h1>heading</h1><p>hehe</p></section>"
     val Success((result, _)) = htmlCleaner.convert(initialContent, defaultImportStatus)
 
     result.content should equal (expectedResult)
@@ -42,8 +42,8 @@ class HTMLCleanerTest extends UnitSuite with TestEnvironment {
   }
 
   test("That HTMLCleaner removes comments") {
-    val initialContent = TestData.sampleContent.copy(content="""<article><!-- this is a comment --><h1>heading<!-- comment --></h1></article>""")
-    val expectedResult = "<article><h1>heading</h1></article>"
+    val initialContent = TestData.sampleContent.copy(content="""<section><!-- this is a comment --><h1>heading<!-- comment --></h1></section>""")
+    val expectedResult = "<section><h1>heading</h1></section>"
     val Success((result, _)) = htmlCleaner.convert(initialContent, defaultImportStatus)
 
     result.content should equal (expectedResult)
@@ -52,7 +52,7 @@ class HTMLCleanerTest extends UnitSuite with TestEnvironment {
 
   test("That HTMLCleaner removes empty p,div,section,aside tags") {
     val initialContent = TestData.sampleContent.copy(content="""<h1>not empty</h1><section><p></p><div></div><aside></aside></section>""")
-    val expectedResult = "<h1>not empty</h1>"
+    val expectedResult = "<section><h1>not empty</h1></section>"
     val Success((result, _)) = htmlCleaner.convert(initialContent, defaultImportStatus)
 
     result.content should equal (expectedResult)
@@ -431,7 +431,42 @@ class HTMLCleanerTest extends UnitSuite with TestEnvironment {
     val expected = s"<section>$original</section>"
 
     val Success((result, _)) = htmlCleaner.convert(content, defaultImportStatus)
-//    result.content should equal(expected)
+    result.content should equal(expected)
+  }
+
+  test("elements not inside a section should be moved to previous section") {
+    val original =
+      "<section>" +
+        "<h1>hello</h1>" +
+      "</section>" +
+      "<p>here, have a content</p>" +
+      "<p>you deserve it</p>" +
+      "<section>" +
+        "<p>outro</p>" +
+      "</section>"
+    val content = TestData.sampleContent.copy(content=original)
+    val expected =
+      "<section>" +
+        "<h1>hello</h1>" +
+        "<p>here, have a content</p>" +
+        "<p>you deserve it</p>" +
+      "</section>" +
+      "<section>" +
+        "<p>outro</p>" +
+      "</section>"
+
+    val Success((result, _)) = htmlCleaner.convert(content, defaultImportStatus)
+
+    result.content should equal(expected)
+  }
+
+  test("an empty document should not be wrapped in a section") {
+    val original = ""
+    val content = TestData.sampleContent.copy(content=original)
+    val expected = ""
+
+    val Success((result, _)) = htmlCleaner.convert(content, defaultImportStatus)
+    result.content should equal(expected)
   }
 
 }
