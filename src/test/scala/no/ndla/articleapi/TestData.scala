@@ -154,7 +154,7 @@ object TestData {
     Option(1),
     Option(1),
     Seq(ArticleTitle("test", Option("en"))),
-    Seq(ArticleContent("<article><div>test</div></article>", None, Option("en"))),
+    Seq(ArticleContent("<section><div>test</div></section>", None, Option("en"))),
     publicDomainCopyright,
     Seq(),
     Seq(),
@@ -237,7 +237,7 @@ object TestData {
   val updatedArticle = api.UpdatedArticle(
     Seq(api.ArticleTitle("test", Option("en"))),
     1,
-    Seq(api.ArticleContent("<article><div>test</div></article>", None, Option("en"))),
+    Seq(api.ArticleContent("<section><div>test</div></section>", None, Option("en"))),
     Seq.empty,
     Seq.empty,
     Seq.empty,

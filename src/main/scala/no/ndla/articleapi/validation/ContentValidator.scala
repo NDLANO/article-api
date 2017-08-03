@@ -9,11 +9,13 @@
 package no.ndla.articleapi.validation
 
 import no.ndla.articleapi.ArticleApiProperties.{H5PResizerScriptUrl, NDLABrightcoveVideoScriptUrl, NRKVideoScriptUrl}
+import no.ndla.articleapi.integration.ConverterModule.stringToJsoupDocument
 import no.ndla.articleapi.model.api.{ValidationException, ValidationMessage}
 import no.ndla.articleapi.model.domain._
 import no.ndla.mapping.ISO639.get6391CodeFor6392CodeMappings
 import no.ndla.mapping.License.getLicense
 
+import scala.collection.JavaConverters._
 import scala.util.{Failure, Success, Try}
 
 trait ContentValidator {
@@ -71,7 +73,20 @@ trait ContentValidator {
 
     private def validateArticleContent(content: ArticleContent): Seq[ValidationMessage] = {
       HtmlValidator.validate("content.content", content.content).toList ++
+        rootElementContainsOnlySectionBlocks("content.content", content.content) ++
         validateLanguage("content.language", content.language)
+    }
+
+    def rootElementContainsOnlySectionBlocks(field: String, html: String): Option[ValidationMessage] = {
+      val legalTopLevelTag = "section"
+      val topLevelTags = stringToJsoupDocument(html).children().asScala.map(_.tagName())
+
+      topLevelTags.forall(_ == legalTopLevelTag) match {
+        case true => None
+        case false =>
+          val illegalTags = topLevelTags.filterNot(_ == legalTopLevelTag).mkString(",")
+          Some(ValidationMessage(field, s"An article must consist of one or more <section> blocks. Illegal tag(s) are $illegalTags "))
+      }
     }
 
     private def validateConceptContent(content: ConceptContent): Seq[ValidationMessage] = {

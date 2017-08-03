@@ -15,8 +15,8 @@ import no.ndla.articleapi.{TestData, TestEnvironment, UnitSuite}
 
 class ContentValidatorTest extends UnitSuite with TestEnvironment {
   override val contentValidator = new ContentValidator(allowEmptyLanguageField = false)
-  val validDocument = """<h1>heisann</h1><h2>heia</h2>"""
-  val invalidDocument = """<article><invalid></invalid></article>"""
+  val validDocument = """<section><h1>heisann</h1><h2>heia</h2></section>"""
+  val invalidDocument = """<section><invalid></invalid></section>"""
 
   test("validateArticle does not throw an exception on a valid document") {
     val article = TestData.sampleArticleWithByNcSa.copy(content=Seq(ArticleContent(validDocument, None, Some("nb"))))
@@ -29,7 +29,7 @@ class ContentValidatorTest extends UnitSuite with TestEnvironment {
   }
 
   test("validateArticle does not throw an exception for MathMl tags") {
-    val content = """<math xmlns="http://www.w3.org/1998/Math/MathML"></math>"""
+    val content = """<section><math xmlns="http://www.w3.org/1998/Math/MathML"></math></section>"""
     val article = TestData.sampleArticleWithByNcSa.copy(content=Seq(ArticleContent(content, None, Some("nb"))))
 
     contentValidator.validateArticle(article).isSuccess should be (true)
@@ -63,6 +63,15 @@ class ContentValidatorTest extends UnitSuite with TestEnvironment {
   test("validateArticle should not throw an error if title contains plain text") {
     val article = TestData.sampleArticleWithByNcSa.copy(content=Seq(ArticleContent(validDocument, None, Some("nb"))), title=Seq(ArticleTitle("title", Some("nb"))))
     contentValidator.validateArticle(article).isSuccess should be (true)
+  }
+
+  test("Validation should fail if content contains other tags than section on root") {
+    val article = TestData.sampleArticleWithByNcSa.copy(content=Seq(ArticleContent("<h1>lolol</h1>", None, Some("nb"))))
+    val result = contentValidator.validateArticle(article)
+    result.isFailure should be (true)
+
+    val validationMessage = result.failed.get.asInstanceOf[ValidationException].errors.head.message
+    validationMessage.contains("An article must consist of one or more <section> blocks") should be (true)
   }
 
   test("validateArticle throws a validation exception on an invalid visual element") {
@@ -157,4 +166,5 @@ class ContentValidatorTest extends UnitSuite with TestEnvironment {
     val concept = TestData.sampleConcept.copy(title=Seq(ConceptTitle("lolol", Some("nb"))), content=Seq(ConceptContent("lolol", Some("nb"))))
     contentValidator.validate(concept).isSuccess should be (true)
   }
+
 }
