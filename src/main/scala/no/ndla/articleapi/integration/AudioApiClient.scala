@@ -24,12 +24,8 @@ trait AudioApiClient {
     private val ImportAudioEndpoint = s"$AudioMetaInternEndpoint/import/:external_id"
     private val AudioHealthEndpoint = s"http://${ArticleApiProperties.AudioHost}/health"
 
-    def getOrImportAudio(externalId: String): Try[Long] = {
-      getAudioFromExternalId(externalId) match {
-        case Failure(_) => importAudio(externalId)
-        case Success(audio) => Success(audio)
-      }
-    }
+    def getOrImportAudio(externalId: String): Try[Long] =
+      getAudioFromExternalId(externalId) orElse importAudio(externalId)
 
     def getAudioFromExternalId(externalId: String): Try[Long] = {
       val request = Http(AudioMetaFromExternalIdEndpoint.replace(":external_id", externalId))

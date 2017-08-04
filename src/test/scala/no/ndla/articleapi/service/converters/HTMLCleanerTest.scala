@@ -425,4 +425,18 @@ class HTMLCleanerTest extends UnitSuite with TestEnvironment {
     result3.content should equal (expectedContent3)
   }
 
+  test("first section with only image should be merged with the second section") {
+    val originalContent = """<section><embed data-resource="image" /></section>
+                            |<section><aside><h3>Tallene</h3></aside><p><strong>Dette er en oversikt over tall</strong></p></section>""".stripMargin
+    val expectedContent = """<section><embed data-resource="image" /><aside><h3>Tallene</h3></aside></section>"""
+    val expectedIngress = "Dette er en oversikt over tall"
+
+    val Success((result, _))  = htmlCleaner.convert(TestData.sampleContent.copy(content=originalContent), defaultImportStatus)
+    println(result.content)
+    println(expectedContent)
+
+    result.content should equal(expectedContent)
+    result.ingress should equal(Some(LanguageIngress(expectedIngress, Some("en"))))
+  }
+
 }

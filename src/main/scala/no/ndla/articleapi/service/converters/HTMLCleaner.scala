@@ -9,7 +9,6 @@ import no.ndla.articleapi.integration.ConverterModule.{jsoupDocumentToString, st
 import Attributes._
 import org.json4s.native.JsonMethods.parse
 import org.json4s._
-
 import scala.collection.JavaConverters._
 import scala.io.Source
 import scala.util.{Success, Try}
@@ -19,7 +18,7 @@ trait HTMLCleaner {
   val htmlCleaner: HTMLCleaner
 
   class HTMLCleaner extends ConverterModule with LazyLogging {
-    private def NBSP = "\u00a0" // \u00a0 is the unicode representation of &nbsp;
+    private val NBSP = "\u00a0" // \u00a0 is the unicode representation of &nbsp;
 
     override def convert(content: LanguageContent, importStatus: ImportStatus): Try[(LanguageContent, ImportStatus)] = {
       val element = stringToJsoupDocument(content.content)
@@ -33,6 +32,7 @@ trait HTMLCleaner {
       wrapStandaloneTextInPTag(element)
 
       val metaDescription = prepareMetaDescription(content.metaDescription)
+      mergeTwoFirstSectionsIfFeasible(element)
       val ingress = getIngress(content, element)
 
       moveMisplacedAsideTags(element)
@@ -43,11 +43,30 @@ trait HTMLCleaner {
 
     private def moveImagesOutOfPTags(element: Element) {
       element.select("p").asScala.foreach(pTag => {
-        pTag.select(s"""$resourceHtmlEmbedTag[$DataResource=image]""").asScala.toList.foreach(el => {
+        pTag.select(s"""$resourceHtmlEmbedTag[$DataResource=${ResourceType.Image}]""").asScala.toList.foreach(el => {
           pTag.before(el.outerHtml())
           el.remove()
         })
       })
+    }
+
+    private def mergeTwoFirstSectionsIfFeasible(el: Element) {
+      val sections = el.select("section").asScala
+
+      if (sections.size < 2)
+        return
+
+      val firstSectionChildren = sections.head.children
+      if (firstSectionChildren.size != 1)
+        return
+
+      firstSectionChildren.select(s"""$resourceHtmlEmbedTag[$DataResource=${ResourceType.Image}]""").asScala.headOption match {
+        case Some(e) =>
+          sections(1).prepend(e.outerHtml())
+          e.remove()
+          sections.head.remove()
+        case _ =>
+      }
     }
 
     private def getIngress(content: LanguageContent, element: Element): Option[LanguageIngress] = {
@@ -62,7 +81,7 @@ trait HTMLCleaner {
               size="",
               altText=imageMetaData.alttexts.find(_.language==content.language).map(_.alttext).getOrElse("")))
 
-          imageEmbedHtml.map(html => element.prepend(html))
+          imageEmbedHtml.map(element.prepend)
 
           Some(LanguageIngress(extractElement(stringToJsoupDocument(ingress.content)), None))
       }
