@@ -344,4 +344,13 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
 
     result.content.head.content should equal(expectedResult)
   }
+
+  test("toDomainArticle should only include tags in relevant languages") {
+    val titles = Seq(ArticleTitle("tiitel", Some("nb")))
+    val contents = Seq(TestData.sampleContent.copy(language=Some("nb")))
+    val tags = Seq(ArticleTag(Seq("t1", "t2"), Some("nb")), ArticleTag(Seq("t1", "t2"), Some("en")))
+
+    val node = sampleNode.copy(titles=titles, contents=contents, tags=tags)
+    service.toDomainArticle(node).tags.map(_.language) should equal(Seq(Some("nb")))
+  }
 }

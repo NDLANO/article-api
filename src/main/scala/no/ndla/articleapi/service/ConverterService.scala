@@ -150,17 +150,21 @@ trait ConverterService {
       executePostprocessorModules(nodeToConvert, importStatus)
 
 
-    private def toDomainArticle(nodeToConvert: NodeToConvert): Article = {
+    private[service] def toDomainArticle(nodeToConvert: NodeToConvert): Article = {
       val requiredLibraries = nodeToConvert.contents.flatMap(_.requiredLibraries).distinct
       val ingresses = nodeToConvert.contents.flatMap(content => content.asArticleIntroduction)
       val visualElements = nodeToConvert.contents.flatMap(_.asVisualElement)
+
+      val languagesInNode: Set[Option[String]] = (nodeToConvert.titles.map(_.language) ++
+        nodeToConvert.contents.map(_.language) ++
+        ingresses.map(_.language)).toSet
 
       Article(None,
         None,
         nodeToConvert.titles,
         nodeToConvert.contents.map(_.asContent),
         toDomainCopyright(nodeToConvert.license, nodeToConvert.authors),
-        nodeToConvert.tags,
+        nodeToConvert.tags.filter(tag => languagesInNode.contains(tag.language)),
         requiredLibraries,
         visualElements,
         ingresses,
