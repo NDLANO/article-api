@@ -19,8 +19,6 @@ trait HTMLCleaner {
   val htmlCleaner: HTMLCleaner
 
   class HTMLCleaner extends ConverterModule with LazyLogging {
-    private val NBSP = "&#xa0;" // jsoup unicode representation of &nbsp;
-
     override def convert(content: LanguageContent, importStatus: ImportStatus): Try[(LanguageContent, ImportStatus)] = {
       val element = stringToJsoupDocument(content.content)
       val illegalTags = unwrapIllegalTags(element).map(x => s"Illegal tag(s) removed: $x").distinct
@@ -29,6 +27,8 @@ trait HTMLCleaner {
       moveImagesOutOfPTags(element)
       removeComments(element)
       removeNbsp(element)
+      // Jsoup doesn't support removing elements while iterating the dom-tree.
+      // Thus executes the routine 3 times in order to be sure to remove all tags
       (1 to 3).foreach(_ => removeEmptyTags(element))
       wrapStandaloneTextInPTag(element)
 
@@ -136,8 +136,6 @@ trait HTMLCleaner {
     }
 
     private def removeEmptyTags(element: Element): Element = {
-      // A better approach to this would be to use `element.traverse` to traverse the tree,
-      // however, Jsoup does not handle removal of nodes while traversing the tree.
       val tagsToRemove = Set("p", "div", "section", "aside", "strong")
       for (el <- element.select(tagsToRemove.mkString(",")).asScala) {
         if (htmlTagIsEmpty(el)) {
@@ -241,6 +239,10 @@ trait HTMLCleaner {
       val rootLevelBlocks = body.children
       if (rootLevelBlocks.select("section").isEmpty) {
         return stringToJsoupDocument(s"<section>${body.outerHtml}</section>")
+      }
+
+      if (rootLevelBlocks.first().tagName() != "section") {
+        body.prepend("<section></section>")
       }
 
       rootLevelBlocks.asScala.foreach {

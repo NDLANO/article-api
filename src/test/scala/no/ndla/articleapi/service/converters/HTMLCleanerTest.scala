@@ -460,6 +460,35 @@ class HTMLCleanerTest extends UnitSuite with TestEnvironment {
     result.content should equal(expected)
   }
 
+  test("an empty section should be inserted as the first element if first element is not a section") {
+    val original =
+      "<h1>hello</h1>" +
+      "<section>" +
+        "<p>here, have a content</p>" +
+      "</section>" +
+      "<p>you deserve it</p>" +
+      "<section>" +
+        "<p>outro</p>" +
+      "</section>"
+    val content = TestData.sampleContent.copy(content=original)
+    val expected =
+      "<section>" +
+        "<h1>hello</h1>" +
+      "</section>" +
+      "<section>" +
+        "<p>here, have a content</p>" +
+        "<p>you deserve it</p>" +
+      "</section>" +
+      "<section>" +
+        "<p>outro</p>" +
+      "</section>"
+
+
+    val Success((result, _)) = htmlCleaner.convert(content, defaultImportStatus)
+
+    result.content should equal(expected)
+  }
+
   test("an empty document should not be wrapped in a section") {
     val original = ""
     val content = TestData.sampleContent.copy(content=original)
