@@ -12,7 +12,7 @@ class BegrepConverterModuleTest extends UnitSuite with TestEnvironment {
   val nodeId = "1234"
   val linkText = "begrepsnoder"
   val contentString = s"[contentbrowser ==nid=$nodeId==imagecache=Fullbredde==width===alt===link===node_link=1==link_type=link_to_content==lightbox_size===remove_fields[76661]=1==remove_fields[76663]=1==remove_fields[76664]=1==remove_fields[76666]=1==insertion===link_title_text= ==link_text=$linkText==text_align===css_class=contentbrowser contentbrowser]"
-  val content = ContentBrowser(contentString, Some("nb"))
+  val content = ContentBrowser(contentString, "nb")
 
   test("begrep should be imported and inserted as an embed tag in the article") {
     when(extractConvertStoreContent.processNode(nodeId, ImportStatus.empty)).thenReturn(Success((TestData.sampleConcept, ImportStatus.empty)))

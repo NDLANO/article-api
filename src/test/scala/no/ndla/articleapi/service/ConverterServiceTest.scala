@@ -22,15 +22,15 @@ import scala.util.{Success, Try}
 class ConverterServiceTest extends UnitSuite with TestEnvironment {
 
   val service = new ConverterService
-  val contentTitle = ArticleTitle("", Some(""))
+  val contentTitle = ArticleTitle("", "unknown")
   val author = Author("forfatter", "Henrik")
-  val tag = ArticleTag(List("asdf"), Some("nb"))
+  val tag = ArticleTag(List("asdf"), "nb")
   val requiredLibrary = RequiredLibrary("", "", "")
   val nodeId = "1234"
   val sampleAlt = "Fotografi"
   val sampleContentString = s"[contentbrowser ==nid=$nodeId==imagecache=Fullbredde==width===alt=$sampleAlt==link===node_link=1==link_type=link_to_content==lightbox_size===remove_fields[76661]=1==remove_fields[76663]=1==remove_fields[76664]=1==remove_fields[76666]=1==insertion===link_title_text= ==link_text= ==text_align===css_class=contentbrowser contentbrowser]"
   val sampleNode = NodeToConvert(List(contentTitle), Seq(), "by-sa", Seq(author), List(tag), "fagstoff", "fagstoff", new Date(0), new Date(1), ArticleType.Standard)
-  val sampleLanguageContent = TestData.sampleContent.copy(content=sampleContentString, language=Some("nb"))
+  val sampleLanguageContent = TestData.sampleContent.copy(content=sampleContentString, language="nb")
 
   test("That the document is wrapped in an article tag") {
     val nodeId = "1"
@@ -101,9 +101,9 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
          |<$resourceHtmlEmbedTag data-size="fullbredde" data-url="http://image-api/images/5359" data-align="" data-resource="image" data-alt="To personer" data-caption="capt." />
          |<p><strong>Når man driver med medieproduksjon, er det mye arbeid som må gjøres<br /></strong></p>
          |</section>
-         |<section> <p>Det som kan gi helse- og sikkerhetsproblemer på en dataarbeidsplass, er:</p></section>""".stripMargin.replace("\n", ""), None, Some("nb"))
+         |<section> <p>Det som kan gi helse- og sikkerhetsproblemer på en dataarbeidsplass, er:</p></section>""".stripMargin.replace("\n", ""), None, "nb")
 
-    val expectedIngressResult = ArticleIntroduction("Hvem er sterkest?", Some("nb"))
+    val expectedIngressResult = ArticleIntroduction("Hvem er sterkest?", "nb")
 
     val ingressNodeBokmal = LanguageIngress("Hvem er sterkest?", None)
     val contentNodeBokmal = sampleLanguageContent.copy(content=content, ingress=Some(ingressNodeBokmal))
@@ -303,8 +303,8 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     val expectedContent = s"""<h1>hello</h1><embed ${Attributes.DataResource}="${ResourceType.Image}" />"""
     val visualElement = s"""<embed ${Attributes.DataResource}="${ResourceType.Image}" ${Attributes.DataUrl}="http://some-url" ${Attributes.DataId}=1 data-random="hehe" />"""
     val expectedVisualElement = s"""<embed ${Attributes.DataResource}="${ResourceType.Image}" />"""
-    val articleContent = api.ArticleContent(content, None, Some("en"))
-    val articleVisualElement = api.VisualElement(visualElement, Some("en"))
+    val articleContent = api.ArticleContent(content, None, "en")
+    val articleVisualElement = api.VisualElement(visualElement, "en")
     val apiArticle = TestData.newArticle.copy(content=Seq(articleContent), visualElement=Some(Seq(articleVisualElement)))
 
     val result = service.toDomainArticle(apiArticle)
@@ -319,7 +319,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     when(imageApiClient.importOrGetMetaByExternId(nodeId)).thenReturn(Some(TestData.sampleImageMetaInformation))
 
     val Success((convertedArticle: Article, _)) = service.toDomainArticle(node, ImportStatus.empty)
-    convertedArticle.visualElement should equal (Seq(VisualElement(expectedResult, Some("en"))))
+    convertedArticle.visualElement should equal (Seq(VisualElement(expectedResult, "en")))
   }
 
   test("That divs with class 'ndla_table' is converted to table") {
@@ -346,11 +346,11 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
   }
 
   test("toDomainArticle should only include tags in relevant languages") {
-    val titles = Seq(ArticleTitle("tiitel", Some("nb")))
-    val contents = Seq(TestData.sampleContent.copy(language=Some("nb")))
-    val tags = Seq(ArticleTag(Seq("t1", "t2"), Some("nb")), ArticleTag(Seq("t1", "t2"), Some("en")))
+    val titles = Seq(ArticleTitle("tiitel", "nb"))
+    val contents = Seq(TestData.sampleContent.copy(language="nb"))
+    val tags = Seq(ArticleTag(Seq("t1", "t2"), "nb"), ArticleTag(Seq("t1", "t2"), "en"))
 
     val node = sampleNode.copy(titles=titles, contents=contents, tags=tags)
-    service.toDomainArticle(node).tags.map(_.language) should equal(Seq(Some("nb")))
+    service.toDomainArticle(node).tags.map(_.language) should equal(Seq("nb"))
   }
 }

@@ -142,15 +142,11 @@ trait ContentValidator {
       }
     }
 
-    private def validateLanguage(fieldPath: String, languageCode: Option[String]): Option[ValidationMessage] = {
-      if (languageCode.isEmpty && allowEmptyLanguageField)
-        return None
-
-      languageCode.flatMap(lang =>
-        languageCodeSupported6391(lang) match {
-          case true => None
-          case false => Some(ValidationMessage(fieldPath, s"Language '$languageCode' is not a supported value."))
-        })
+    private def validateLanguage(fieldPath: String, languageCode: String): Option[ValidationMessage] = {
+      languageCodeSupported6391(languageCode) match {
+        case true => None
+        case false => Some(ValidationMessage(fieldPath, s"Language '$languageCode' is not a supported value."))
+      }
     }
 
     private def languageCodeSupported6391(languageCode: String): Boolean =

@@ -99,7 +99,7 @@ case class MigrationMainNodeImport(titles: Seq[MigrationContentTitle], ingresses
         content.tnid,
         content.content,
         getMetaDescription(content),
-        emptySomeToNone(content.language),
+        Language.languageOrUnknown(content.language),
         visualElements.find(_.language == content.language).map(_.element),
         ingress = getIngress(content.language))
     })
@@ -138,7 +138,7 @@ case class MigrationContentAuthor(`type`: Option[String], name: Option[String]) 
 }
 
 case class MigrationContentTitle(title: String, language: Option[String]) {
-  def asContentTitle: ArticleTitle = ArticleTitle(title, emptySomeToNone(language))
+  def asContentTitle: ArticleTitle = ArticleTitle(title, Language.languageOrUnknown(language))
 }
 
 case class MigrationIngress(nid: String, content: Option[String], imageNid: Option[String], ingressVisPaaSiden: Int, language: Option[String])

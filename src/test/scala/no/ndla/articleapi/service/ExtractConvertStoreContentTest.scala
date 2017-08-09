@@ -26,13 +26,13 @@ class ExtractConvertStoreContentTest extends UnitSuite with TestEnvironment {
   override val converterService = new ConverterService
   val (nodeId, nodeId2) = ("1234", "4321")
   val newNodeid: Long = 4444
-  val sampleTitle = ArticleTitle("title", Some("en"))
+  val sampleTitle = ArticleTitle("title", "en")
   val sampleIngress =  LanguageIngress("ingress here", None)
   val contentString = s"[contentbrowser ==nid=$nodeId2==imagecache=Fullbredde==width===alt=alttext==link===node_link=1==link_type=link_to_content==lightbox_size===remove_fields[76661]=1==remove_fields[76663]=1==remove_fields[76664]=1==remove_fields[76666]=1==insertion=link==link_title_text===link_text=Tittel==text_align===css_class=contentbrowser contentbrowser]"
   val sampleContent = TestData.sampleContent.copy(content=contentString)
   val author = Author("forfatter", "Henrik")
 
-  val sampleNode = NodeToConvert(List(sampleTitle), List(sampleContent), "by-sa", Seq(author), List(ArticleTag(List("tag"), Some("en"))), "fagstoff", "fagstoff", new Date(0), new Date(1), ArticleType.Standard)
+  val sampleNode = NodeToConvert(List(sampleTitle), List(sampleContent), "by-sa", Seq(author), List(ArticleTag(List("tag"), "en")), "fagstoff", "fagstoff", new Date(0), new Date(1), ArticleType.Standard)
 
   val eCSService = new ExtractConvertStoreContent
 

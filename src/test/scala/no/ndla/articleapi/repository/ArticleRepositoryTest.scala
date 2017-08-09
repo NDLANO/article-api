@@ -23,10 +23,10 @@ class ArticleRepositoryTest extends IntegrationSuite with TestEnvironment {
     val first = repository.insert(sampleArticle)
     first.id.isDefined should be (true)
 
-    val second = repository.update(first.copy(title = Seq(ArticleTitle("first change", Some("en")))))
+    val second = repository.update(first.copy(title = Seq(ArticleTitle("first change", "en"))))
     second.isSuccess should be (true)
 
-    val third = repository.update(second.get.copy(title = Seq(ArticleTitle("second change", Some("en")))))
+    val third = repository.update(second.get.copy(title = Seq(ArticleTitle("second change", "en"))))
     third.isSuccess should be (true)
 
     first.revision should equal (Some(1))
@@ -40,10 +40,10 @@ class ArticleRepositoryTest extends IntegrationSuite with TestEnvironment {
     val first = repository.insert(sampleArticle)
     first.id.isDefined should be (true)
 
-    val oldRevision = repository.update(first.copy(revision=Some(0), title = Seq(ArticleTitle("first change", Some("en")))))
+    val oldRevision = repository.update(first.copy(revision=Some(0), title = Seq(ArticleTitle("first change", "en"))))
     oldRevision.isFailure should be (true)
 
-    val tooNewRevision = repository.update(first.copy(revision=Some(99), title = Seq(ArticleTitle("first change", Some("en")))))
+    val tooNewRevision = repository.update(first.copy(revision=Some(99), title = Seq(ArticleTitle("first change", "en"))))
     tooNewRevision.isFailure should be (true)
 
     repository.delete(first.id.get)
@@ -54,7 +54,7 @@ class ArticleRepositoryTest extends IntegrationSuite with TestEnvironment {
     val articleId = repository.insertWithExternalIds(sampleArticle, externalId, Seq("52")).id.get
 
     val firstUpdate = repository.updateWithExternalId(sampleArticle, externalId)
-    val secondUpdate = repository.updateWithExternalId(sampleArticle.copy(title = Seq(ArticleTitle("new title", Some("en")))), externalId)
+    val secondUpdate = repository.updateWithExternalId(sampleArticle.copy(title = Seq(ArticleTitle("new title", "en"))), externalId)
 
     firstUpdate.isSuccess should be (true)
     secondUpdate.isSuccess should be (true)

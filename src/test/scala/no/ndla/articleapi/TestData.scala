@@ -28,16 +28,14 @@ object TestData {
     id=1,
     oldNdlaUrl = None,
     revision=1,
-    language="nb",
-    title="title",
-    content="this is content",
-    footNotes= Some(Map(("something", api.FootNoteItem("title", "type", "year", "edition", "publisher", Seq("author"))))),
+    title=api.ArticleTitle("title", "nb"),
+    content=api.ArticleContent("this is content", Some(Map(("something", api.FootNoteItem("title", "type", "year", "edition", "publisher", Seq("author"))))), "nb"),
     copyright = api.Copyright(api.License("licence", None, None), "origin", Seq(api.Author("developer", "Per"))),
-    tags = Seq("tag"),
+    tags = api.ArticleTag(Seq("tag"), "nb"),
     requiredLibraries = Seq(api.RequiredLibrary("JS", "JavaScript", "url")),
     visualElement = None,
     introduction = None,
-    metaDescription = "metaDesc",
+    metaDescription = api.ArticleMetaDescription("metaDesc", "nb"),
     created = new DateTime(2017, 1, 1, 12, 15, 32, DateTimeZone.UTC).toDate,
     updated = new DateTime(2017, 4, 1, 12, 15, 32, DateTimeZone.UTC).toDate,
     updatedBy = "me",
@@ -78,14 +76,14 @@ object TestData {
     articleId.toString,
     Some(s"//red.ndla.no/node/$externalId"),
     2,
-    Seq(api.ArticleTitle("title", Option("nb"))),
-    Seq(api.ArticleContent("content", None, Option("nb"))),
+    Seq(api.ArticleTitle("title", "nb")),
+    Seq(api.ArticleContent("content", None, "nb")),
     api.Copyright(api.License("by", Some("Creative Commons Attribution 2.0 Generic"), Some("https://creativecommons.org/licenses/by/2.0/")), "", Seq()),
     Seq(),
     Seq(),
     Seq(),
     Seq(),
-    Seq(api.ArticleMetaDescription("meta description", Option("nb"))),
+    Seq(api.ArticleMetaDescription("meta description", "nb")),
     today,
     today,
     "ndalId54321",
@@ -96,16 +94,14 @@ object TestData {
     articleId,
     Some(s"//red.ndla.no/node/$externalId"),
     2,
-    "nb",
-    "title",
-    "content",
-    None,
+    api.ArticleTitle("title", "nb"),
+    api.ArticleContent("content", None, "nb"),
     api.Copyright(api.License("by", Some("Creative Commons Attribution 2.0 Generic"), Some("https://creativecommons.org/licenses/by/2.0/")), "", Seq()),
-    Seq(),
+    api.ArticleTag(Seq(), "nb"),
     Seq(),
     None,
     None,
-    "meta description",
+    api.ArticleMetaDescription("meta description", "nb"),
     today,
     today,
     "ndalId54321",
@@ -153,13 +149,13 @@ object TestData {
   val sampleArticleWithPublicDomain = Article(
     Option(1),
     Option(1),
-    Seq(ArticleTitle("test", Option("en"))),
-    Seq(ArticleContent("<article><div>test</div></article>", None, Option("en"))),
+    Seq(ArticleTitle("test", "en")),
+    Seq(ArticleContent("<article><div>test</div></article>", None, "en")),
     publicDomainCopyright,
     Seq(),
     Seq(),
-    Seq(VisualElement("image", Some("en"))),
-    Seq(ArticleIntroduction("This is an introduction", Some("en"))),
+    Seq(VisualElement("image", "en")),
+    Seq(ArticleIntroduction("This is an introduction", "en")),
     Seq(),
     None,
     DateTime.now().minusDays(4).toDate,
@@ -170,14 +166,14 @@ object TestData {
   val sampleDomainArticle = Article(
     Option(articleId),
     Option(2),
-    Seq(ArticleTitle("title", Option("nb"))),
-    Seq(ArticleContent("content", None, Option("nb"))),
+    Seq(ArticleTitle("title", "nb")),
+    Seq(ArticleContent("content", None, "nb")),
     Copyright("by", "", Seq()),
     Seq(),
     Seq(),
     Seq(),
     Seq(),
-    Seq(ArticleMetaDescription("meta description", Option("nb"))),
+    Seq(ArticleMetaDescription("meta description", "nb")),
     None,
     today,
     today,
@@ -188,8 +184,8 @@ object TestData {
   val sampleDomainArticle2 = Article(
     None,
     None,
-    Seq(ArticleTitle("test", Option("en"))),
-    Seq(ArticleContent("<article><div>test</div></article>", None, Option("en"))),
+    Seq(ArticleTitle("test", "en")),
+    Seq(ArticleContent("<article><div>test</div></article>", None, "en")),
     Copyright("publicdomain", "", Seq()),
     Seq(),
     Seq(),
@@ -204,8 +200,8 @@ object TestData {
   )
 
   val newArticle = api.NewArticle(
-    Seq(api.ArticleTitle("test", Option("en"))),
-    Seq(api.ArticleContent("<article><div>test</div></article>", None, Option("en"))),
+    Seq(api.ArticleTitle("test", "en")),
+    Seq(api.ArticleContent("<article><div>test</div></article>", None, "en")),
     Seq(),
     None,
     None,
@@ -235,9 +231,9 @@ object TestData {
   val sampleArticleWithCopyrighted = sampleArticleWithPublicDomain.copy(copyright=copyrighted )
 
   val updatedArticle = api.UpdatedArticle(
-    Seq(api.ArticleTitle("test", Option("en"))),
+    Seq(api.ArticleTitle("test", "en")),
     1,
-    Seq(api.ArticleContent("<article><div>test</div></article>", None, Option("en"))),
+    Seq(api.ArticleContent("<article><div>test</div></article>", None, "en")),
     Seq.empty,
     Seq.empty,
     Seq.empty,
@@ -252,13 +248,13 @@ object TestData {
     "1",
     None,
     1,
-    Seq(api.ArticleTitle("test", Option("en"))),
+    Seq(api.ArticleTitle("test", "en")),
     Seq(api.ArticleContent(
       """<ul><li><h1>Det er ikke lov å gjøre dette.</h1> Tekst utenfor.</li><li>Dette er helt ok</li></ul>
         |<ul><li><h2>Det er ikke lov å gjøre dette.</h2></li><li>Dette er helt ok</li></ul>
         |<ol><li><h3>Det er ikke lov å gjøre dette.</h3></li><li>Dette er helt ok</li></ol>
         |<ol><li><h4>Det er ikke lov å gjøre dette.</h4></li><li>Dette er helt ok</li></ol>
-      """.stripMargin, None, Option("en"))),
+      """.stripMargin, None, "en")),
     api.Copyright(api.License("publicdomain", None, None), "", Seq()),
     Nil,
     Nil,
@@ -272,11 +268,11 @@ object TestData {
   )
 
   val (nodeId, nodeId2) = ("1234", "4321")
-  val sampleTitle = ArticleTitle("title", Some("en"))
-  val sampleContent = LanguageContent(nodeId, nodeId, "sample content", "metadescription",  Some("en"), None)
+  val sampleTitle = ArticleTitle("title", "en")
+  val sampleContent = LanguageContent(nodeId, nodeId, "sample content", "metadescription",  "en", None)
   val sampleTranslationContent = sampleContent.copy(tnid=nodeId2)
 
-  val visualElement = VisualElement(s"""<$resourceHtmlEmbedTag  data-align="" data-alt="" data-caption="" data-resource="image" data-resource_id="1" data-size="" />""", Some("nb"))
+  val visualElement = VisualElement(s"""<$resourceHtmlEmbedTag  data-align="" data-alt="" data-caption="" data-resource="image" data-resource_id="1" data-size="" />""", "nb")
 
   val sampleImageMetaInformation = ImageMetaInformation(
     "1",
@@ -290,8 +286,8 @@ object TestData {
 
   val sampleConcept = Concept(
     Some(1),
-    Seq(ConceptTitle("Tittel for begrep", Some("nb"))),
-    Seq(ConceptContent("Innhold for begrep", Some("nb"))),
+    Seq(ConceptTitle("Tittel for begrep", "nb")),
+    Seq(ConceptContent("Innhold for begrep", "nb")),
     Seq(),
     DateTime.now().minusDays(4).toDate,
     DateTime.now().minusDays(2).toDate

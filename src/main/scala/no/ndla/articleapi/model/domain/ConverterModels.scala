@@ -20,7 +20,7 @@ case class NodeGeneralContent(nid: String, tnid: String, title: String, content:
 
   def isMainNode = nid == tnid || tnid == "0"
 
-  def asContentTitle = ArticleTitle(title, Some(language))
+  def asContentTitle = ArticleTitle(title, language)
 }
 
 case class NodeToConvert(titles: Seq[ArticleTitle],

@@ -52,7 +52,7 @@ object ConverterModule {
   }
 }
 
-case class LanguageContent(nid: String, tnid: String, content: String, metaDescription: String, language: Option[String],
+case class LanguageContent(nid: String, tnid: String, content: String, metaDescription: String, language: String,
                            visualElement: Option[String],
                            requiredLibraries: Seq[RequiredLibrary] = List[RequiredLibrary](),
                            footNotes: Option[Map[String, FootNoteItem]] = None,

@@ -41,9 +41,9 @@ trait ArticleSearchService {
     override def hitToApiModel(hit: JsonObject, language: String): api.ArticleSummary = {
       api.ArticleSummary(
         hit.get("id").getAsString,
-        hit.get("title").getAsJsonObject.entrySet().asScala.to[Seq].map(entr => api.ArticleTitle(entr.getValue.getAsString, Some(entr.getKey))),
-        hit.get("visualElement").getAsJsonObject.entrySet().asScala.to[Seq].map(entr => api.VisualElement(entr.getValue.getAsString, Some(entr.getKey))),
-        hit.get("introduction").getAsJsonObject.entrySet().asScala.to[Seq].map(entr => api.ArticleIntroduction(entr.getValue.getAsString, Some(entr.getKey))),
+        hit.get("title").getAsJsonObject.entrySet().asScala.to[Seq].map(entr => api.ArticleTitle(entr.getValue.getAsString, entr.getKey)),
+        hit.get("visualElement").getAsJsonObject.entrySet().asScala.to[Seq].map(entr => api.VisualElement(entr.getValue.getAsString, entr.getKey)),
+        hit.get("introduction").getAsJsonObject.entrySet().asScala.to[Seq].map(entr => api.ArticleIntroduction(entr.getValue.getAsString, entr.getKey)),
         ApplicationUrl.get + hit.get("id").getAsString,
         hit.get("license").getAsString,
         hit.get("articleType").getAsString

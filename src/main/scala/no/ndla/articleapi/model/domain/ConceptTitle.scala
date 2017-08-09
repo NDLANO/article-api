@@ -8,6 +8,6 @@
 
 package no.ndla.articleapi.model.domain
 
-case class ConceptTitle(title: String, language: Option[String]) extends LanguageField[String] {
+case class ConceptTitle(title: String, language: String) extends LanguageField[String] {
   override def value: String = title
 }

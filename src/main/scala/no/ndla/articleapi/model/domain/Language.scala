@@ -30,8 +30,30 @@ object Language {
 
   val supportedLanguages = languageAnalyzers.map(_.lang)
 
+  def findByLanguageOrBestEffort[P <: LanguageField[_]](sequence: Seq[P], lang: Option[String]): Option[P] = {
+    def findFirstLanguageMatching(sequence: Seq[P], lang: Seq[String]): Option[P] = {
+      lang match {
+        case Nil => sequence.headOption
+        case head :: tail =>
+          sequence.find(_.language == head) match {
+            case Some(x) => Some(x)
+            case None => findFirstLanguageMatching(sequence, tail)
+          }
+      }
+    }
+
+    findFirstLanguageMatching(sequence, lang.toList :+ DefaultLanguage)
+  }
+
+  def languageOrUnknown(language: Option[String]): String = {
+    language.filter(_.nonEmpty) match {
+      case Some(x) => x
+      case None => UnknownLanguage
+    }
+  }
+
   def getSupportedLanguages(sequences: Seq[Seq[WithLanguage]]): Seq[String] = {
-    sequences.flatMap(_.flatMap(_.language)).distinct
+    sequences.flatMap(_.map(_.language)).distinct
   }
 
   def getSearchLanguage(languageParam: String, supportedLanguages: Seq[String]): String = {
@@ -43,7 +65,7 @@ object Language {
   }
 
   def findByLanguage[T](sequence: Seq[LanguageField[T]], lang: String): Option[LanguageField[T]] = {
-    sequence.find(_.language.getOrElse("") == lang)
+    sequence.find(_.language == lang)
   }
 
   def findValueByLanguage[T](sequence: Seq[LanguageField[T]], lang: String): Option[T] = {

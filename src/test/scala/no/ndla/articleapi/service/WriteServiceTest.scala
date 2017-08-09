@@ -10,7 +10,7 @@ package no.ndla.articleapi.service
 
 import no.ndla.articleapi.model.domain.{Article, ArticleContent, ArticleTitle}
 import no.ndla.articleapi.{TestData, TestEnvironment, UnitSuite}
-import org.joda.time.{DateTime}
+import org.joda.time.DateTime
 import org.mockito.Mockito._
 import org.mockito.Matchers._
 import org.mockito.Mockito
@@ -73,15 +73,15 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
   }
 
   test("That mergeLanguageFields returns original list when updated is empty") {
-    val existing = Seq(ArticleTitle("Tittel 1", Some("nb")), ArticleTitle("Tittel 2", Some("nn")), ArticleTitle("Tittel 3", None))
+    val existing = Seq(ArticleTitle("Tittel 1", "nb"), ArticleTitle("Tittel 2", "nn"), ArticleTitle("Tittel 3", "unknown"))
     service.mergeLanguageFields(existing, Seq()) should equal (existing)
   }
 
   test("That mergeLanguageFields updated the english title only when specified") {
-    val tittel1 = ArticleTitle("Tittel 1", Some("nb"))
-    val tittel2 = ArticleTitle("Tittel 2", Some("nn"))
-    val tittel3 = ArticleTitle("Tittel 3", Some("en"))
-    val oppdatertTittel3 = ArticleTitle("Title 3 in english", Some("en"))
+    val tittel1 = ArticleTitle("Tittel 1", "nb")
+    val tittel2 = ArticleTitle("Tittel 2", "nn")
+    val tittel3 = ArticleTitle("Tittel 3", "en")
+    val oppdatertTittel3 = ArticleTitle("Title 3 in english", "en")
 
     val existing = Seq(tittel1, tittel2, tittel3)
     val updated = Seq(oppdatertTittel3)
@@ -90,10 +90,10 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
   }
 
   test("That mergeLanguageFields removes a title that is empty") {
-    val tittel1 = ArticleTitle("Tittel 1", Some("nb"))
-    val tittel2 = ArticleTitle("Tittel 2", Some("nn"))
-    val tittel3 = ArticleTitle("Tittel 3", Some("en"))
-    val tittelToRemove = ArticleTitle("", Some("nn"))
+    val tittel1 = ArticleTitle("Tittel 1", "nb")
+    val tittel2 = ArticleTitle("Tittel 2", "nn")
+    val tittel3 = ArticleTitle("Tittel 3", "en")
+    val tittelToRemove = ArticleTitle("", "nn")
 
     val existing = Seq(tittel1, tittel2, tittel3)
     val updated = Seq(tittelToRemove)
@@ -101,11 +101,11 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     service.mergeLanguageFields(existing, updated) should equal (Seq(tittel1, tittel3))
   }
 
-  test("That mergeLanguageFields updates the title with no language specified") {
-    val tittel1 = ArticleTitle("Tittel 1", Some("nb"))
-    val tittel2 = ArticleTitle("Tittel 2", None)
-    val tittel3 = ArticleTitle("Tittel 3", Some("en"))
-    val oppdatertTittel2 = ArticleTitle("Tittel 2 er oppdatert", None)
+  test("That mergeLanguageFields updates the title with unknown language specified") {
+    val tittel1 = ArticleTitle("Tittel 1", "nb")
+    val tittel2 = ArticleTitle("Tittel 2", "unknown")
+    val tittel3 = ArticleTitle("Tittel 3", "en")
+    val oppdatertTittel2 = ArticleTitle("Tittel 2 er oppdatert", "unknown")
 
     val existing = Seq(tittel1, tittel2, tittel3)
     val updated = Seq(oppdatertTittel2)
@@ -114,10 +114,10 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
   }
 
   test("That mergeLanguageFields also updates the correct content") {
-    val desc1 = ArticleContent("Beskrivelse 1", None, Some("nb"))
-    val desc2 = ArticleContent("Beskrivelse 2", None, None)
-    val desc3 = ArticleContent("Beskrivelse 3", None, Some("en"))
-    val oppdatertDesc2 = ArticleContent("Beskrivelse 2 er oppdatert", None, None)
+    val desc1 = ArticleContent("Beskrivelse 1", None, "nb")
+    val desc2 = ArticleContent("Beskrivelse 2", None, "unknown")
+    val desc3 = ArticleContent("Beskrivelse 3", None, "en")
+    val oppdatertDesc2 = ArticleContent("Beskrivelse 2 er oppdatert", None, "unknown")
 
     val existing = Seq(desc1, desc2, desc3)
     val updated = Seq(oppdatertDesc2)

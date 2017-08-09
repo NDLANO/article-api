@@ -16,9 +16,9 @@ import no.ndla.articleapi.model.search.LanguageValue.{LanguageValue => LV}
 
 object LanguageValue {
 
-  case class LanguageValue[T](lang: Option[String], value: T)
+  case class LanguageValue[T](lang: String, value: T)
 
-  def apply[T](lang: Option[String], value: T): LanguageValue[T] = LanguageValue(emptySomeToNone(lang), value)
+  def apply[T](lang: String, value: T): LanguageValue[T] = LanguageValue(lang, value)
 
 }
 

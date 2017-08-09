@@ -78,7 +78,7 @@ class ArticleConverterRegressionTest extends IntegrationSuite with TestEnvironme
   }
 
   def getByLanguage[T <: LanguageField[String]](fields: Seq[T], lang: String): Option[T] = {
-    fields.find(f => f.language.getOrElse("") == lang)
+    fields.find(f => f.language == lang)
   }
 
   def verifyNoLanguageContentChanges[T <: LanguageField[String]](perfect: Seq[T], imported: Seq[T], nodeId: String) = {
@@ -87,7 +87,7 @@ class ArticleConverterRegressionTest extends IntegrationSuite with TestEnvironme
     importedContentLanguages should equal (originalContentLanguages)
 
     perfect.foreach(origContent => {
-      val Some(importedContent) = getByLanguage[T](imported, origContent.language.getOrElse(""))
+      val Some(importedContent) = getByLanguage[T](imported, origContent.language)
       Try(importedContent should equal(origContent)) match {
         case Success(_) =>
         case Failure(ex) =>

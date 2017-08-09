@@ -19,9 +19,9 @@ class HtmlTagsUsageTest extends UnitSuite with TestEnvironment {
   val embedUrl = "http://hello.yes.this.is.dog"
   val copyright = Copyright("publicdomain", "", List())
   val article1 = TestData.sampleArticleWithPublicDomain
-  val article2 = TestData.sampleArticleWithPublicDomain.copy(id=Option(2), content=Seq(ArticleContent("<article><div>test</div><p>paragraph</p></article>", None, Some("en"))))
-  val article3 = TestData.sampleArticleWithPublicDomain.copy(id=Option(3), content=Seq(ArticleContent("<article><img></img></article>", None, Some("en"))))
-  val article4 = TestData.sampleArticleWithPublicDomain.copy(id=Option(4), content=Seq(ArticleContent(s"""<article><$resourceHtmlEmbedTag data-resource="external" data-url="$embedUrl"" /></article>""", None, Some("en"))))
+  val article2 = TestData.sampleArticleWithPublicDomain.copy(id=Option(2), content=Seq(ArticleContent("<article><div>test</div><p>paragraph</p></article>", None, "en")))
+  val article3 = TestData.sampleArticleWithPublicDomain.copy(id=Option(3), content=Seq(ArticleContent("<article><img></img></article>", None, "en")))
+  val article4 = TestData.sampleArticleWithPublicDomain.copy(id=Option(4), content=Seq(ArticleContent(s"""<article><$resourceHtmlEmbedTag data-resource="external" data-url="$embedUrl"" /></article>""", None, "en")))
 
 
   test("That getHtmlTagsMap counts html elements correctly") {

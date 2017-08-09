@@ -90,11 +90,7 @@ case class Concept(id: Option[Long],
   def title(lang: String): Option[String] = getByLanguage(title, lang)
   def content(lang: String): Option[String] = getByLanguage(content, lang)
 
-  val supportedLanguages: Seq[String] = {
-    (content union title)
-      .map(_.language.getOrElse(Language.UnknownLanguage))
-      .distinct
-  }
+  val supportedLanguages: Seq[String] = (content union title).map(_.language).distinct
 
   def supportedLanguage(lang: String): Option[String] = {
     lang match {

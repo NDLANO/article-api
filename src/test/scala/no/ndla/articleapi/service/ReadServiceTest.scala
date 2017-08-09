@@ -28,14 +28,14 @@ class ReadServiceTest extends UnitSuite with TestEnvironment {
   val urlAttr = s"${Attributes.DataUrl}"
   val content1 = s"""<$resourceHtmlEmbedTag $resourceIdAttr="123" $resourceAttr="$imageType" /><$resourceHtmlEmbedTag $resourceIdAttr=1234 $resourceAttr="$imageType" />"""
   val content2 = s"""<$resourceHtmlEmbedTag $resourceIdAttr="321" $resourceAttr="$imageType" /><$resourceHtmlEmbedTag $resourceIdAttr=4321 $resourceAttr="$imageType" />"""
-  val articleContent1 = ArticleContent(content1, None, None)
+  val articleContent1 = ArticleContent(content1, None, "unknown")
   val expectedArticleContent1 = articleContent1.copy(content=
     s"""<$resourceHtmlEmbedTag $resourceIdAttr="123" $resourceAttr="$imageType" $idAttr="0" $urlAttr="$externalImageApiUrl/123" /><$resourceHtmlEmbedTag $resourceIdAttr="1234" $resourceAttr="$imageType" $idAttr="1" $urlAttr="$externalImageApiUrl/1234" />""")
 
-  val articleContent2 = ArticleContent(content2, None, None)
+  val articleContent2 = ArticleContent(content2, None, "unknown")
 
-  val nbTags = ArticleTag(Seq("a", "b", "c", "a", "b", "a"), Some("nb"))
-  val enTags = ArticleTag(Seq("d", "e", "f", "d", "e", "d"), Some("en"))
+  val nbTags = ArticleTag(Seq("a", "b", "c", "a", "b", "a"), "nb")
+  val enTags = ArticleTag(Seq("d", "e", "f", "d", "e", "d"), "en")
   when(articleRepository.allTags(any[DBSession])).thenReturn(Seq(nbTags, enTags))
 
   override val readService = new ReadService
@@ -44,12 +44,12 @@ class ReadServiceTest extends UnitSuite with TestEnvironment {
   test("withId adds urls and ids on embed resources") {
     val visualElementBefore = s"""<$resourceHtmlEmbedTag data-align="" data-alt="" data-caption="" data-resource="image" data-resource_id="1" data-size="" />"""
     val visualElementAfter = s"""<$resourceHtmlEmbedTag data-align="" data-alt="" data-caption="" data-resource="image" data-resource_id="1" data-size="" data-id="0" data-url="http://api-gateway.ndla-local/image-api/v1/images/1" />"""
-    val article = TestData.sampleArticleWithByNcSa.copy(content=Seq(articleContent1), visualElement=Seq(VisualElement(visualElementBefore, Some("nb"))))
+    val article = TestData.sampleArticleWithByNcSa.copy(content=Seq(articleContent1), visualElement=Seq(VisualElement(visualElementBefore, "nb")))
 
     when(articleRepository.withId(1)).thenReturn(Option(article))
     when(articleRepository.getExternalIdFromId(any[Long])(any[DBSession])).thenReturn(Some("54321"))
 
-    val expectedResult = converterService.toApiArticle(article.copy(content=Seq(expectedArticleContent1), visualElement=Seq(VisualElement(visualElementAfter, Some("nb")))))
+    val expectedResult = converterService.toApiArticle(article.copy(content=Seq(expectedArticleContent1), visualElement=Seq(VisualElement(visualElementAfter, "nb"))))
     readService.articleWithId(1) should equal(Option(expectedResult))
   }
 
@@ -74,8 +74,8 @@ class ReadServiceTest extends UnitSuite with TestEnvironment {
   }
 
   test("getNMostUsedTags should return the N most used tags") {
-    val expectedResult1 = Some(Seq(api.ArticleTag(Seq("a", "b"), Some("nb"))))
-    val expectedResult2 = Some(Seq(api.ArticleTag(Seq("d", "e"), Some("en"))))
+    val expectedResult1 = Some(Seq(api.ArticleTag(Seq("a", "b"), "nb")))
+    val expectedResult2 = Some(Seq(api.ArticleTag(Seq("d", "e"), "en")))
     readService.getNMostUsedTags(2, "nb") should equal (expectedResult1)
     readService.getNMostUsedTags(2, "en") should equal (expectedResult2)
   }
