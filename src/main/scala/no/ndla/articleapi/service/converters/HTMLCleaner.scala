@@ -22,6 +22,7 @@ trait HTMLCleaner {
     override def convert(content: LanguageContent, importStatus: ImportStatus): Try[(LanguageContent, ImportStatus)] = {
       val element = stringToJsoupDocument(content.content)
       val illegalTags = unwrapIllegalTags(element).map(x => s"Illegal tag(s) removed: $x").distinct
+      convertLists(element)
       val illegalAttributes = removeAttributes(element).map(x => s"Illegal attribute(s) removed: $x").distinct
 
       moveImagesOutOfPTags(element)
@@ -252,6 +253,15 @@ trait HTMLCleaner {
         case _ =>
       }
       element
+    }
+
+    private def convertLists(element: Element) = {
+      element.select("ol").asScala.foreach(x => {
+        val styling = x.attr("style").split(";")
+        if (styling.contains("list-style-type: lower-alpha")) {
+          x.attr(Attributes.DataType.toString, "alphanum")
+        }
+      })
     }
 
   }
