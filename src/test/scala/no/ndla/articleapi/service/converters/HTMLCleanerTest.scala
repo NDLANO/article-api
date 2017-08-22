@@ -14,10 +14,10 @@ class HTMLCleanerTest extends UnitSuite with TestEnvironment {
   val defaultLanguageIngress = LanguageIngress("Jeg er en ingress", None)
   val defaultLanguageIngressWithHtml = LanguageIngress("<p>Jeg er en ingress</p>", None)
 
-  test("embed tag should be an allowed tag") {
+  test("embed tag should be an allowed tag and contain data attributes") {
     HTMLCleaner.isTagValid("embed")
 
-    val dataAttrs = Attributes.values.map(_.toString).filter(x => x.startsWith("data-")).toSet
+    val dataAttrs = Attributes.values.map(_.toString).filter(x => x.startsWith("data-") && x != Attributes.DataType.toString)
     val legalEmbedAttrs = HTMLCleaner.legalAttributesForTag("embed")
 
     dataAttrs.foreach(x => legalEmbedAttrs should contain(x))
@@ -508,6 +508,25 @@ class HTMLCleanerTest extends UnitSuite with TestEnvironment {
 
     result.content should equal(expectedContent)
     result.ingress should equal(Some(LanguageIngress(expectedIngress, Some("en"))))
+  }
+
+  test("lists with alphanumeric bullets points should be properly converted") {
+    val originalContent =
+      """<section>
+        |<ol style="list-style-type: lower-alpha;">
+        |<li>Definer makt</li>
+        |</ol>
+        |</section>""".stripMargin
+    val expectedContent =
+      s"""<section>
+         |<ol ${Attributes.DataType}="letters">
+         |<li>Definer makt</li>
+         |</ol>
+         |</section>""".stripMargin
+
+    val Success((result, _))  = htmlCleaner.convert(TestData.sampleContent.copy(content=originalContent), defaultImportStatus)
+
+    result.content should equal(expectedContent)
   }
 
 }

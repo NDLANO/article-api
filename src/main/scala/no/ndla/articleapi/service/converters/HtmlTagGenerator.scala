@@ -144,6 +144,8 @@ object Attributes extends Enumeration {
   val Align = Value("align")
   val Valign = Value("valign")
 
+  val DataType = Value("data-type")
+
   def all: Set[String] = Attributes.values.map(_.toString)
 
   def valueOf(s: String): Option[Attributes.Value] = {

@@ -34,6 +34,9 @@
       "href",
       "title",
       "name"
+    ],
+    "ol": [
+      "data-type"
     ]
   },
   "tags": [
@@ -64,7 +67,6 @@
     "strong",
     "embed",
     "a",
-    "ol",
     "i",
     "u",
     "button",
