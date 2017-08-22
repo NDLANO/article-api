@@ -519,7 +519,7 @@ class HTMLCleanerTest extends UnitSuite with TestEnvironment {
         |</section>""".stripMargin
     val expectedContent =
       s"""<section>
-         |<ol ${Attributes.DataType}="alphanum">
+         |<ol ${Attributes.DataType}="letters">
          |<li>Definer makt</li>
          |</ol>
          |</section>""".stripMargin

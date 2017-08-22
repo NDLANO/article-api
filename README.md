@@ -63,7 +63,7 @@ The embed tag contains a set of attributes which define what content should be i
 ### Other tags with extra attributes
 The following tags may contain extra attributes which conveys information about how they should be displayed
 * `ol`
-  * **data-type** - If present and with the value "alphanum" the bullets should be alphanumeric
+  * **data-type** - If present and with the value "letters" the bullets should be letters.
 
 ## Developer documentation
 

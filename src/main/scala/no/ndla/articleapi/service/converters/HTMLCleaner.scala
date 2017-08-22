@@ -259,7 +259,7 @@ trait HTMLCleaner {
       element.select("ol").asScala.foreach(x => {
         val styling = x.attr("style").split(";")
         if (styling.contains("list-style-type: lower-alpha")) {
-          x.attr(Attributes.DataType.toString, "alphanum")
+          x.attr(Attributes.DataType.toString, "letters")
         }
       })
     }
