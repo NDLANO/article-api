@@ -43,7 +43,7 @@ class ReadServiceTest extends UnitSuite with TestEnvironment {
 
   test("withId adds urls and ids on embed resources") {
     val visualElementBefore = s"""<$resourceHtmlEmbedTag data-align="" data-alt="" data-caption="" data-resource="image" data-resource_id="1" data-size="">"""
-    val visualElementAfter = s"""<$resourceHtmlEmbedTag data-align="" data-alt="" data-caption="" data-resource="image" data-resource_id="1" data-size="" data-id="0" data-url="http://api-gateway.ndla-local/image-api/v1/images/1">"""
+    val visualElementAfter = s"""<$resourceHtmlEmbedTag data-align="" data-alt="" data-caption="" data-resource="image" data-resource_id="1" data-size="" data-id="0" data-url="http://api-gateway.ndla-local/image-api/v2/images/1">"""
     val article = TestData.sampleArticleWithByNcSa.copy(content=Seq(articleContent1), visualElement=Seq(VisualElement(visualElementBefore, Some("nb"))))
 
     when(articleRepository.withId(1)).thenReturn(Option(article))
