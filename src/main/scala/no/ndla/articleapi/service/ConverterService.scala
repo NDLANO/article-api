@@ -84,12 +84,11 @@ trait ConverterService {
       val visualElements =  getEntrySetSeq(hit, "visualElement").map(entr => VisualElement       (entr.getValue.getAsString, entr.getKey))
       val introductions =   getEntrySetSeq(hit, "introduction") .map(entr => ArticleIntroduction (entr.getValue.getAsString, entr.getKey))
 
-      val supportedLanguages =  Language.getSupportedLanguages(Seq(titles, visualElements, introductions))
-      //TODO: KAN DENNE BARE FJERNES???? val searchLanguage =      Language.getSearchLanguage(language, supportedLanguages)
+      val supportedLanguages =  getSupportedLanguages(Seq(titles, visualElements, introductions))
 
-      val title =         Language.findByLanguageOrBestEffort(titles, Some(language)).map(converterService.toApiArticleTitle).getOrElse(api.ArticleTitle("", DefaultLanguage))
-      val visualElement = Language.findByLanguageOrBestEffort(visualElements, Some(language)).map(converterService.toApiVisualElement)
-      val introduction =  Language.findByLanguageOrBestEffort(introductions, Some(language)).map(converterService.toApiArticleIntroduction)
+      val title =         findByLanguageOrBestEffort(titles, Some(language)).map(converterService.toApiArticleTitle).getOrElse(api.ArticleTitle("", DefaultLanguage))
+      val visualElement = findByLanguageOrBestEffort(visualElements, Some(language)).map(converterService.toApiVisualElement)
+      val introduction =  findByLanguageOrBestEffort(introductions, Some(language)).map(converterService.toApiArticleIntroduction)
 
       ArticleSummaryV2(
         hit.get("id").getAsLong,

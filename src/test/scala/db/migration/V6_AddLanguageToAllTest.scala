@@ -15,7 +15,7 @@ import no.ndla.articleapi.{TestEnvironment, UnitSuite}
 class V6_AddLanguageToAllTest extends UnitSuite with TestEnvironment {
   val migration = new V6__AddLanguageToAll
 
-  test("migration should remove the contentType field and add an articleType field with value topic-article") {
+  test("migration should replace empty language fields with unknown") {
     val before = V6_Article(
       Some(1),
       Some(1),
