@@ -80,15 +80,15 @@ trait ConverterService {
     }
 
     def hitAsArticleSummaryV2(hit: JsonObject, language: String): ArticleSummaryV2 = {
-      val titles =          getEntrySetSeq(hit, "title")        .map(entr => ArticleTitle        (entr.getValue.getAsString, entr.getKey))
-      val visualElements =  getEntrySetSeq(hit, "visualElement").map(entr => VisualElement       (entr.getValue.getAsString, entr.getKey))
-      val introductions =   getEntrySetSeq(hit, "introduction") .map(entr => ArticleIntroduction (entr.getValue.getAsString, entr.getKey))
+      val titles = getEntrySetSeq(hit, "title").map(entr => ArticleTitle(entr.getValue.getAsString, entr.getKey))
+      val introductions = getEntrySetSeq(hit, "introduction").map(entr => ArticleIntroduction (entr.getValue.getAsString, entr.getKey))
+      val visualElements = getEntrySetSeq(hit, "visualElement").map(entr => VisualElement(entr.getValue.getAsString, entr.getKey))
 
       val supportedLanguages =  getSupportedLanguages(Seq(titles, visualElements, introductions))
 
-      val title =         findByLanguageOrBestEffort(titles, Some(language)).map(converterService.toApiArticleTitle).getOrElse(api.ArticleTitle("", DefaultLanguage))
-      val visualElement = findByLanguageOrBestEffort(visualElements, Some(language)).map(converterService.toApiVisualElement)
-      val introduction =  findByLanguageOrBestEffort(introductions, Some(language)).map(converterService.toApiArticleIntroduction)
+      val title = findByLanguageOrBestEffort(titles, language).map(converterService.toApiArticleTitle).getOrElse(api.ArticleTitle("", DefaultLanguage))
+      val visualElement = findByLanguageOrBestEffort(visualElements, language).map(converterService.toApiVisualElement)
+      val introduction = findByLanguageOrBestEffort(introductions, language).map(converterService.toApiArticleIntroduction)
 
       ArticleSummaryV2(
         hit.get("id").getAsLong,
@@ -359,12 +359,12 @@ trait ConverterService {
       if (supportedLanguages.isEmpty || (!supportedLanguages.contains(language) && language != AllLanguages)) return None
       val searchLanguage = getSearchLanguage(language, supportedLanguages)
 
-      val title =           findByLanguageOrBestEffort(article.title, Some(language)).map(toApiArticleTitle).getOrElse(api.ArticleTitle("", DefaultLanguage))
-      val visualElement =   findByLanguageOrBestEffort(article.visualElement, Some(language)).map(toApiVisualElement)
-      val introduction =    findByLanguageOrBestEffort(article.introduction, Some(language)).map(toApiArticleIntroduction)
-      val meta =            findByLanguageOrBestEffort(article.metaDescription, Some(language)).map(toApiArticleMetaDescription).getOrElse(api.ArticleMetaDescription("", DefaultLanguage))
-      val tags =            findByLanguageOrBestEffort(article.tags, Some(language)).map(toApiArticleTag).getOrElse(api.ArticleTag(Seq(), DefaultLanguage))
-      val articleContent =  findByLanguageOrBestEffort(article.content, Some(language)).map(toApiArticleContent).getOrElse(api.ArticleContent("", None, DefaultLanguage))
+      val meta = findByLanguageOrBestEffort(article.metaDescription, language).map(toApiArticleMetaDescription).getOrElse(api.ArticleMetaDescription("", DefaultLanguage))
+      val tags = findByLanguageOrBestEffort(article.tags, language).map(toApiArticleTag).getOrElse(api.ArticleTag(Seq(), DefaultLanguage))
+      val title = findByLanguageOrBestEffort(article.title, language).map(toApiArticleTitle).getOrElse(api.ArticleTitle("", DefaultLanguage))
+      val introduction = findByLanguageOrBestEffort(article.introduction, language).map(toApiArticleIntroduction)
+      val visualElement = findByLanguageOrBestEffort(article.visualElement, language).map(toApiVisualElement)
+      val articleContent = findByLanguageOrBestEffort(article.content, language).map(toApiArticleContent).getOrElse(api.ArticleContent("", None, DefaultLanguage))
 
 
       Some(api.ArticleV2(
@@ -478,20 +478,24 @@ trait ConverterService {
 
     def createLinkToOldNdla(nodeId: String): String = s"//red.ndla.no/node/$nodeId"
 
-    def toApiConcept(concept: Concept, language: String): Option[api.Concept] = {
-      concept.supportedLanguage(language).map(lang => {
-        api.Concept(
-          concept.id.get,
-          concept.title(lang).getOrElse(""),
-          concept.content(lang).getOrElse(""),
-          concept.authors.map(toApiAuthor),
-          concept.created,
-          concept.updated,
-          lang,
-          concept.supportedLanguages
-        )
-      })
+    def toApiConcept(concept: Concept, language: String): api.Concept = {
+      val title = findByLanguageOrBestEffort(concept.title, language).map(toApiConceptTitle).getOrElse(api.ConceptTitle("", Language.DefaultLanguage))
+      val content = findByLanguageOrBestEffort(concept.content, language).map(toApiConceptContent).getOrElse(api.ConceptContent("", Language.DefaultLanguage))
+
+      api.Concept(
+        concept.id.get,
+        title,
+        content,
+        concept.authors.map(toApiAuthor),
+        concept.created,
+        concept.updated,
+        concept.supportedLanguages
+      )
     }
+
+    def toApiConceptTitle(title: ConceptTitle): api.ConceptTitle = api.ConceptTitle(title.title, title.language)
+
+    def toApiConceptContent(title: ConceptContent): api.ConceptContent= api.ConceptContent(title.content, title.language)
 
   }
 }

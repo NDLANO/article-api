@@ -295,13 +295,12 @@ object TestData {
 
   val sampleApiConcept = api.Concept(
     1,
-    "Tittel for begrep",
-    "Innhold for begrep",
+    api.ConceptTitle("Tittel for begrep", "nb"),
+    api.ConceptContent("Innhold for begrep", "nb"),
     Seq(),
     DateTime.now().minusDays(4).toDate,
     DateTime.now().minusDays(2).toDate,
-    "nb",
-    Seq("nb")
+    Set("nb")
   )
 
 }

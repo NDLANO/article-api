@@ -87,25 +87,8 @@ case class Concept(id: Option[Long],
                    authors: Seq[Author],
                    created: Date,
                    updated: Date) extends Content {
-  def title(lang: String): Option[String] = getByLanguage(title, lang)
-  def content(lang: String): Option[String] = getByLanguage(content, lang)
-
-  val supportedLanguages: Seq[String] = (content union title).map(_.language).distinct
-
-  def supportedLanguage(lang: String): Option[String] = {
-    lang match {
-      case Language.NoLanguage =>
-        if (supportedLanguages.contains(Language.DefaultLanguage))
-          Some(Language.DefaultLanguage)
-        else
-          supportedLanguages.headOption
-      case l if supportedLanguages.contains(l) => Some(l)
-      case _ => None
-    }
-  }
-
+  lazy val supportedLanguages: Set[String] = (content union title).map(_.language).toSet
 }
-
 
 object Concept extends SQLSyntaxSupport[Concept] {
   implicit val formats = org.json4s.DefaultFormats
