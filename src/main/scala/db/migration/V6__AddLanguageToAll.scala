@@ -27,15 +27,24 @@ class V6__AddLanguageToAll extends JdbcMigration {
     db.autoClose(false)
 
     db.withinTx { implicit session =>
-      val count = countAllArticles.get
-      var numPagesLeft = (count / 1000) + 1
-      var offset = 0L
+      migrateArticles
+      migrateConcepts
+    }
+  }
 
-      while (numPagesLeft > 0) {
-        allArticles(offset * 1000).map(convertArticleUpdate).foreach(update)
-        numPagesLeft -= 1
-        offset += 1
-      }
+  //
+  // Articles
+  //
+
+  def migrateArticles(implicit session: DBSession): Unit = {
+    val count = countAllArticles.get
+    var numPagesLeft = (count / 1000) + 1
+    var offset = 0L
+
+    while (numPagesLeft > 0) {
+      allArticles(offset * 1000).map(convertArticleUpdate).foreach(updateArticle)
+      numPagesLeft -= 1
+      offset += 1
     }
   }
 
@@ -65,12 +74,55 @@ class V6__AddLanguageToAll extends JdbcMigration {
   }
 
 
-  def update(articleMeta: V6_Article)(implicit session: DBSession) = {
+  def updateArticle(articleMeta: V6_Article)(implicit session: DBSession) = {
     val dataObject = new PGobject()
     dataObject.setType("jsonb")
     dataObject.setValue(write(articleMeta))
 
     sql"update contentdata set document = $dataObject where id = ${articleMeta.id}".update().apply
+  }
+
+  //
+  // Concepts
+  //
+
+  def migrateConcepts(implicit session: DBSession) = {
+    val count = countAllConcepts.get
+    var numPagesLeft = (count / 1000) + 1
+    var offset = 0L
+
+    while (numPagesLeft > 0) {
+      allConcepts(offset * 1000).map(convertConceptUpdate).foreach(updateConcept)
+      numPagesLeft -= 1
+      offset += 1
+    }
+  }
+
+  def countAllConcepts(implicit session: DBSession) = {
+    sql"select count(*) from conceptdata".map(rs => rs.long("count")).single().apply()
+  }
+
+  def allConcepts(offset: Long)(implicit session: DBSession): Seq[V6_Concept] = {
+    sql"select id, document from conceptdata order by id limit 1000 offset ${offset}".map(rs => {
+      val meta = read[V6_Concept](rs.string("document"))
+      meta.copy(id = Some(rs.long("id")))
+
+    }).list.apply()
+  }
+
+  def convertConceptUpdate(concept: V6_Concept): V6_Concept = {
+    concept.copy(
+      title = concept.title.map(t => V6_ConceptTitle(t.title, Some(Language.languageOrUnknown(t.language)))),
+      content = concept.content.map(c => V6_ConceptContent(c.content, Some(Language.languageOrUnknown(c.language))))
+    )
+  }
+
+  def updateConcept(conceptMeta: V6_Concept)(implicit session: DBSession) = {
+    val dataObject = new PGobject()
+    dataObject.setType("jsonb")
+    dataObject.setValue(write(conceptMeta))
+
+    sql"update conceptdata set document = $dataObject where id = ${conceptMeta.id}".update().apply
   }
 
 }
@@ -101,3 +153,13 @@ case class V6_Article(id: Option[Long],
                       updated: Date,
                       updatedBy: String,
                       articleType: String)
+
+case class V6_Concept(id: Option[Long],
+                   title: Seq[V6_ConceptTitle],
+                   content: Seq[V6_ConceptContent],
+                   authors: Seq[V6_Author],
+                   created: Date,
+                   updated: Date)
+case class V6_ConceptTitle(title: String, language: Option[String])
+case class V6_ConceptContent(content: String, language: Option[String])
+

@@ -32,12 +32,12 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
   val sampleNode = NodeToConvert(List(contentTitle), Seq(), "by-sa", Seq(author), List(tag), "fagstoff", "fagstoff", new Date(0), new Date(1), ArticleType.Standard)
   val sampleLanguageContent = TestData.sampleContent.copy(content=sampleContentString, language="nb")
 
-  test("That the document is wrapped in an article tag") {
+  test("That the document is wrapped in an section tag") {
     val nodeId = "1"
     val initialContent = "<h1>Heading</h1>"
     val contentNode = sampleLanguageContent.copy(content=initialContent)
     val node = sampleNode.copy(contents=List(contentNode))
-    val expedtedResult = initialContent
+    val expedtedResult = s"<section>$initialContent</section>"
 
     when(extractConvertStoreContent.processNode("4321")).thenReturn(Try(TestData.sampleArticleWithPublicDomain, ImportStatus(Seq(), Seq())))
 
@@ -62,7 +62,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     when(extractService.getNodeGeneralContent(nodeId2)).thenReturn(Seq(sampleOppgave2))
 
     val Success((result: Article, status)) = service.toDomainArticle(node, ImportStatus(Seq(), Seq()))
-    result.content.head.content should equal ("Innhold! Enda mer innhold!")
+    result.content.head.content should equal ("<section>Innhold! Enda mer innhold!</section>")
     status.messages.isEmpty should equal (true)
     result.requiredLibraries.isEmpty should equal (true)
   }
@@ -76,8 +76,8 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     val contentNodeNynorsk = TestData.sampleContent.copy(content="Nordavinden og sola krangla ein gong om kven av dei som var den sterkaste", ingress=Some(ingressNodeNynorsk))
 
     val node = sampleNode.copy(contents=List(contentNodeBokmal, contentNodeNynorsk))
-    val bokmalExpectedResult = "Nordavinden og sola kranglet en gang om hvem av dem som var den sterkeste"
-    val nynorskExpectedResult = "Nordavinden og sola krangla ein gong om kven av dei som var den sterkaste"
+    val bokmalExpectedResult = "<section>Nordavinden og sola kranglet en gang om hvem av dem som var den sterkeste</section>"
+    val nynorskExpectedResult = "<section>Nordavinden og sola krangla ein gong om kven av dei som var den sterkaste</section>"
 
     val Success((result: Article, status)) = service.toDomainArticle(node, ImportStatus(Seq(), Seq()))
     val bokmalResult = result.content.head.content
@@ -92,14 +92,14 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
   test("ingress is extracted when wrapped in <p> tags") {
     val content =
       s"""<section>
-        |<$resourceHtmlEmbedTag data-size="fullbredde" data-url="http://image-api/images/5359" data-align="" data-resource="image" data-alt="To personer" data-caption="capt." />
-        |<p><strong>Når man driver med medieproduksjon, er det mye arbeid som må gjøres<br /></strong></p>
+        |<$resourceHtmlEmbedTag data-size="fullbredde" data-url="http://image-api/images/5359" data-align="" data-resource="image" data-alt="To personer" data-caption="capt.">
+        |<p><strong>Når man driver med medieproduksjon, er det mye arbeid som må gjøres<br></strong></p>
         |</section>
         |<section> <p>Det som kan gi helse- og sikkerhetsproblemer på en dataarbeidsplass, er:</section>""".stripMargin.replace("\n", "")
     val expectedContentResult = ArticleContent(
       s"""<section>
-         |<$resourceHtmlEmbedTag data-size="fullbredde" data-url="http://image-api/images/5359" data-align="" data-resource="image" data-alt="To personer" data-caption="capt." />
-         |<p><strong>Når man driver med medieproduksjon, er det mye arbeid som må gjøres<br /></strong></p>
+         |<$resourceHtmlEmbedTag data-size="fullbredde" data-url="http://image-api/images/5359" data-align="" data-resource="image" data-alt="To personer" data-caption="capt.">
+         |<p><strong>Når man driver med medieproduksjon, er det mye arbeid som må gjøres<br></strong></p>
          |</section>
          |<section> <p>Det som kan gi helse- og sikkerhetsproblemer på en dataarbeidsplass, er:</p></section>""".stripMargin.replace("\n", ""), None, "nb")
 
@@ -118,9 +118,9 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
   }
 
   test("That html attributes are removed from the article") {
-    val contentNodeBokmal = sampleLanguageContent.copy(content="""<table class="testclass" title="test"></table>""")
+    val contentNodeBokmal = sampleLanguageContent.copy(content="""<section><div class="testclass" title="test">high</div></section>""")
     val node = sampleNode.copy(contents=List(contentNodeBokmal))
-    val bokmalExpectedResult = """<table></table>"""
+    val bokmalExpectedResult = """<section><div>high</div></section>"""
 
     val Success((result: Article, status)) = service.toDomainArticle(node, ImportStatus(Seq(), Seq()))
 
@@ -130,10 +130,10 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
   }
 
   test("That align attributes for td tags are not removed") {
-    val htmlTableWithAlignAttributes = """<table><tbody><tr><td align="right" valign="top">Table row cell</td></tr></tbody></table>"""
+    val htmlTableWithAlignAttributes = """<section><table><tbody><tr><td align="right" valign="top">Table row cell</td></tr></tbody></table></section>"""
     val contentNodeBokmal = sampleLanguageContent.copy(content=htmlTableWithAlignAttributes)
     val node = sampleNode.copy(contents=List(contentNodeBokmal))
-    val expectedResult = """<table><tbody><tr><th align="right" valign="top">Table row cell</th></tr></tbody></table>"""
+    val expectedResult = """<section><table><tbody><tr><th align="right" valign="top">Table row cell</th></tr></tbody></table></section>"""
 
     val Success((result: Article, status)) = service.toDomainArticle(node, ImportStatus(Seq(), Seq()))
 
@@ -143,9 +143,9 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
   }
 
   test("That html comments are removed") {
-    val contentNodeBokmal = sampleLanguageContent.copy(content="""<p><!-- this is a comment -->not a comment</p> <!-- another comment -->""")
+    val contentNodeBokmal = sampleLanguageContent.copy(content="""<section><p><!-- this is a comment -->not a comment</p><!-- another comment --></section>""")
     val node = sampleNode.copy(contents=List(contentNodeBokmal))
-    val expectedResult = """<p>not a comment</p>"""
+    val expectedResult = "<section><p>not a comment</p></section>"
 
     val Success((result: Article, status)) = service.toDomainArticle(node, ImportStatus(Seq(), Seq()))
 
@@ -157,13 +157,13 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
   test("That images are converted") {
     val (nodeId, imageUrl, alt) = ("1234", "full.jpeg", "Fotografi")
     val newId = "1"
-    val contentNode = sampleLanguageContent.copy(content=s"<article>$sampleContentString</article>")
+    val contentNode = sampleLanguageContent.copy(content=s"<section>$sampleContentString</section>")
     val node = sampleNode.copy(contents=List(contentNode))
     val imageMeta = ImageMetaInformation(newId, List(), List(), imageUrl, 256, "", ImageCopyright(ImageLicense("", "", Some("")), "", List()), List())
     val expectedResult =
-      s"""|<article>
-          |<$resourceHtmlEmbedTag data-align="" data-alt="$sampleAlt" data-caption="" data-resource="image" data-resource_id="1" data-size="fullbredde" />
-          |</article>""".stripMargin.replace("\n", "")
+      s"""|<section>
+          |<$resourceHtmlEmbedTag data-align="" data-alt="$sampleAlt" data-caption="" data-resource="image" data-resource_id="1" data-size="fullbredde">
+          |</section>""".stripMargin.replace("\n", "")
 
     when(extractService.getNodeType(nodeId)).thenReturn(Some("image"))
     when(imageApiClient.importOrGetMetaByExternId(nodeId)).thenReturn(Some(imageMeta))
@@ -174,9 +174,9 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
   }
 
   test("&nbsp is removed") {
-    val contentNodeBokmal = sampleLanguageContent.copy(content="""<article> <p>hello&nbsp; you</article>""")
+    val contentNodeBokmal = sampleLanguageContent.copy(content="""<section> <p>hello&nbsp; you</section>""")
     val node = sampleNode.copy(contents=List(contentNodeBokmal))
-    val expectedResult = """<article> <p>hello you</p></article>"""
+    val expectedResult = """<section> <p>hello you</p></section>"""
 
     val Success((result: Article, status)) = service.toDomainArticle(node, ImportStatus(Seq(), Seq()))
     val strippedResult = " +".r.replaceAllIn(result.content.head.content.replace("\n", ""), " ")
@@ -187,9 +187,9 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
   }
 
   test("That empty html tags are removed") {
-    val contentNodeBokmal = sampleLanguageContent.copy(content=s"""<article> <div></div><p><div></div></p><$resourceHtmlEmbedTag ></$resourceHtmlEmbedTag></article>""")
+    val contentNodeBokmal = sampleLanguageContent.copy(content=s"""<section> <div></div><p><div></div></p><$resourceHtmlEmbedTag ></$resourceHtmlEmbedTag></section>""")
     val node = sampleNode.copy(contents=List(contentNodeBokmal))
-    val expectedResult = s"""<article> <$resourceHtmlEmbedTag /></article>"""
+    val expectedResult = s"""<section> <$resourceHtmlEmbedTag></section>"""
 
     val Success((result: Article, status)) = service.toDomainArticle(node, ImportStatus(Seq(), Seq()))
 
@@ -223,8 +223,8 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
   }
 
   test("MathML elements are converted correctly") {
-    val originalContent = "<math><menclose notation=\"updiagonalstrike\"></menclose>\u00a0</math>"
-    val expectedContent = """<math xmlns="http://www.w3.org/1998/Math/MathML"><menclose notation="updiagonalstrike"></menclose> </math>"""
+    val originalContent = "<section><math><menclose notation=\"updiagonalstrike\"></menclose>\u00a0</math></section>"
+    val expectedContent = """<section><math xmlns="http://www.w3.org/1998/Math/MathML"><menclose notation="updiagonalstrike"></menclose> </math></section>"""
     val initialContent: LanguageContent = sampleLanguageContent.copy(content=originalContent)
     val node = sampleNode.copy(contents=List(initialContent))
 
@@ -236,7 +236,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
   test("JoubelH5PConverter is used when ENABLE_JOUBEL_H5P_OEMBED is true") {
     val h5pNodeId = "160303"
     val contentStringWithValidNodeId = s"[contentbrowser ==nid=$h5pNodeId==imagecache=Fullbredde==width===alt=$sampleAlt==link===node_link=1==link_type=link_to_content==lightbox_size===remove_fields[76661]=1==remove_fields[76663]=1==remove_fields[76664]=1==remove_fields[76666]=1==insertion===link_title_text= ==link_text= ==text_align===css_class=contentbrowser contentbrowser]"
-    val expectedResult = s"""<$resourceHtmlEmbedTag data-resource="h5p" data-url="${JoubelH5PConverter.JoubelH5PBaseUrl}/1" />"""
+    val expectedResult = s"""<section><$resourceHtmlEmbedTag data-resource="h5p" data-url="${JoubelH5PConverter.JoubelH5PBaseUrl}/1"></section>"""
 
     val contentNodeBokmal = sampleLanguageContent.copy(content=contentStringWithValidNodeId)
     val node = sampleNode.copy(contents=List(contentNodeBokmal))
@@ -300,9 +300,9 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
 
   test("toDomainArticleShould should remove unneeded attributes on embed-tags") {
     val content = s"""<h1>hello</h1><embed ${Attributes.DataResource}="${ResourceType.Image}" ${Attributes.DataUrl}="http://some-url" ${Attributes.DataId}=1 data-random="hehe" />"""
-    val expectedContent = s"""<h1>hello</h1><embed ${Attributes.DataResource}="${ResourceType.Image}" />"""
+    val expectedContent = s"""<h1>hello</h1><embed ${Attributes.DataResource}="${ResourceType.Image}">"""
     val visualElement = s"""<embed ${Attributes.DataResource}="${ResourceType.Image}" ${Attributes.DataUrl}="http://some-url" ${Attributes.DataId}=1 data-random="hehe" />"""
-    val expectedVisualElement = s"""<embed ${Attributes.DataResource}="${ResourceType.Image}" />"""
+    val expectedVisualElement = s"""<embed ${Attributes.DataResource}="${ResourceType.Image}">"""
     val articleContent = api.ArticleContent(content, None, "en")
     val articleVisualElement = api.VisualElement(visualElement, "en")
     val apiArticle = TestData.newArticle.copy(content=Seq(articleContent), visualElement=Some(Seq(articleVisualElement)))
@@ -323,9 +323,9 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
   }
 
   test("That divs with class 'ndla_table' is converted to table") {
-    val sampleLanguageContent: LanguageContent = TestData.sampleContent.copy(content="<article><div class=\"ndla_table another_class\">nobody builds walls better than me, believe me</div></article>")
+    val sampleLanguageContent: LanguageContent = TestData.sampleContent.copy(content="<section><div class=\"ndla_table another_class\">nobody builds walls better than me, believe me</div></section>")
     val node = sampleNode.copy(contents=List(sampleLanguageContent))
-    val expectedResult = "<article><table>nobody builds walls better than me, believe me</table></article>"
+    val expectedResult = "<section><table>nobody builds walls better than me, believe me</table></section>"
     val result = service.toDomainArticle(node, ImportStatus.empty)
     result.isSuccess should be (true)
 

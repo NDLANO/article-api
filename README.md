@@ -60,6 +60,11 @@ The embed tag contains a set of attributes which define what content should be i
 * **data-nrk-video-id** - an ID to nrk videos. Present in nrk
 * **data-resource_id** - an ID to an internal resource to be inserted. Present in image and audio
 
+### Other tags with extra attributes
+The following tags may contain extra attributes which conveys information about how they should be displayed
+* `ol`
+  * **data-type** - If present and with the value "letters" the bullets should be letters.
+
 ## Developer documentation
 
 **Compile**: sbt compile

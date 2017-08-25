@@ -60,7 +60,7 @@ lazy val article_api = (project in file(".")).
       "org.apache.lucene" % "lucene-test-framework" % "6.4.1" % "test",
       "vc.inreach.aws" % "aws-signing-request-interceptor" % "0.0.16",
       "org.scalatest" %% "scalatest" % ScalaTestVersion % "test",
-      "org.jsoup" % "jsoup" % "1.7.3",
+      "org.jsoup" % "jsoup" % "1.10.3",
       "org.mockito" % "mockito-all" % MockitoVersion % "test",
       "org.flywaydb" % "flyway-core" % "4.0",
       "com.netaporter" %% "scala-uri" % "0.4.16"

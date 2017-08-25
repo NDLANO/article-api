@@ -2,13 +2,14 @@ package no.ndla.articleapi.service.converters
 
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.articleapi.ArticleApiProperties._
+import no.ndla.articleapi.integration.ConverterModule.{jsoupDocumentToString, stringToJsoupDocument}
 import no.ndla.articleapi.integration.{ConverterModule, ImageApiClient, LanguageContent, LanguageIngress}
 import no.ndla.articleapi.model.domain.ImportStatus
-import org.jsoup.nodes.{Element, Node, TextNode}
-import no.ndla.articleapi.integration.ConverterModule.{jsoupDocumentToString, stringToJsoupDocument}
-import Attributes._
-import org.json4s.native.JsonMethods.parse
+import no.ndla.articleapi.service.converters.Attributes._
 import org.json4s._
+import org.json4s.native.JsonMethods.parse
+import org.jsoup.nodes.{Element, Node, TextNode}
+
 import scala.collection.JavaConverters._
 import scala.io.Source
 import scala.util.{Success, Try}
@@ -18,17 +19,18 @@ trait HTMLCleaner {
   val htmlCleaner: HTMLCleaner
 
   class HTMLCleaner extends ConverterModule with LazyLogging {
-    private val NBSP = "\u00a0" // \u00a0 is the unicode representation of &nbsp;
-
     override def convert(content: LanguageContent, importStatus: ImportStatus): Try[(LanguageContent, ImportStatus)] = {
       val element = stringToJsoupDocument(content.content)
       val illegalTags = unwrapIllegalTags(element).map(x => s"Illegal tag(s) removed: $x").distinct
+      convertLists(element)
       val illegalAttributes = removeAttributes(element).map(x => s"Illegal attribute(s) removed: $x").distinct
 
       moveImagesOutOfPTags(element)
       removeComments(element)
       removeNbsp(element)
-      removeEmptyTags(element)
+      // Jsoup doesn't support removing elements while iterating the dom-tree.
+      // Thus executes the routine 3 times in order to be sure to remove all tags
+      (1 to 3).foreach(_ => removeEmptyTags(element))
       wrapStandaloneTextInPTag(element)
 
       val metaDescription = prepareMetaDescription(content.metaDescription)
@@ -36,8 +38,9 @@ trait HTMLCleaner {
       val ingress = getIngress(content, element)
 
       moveMisplacedAsideTags(element)
+      val finalCleanedDocument = allContentMustBeWrappedInSectionBlocks(element)
 
-      Success((content.copy(content=jsoupDocumentToString(element), ingress=ingress, metaDescription=metaDescription),
+      Success((content.copy(content=jsoupDocumentToString(finalCleanedDocument), ingress=ingress, metaDescription=metaDescription),
         ImportStatus(importStatus.messages ++ illegalTags ++ illegalAttributes, importStatus.visitedNodes)))
     }
 
@@ -130,11 +133,12 @@ trait HTMLCleaner {
     }
 
     private def htmlTagIsEmpty(el: Element) = {
-      el.select(resourceHtmlEmbedTag).isEmpty && !el.hasText
+      el.select(resourceHtmlEmbedTag).isEmpty && el.select("math").isEmpty && !el.hasText
     }
 
     private def removeEmptyTags(element: Element): Element = {
-      for (el <- element.select("p,div,section,aside,strong").asScala) {
+      val tagsToRemove = Set("p", "div", "section", "aside", "strong")
+      for (el <- element.select(tagsToRemove.mkString(",")).asScala) {
         if (htmlTagIsEmpty(el)) {
           el.remove()
         }
@@ -226,6 +230,38 @@ trait HTMLCleaner {
           )
       }
       element
+    }
+
+    private def allContentMustBeWrappedInSectionBlocks(element: Element): Element = {
+      val body = element.select("body").first
+      if (body.childNodeSize() < 1)
+        return element
+
+      val rootLevelBlocks = body.children
+      if (rootLevelBlocks.select("section").isEmpty) {
+        return stringToJsoupDocument(s"<section>${body.outerHtml}</section>")
+      }
+
+      if (rootLevelBlocks.first().tagName() != "section") {
+        body.prepend("<section></section>")
+      }
+
+      rootLevelBlocks.asScala.foreach {
+        case el if el.tagName != "section" =>
+          el.previousElementSibling.append(el.outerHtml)
+          el.remove()
+        case _ =>
+      }
+      element
+    }
+
+    private def convertLists(element: Element) = {
+      element.select("ol").asScala.foreach(x => {
+        val styling = x.attr("style").split(";")
+        if (styling.contains("list-style-type: lower-alpha")) {
+          x.attr(Attributes.DataType.toString, "letters")
+        }
+      })
     }
 
   }
