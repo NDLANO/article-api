@@ -8,14 +8,17 @@
 
 package no.ndla.articleapi.service.search
 
-import com.google.gson.JsonObject
+import java.util.Map.Entry
+
+import com.google.gson.{JsonElement, JsonObject}
 import com.typesafe.scalalogging.LazyLogging
 import io.searchbox.core.Search
 import io.searchbox.params.Parameters
 import no.ndla.articleapi.ArticleApiProperties
 import no.ndla.articleapi.integration.ElasticClient
 import no.ndla.articleapi.model.api
-import no.ndla.articleapi.model.domain.{Concept, Language, NdlaSearchException, Sort}
+import no.ndla.articleapi.model.domain._
+import no.ndla.articleapi.service.ConverterService
 import org.apache.lucene.search.join.ScoreMode
 import org.elasticsearch.ElasticsearchException
 import org.elasticsearch.index.IndexNotFoundException
@@ -28,7 +31,7 @@ import scala.concurrent.Future
 import scala.util.{Failure, Success}
 
 trait ConceptSearchService {
-  this: ElasticClient with SearchService with ConceptIndexService =>
+  this: ElasticClient with SearchService with ConceptIndexService with ConverterService =>
   val conceptSearchService: ConceptSearchService
 
   class ConceptSearchService extends LazyLogging with SearchService[api.ConceptSummary] {
@@ -43,21 +46,23 @@ trait ConceptSearchService {
     }
 
     override def hitToApiModel(hit: JsonObject, language: String): api.ConceptSummary = {
-      val titles = hit.get("title").getAsJsonObject.entrySet.asScala.to[Seq]
-      val concepts = hit.get("content").getAsJsonObject.entrySet.asScala.to[Seq]
-      val supportedLanguages = titles.map(_.getKey).union(concepts.map(_.getKey)).distinct
-      val searchLanguage: String = getSearchLanguage(supportedLanguages, language)
+      val titles = getEntrySetSeq(hit, "title").map(ent => ConceptTitle(ent.getValue.getAsString, ent.getKey))
+      val contents = getEntrySetSeq(hit, "content").map(ent => ConceptContent(ent.getValue.getAsString, ent.getKey))
+      val supportedLanguages = (titles union contents).map(_.language).toSet
 
-      val title = titles.find(_.getKey == searchLanguage).map(_.getValue.getAsString).getOrElse("")
-      val concept = concepts.find(_.getKey == searchLanguage).map(_.getValue.getAsString).getOrElse("")
+      val title = Language.findByLanguageOrBestEffort(titles, language).map(converterService.toApiConceptTitle).getOrElse(api.ConceptTitle("", Language.DefaultLanguage))
+      val concept = Language.findByLanguageOrBestEffort(contents, language).map(converterService.toApiConceptContent).getOrElse(api.ConceptContent("", Language.DefaultLanguage))
 
       api.ConceptSummary(
         hit.get("id").getAsLong,
         title,
-        concept.toString,
-        searchLanguage,
+        concept,
         supportedLanguages
       )
+    }
+
+    def getEntrySetSeq(hit: JsonObject, fieldPath: String): Seq[Entry[String, JsonElement]] = {
+      hit.get(fieldPath).getAsJsonObject.entrySet.asScala.to[Seq]
     }
 
     def all(withIdIn: List[Long], language: String, page: Int, pageSize: Int, sort: Sort.Value): api.ConceptSearchResult = {

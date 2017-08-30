@@ -74,7 +74,7 @@ trait HTMLCleaner {
 
     private def getIngress(content: LanguageContent, element: Element): Option[LanguageIngress] = {
       content.ingress match {
-        case None => extractIngress(element).map(LanguageIngress(_, content.language))
+        case None => extractIngress(element).map(LanguageIngress(_, None))
         case Some(ingress) =>
           val imageEmbedHtml = ingress.ingressImage.flatMap(imageApiClient.importOrGetMetaByExternId)
             .map(imageMetaData => HtmlTagGenerator.buildImageEmbedContent(

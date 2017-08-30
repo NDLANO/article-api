@@ -24,7 +24,7 @@ class ImageConverterTest extends UnitSuite with TestEnvironment {
   val contentString = s"[contentbrowser ==nid=$nodeId==imagecache=Fullbredde==width===alt=$altText==link===node_link=1==link_type=link_to_content==lightbox_size===remove_fields[76661]=1==remove_fields[76663]=1==remove_fields[76664]=1==remove_fields[76666]=1==insertion===link_title_text= ==link_text=$caption==text_align===css_class=contentbrowser contentbrowser]"
   val contentStringWithLeftMargin = s"[contentbrowser ==nid=$nodeId==imagecache=Fullbredde==width===alt=$altText==link===node_link=1==link_type=link_to_content==lightbox_size===remove_fields[76661]=1==remove_fields[76663]=1==remove_fields[76664]=1==remove_fields[76666]=1==insertion===link_title_text= ==link_text=$caption==text_align===css_class=contentbrowser contentbrowser_margin_left contentbrowser]"
   val contentStringEmptyCaption = s"[contentbrowser ==nid=$nodeId==imagecache=Fullbredde==width===alt=$altText==link===node_link=1==link_type=link_to_content==lightbox_size===remove_fields[76661]=1==remove_fields[76663]=1==remove_fields[76664]=1==remove_fields[76666]=1==insertion===link_title_text= ==link_text===text_align===css_class=contentbrowser contentbrowser]"
-  val content = ContentBrowser(contentString, Some("nb"))
+  val content = ContentBrowser(contentString, "nb")
   val license = ImageLicense("licence", "description", Some("http://"))
   val author = Author("forfatter", "Henrik")
   val copyright = ImageCopyright(license, "", List(author))
@@ -46,7 +46,7 @@ class ImageConverterTest extends UnitSuite with TestEnvironment {
     val expectedResult = s"""<$resourceHtmlEmbedTag data-align="" data-alt="$altText" data-caption="" data-resource="image" data-resource_id="1234" data-size="fullbredde" />"""
 
     when(imageApiClient.importOrGetMetaByExternId(nodeId)).thenReturn(Some(image))
-    val Success((result, requiredLibraries, errors)) = ImageConverter.convert(ContentBrowser(contentStringEmptyCaption, Some("nb")), Seq())
+    val Success((result, requiredLibraries, errors)) = ImageConverter.convert(ContentBrowser(contentStringEmptyCaption, "nb"), Seq())
 
     result should equal (expectedResult)
     errors.messages.length should equal(0)
@@ -65,7 +65,7 @@ class ImageConverterTest extends UnitSuite with TestEnvironment {
     val expectedResult = s"""<$resourceHtmlEmbedTag data-align="right" data-alt="$altText" data-caption="$caption" data-resource="image" data-resource_id="1234" data-size="fullbredde" />"""
 
     when(imageApiClient.importOrGetMetaByExternId(nodeId)).thenReturn(Some(image))
-    val Success((result, requiredLibraries, errors)) = ImageConverter.convert(ContentBrowser(contentStringWithLeftMargin, Some("nb")), Seq())
+    val Success((result, requiredLibraries, errors)) = ImageConverter.convert(ContentBrowser(contentStringWithLeftMargin, "nb"), Seq())
 
     result should equal (expectedResult)
     errors.messages.length should equal(0)

@@ -75,7 +75,7 @@ class HTMLCleanerTest extends UnitSuite with TestEnvironment {
          |<section>
          |<h2>Mediehverdagen</h2>
          |</section>""".stripMargin.replace("\n", "")
-    val expectedIngressResult = LanguageIngress("Medievanene er i endring.", TestData.sampleContent.language)
+    val expectedIngressResult = LanguageIngress("Medievanene er i endring.", None)
 
     val Success((result, _)) = htmlCleaner.convert(TestData.sampleContent.copy(content=content), defaultImportStatus)
 
@@ -126,7 +126,7 @@ class HTMLCleanerTest extends UnitSuite with TestEnvironment {
         |</section>
       |""".stripMargin.replace("\n", "")
     val expectedContentResult = """<section><ul><li><a href="#" title="Snopes">Snopes</a></li></ul></section>"""
-    val expectedIngressResult = LanguageIngress("Du har sikkert opplevd rykter og usannheter", TestData.sampleContent.language)
+    val expectedIngressResult = LanguageIngress("Du har sikkert opplevd rykter og usannheter", None)
     val Success((result, _)) = htmlCleaner.convert(TestData.sampleContent.copy(content=content), defaultImportStatus)
     result.content should equal(expectedContentResult)
     result.ingress should equal(Some(expectedIngressResult))
@@ -143,7 +143,7 @@ class HTMLCleanerTest extends UnitSuite with TestEnvironment {
       s"""<section>
         |<$resourceHtmlEmbedTag data-size="fullbredde" data-url="http://image-api/images/5452" data-align="" data-id="1" data-resource="image" data-alt="Mobiltelefon sender SMS">
         |<h2>Mediehverdagen</h2></section>""".stripMargin.replace("\n", "")
-    val expectedIngressResult = LanguageIngress("Medievanene er i endring.", TestData.sampleContent.language)
+    val expectedIngressResult = LanguageIngress("Medievanene er i endring.", None)
     val Success((result, _)) = htmlCleaner.convert(TestData.sampleContent.copy(content=content), defaultImportStatus)
 
     result.content should equal(expectedContentResult)
@@ -173,7 +173,7 @@ class HTMLCleanerTest extends UnitSuite with TestEnvironment {
 
       |<h2>Tips til aktuelle verktøy og bruk av verktøy</h2>
       |</section>""".stripMargin
-    val expectedIngressResult = LanguageIngress("Når du skal jobbe med fotoutstilling, er det lurt å sette seg godt inn i tema for utstillingen og bestemme seg for hvilket uttrykk man er ute etter å skape allerede i planleggingsfasen.", TestData.sampleContent.language)
+    val expectedIngressResult = LanguageIngress("Når du skal jobbe med fotoutstilling, er det lurt å sette seg godt inn i tema for utstillingen og bestemme seg for hvilket uttrykk man er ute etter å skape allerede i planleggingsfasen.", None)
 
     val Success((result, _)) = htmlCleaner.convert(TestData.sampleContent.copy(content=content), defaultImportStatus)
 
@@ -193,7 +193,7 @@ class HTMLCleanerTest extends UnitSuite with TestEnvironment {
         |<embed data-align="" data-alt="To gutter" data-caption="" data-resource="image" data-resource_id="1234" data-size="fullbredde" data-id="0" data-url="http://ndla">
         |
         |</div></section>""".stripMargin
-    val expectedIngress = Some(LanguageIngress("Du er et unikt individ, med en rekke personlige egenskaper.", TestData.sampleContent.language))
+    val expectedIngress = Some(LanguageIngress("Du er et unikt individ, med en rekke personlige egenskaper.", None))
 
     val Success((result, _)) = htmlCleaner.convert(TestData.sampleContent.copy(content=content), defaultImportStatus)
 
@@ -212,7 +212,7 @@ class HTMLCleanerTest extends UnitSuite with TestEnvironment {
         |<embed data-align="" data-alt="To gutter" data-caption="" data-resource="image" data-resource_id="1234" data-size="fullbredde" data-id="0" data-url="http://ndla">
         |
         |</div><p>do not touch</p></div></section>""".stripMargin
-    val expectedIngress = Some(LanguageIngress("Du er et unikt individ, med en rekke personlige egenskaper.", TestData.sampleContent.language))
+    val expectedIngress = Some(LanguageIngress("Du er et unikt individ, med en rekke personlige egenskaper.", None))
 
     val Success((result, _)) = htmlCleaner.convert(TestData.sampleContent.copy(content=content), defaultImportStatus)
 
@@ -231,7 +231,7 @@ class HTMLCleanerTest extends UnitSuite with TestEnvironment {
         |<embed data-align="" data-alt="To gutter" data-caption="" data-resource="image" data-resource_id="1234" data-size="fullbredde" data-id="0" data-url="http://ndla">
         |<p><strong>Du er et unikt individ, med en rekke personlige egenskaper.</strong></p>
         |</div><p>do not touch</p></div></section>""".stripMargin
-    val expectedIngress = Some(LanguageIngress("correct ingress more than three words", TestData.sampleContent.language))
+    val expectedIngress = Some(LanguageIngress("correct ingress more than three words", None))
 
     val Success((result, _)) = htmlCleaner.convert(TestData.sampleContent.copy(content=content), defaultImportStatus)
 
@@ -334,7 +334,7 @@ class HTMLCleanerTest extends UnitSuite with TestEnvironment {
                                    |<h2>Mediehverdagen</h2>
                                    |</section>""".stripMargin.replace("\n", "")
 
-    val expectedIngressResult = LanguageIngress("Medievanene er i endring. Er egentlig medievanene i endring", Some("en"))
+    val expectedIngressResult = LanguageIngress("Medievanene er i endring. Er egentlig medievanene i endring", None)
 
     val Success((result, _)) = htmlCleaner.convert(TestData.sampleContent.copy(content=content), defaultImportStatus)
 
@@ -507,7 +507,7 @@ class HTMLCleanerTest extends UnitSuite with TestEnvironment {
     val Success((result, _))  = htmlCleaner.convert(TestData.sampleContent.copy(content=originalContent), defaultImportStatus)
 
     result.content should equal(expectedContent)
-    result.ingress should equal(Some(LanguageIngress(expectedIngress, Some("en"))))
+    result.ingress should equal(Some(LanguageIngress(expectedIngress, None)))
   }
 
   test("lists with alphanumeric bullets points should be properly converted") {

@@ -55,9 +55,9 @@ trait ConverterService {
     def hitAsArticleSummary(hit: JsonObject): ArticleSummary = {
       ArticleSummary(
         hit.get("id").getAsString,
-        hit.get("title").getAsJsonObject.entrySet.asScala.to[Seq].map(entr => api.ArticleTitle(entr.getValue.getAsString, Some(entr.getKey))),
-        hit.get("visualElement").getAsJsonObject.entrySet.asScala.to[Seq].map(entr => api.VisualElement(entr.getValue.getAsString, Some(entr.getKey))),
-        hit.get("introduction").getAsJsonObject.entrySet.asScala.to[Seq].map(entr => api.ArticleIntroduction(entr.getValue.getAsString, Some(entr.getKey))),
+        hit.get("title").getAsJsonObject.entrySet.asScala.to[Seq].map(entr => api.ArticleTitle(entr.getValue.getAsString, entr.getKey)),
+        hit.get("visualElement").getAsJsonObject.entrySet.asScala.to[Seq].map(entr => api.VisualElement(entr.getValue.getAsString, entr.getKey)),
+        hit.get("introduction").getAsJsonObject.entrySet.asScala.to[Seq].map(entr => api.ArticleIntroduction(entr.getValue.getAsString, entr.getKey)),
         ApplicationUrl.get + hit.get("id").getAsString,
         hit.get("license").getAsString,
         hit.get("articleType").getAsString
@@ -80,16 +80,15 @@ trait ConverterService {
     }
 
     def hitAsArticleSummaryV2(hit: JsonObject, language: String): ArticleSummaryV2 = {
-      val titles =          getEntrySetSeq(hit, "title")        .map(entr => ArticleTitle        (entr.getValue.getAsString, Some(entr.getKey)))
-      val visualElements =  getEntrySetSeq(hit, "visualElement").map(entr => VisualElement       (entr.getValue.getAsString, Some(entr.getKey)))
-      val introductions =   getEntrySetSeq(hit, "introduction") .map(entr => ArticleIntroduction (entr.getValue.getAsString, Some(entr.getKey)))
+      val titles = getEntrySetSeq(hit, "title").map(entr => ArticleTitle(entr.getValue.getAsString, entr.getKey))
+      val introductions = getEntrySetSeq(hit, "introduction").map(entr => ArticleIntroduction (entr.getValue.getAsString, entr.getKey))
+      val visualElements = getEntrySetSeq(hit, "visualElement").map(entr => VisualElement(entr.getValue.getAsString, entr.getKey))
 
-      val supportedLanguages =  Language.getSupportedLanguages(Seq(titles, visualElements, introductions))
-      val searchLanguage =      Language.getSearchLanguage(language, supportedLanguages)
+      val supportedLanguages =  getSupportedLanguages(Seq(titles, visualElements, introductions))
 
-      val title =         Language.findValueByLanguage(titles,          searchLanguage).getOrElse("")
-      val visualElement = Language.findValueByLanguage(visualElements,  searchLanguage).getOrElse("")
-      val introduction =  Language.findValueByLanguage(introductions,   searchLanguage).getOrElse("")
+      val title = findByLanguageOrBestEffort(titles, language).map(converterService.toApiArticleTitle).getOrElse(api.ArticleTitle("", DefaultLanguage))
+      val visualElement = findByLanguageOrBestEffort(visualElements, language).map(converterService.toApiVisualElement)
+      val introduction = findByLanguageOrBestEffort(introductions, language).map(converterService.toApiArticleIntroduction)
 
       ArticleSummaryV2(
         hit.get("id").getAsLong,
@@ -155,7 +154,7 @@ trait ConverterService {
       val ingresses = nodeToConvert.contents.flatMap(content => content.asArticleIntroduction)
       val visualElements = nodeToConvert.contents.flatMap(_.asVisualElement)
 
-      val languagesInNode: Set[Option[String]] = (nodeToConvert.titles.map(_.language) ++
+      val languagesInNode: Set[String] = (nodeToConvert.titles.map(_.language) ++
         nodeToConvert.contents.map(_.language) ++
         ingresses.map(_.language)).toSet
 
@@ -215,12 +214,11 @@ trait ConverterService {
     }
 
     def toDomainArticle(newArticle: api.NewArticleV2): Article = {
-      val articleLanguage = Some(newArticle.language)
-      val domainTitle = Seq(ArticleTitle(newArticle.title, articleLanguage))
+      val domainTitle = Seq(ArticleTitle(newArticle.title, newArticle.language))
       val domainContent = Seq(ArticleContent(
         removeUnknownEmbedTagAttributes(newArticle.content),
         newArticle.footNotes.map(toDomainFootNotes),
-        articleLanguage)
+        newArticle.language)
       )
 
       Article(
@@ -229,11 +227,11 @@ trait ConverterService {
         title=domainTitle,
         content=domainContent,
         copyright=toDomainCopyright(newArticle.copyright),
-        tags=toDomainTagV2(newArticle.tags, articleLanguage),
+        tags=toDomainTagV2(newArticle.tags, newArticle.language),
         requiredLibraries=newArticle.requiredLibraries.getOrElse(Seq()).map(toDomainRequiredLibraries),
-        visualElement=toDomainVisualElementV2(newArticle.visualElement, articleLanguage),
-        introduction=toDomainIntroductionV2(newArticle.introduction, articleLanguage),
-        metaDescription=toDomainMetaDescriptionV2(newArticle.metaDescription, articleLanguage),
+        visualElement=toDomainVisualElementV2(newArticle.visualElement, newArticle.language),
+        introduction=toDomainIntroductionV2(newArticle.introduction, newArticle.language),
+        metaDescription=toDomainMetaDescriptionV2(newArticle.metaDescription, newArticle.language),
         metaImageId=newArticle.metaImageId,
         created=clock.now(),
         updated=clock.now(),
@@ -254,7 +252,7 @@ trait ConverterService {
       ArticleTag(tag.tags, tag.language)
     }
 
-    def toDomainTagV2(tag: Seq[String], language: Option[String]): Seq[ArticleTag] = {
+    def toDomainTagV2(tag: Seq[String], language: String): Seq[ArticleTag] = {
       if (tag.isEmpty) {
         Seq.empty[ArticleTag]
       } else {
@@ -266,7 +264,7 @@ trait ConverterService {
       VisualElement(removeUnknownEmbedTagAttributes(visual.content), visual.language)
     }
 
-    def toDomainVisualElementV2(visual: Option[String], language: Option[String]): Seq[VisualElement] = {
+    def toDomainVisualElementV2(visual: Option[String], language: String): Seq[VisualElement] = {
       if (visual.isEmpty) {
         Seq.empty[VisualElement]
       } else {
@@ -278,7 +276,7 @@ trait ConverterService {
       ArticleIntroduction(intro.introduction, intro.language)
     }
 
-    def toDomainIntroductionV2(intro: Option[String], language: Option[String]): Seq[ArticleIntroduction] = {
+    def toDomainIntroductionV2(intro: Option[String], language: String): Seq[ArticleIntroduction] = {
       if (intro.isEmpty) {
         Seq.empty[ArticleIntroduction]
       } else {
@@ -290,7 +288,7 @@ trait ConverterService {
       ArticleMetaDescription(meta.metaDescription, meta.language)
     }
 
-    def toDomainMetaDescriptionV2(meta: Option[String], language: Option[String]): Seq[ArticleMetaDescription]= {
+    def toDomainMetaDescriptionV2(meta: Option[String], language: String): Seq[ArticleMetaDescription]= {
       if (meta.isEmpty) {
         Seq.empty[ArticleMetaDescription]
       } else {
@@ -361,24 +359,20 @@ trait ConverterService {
       if (supportedLanguages.isEmpty || (!supportedLanguages.contains(language) && language != AllLanguages)) return None
       val searchLanguage = getSearchLanguage(language, supportedLanguages)
 
-      val title =           findValueByLanguage(article.title, searchLanguage).getOrElse("")
-      val visualElement =   findValueByLanguage(article.visualElement, searchLanguage)
-      val introduction =    findValueByLanguage(article.introduction, searchLanguage)
-      val meta =            findValueByLanguage(article.metaDescription, searchLanguage).getOrElse("")
-      val tags =            findValueByLanguage(article.tags, searchLanguage).getOrElse(Seq.empty[String])
-      val articleContent =  toApiArticleContentV2(
-                              findByLanguage(article.content, searchLanguage)
-                                .getOrElse(ArticleContent("", None, None))
-                                .asInstanceOf[ArticleContent])
+      val meta = findByLanguageOrBestEffort(article.metaDescription, language).map(toApiArticleMetaDescription).getOrElse(api.ArticleMetaDescription("", DefaultLanguage))
+      val tags = findByLanguageOrBestEffort(article.tags, language).map(toApiArticleTag).getOrElse(api.ArticleTag(Seq(), DefaultLanguage))
+      val title = findByLanguageOrBestEffort(article.title, language).map(toApiArticleTitle).getOrElse(api.ArticleTitle("", DefaultLanguage))
+      val introduction = findByLanguageOrBestEffort(article.introduction, language).map(toApiArticleIntroduction)
+      val visualElement = findByLanguageOrBestEffort(article.visualElement, language).map(toApiVisualElement)
+      val articleContent = findByLanguageOrBestEffort(article.content, language).map(toApiArticleContent).getOrElse(api.ArticleContent("", None, DefaultLanguage))
+
 
       Some(api.ArticleV2(
         article.id.get,
         article.id.flatMap(getLinkToOldNdla),
         article.revision.get,
-        searchLanguage,
         title,
-        articleContent.content,
-        articleContent.footNotes,
+        articleContent,
         toApiCopyright(article.copyright),
         tags,
         article.requiredLibraries.map(toApiRequiredLibrary),
@@ -455,14 +449,14 @@ trait ConverterService {
     }
 
     def toUpdatedArticle(updatedArticle: api.UpdatedArticleV2): api.UpdatedArticle = {
-      val title =         Seq(api.ArticleTitle(updatedArticle.title, Some(updatedArticle.language)))
-      val content =       Seq(api.ArticleContent(updatedArticle.content, updatedArticle.footNotes, Some(updatedArticle.language)))
-      val tags =          Seq(api.ArticleTag(updatedArticle.tags, Some(updatedArticle.language)))
-      val introduction =  if (updatedArticle.introduction.isDefined) Seq(api.ArticleIntroduction(updatedArticle.introduction.get, Some(updatedArticle.language)))
+      val title =         Seq(api.ArticleTitle(updatedArticle.title, updatedArticle.language))
+      val content =       Seq(api.ArticleContent(updatedArticle.content, updatedArticle.footNotes, updatedArticle.language))
+      val tags =          Seq(api.ArticleTag(updatedArticle.tags, updatedArticle.language))
+      val introduction =  if (updatedArticle.introduction.isDefined) Seq(api.ArticleIntroduction(updatedArticle.introduction.get, updatedArticle.language))
                           else Seq.empty[api.ArticleIntroduction]
-      val meta =          if (updatedArticle.metaDescription.isDefined) Seq(api.ArticleMetaDescription(updatedArticle.metaDescription.get, Some(updatedArticle.language)))
+      val meta =          if (updatedArticle.metaDescription.isDefined) Seq(api.ArticleMetaDescription(updatedArticle.metaDescription.get, updatedArticle.language))
                           else Seq.empty[api.ArticleMetaDescription]
-      val vElement =      if (updatedArticle.visualElement.isDefined) Seq(api.VisualElement(updatedArticle.visualElement.get, Some(updatedArticle.language)))
+      val vElement =      if (updatedArticle.visualElement.isDefined) Seq(api.VisualElement(updatedArticle.visualElement.get, updatedArticle.language))
                           else Seq.empty[api.VisualElement]
       val reqLibraries =  if (updatedArticle.requiredLibrary.isDefined) Seq(updatedArticle.requiredLibrary.get)
                           else Seq.empty[api.RequiredLibrary]
@@ -484,20 +478,24 @@ trait ConverterService {
 
     def createLinkToOldNdla(nodeId: String): String = s"//red.ndla.no/node/$nodeId"
 
-    def toApiConcept(concept: Concept, language: String): Option[api.Concept] = {
-      concept.supportedLanguage(language).map(lang => {
-        api.Concept(
-          concept.id.get,
-          concept.title(lang).getOrElse(""),
-          concept.content(lang).getOrElse(""),
-          concept.authors.map(toApiAuthor),
-          concept.created,
-          concept.updated,
-          lang,
-          concept.supportedLanguages
-        )
-      })
+    def toApiConcept(concept: Concept, language: String): api.Concept = {
+      val title = findByLanguageOrBestEffort(concept.title, language).map(toApiConceptTitle).getOrElse(api.ConceptTitle("", Language.DefaultLanguage))
+      val content = findByLanguageOrBestEffort(concept.content, language).map(toApiConceptContent).getOrElse(api.ConceptContent("", Language.DefaultLanguage))
+
+      api.Concept(
+        concept.id.get,
+        title,
+        content,
+        concept.authors.map(toApiAuthor),
+        concept.created,
+        concept.updated,
+        concept.supportedLanguages
+      )
     }
+
+    def toApiConceptTitle(title: ConceptTitle): api.ConceptTitle = api.ConceptTitle(title.title, title.language)
+
+    def toApiConceptContent(title: ConceptContent): api.ConceptContent= api.ConceptContent(title.content, title.language)
 
   }
 }

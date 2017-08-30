@@ -26,8 +26,8 @@ class GeneralContentConverterTest extends UnitSuite with TestEnvironment {
   val contentString = s"[contentbrowser ==nid=$nodeId==imagecache=Fullbredde==width===alt=$altText==link===node_link=1==link_type=link_to_content==lightbox_size===remove_fields[76661]=1==remove_fields[76663]=1==remove_fields[76664]=1==remove_fields[76666]=1==insertion=$insertion==link_title_text= ==link_text= ==text_align===css_class=contentbrowser contentbrowser]"
   val sampleFagstoff1 = NodeGeneralContent(nodeId, nodeId, "Tittel", "Innhold", "nb")
   val sampleFagstoff2 = NodeGeneralContent(nodeId, nodeId2, "Tittel", "Innhald", "nn")
-  val sampleArticleSummary = ArticleSummary(1, Seq(ArticleTitle("title", Some("nb"))), Seq(), Seq(), "http://url", "publicdomain")
-  val sampleNodeToConvert = NodeToConvert(Seq(ArticleTitle("title", Some("en"))), Seq(), "publicdomain", Seq(), Seq(), "fagstoff", "fagstoff", new Date(0), new Date(1), ArticleType.Standard)
+  val sampleArticleSummary = ArticleSummary(1, Seq(ArticleTitle("title", "nb")), Seq(), Seq(), "http://url", "publicdomain")
+  val sampleNodeToConvert = NodeToConvert(Seq(ArticleTitle("title", "en")), Seq(), "publicdomain", Seq(), Seq(), "fagstoff", "fagstoff", new Date(0), new Date(1), ArticleType.Standard)
   val sampleContent = TestData.sampleContent.copy(content="<div>sample content</div>")
   val sampleArticle = TestData.sampleArticleWithByNcSa
 
@@ -36,7 +36,7 @@ class GeneralContentConverterTest extends UnitSuite with TestEnvironment {
   }
 
   test("That GeneralContentConverter returns the contents according to language") {
-    val content = ContentBrowser(contentString, Some("nb"))
+    val content = ContentBrowser(contentString, "nb")
 
     when(extractService.getNodeGeneralContent(nodeId)).thenReturn(Seq(sampleFagstoff1, sampleFagstoff2))
     val Success((result, requiredLibraries, status)) = generalContentConverter.convert(content, Seq())
@@ -47,7 +47,7 @@ class GeneralContentConverterTest extends UnitSuite with TestEnvironment {
   }
 
   test("That GeneralContentConverter returns a Failure when the node is not found") {
-    val content = ContentBrowser(contentString, Some("nb"))
+    val content = ContentBrowser(contentString, "nb")
 
     when(extractService.getNodeGeneralContent(nodeId)).thenReturn(Seq())
     generalContentConverter.convert(content, Seq()).isFailure should be (true)
@@ -55,7 +55,7 @@ class GeneralContentConverterTest extends UnitSuite with TestEnvironment {
 
   test("That GeneralContentConverter inserts the content if insertion mode is 'collapsed_body'") {
     val contentString = s"[contentbrowser ==nid=$nodeId==imagecache=Fullbredde==width===alt=$altText==link===node_link=1==link_type=link_to_content==lightbox_size===remove_fields[76661]=1==remove_fields[76663]=1==remove_fields[76664]=1==remove_fields[76666]=1==insertion=collapsed_body==link_title_text===link_text=Tittel==text_align===css_class=contentbrowser contentbrowser]"
-    val content = ContentBrowser(contentString, Some("nb"))
+    val content = ContentBrowser(contentString, "nb")
     val expectedResult = s"<details><summary>Tittel</summary>${sampleFagstoff1.content}</details>"
 
     when(extractService.getNodeGeneralContent(nodeId)).thenReturn(Seq(sampleFagstoff1, sampleFagstoff2))
@@ -70,7 +70,7 @@ class GeneralContentConverterTest extends UnitSuite with TestEnvironment {
 
   test("That GeneralContentConverter inserts the content if insertion mode is 'link'") {
     val contentString = s"[contentbrowser ==nid=$nodeId==imagecache=Fullbredde==width===alt=$altText==link===node_link=1==link_type=link_to_content==lightbox_size===remove_fields[76661]=1==remove_fields[76663]=1==remove_fields[76664]=1==remove_fields[76666]=1==insertion=link==link_title_text===link_text=Tittel==text_align===css_class=contentbrowser contentbrowser]"
-    val content = ContentBrowser(contentString, Some("nb"))
+    val content = ContentBrowser(contentString, "nb")
     val expectedResult = s""" <$resourceHtmlEmbedTag data-content-id="1" data-link-text="Tittel" data-resource="content-link" />"""
 
     when(extractService.getNodeGeneralContent(nodeId)).thenReturn(Seq(sampleFagstoff1, sampleFagstoff2))
@@ -84,7 +84,7 @@ class GeneralContentConverterTest extends UnitSuite with TestEnvironment {
 
   test("That GeneralContentConverter inserts the content if insertion mode is 'lightbox_large'") {
     val contentString = s"[contentbrowser ==nid=$nodeId==imagecache=Fullbredde==width===alt=$altText==link===node_link=1==link_type=link_to_content==lightbox_size===remove_fields[76661]=1==remove_fields[76663]=1==remove_fields[76664]=1==remove_fields[76666]=1==insertion=lightbox_large==link_title_text===link_text=Tittel==text_align===css_class=contentbrowser contentbrowser]"
-    val content = ContentBrowser(contentString, Some("nb"))
+    val content = ContentBrowser(contentString, "nb")
     val expectedResult = s""" <$resourceHtmlEmbedTag data-content-id="1" data-link-text="Tittel" data-resource="content-link" />"""
 
     when(extractService.getNodeGeneralContent(nodeId)).thenReturn(Seq(sampleFagstoff1, sampleFagstoff2))
@@ -98,7 +98,7 @@ class GeneralContentConverterTest extends UnitSuite with TestEnvironment {
 
   test("That GeneralContentConverter defaults to 'link' if the insertion method is unknown") {
     val contentString = s"[contentbrowser ==nid=$nodeId==imagecache=Fullbredde==width===alt=$altText==link===node_link=1==link_type=link_to_content==lightbox_size===remove_fields[76661]=1==remove_fields[76663]=1==remove_fields[76664]=1==remove_fields[76666]=1==insertion=lightbox_large==link_title_text===link_text=Tittel==text_align===css_class=contentbrowser contentbrowser]"
-    val content = ContentBrowser(contentString, Some("nb"))
+    val content = ContentBrowser(contentString, "nb")
     val expectedResult = s""" <$resourceHtmlEmbedTag data-content-id="1" data-link-text="Tittel" data-resource="content-link" />"""
 
     when(extractService.getNodeGeneralContent(nodeId)).thenReturn(Seq(sampleFagstoff1, sampleFagstoff2))
@@ -114,7 +114,7 @@ class GeneralContentConverterTest extends UnitSuite with TestEnvironment {
   test("That GeneralContentConverter imports nodes from old NDLA which is referenced in a content") {
     val newNodeid: Long = 1111
     val contentString = s"[contentbrowser ==nid=$nodeId==imagecache=Fullbredde==width===alt=$altText==link===node_link=1==link_type=link_to_content==lightbox_size===remove_fields[76661]=1==remove_fields[76663]=1==remove_fields[76664]=1==remove_fields[76666]=1==insertion=link==link_title_text===link_text=Tittel==text_align===css_class=contentbrowser contentbrowser]"
-    val content = ContentBrowser(contentString, Some("nb"))
+    val content = ContentBrowser(contentString, "nb")
     val expectedResult = s""" <$resourceHtmlEmbedTag data-content-id="1111" data-link-text="Tittel" data-resource="content-link" />"""
 
     when(extractService.getNodeGeneralContent(nodeId)).thenReturn(Seq(sampleFagstoff1, sampleFagstoff2))
@@ -130,7 +130,7 @@ class GeneralContentConverterTest extends UnitSuite with TestEnvironment {
 
   test("That GeneralContentConverter returns a Failure if node could not be imported") {
     val contentString = s"[contentbrowser ==nid=$nodeId==imagecache=Fullbredde==width===alt=$altText==link===node_link=1==link_type=link_to_content==lightbox_size===remove_fields[76661]=1==remove_fields[76663]=1==remove_fields[76664]=1==remove_fields[76666]=1==insertion=link==link_title_text===link_text=Tittel==text_align===css_class=contentbrowser contentbrowser]"
-    val content = ContentBrowser(contentString, Some("nb"))
+    val content = ContentBrowser(contentString, "nb")
     val expectedResult = s""" <a href="http://ndla.no/node/$nodeId" title="">Tittel</a>"""
 
     when(extractService.getNodeGeneralContent(nodeId)).thenReturn(Seq(sampleFagstoff1, sampleFagstoff2))

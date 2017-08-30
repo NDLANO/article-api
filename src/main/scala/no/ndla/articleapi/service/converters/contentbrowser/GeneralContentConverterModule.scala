@@ -25,13 +25,13 @@ trait GeneralContentConverterModule {
       val externalId = contentBrowser.get("nid")
       val contents = extractService.getNodeGeneralContent(externalId)
 
-      contents.find(x => x.language == contentBrowser.language.getOrElse("")) match {
+      contents.find(x => x.language == contentBrowser.language) match {
         case Some(content) =>
           insertContent(content.content, contentBrowser, visitedNodes) map { case (finalContent, status) =>
             (finalContent, Seq(), status)
           }
         case None =>
-          Failure(ImportException(s"Failed to retrieve '$typeName' with language '${contentBrowser.language.getOrElse("")}' ($externalId)"))
+          Failure(ImportException(s"Failed to retrieve '$typeName' with language '${contentBrowser.language}' ($externalId)"))
       }
     }
 

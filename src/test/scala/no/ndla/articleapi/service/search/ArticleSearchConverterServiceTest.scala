@@ -22,23 +22,23 @@ class ArticleSearchConverterServiceTest extends UnitSuite with TestEnvironment {
 
 
   val titles = List(
-    ArticleTitle("Bokmål tittel", Some("nb")), ArticleTitle("Nynorsk tittel", Some("nn")),
-    ArticleTitle("English title", Some("en")), ArticleTitle("Titre francais", Some("fr")),
-    ArticleTitle("Deutsch titel", Some("de")), ArticleTitle("Titulo espanol", Some("es")),
-    ArticleTitle("Nekonata titolo", None))
+    ArticleTitle("Bokmål tittel", "nb"), ArticleTitle("Nynorsk tittel", "nn"),
+    ArticleTitle("English title", "en"), ArticleTitle("Titre francais", "fr"),
+    ArticleTitle("Deutsch titel", "de"), ArticleTitle("Titulo espanol", "es"),
+    ArticleTitle("Nekonata titolo", "unknown"))
 
   val articles = Seq(
-    ArticleContent("Bokmål artikkel", None, Some("nb")), ArticleContent("Nynorsk artikkel", None, Some("nn")),
-    ArticleContent("English article", None, Some("en")), ArticleContent("Francais article", None, Some("fr")),
-    ArticleContent("Deutsch Artikel", None, Some("de")), ArticleContent("Articulo espanol", None, Some("es")),
-    ArticleContent("Nekonata artikolo", None, None)
+    ArticleContent("Bokmål artikkel", None, "nb"), ArticleContent("Nynorsk artikkel", None, "nn"),
+    ArticleContent("English article", None, "en"), ArticleContent("Francais article", None, "fr"),
+    ArticleContent("Deutsch Artikel", None, "de"), ArticleContent("Articulo espanol", None, "es"),
+    ArticleContent("Nekonata artikolo", None, "unknown")
   )
 
   val articleTags = Seq(
-    ArticleTag(Seq("fugl", "fisk"), Some("nb")), ArticleTag(Seq("fugl", "fisk"), Some("nn")),
-    ArticleTag(Seq("bird", "fish"), Some("en")), ArticleTag(Seq("got", "tired"), Some("fr")),
-    ArticleTag(Seq("of", "translating"), Some("de")), ArticleTag(Seq("all", "of"), Some("es")),
-    ArticleTag(Seq("the", "words"), None)
+    ArticleTag(Seq("fugl", "fisk"), "nb"), ArticleTag(Seq("fugl", "fisk"), "nn"),
+    ArticleTag(Seq("bird", "fish"), "en"), ArticleTag(Seq("got", "tired"), "fr"),
+    ArticleTag(Seq("of", "translating"), "de"), ArticleTag(Seq("all", "of"), "es"),
+    ArticleTag(Seq("the", "words"), "unknown")
   )
 
   test("That asSearchableArticle converts titles with correct language") {
@@ -89,7 +89,7 @@ class ArticleSearchConverterServiceTest extends UnitSuite with TestEnvironment {
     languageValueWithLang(searchableArticle.title, "fr") should equal(titleForLang(titles, "fr"))
     languageValueWithLang(searchableArticle.title, "de") should equal(titleForLang(titles, "de"))
     languageValueWithLang(searchableArticle.title, "es") should equal(titleForLang(titles, "es"))
-    searchableArticle.title.languageValues.find(_.lang.isEmpty).get.value should equal(titles.find(_.language.isEmpty).get.title)
+    languageValueWithLang(searchableArticle.title) should equal(titleForLang(titles))
   }
 
   private def verifyArticles(searchableArticle: SearchableArticle): Unit = {
@@ -100,7 +100,7 @@ class ArticleSearchConverterServiceTest extends UnitSuite with TestEnvironment {
     languageValueWithLang(searchableArticle.content, "fr") should equal(articleForLang(articles, "fr"))
     languageValueWithLang(searchableArticle.content, "de") should equal(articleForLang(articles, "de"))
     languageValueWithLang(searchableArticle.content, "es") should equal(articleForLang(articles, "es"))
-    searchableArticle.content.languageValues.find(_.lang.isEmpty).get.value should equal(articles.find(_.language.isEmpty).get.content)
+    languageValueWithLang(searchableArticle.content) should equal(articleForLang(articles))
   }
 
   private def verifyTags(searchableArticle: SearchableArticle): Unit = {
@@ -110,26 +110,26 @@ class ArticleSearchConverterServiceTest extends UnitSuite with TestEnvironment {
     languageListWithLang(searchableArticle.tags, "fr") should equal(tagsForLang(articleTags, "fr"))
     languageListWithLang(searchableArticle.tags, "de") should equal(tagsForLang(articleTags, "de"))
     languageListWithLang(searchableArticle.tags, "es") should equal(tagsForLang(articleTags, "es"))
-    languageListWithLang(searchableArticle.tags, null) should equal(tagsForLang(articleTags))
+    languageListWithLang(searchableArticle.tags) should equal(tagsForLang(articleTags))
   }
 
-  private def languageValueWithLang(languageValues: SearchableLanguageValues, lang: String = null): String = {
-    languageValues.languageValues.find(_.lang == Option(lang)).get.value
+  private def languageValueWithLang(languageValues: SearchableLanguageValues, lang: String = "unknown"): String = {
+    languageValues.languageValues.find(_.lang == lang).get.value
   }
 
-  private def languageListWithLang(languageList: SearchableLanguageList, lang: String = null): Seq[String] = {
-    languageList.languageValues.find(_.lang == Option(lang)).get.value
+  private def languageListWithLang(languageList: SearchableLanguageList, lang: String = "unknown"): Seq[String] = {
+    languageList.languageValues.find(_.lang == lang).get.value
   }
 
-  private def titleForLang(titles: Seq[ArticleTitle], lang: String = null): String = {
-    titles.find(_.language == Option(lang)).get.title
+  private def titleForLang(titles: Seq[ArticleTitle], lang: String = "unknown"): String = {
+    titles.find(_.language == lang).get.title
   }
 
-  private def articleForLang(articles: Seq[ArticleContent], lang: String = null): String = {
-    articles.find(_.language == Option(lang)).get.content
+  private def articleForLang(articles: Seq[ArticleContent], lang: String = "unknown"): String = {
+    articles.find(_.language == lang).get.content
   }
 
-  private def tagsForLang(tags: Seq[ArticleTag], lang: String = null) = {
-    tags.find(_.language == Option(lang)).get.tags
+  private def tagsForLang(tags: Seq[ArticleTag], lang: String = "unknown") = {
+    tags.find(_.language == lang).get.tags
   }
 }

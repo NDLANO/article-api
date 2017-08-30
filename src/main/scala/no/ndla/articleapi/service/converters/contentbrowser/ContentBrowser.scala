@@ -11,7 +11,7 @@ package no.ndla.articleapi.service.converters.contentbrowser
 
 import scala.util.matching.Regex
 
-case class ContentBrowser(textContainingContentBrowser: String, language: Option[String]) {
+case class ContentBrowser(textContainingContentBrowser: String, language: String) {
   // Extract the contentbrowser variables
   private val Pattern: Regex = """(?s).*(\[contentbrowser (.*) ?contentbrowser(?:_margin_left)?\]).*""".r
   val (contentBrowser, contentBrowserData) = textContainingContentBrowser match {

@@ -12,6 +12,6 @@ import org.scalatra.swagger.annotations.{ApiModel, ApiModelProperty}
 
 import scala.annotation.meta.field
 
-case class ArticleContent(content: String, footNotes: Option[Map[String, FootNoteItem]], language: Option[String]) extends LanguageField[String] {
+case class ArticleContent(content: String, footNotes: Option[Map[String, FootNoteItem]], language: String) extends LanguageField[String] {
   override def value: String = content
 }

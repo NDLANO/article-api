@@ -45,13 +45,13 @@ trait ReadService {
 
     def getNMostUsedTags(n: Int, language: String): Option[Seq[api.ArticleTag]] = {
       val tagUsageMap = getTagUsageMap()
-      val supportedLanguages = tagUsageMap.flatMap(_._1).toSeq.distinct
+      val supportedLanguages = tagUsageMap.keys.toSeq.distinct
       val searchLanguage = getSearchLanguage(language, supportedLanguages)
 
       if (supportedLanguages.isEmpty || (!supportedLanguages.contains(language) && language != AllLanguages)) return None
 
       Some(tagUsageMap
-        .filterKeys(lang => lang.getOrElse("") == searchLanguage)
+        .filterKeys(lang => lang == searchLanguage)
         .map { case (lang, tags) =>
           api.ArticleTag(tags.getNMostFrequent(n), lang)
         }.toSeq)
@@ -97,7 +97,7 @@ trait ReadService {
     }
 
     def conceptWithId(id: Long, language: String): Option[api.Concept] =
-      conceptRepository.withId(id).flatMap(concept => converterService.toApiConcept(concept, language))
+      conceptRepository.withId(id).map(concept => converterService.toApiConcept(concept, language))
 
     def getContentByExternalId(externalId: String): Option[Content] =
       articleRepository.withExternalId(externalId) orElse conceptRepository.withExternalId(externalId)
