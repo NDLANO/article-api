@@ -55,7 +55,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
 
   test("updateArticle should return Failure when trying to update a non-existing article") {
     when(articleRepository.withId(articleId)).thenReturn(None)
-    service.updateArticle(articleId, updatedArticle).isFailure should equal(true)
+    service.updateArticleV1(articleId, updatedArticle).isFailure should equal(true)
     verify(articleRepository, times(0)).update(any[Article])
     verify(articleIndexService, times(0)).indexDocument(any[Article])
   }
@@ -63,11 +63,12 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
   test("updateArticle should update the updated field of an article") {
     when(authUser.id()).thenReturn("ndalId54321")
     val expectedUpdatedArticle = article.copy(updated=today)
+    when(contentValidator.validate(any[Article])).thenReturn(Success(mock[Article]))
     when(articleRepository.withId(articleId)).thenReturn(Some(article))
     when(articleRepository.update(any[Article])(any[DBSession])).thenReturn(Success(expectedUpdatedArticle))
     when(clock.now()).thenReturn(today)
 
-    service.updateArticle(articleId, updatedArticle)
+    service.updateArticleV1(articleId, updatedArticle)
     verify(articleRepository, times(1)).update(expectedUpdatedArticle)
     verify(articleIndexService, times(1)).indexDocument(any[Article])
   }

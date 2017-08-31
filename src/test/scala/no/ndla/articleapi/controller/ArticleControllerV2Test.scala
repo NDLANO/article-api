@@ -125,7 +125,7 @@ class ArticleControllerV2Test extends UnitSuite with TestEnvironment with Scalat
   }
 
   test("That PATCH /:id returns 200 on success") {
-    when(writeService.updateArticle(any[Long], any[UpdatedArticle])).thenReturn(Success(TestData.apiArticleWithHtmlFault))
+    when(writeService.updateArticleV2(any[Long], any[UpdatedArticleV2])).thenReturn(Success(TestData.apiArticleWithHtmlFaultV2))
     patch("/test/123", updateTitleJson, headers = Map("Authorization" -> authHeaderWithWriteRole)) {
       status should equal (200)
     }
