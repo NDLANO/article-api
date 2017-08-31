@@ -74,8 +74,8 @@ trait WriteService {
             updated = clock.now(),
             updatedBy = authUser.id()
           )
-          contentValidator.validate(toUpdate)
           for {
+            _ <- contentValidator.validate(toUpdate)
             article <- articleRepository.update(toUpdate)
             _ <- articleIndexService.indexDocument(article)
           } yield readService.addUrlsAndIdsOnEmbedResources(article)
