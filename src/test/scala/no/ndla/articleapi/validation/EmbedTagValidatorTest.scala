@@ -182,7 +182,7 @@ class EmbedTagValidatorTest extends UnitSuite {
       Attributes.DataResource_Id-> "123",
       Attributes.DataSize-> "full",
       Attributes.DataAlign-> "left",
-      Attributes.DataUpperLeftX-> "0",
+      Attributes.DataUpperLeftX-> "0"
     ))
     embedTagValidator.validate("content", tag).size should be (1)
   }
@@ -200,7 +200,7 @@ class EmbedTagValidatorTest extends UnitSuite {
       Attributes.DataLowerRightX -> "1",
       Attributes.DataLowerRightY -> "1",
       Attributes.DataFocalX -> "0",
-      Attributes.DataFocalY -> "1",
+      Attributes.DataFocalY -> "1"
     ))
 
     embedTagValidator.validate("content", tag).size should be (0)
