@@ -12,6 +12,7 @@ import no.ndla.articleapi.model.api.ValidationMessage
 import no.ndla.articleapi.ArticleApiProperties.resourceHtmlEmbedTag
 import no.ndla.articleapi.integration.ConverterModule
 import no.ndla.articleapi.model.domain.EmbedTag
+import no.ndla.articleapi.model.domain.EmbedTag.EmbedTagAttributeRules
 import no.ndla.articleapi.service.converters.{Attributes, HTMLCleaner, ResourceType}
 import org.jsoup.nodes.Element
 
@@ -72,18 +73,34 @@ class EmbedTagValidator {
     }
 
     val resourceType = ResourceType.valueOf(attributes(Attributes.DataResource)).get
-    val requiredAttributesForResourceType = EmbedTag.requiredAttributesForResourceType(resourceType)
+    val attributeRulesForTag = EmbedTag.attributesForResourceType(resourceType)
 
-    verifyEmbedTagBasedOnResourceType(fieldName, requiredAttributesForResourceType, attributeKeys, resourceType)
+    verifyEmbedTagBasedOnResourceType(fieldName, attributeRulesForTag, attributeKeys, resourceType) ++
+    verifyOptionalEmbedTagRules(fieldName, attributeRulesForTag, attributeKeys, resourceType)
   }
 
-  private def verifyEmbedTagBasedOnResourceType(fieldName: String, requiredAttributes: Set[Attributes.Value], actualAttributes: Set[Attributes.Value], resourceType: ResourceType.Value): Seq[ValidationMessage] = {
-    val missingAttributes = getMissingAttributes(requiredAttributes, actualAttributes)
-    val illegalAttributes = getMissingAttributes(actualAttributes, requiredAttributes)
+  private def verifyEmbedTagBasedOnResourceType(fieldName: String, attrRules: EmbedTagAttributeRules, actualAttributes: Set[Attributes.Value], resourceType: ResourceType.Value): Seq[ValidationMessage] = {
+    val missingAttributes = getMissingAttributes(attrRules.required, actualAttributes)
+    val illegalAttributes = getMissingAttributes(actualAttributes, attrRules.all)
 
     val partialErrorMessage = s"An $resourceHtmlEmbedTag HTML tag with ${Attributes.DataResource}=$resourceType"
-    missingAttributes.map(missingAttributes => ValidationMessage(fieldName,  s"$partialErrorMessage must contain the following attributes: ${requiredAttributes.mkString(",")}. Missing: ${missingAttributes.mkString(",")}")).toList ++
+    missingAttributes.map(missingAttributes => ValidationMessage(fieldName, s"$partialErrorMessage must contain the following attributes: ${attrRules.required.mkString(",")}. " +
+      s"Optional attributes are: ${attrRules.optional.mkString(",")}. " +
+      s"Missing: ${missingAttributes.mkString(",")}")).toList ++
     illegalAttributes.map(illegalAttributes => ValidationMessage(fieldName, s"$partialErrorMessage can not contain any of the following attributes: ${illegalAttributes.mkString(",")}"))
+  }
+
+  private def verifyOptionalEmbedTagRules(fieldName: String, attrs: EmbedTagAttributeRules, actualAttributes: Set[Attributes.Value], resourceType: ResourceType.Value): Seq[ValidationMessage] = {
+    val usedOptionalAttrs = actualAttributes.intersect(attrs.optional)
+
+    usedOptionalAttrs.isEmpty match {
+      case false if usedOptionalAttrs != attrs.optional =>
+        val missingAttrs = attrs.optional.diff(usedOptionalAttrs).mkString(",")
+        Seq(ValidationMessage(fieldName,
+        s"An $resourceHtmlEmbedTag HTML tag with ${Attributes.DataResource}=$resourceType must contain all or none of the optional attributes (${attrs.optional.mkString(",")}). Missing $missingAttrs")
+      )
+      case _ => Seq.empty
+    }
   }
 
   private def getMissingAttributes(requiredAttributes: Set[Attributes.Value], attributeKeys: Set[Attributes.Value]) = {

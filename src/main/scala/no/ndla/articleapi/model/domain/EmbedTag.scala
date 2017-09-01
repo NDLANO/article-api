@@ -1,31 +1,45 @@
 package no.ndla.articleapi.model.domain
 
 import no.ndla.articleapi.model.api.ConfigurationException
+import no.ndla.articleapi.service.converters.{Attributes, ResourceType}
 import org.json4s.native.JsonMethods.parse
 import org.json4s._
-import no.ndla.articleapi.service.converters.{Attributes, ResourceType}
-
+import scala.language.postfixOps
 import scala.io.Source
 
 object EmbedTag {
-  def requiredAttributesForResourceType(resourceType: ResourceType.Value): Set[Attributes.Value] =
-    requiredAttributesByResourceType.getOrElse(resourceType, requiredAttributesForAllResourceTypes).toSet
-
-  private[domain] val requiredAttributesByResourceType: Map[ResourceType.Value, Seq[Attributes.Value]] = {
-    val requiredAttrs = embedRulesToJson.get("requiredAttrsForResource").map(_.asInstanceOf[Map[String, Seq[String]]])
-
-    requiredAttrs.getOrElse(Map.empty) map { case (key, value) => {
-      val resourceTypeKey = ResourceType.valueOf(key).getOrElse(throw new ConfigurationException(s"Missing declaration of resource type '$key' in ResourceType enum"))
-      resourceTypeKey -> value.map(attr => Attributes.valueOf(attr).getOrElse(throw new ConfigurationException(s"Missing declaration of attribute '$attr' in Attributes enum")))
-    }}
+  case class EmbedThings(attrsForResource: Map[ResourceType.Value, EmbedTagAttributeRules])
+  case class EmbedTagAttributeRules(required: Set[Attributes.Value], optional: Set[Attributes.Value]) {
+    lazy val all: Set[Attributes.Value] = required ++ optional
   }
 
-  private def embedRulesToJson: Map[String, Any] = convertJsonStr(Source.fromResource("embed-tag-rules.json").mkString)
+  private[domain] lazy val attributeRules: Map[ResourceType.Value, EmbedTagAttributeRules] = embedRulesToJson
+
+  lazy val allEmbedTagAttributes: Set[Attributes.Value] = attributeRules.flatMap { case (_ , attrRules)  => attrRules.all } toSet
+
+  def attributesForResourceType(resourceType: ResourceType.Value): EmbedTagAttributeRules = attributeRules(resourceType)
+
+  private def embedRulesToJson = {
+    val requiredAttrs = convertJsonStr(Source.fromResource("embed-tag-rules.json").mkString)
+      .get("attrsForResource").map(_.asInstanceOf[Map[String, Map[String, Seq[String]] ]])
+
+    def toEmbedTagAttributeRules(map: Map[String, Seq[String]]) = {
+      EmbedTagAttributeRules(
+        map("required").flatMap(Attributes.valueOf).toSet,
+        map.get("optional").map(x => x.flatMap(Attributes.valueOf)).getOrElse(Seq.empty).toSet
+      )
+    }
+
+    def strToResourceType(str: String): ResourceType.Value =
+      ResourceType.valueOf(str).getOrElse(throw new ConfigurationException(s"Missing declaration of resource type '$str' in ResourceType enum"))
+
+    requiredAttrs.get.map {
+      case (resourceType, attrRules) => strToResourceType(resourceType) -> toEmbedTagAttributeRules(attrRules)
+    }
+  }
 
   private def convertJsonStr(jsonStr: String): Map[String, Any] = {
     implicit val formats = org.json4s.DefaultFormats
     parse(jsonStr).extract[Map[String, Any]]
   }
-
-  private val requiredAttributesForAllResourceTypes = Seq(Attributes.DataResource)
 }

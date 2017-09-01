@@ -3,25 +3,6 @@
     "div": [
       "class"
     ],
-    "embed": [
-      "data-player",
-      "data-account",
-      "data-id",
-      "data-resource",
-      "data-caption",
-      "data-key",
-      "data-link-text",
-      "data-videoid",
-      "data-resource_id",
-      "data-align",
-      "data-nrk-video-id",
-      "data-content-id",
-      "data-message",
-      "data-url",
-      "data-audio-id",
-      "data-size",
-      "data-alt"
-    ],
     "td": [
       "valign",
       "align"

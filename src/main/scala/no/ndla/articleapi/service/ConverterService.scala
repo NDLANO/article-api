@@ -324,8 +324,8 @@ trait ConverterService {
       val document = stringToJsoupDocument(html)
       document.select("embed").asScala.map(el => {
         ResourceType.valueOf(el.attr(Attributes.DataResource.toString))
-          .map(EmbedTag.requiredAttributesForResourceType)
-          .map(requiredAttributes => HTMLCleaner.removeIllegalAttributes(el, requiredAttributes.map(_.toString)))
+          .map(EmbedTag.attributesForResourceType)
+          .map(knownAttributes => HTMLCleaner.removeIllegalAttributes(el, knownAttributes.all.map(_.toString)))
       })
 
       jsoupDocumentToString(document)
