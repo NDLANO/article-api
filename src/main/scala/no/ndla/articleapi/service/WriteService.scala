@@ -19,7 +19,7 @@ import no.ndla.articleapi.validation.ContentValidator
 import scala.util.{Failure, Success, Try}
 
 trait WriteService {
-  this: ArticleRepository with ConverterService with ContentValidator with ArticleIndexService with Clock with User =>
+  this: ArticleRepository with ConverterService with ContentValidator with ArticleIndexService with Clock with User with ReadService =>
   val writeService: WriteService
 
   class WriteService {
@@ -56,7 +56,7 @@ trait WriteService {
       (toKeep ++ updated).filterNot(_.tags.isEmpty)
     }
 
-    def updateArticle(articleId: Long, updatedApiArticle: api.UpdatedArticle): Try[api.Article] = {
+    private def updateArticle(articleId: Long, updatedApiArticle: api.UpdatedArticle): Try[Article] = {
       articleRepository.withId(articleId) match {
         case None => Failure(NotFoundException(s"Article with id $articleId does not exist"))
         case Some(existing) => {
@@ -74,13 +74,22 @@ trait WriteService {
             updated = clock.now(),
             updatedBy = authUser.id()
           )
-          contentValidator.validate(toUpdate)
           for {
+            _ <- contentValidator.validate(toUpdate)
             article <- articleRepository.update(toUpdate)
-            x <- articleIndexService.indexDocument(article)
-          } yield converterService.toApiArticle(article)
+            _ <- articleIndexService.indexDocument(article)
+          } yield readService.addUrlsAndIdsOnEmbedResources(article)
         }
       }
+    }
+
+    def updateArticleV1(articleId: Long, updatedApiArticle: api.UpdatedArticle): Try[api.Article] = {
+      updateArticle(articleId, updatedApiArticle).map(converterService.toApiArticle)
+    }
+
+    def updateArticleV2(articleId: Long, updatedApiArticle: api.UpdatedArticleV2): Try[api.ArticleV2] = {
+      val v1UpdatedArticle = converterService.toUpdatedArticle(updatedApiArticle)
+      updateArticle(articleId, v1UpdatedArticle).map(article => converterService.toApiArticleV2(article, updatedApiArticle.language).get)
     }
 
   }

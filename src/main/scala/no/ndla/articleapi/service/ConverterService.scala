@@ -449,17 +449,13 @@ trait ConverterService {
     }
 
     def toUpdatedArticle(updatedArticle: api.UpdatedArticleV2): api.UpdatedArticle = {
-      val title =         Seq(api.ArticleTitle(updatedArticle.title, updatedArticle.language))
-      val content =       Seq(api.ArticleContent(updatedArticle.content, updatedArticle.footNotes, updatedArticle.language))
-      val tags =          Seq(api.ArticleTag(updatedArticle.tags, updatedArticle.language))
-      val introduction =  if (updatedArticle.introduction.isDefined) Seq(api.ArticleIntroduction(updatedArticle.introduction.get, updatedArticle.language))
-                          else Seq.empty[api.ArticleIntroduction]
-      val meta =          if (updatedArticle.metaDescription.isDefined) Seq(api.ArticleMetaDescription(updatedArticle.metaDescription.get, updatedArticle.language))
-                          else Seq.empty[api.ArticleMetaDescription]
-      val vElement =      if (updatedArticle.visualElement.isDefined) Seq(api.VisualElement(updatedArticle.visualElement.get, updatedArticle.language))
-                          else Seq.empty[api.VisualElement]
-      val reqLibraries =  if (updatedArticle.requiredLibrary.isDefined) Seq(updatedArticle.requiredLibrary.get)
-                          else Seq.empty[api.RequiredLibrary]
+      val title = updatedArticle.title.map(t => api.ArticleTitle(t, updatedArticle.language)).toSeq
+      val content = updatedArticle.content.map(c => api.ArticleContent(c, updatedArticle.footNotes, updatedArticle.language)).toSeq
+      val tags = Seq(api.ArticleTag(updatedArticle.tags, updatedArticle.language))
+      val introduction = updatedArticle.introduction.map(i => api.ArticleIntroduction(i, updatedArticle.language)).toSeq
+      val meta= updatedArticle.metaDescription.map(m => api.ArticleMetaDescription(m, updatedArticle.language)).toSeq
+      val vElement = updatedArticle.visualElement.map(v => api.VisualElement(v, updatedArticle.language)).toSeq
+      val reqLibraries = updatedArticle.requiredLibraries
 
       api.UpdatedArticle(
         title,

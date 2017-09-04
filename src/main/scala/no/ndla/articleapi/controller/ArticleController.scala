@@ -216,7 +216,7 @@ trait ArticleController {
 
       val articleId = long("article_id")
       val updatedArticle = extract[UpdatedArticle](request.body)
-      writeService.updateArticle(articleId, updatedArticle) match {
+      writeService.updateArticleV1(articleId, updatedArticle) match {
         case Success(article) => Ok(body=article)
         case Failure(exception) => errorHandler(exception)
       }

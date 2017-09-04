@@ -214,8 +214,6 @@ trait ArticleControllerV2 {
       val articleId = long("article_id")
       val language = paramOrDefault("language", Language.AllLanguages)
 
-      logger.info(s"get article $articleId")
-
       readService.withIdV2(articleId, language) match {
         case Some(article) => article
         case None => NotFound(body = Error(Error.NOT_FOUND, s"No article with id $articleId and language $language found"))
@@ -244,8 +242,8 @@ trait ArticleControllerV2 {
       authRole.assertHasRole(RoleWithWriteAccess)
 
       val articleId = long("article_id")
-      val updatedArticle = converterService.toUpdatedArticle(extract[UpdatedArticleV2](request.body))
-      writeService.updateArticle(articleId, updatedArticle) match {
+      val updatedArticle = extract[UpdatedArticleV2](request.body)
+      writeService.updateArticleV2(articleId, updatedArticle) match {
         case Success(article) => Ok(body=article)
         case Failure(exception) => errorHandler(exception)
       }
