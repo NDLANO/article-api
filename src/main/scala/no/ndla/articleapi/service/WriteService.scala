@@ -78,7 +78,7 @@ trait WriteService {
             _ <- contentValidator.validate(toUpdate)
             article <- articleRepository.update(toUpdate)
             _ <- articleIndexService.indexDocument(article)
-          } yield readService.addUrlsAndIdsOnEmbedResources(article)
+          } yield readService.addUrlsOnEmbedResources(article)
         }
       }
     }
