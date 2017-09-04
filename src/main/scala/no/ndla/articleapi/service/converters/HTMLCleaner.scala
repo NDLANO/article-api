@@ -4,7 +4,7 @@ import com.typesafe.scalalogging.LazyLogging
 import no.ndla.articleapi.ArticleApiProperties._
 import no.ndla.articleapi.integration.ConverterModule.{jsoupDocumentToString, stringToJsoupDocument}
 import no.ndla.articleapi.integration.{ConverterModule, ImageApiClient, LanguageContent, LanguageIngress}
-import no.ndla.articleapi.model.domain.ImportStatus
+import no.ndla.articleapi.model.domain.{EmbedTag, ImportStatus}
 import no.ndla.articleapi.service.converters.Attributes._
 import org.json4s._
 import org.json4s.native.JsonMethods.parse
@@ -285,7 +285,8 @@ object HTMLCleaner {
 
       val htmlAttr = htmlJson.get("attributes").map(_.asInstanceOf[Map[String, Seq[String]]])
       val mathMlAttrs = mathMlJson.get("attributes").map(_.asInstanceOf[Map[String, Seq[String]]])
-      htmlAttr.getOrElse(Map.empty) ++ mathMlAttrs.getOrElse(Map.empty)
+      val embedAttrs = EmbedTag.allEmbedTagAttributes.map(_.toString).toSeq
+      htmlAttr.getOrElse(Map.empty) ++ mathMlAttrs.getOrElse(Map.empty) ++ Map(resourceHtmlEmbedTag -> embedAttrs)
     }
 
     private def readTags: Set[String] = {

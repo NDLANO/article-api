@@ -1,13 +1,75 @@
 {
-  "requiredAttrsForResource": {
-    "h5p": ["data-resource", "data-url"],
-    "external": ["data-resource", "data-url"],
-    "error": ["data-resource", "data-message"],
-    "audio": ["data-resource", "data-resource_id"],
-    "nrk": ["data-resource", "data-nrk-video-id", "data-url"],
-    "content-link": ["data-resource", "data-content-id", "data-link-text"],
-    "brightcove": ["data-resource", "data-caption", "data-videoid", "data-account", "data-player"],
-    "image": ["data-resource", "data-resource_id", "data-size", "data-alt", "data-caption", "data-align"],
-    "concept": ["data-resource", "data-content-id", "data-link-text"]
+  "attrsForResource": {
+    "h5p": {
+      "required": [
+        "data-resource",
+        "data-url"]
+    },
+    "external": {
+      "required": [
+        "data-resource",
+        "data-url"
+      ]
+    },
+    "error": {
+      "required": [
+        "data-resource",
+        "data-message"
+      ]
+    },
+    "audio": {
+      "required": [
+        "data-resource",
+        "data-resource_id"
+      ]
+    },
+    "nrk": {
+      "required": [
+        "data-resource",
+        "data-nrk-video-id",
+        "data-url"
+      ]
+    },
+    "content-link": {
+      "required": [
+        "data-resource",
+        "data-content-id",
+        "data-link-text"
+      ]
+    },
+    "brightcove": {
+      "required": [
+        "data-resource",
+        "data-caption",
+        "data-videoid",
+        "data-account",
+        "data-player"
+      ]
+    },
+    "image": {
+      "required": [
+        "data-resource",
+        "data-resource_id",
+        "data-size",
+        "data-alt",
+        "data-caption",
+        "data-align"
+      ],
+      "optional": [
+       "data-upper-left-x",
+       "data-upper-left-y",
+       "data-lower-right-x",
+       "data-lower-right-y",
+       "data-focal-x",
+       "data-focal-y"
+      ]
+    },
+    "concept": {
+      "required": [
+        "data-resource",
+        "data-content-id",
+        "data-link-text"
+      ]
+    }
   }
 }

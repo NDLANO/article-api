@@ -174,4 +174,36 @@ class EmbedTagValidatorTest extends UnitSuite {
     embedTagValidator.validate("content", tag).size should be (0)
   }
 
+  test("validate should fail if only one optional attribute is specified") {
+    val tag = generateTagWithAttrs(Map(
+      Attributes.DataResource -> ResourceType.Image.toString,
+      Attributes.DataAlt-> "123",
+      Attributes.DataCaption-> "123",
+      Attributes.DataResource_Id-> "123",
+      Attributes.DataSize-> "full",
+      Attributes.DataAlign-> "left",
+      Attributes.DataUpperLeftX-> "0"
+    ))
+    embedTagValidator.validate("content", tag).size should be (1)
+  }
+
+  test("validate should succeed if all optional attributes is specified") {
+    val tag = generateTagWithAttrs(Map(
+      Attributes.DataResource -> ResourceType.Image.toString,
+      Attributes.DataAlt-> "123",
+      Attributes.DataCaption-> "123",
+      Attributes.DataResource_Id-> "123",
+      Attributes.DataSize-> "full",
+      Attributes.DataAlign-> "left",
+      Attributes.DataUpperLeftX-> "0",
+      Attributes.DataUpperLeftY-> "0",
+      Attributes.DataLowerRightX -> "1",
+      Attributes.DataLowerRightY -> "1",
+      Attributes.DataFocalX -> "0",
+      Attributes.DataFocalY -> "1"
+    ))
+
+    embedTagValidator.validate("content", tag).size should be (0)
+  }
+
 }

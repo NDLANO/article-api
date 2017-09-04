@@ -27,18 +27,18 @@ trait ReadService {
   class ReadService {
     def articleWithId(id: Long): Option[api.Article] =
       articleRepository.withId(id)
-        .map(addUrlsAndIdsOnEmbedResources)
+        .map(addUrlsOnEmbedResources)
         .map(converterService.toApiArticle)
 
     def withIdV2(id: Long, language: String): Option[api.ArticleV2] = {
       articleRepository.withId(id)
-        .map(addUrlsAndIdsOnEmbedResources)
+        .map(addUrlsOnEmbedResources)
         .flatMap(article => converterService.toApiArticleV2(article, language))
     }
 
-    private[service] def addUrlsAndIdsOnEmbedResources(article: Article): Article = {
-      val articleWithUrls = article.content.map(content => content.copy(content=addIdAndUrlOnResource(content.content)))
-      val visualElementWithUrls = article.visualElement.map(visual => visual.copy(resource=addIdAndUrlOnResource(visual.resource)))
+    private[service] def addUrlsOnEmbedResources(article: Article): Article = {
+      val articleWithUrls = article.content.map(content => content.copy(content=addUrlOnResource(content.content)))
+      val visualElementWithUrls = article.visualElement.map(visual => visual.copy(resource=addUrlOnResource(visual.resource)))
 
       article.copy(content = articleWithUrls, visualElement = visualElementWithUrls)
     }
@@ -61,15 +61,11 @@ trait ReadService {
       articleRepository.allTags.map(languageTags => languageTags.language -> new MostFrequentOccurencesList(languageTags.tags)).toMap
     })
 
-    private[service] def addIdAndUrlOnResource(content: String): String = {
+    private[service] def addUrlOnResource(content: String): String = {
       val doc = stringToJsoupDocument(content)
 
       val embedTags = doc.select(s"$resourceHtmlEmbedTag").asScala.toList
-      embedTags.zipWithIndex.foreach { case (embedTag, index) =>
-        embedTag.attr(s"${Attributes.DataId}", s"$index")
-        addUrlOnEmbedTag(embedTag)
-      }
-
+      embedTags.foreach(addUrlOnEmbedTag)
       jsoupDocumentToString(doc)
     }
 
