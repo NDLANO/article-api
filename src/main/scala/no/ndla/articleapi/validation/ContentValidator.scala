@@ -26,23 +26,23 @@ trait ContentValidator {
     private val NoHtmlValidator = new TextValidator(allowHtml=false)
     private val HtmlValidator = new TextValidator(allowHtml=true)
 
-    def validate(content: Content): Try[Content] = {
+    def validate(content: Content, allowUnknownLanguage: Boolean = false): Try[Content] = {
       content match {
-        case concept: Concept => validateConcept(concept)
-        case article: Article => validateArticle(article)
+        case concept: Concept => validateConcept(concept, allowUnknownLanguage)
+        case article: Article => validateArticle(article, allowUnknownLanguage)
       }
     }
 
-    def validateArticle(article: Article): Try[Article] = {
-      val validationErrors = article.content.flatMap(validateArticleContent) ++
-        article.introduction.flatMap(validateIntroduction) ++
-        article.metaDescription.flatMap(validateMetaDescription) ++
-        article.title.flatMap(validateTitle) ++
-        validateCopyright(article.copyright) ++
-        validateTags(article.tags) ++
+    def validateArticle(article: Article, allowUnknownLanguage: Boolean): Try[Article] = {
+      val validationErrors = article.content.flatMap(c => validateArticleContent(c, allowUnknownLanguage)) ++
+        article.introduction.flatMap(i => validateIntroduction(i, allowUnknownLanguage)) ++
+        article.metaDescription.flatMap(m => validateMetaDescription(m, allowUnknownLanguage)) ++
+        article.title.flatMap(t => validateTitle(t, allowUnknownLanguage)) ++
+        validateCopyright(article.copyright, allowUnknownLanguage) ++
+        validateTags(article.tags, allowUnknownLanguage) ++
         article.requiredLibraries.flatMap(validateRequiredLibrary) ++
         article.metaImageId.flatMap(validateMetaImageId) ++
-        article.visualElement.flatMap(validateVisualElement) ++
+        article.visualElement.flatMap(v => validateVisualElement(v, allowUnknownLanguage)) ++
         validateArticleType(article.articleType)
 
       if (validationErrors.isEmpty) {
@@ -53,9 +53,9 @@ trait ContentValidator {
 
     }
 
-    private def validateConcept(concept: Concept): Try[Concept] = {
-      val validationErrors = concept.content.flatMap(validateConceptContent) ++
-        concept.title.flatMap(validateTitle)
+    private def validateConcept(concept: Concept, allowUnknownLanguage: Boolean): Try[Concept] = {
+      val validationErrors = concept.content.flatMap(c => validateConceptContent(c, allowUnknownLanguage)) ++
+        concept.title.flatMap(t => validateTitle(t, allowUnknownLanguage))
 
       if (validationErrors.isEmpty) {
         Success(concept)
@@ -71,10 +71,10 @@ trait ContentValidator {
       }
     }
 
-    private def validateArticleContent(content: ArticleContent): Seq[ValidationMessage] = {
+    private def validateArticleContent(content: ArticleContent, allowUnknownLanguage: Boolean): Seq[ValidationMessage] = {
       HtmlValidator.validate("content.content", content.content).toList ++
         rootElementContainsOnlySectionBlocks("content.content", content.content) ++
-        validateLanguage("content.language", content.language)
+        validateLanguage("content.language", content.language, allowUnknownLanguage)
     }
 
     def rootElementContainsOnlySectionBlocks(field: String, html: String): Option[ValidationMessage] = {
@@ -89,32 +89,32 @@ trait ContentValidator {
       }
     }
 
-    private def validateConceptContent(content: ConceptContent): Seq[ValidationMessage] = {
+    private def validateConceptContent(content: ConceptContent, allowUnknownLanguage: Boolean): Seq[ValidationMessage] = {
       NoHtmlValidator.validate("content.content", content.content).toList ++
-        validateLanguage("content.language", content.language)
+        validateLanguage("content.language", content.language, allowUnknownLanguage)
     }
 
-    private def validateVisualElement(content: VisualElement): Seq[ValidationMessage] = {
+    private def validateVisualElement(content: VisualElement, allowUnknownLanguage: Boolean): Seq[ValidationMessage] = {
       HtmlValidator.validate("visualElement.content", content.resource).toList ++
-        validateLanguage("visualElement.language", content.language)
+        validateLanguage("visualElement.language", content.language, allowUnknownLanguage)
     }
 
-    private def validateIntroduction(content: ArticleIntroduction): Seq[ValidationMessage] = {
+    private def validateIntroduction(content: ArticleIntroduction, allowUnknownLanguage: Boolean): Seq[ValidationMessage] = {
       NoHtmlValidator.validate("introduction.introduction", content.introduction).toList ++
-        validateLanguage("introduction.language", content.language)
+        validateLanguage("introduction.language", content.language, allowUnknownLanguage)
     }
 
-    private def validateMetaDescription(content: ArticleMetaDescription): Seq[ValidationMessage] = {
+    private def validateMetaDescription(content: ArticleMetaDescription, allowUnknownLanguage: Boolean): Seq[ValidationMessage] = {
       NoHtmlValidator.validate("metaDescription.metaDescription", content.content).toList ++
-        validateLanguage("metaDescription.language", content.language)
+        validateLanguage("metaDescription.language", content.language, allowUnknownLanguage)
     }
 
-    private def validateTitle(content: LanguageField[String]): Seq[ValidationMessage] = {
+    private def validateTitle(content: LanguageField[String], allowUnknownLanguage: Boolean): Seq[ValidationMessage] = {
       NoHtmlValidator.validate("title.title", content.value).toList ++
-        validateLanguage("title.language", content.language)
+        validateLanguage("title.language", content.language, allowUnknownLanguage)
     }
 
-    private def validateCopyright(copyright: Copyright): Seq[ValidationMessage] = {
+    private def validateCopyright(copyright: Copyright, allowUnknownLanguage: Boolean): Seq[ValidationMessage] = {
       val licenseMessage = validateLicense(copyright.license)
       val contributorsMessages = copyright.authors.flatMap(validateAuthor)
       val originMessage = NoHtmlValidator.validate("copyright.origin", copyright.origin)
@@ -134,10 +134,10 @@ trait ContentValidator {
         NoHtmlValidator.validate("author.name", author.name).toList
     }
 
-    private def validateTags(tags: Seq[ArticleTag]): Seq[ValidationMessage] = {
+    private def validateTags(tags: Seq[ArticleTag], allowUnknownLanguage: Boolean): Seq[ValidationMessage] = {
       tags.flatMap(tagList => {
         tagList.tags.flatMap(NoHtmlValidator.validate("tags.tags", _)).toList :::
-          validateLanguage("tags.language", tagList.language).toList
+          validateLanguage("tags.language", tagList.language, allowUnknownLanguage).toList
       })
     }
 
@@ -157,14 +157,16 @@ trait ContentValidator {
       }
     }
 
-    private def validateLanguage(fieldPath: String, languageCode: String): Option[ValidationMessage] = {
-      languageCodeSupported6391(languageCode) match {
+    private def validateLanguage(fieldPath: String, languageCode: String, allowUnknownLanguage: Boolean): Option[ValidationMessage] = {
+      languageCode.nonEmpty && languageCodeSupported6391(languageCode, allowUnknownLanguage) match {
         case true => None
         case false => Some(ValidationMessage(fieldPath, s"Language '$languageCode' is not a supported value."))
       }
     }
 
-    private def languageCodeSupported6391(languageCode: String): Boolean =
-      get6391CodeFor6392CodeMappings.exists(_._2 == languageCode)
+    private def languageCodeSupported6391(languageCode: String, allowUnknownLanguage: Boolean): Boolean = {
+      val languageCodes = get6391CodeFor6392CodeMappings.values.toSeq ++ (if (allowUnknownLanguage) Seq("unknown") else Seq.empty)
+      languageCodes.contains(languageCode)
+    }
   }
 }

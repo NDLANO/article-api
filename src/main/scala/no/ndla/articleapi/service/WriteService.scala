@@ -25,7 +25,7 @@ trait WriteService {
   class WriteService {
     def newArticle(newArticle: api.NewArticle): Try[api.Article] = {
       val domainArticle = converterService.toDomainArticle(newArticle)
-      contentValidator.validateArticle(domainArticle) match {
+      contentValidator.validateArticle(domainArticle, false) match {
         case Success(_) =>
           val article = articleRepository.insert(domainArticle)
           articleIndexService.indexDocument(article)
@@ -36,7 +36,7 @@ trait WriteService {
 
     def newArticleV2(newArticle: api.NewArticleV2): Try[ArticleV2] = {
       val domainArticle = converterService.toDomainArticle(newArticle)
-      contentValidator.validateArticle(domainArticle) match {
+      contentValidator.validateArticle(domainArticle, false) match {
         case Success(_) => {
           val article = articleRepository.insert(domainArticle)
           articleIndexService.indexDocument(article)
@@ -75,7 +75,7 @@ trait WriteService {
             updatedBy = authUser.id()
           )
           for {
-            _ <- contentValidator.validate(toUpdate)
+            _ <- contentValidator.validateArticle(toUpdate, true)
             article <- articleRepository.update(toUpdate)
             _ <- articleIndexService.indexDocument(article)
           } yield readService.addUrlsOnEmbedResources(article)
