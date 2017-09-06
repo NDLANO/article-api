@@ -38,7 +38,7 @@ trait ContentValidator {
         article.introduction.flatMap(i => validateIntroduction(i, allowUnknownLanguage)) ++
         article.metaDescription.flatMap(m => validateMetaDescription(m, allowUnknownLanguage)) ++
         article.title.flatMap(t => validateTitle(t, allowUnknownLanguage)) ++
-        validateCopyright(article.copyright, allowUnknownLanguage) ++
+        validateCopyright(article.copyright) ++
         validateTags(article.tags, allowUnknownLanguage) ++
         article.requiredLibraries.flatMap(validateRequiredLibrary) ++
         article.metaImageId.flatMap(validateMetaImageId) ++
@@ -114,7 +114,7 @@ trait ContentValidator {
         validateLanguage("title.language", content.language, allowUnknownLanguage)
     }
 
-    private def validateCopyright(copyright: Copyright, allowUnknownLanguage: Boolean): Seq[ValidationMessage] = {
+    private def validateCopyright(copyright: Copyright): Seq[ValidationMessage] = {
       val licenseMessage = validateLicense(copyright.license)
       val contributorsMessages = copyright.authors.flatMap(validateAuthor)
       val originMessage = NoHtmlValidator.validate("copyright.origin", copyright.origin)
