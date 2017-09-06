@@ -67,19 +67,15 @@ trait LenkeConverterModule {
       val message = s"External resource to be embedded: $url"
       logger.info(message)
 
-      val (embedTag, requiredLibs) = isNRKLink(url) match {
-        case false => (HtmlTagGenerator.buildExternalInlineEmbedContent(url), None)
-        case true => getNrkEmbedTag(embedCode, url)
+      val NRKUrlPattern = """(.*\.?nrk.no)""".r
+      val PreziUrlPattern = """(.*\.?prezi.com)""".r
+
+      val (embedTag, requiredLibs) = url.host.getOrElse("") match {
+        case NRKUrlPattern(_) => getNrkEmbedTag(embedCode, url)
+        case PreziUrlPattern(_) => getPreziEmbedTag(embedCode)
+        case _ => (HtmlTagGenerator.buildExternalInlineEmbedContent(url), None)
       }
       (embedTag, requiredLibs, message :: Nil)
-    }
-
-    private def isNRKLink(url: String): Boolean = {
-      val NRKUrlPattern = """(.*nrk.no)""".r
-      url.host.getOrElse("") match {
-        case NRKUrlPattern(_) => true
-        case _ => false
-      }
     }
 
     def getNrkEmbedTag(embedCode: String, url: String): (String, Option[RequiredLibrary]) = {
@@ -88,6 +84,13 @@ trait LenkeConverterModule {
       val requiredLibrary = RequiredLibrary("text/javascript", "NRK video embed", requiredLibraryUrl.copy(scheme=None))
 
       (HtmlTagGenerator.buildNRKInlineVideoContent(videoId, url), Some(requiredLibrary))
+    }
+
+    def getPreziEmbedTag(embedCode: String): (String, Option[RequiredLibrary]) = {
+      val doc = Jsoup.parseBodyFragment(embedCode).select("iframe").first()
+      val (src, width, height) = (doc.attr("src"), doc.attr("width"), doc.attr("height"))
+
+      (HtmlTagGenerator.buildPreziInlineContent(src, width, height), None)
     }
 
     private def insertDetailSummary(url: String, embedCode: String, cont: ContentBrowser): (String, Option[RequiredLibrary], Seq[String]) = {

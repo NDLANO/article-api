@@ -70,6 +70,15 @@
         "data-content-id",
         "data-link-text"
       ]
+    },
+    "prezi": {
+      "required": [
+        "data-resource",
+        "data-url",
+        "data-width",
+        "data-height"
+      ]
     }
+
   }
 }
