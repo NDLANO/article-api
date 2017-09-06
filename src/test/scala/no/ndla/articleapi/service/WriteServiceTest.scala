@@ -36,7 +36,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
   test("newArticle should insert a given article") {
     when(articleRepository.insert(any[Article])(any[DBSession])).thenReturn(article)
     when(articleRepository.getExternalIdFromId(any[Long])(any[DBSession])).thenReturn(None)
-    when(contentValidator.validateArticle(any[Article])).thenReturn(Success(article))
+    when(contentValidator.validateArticle(any[Article], any[Boolean])).thenReturn(Success(article))
 
     service.newArticle(newArticle).get.id should equal(article.id.get.toString)
     verify(articleRepository, times(1)).insert(any[Article])
@@ -46,7 +46,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
   test("newArticleV2 should insert a given articleV2") {
     when(articleRepository.insert(any[Article])(any[DBSession])).thenReturn(article)
     when(articleRepository.getExternalIdFromId(any[Long])(any[DBSession])).thenReturn(None)
-    when(contentValidator.validateArticle(any[Article])).thenReturn(Success(article))
+    when(contentValidator.validateArticle(any[Article], any[Boolean])).thenReturn(Success(article))
 
     service.newArticleV2(TestData.newArticleV2).get.id.toString should equal(article.id.get.toString)
     verify(articleRepository, times(1)).insert(any[Article])
@@ -63,7 +63,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
   test("updateArticle should update the updated field of an article") {
     when(authUser.id()).thenReturn("ndalId54321")
     val expectedUpdatedArticle = article.copy(updated=today)
-    when(contentValidator.validate(any[Article])).thenReturn(Success(mock[Article]))
+    when(contentValidator.validateArticle(any[Article], any[Boolean])).thenReturn(Success(mock[Article]))
     when(articleRepository.withId(articleId)).thenReturn(Some(article))
     when(articleRepository.update(any[Article])(any[DBSession])).thenReturn(Success(expectedUpdatedArticle))
     when(clock.now()).thenReturn(today)
