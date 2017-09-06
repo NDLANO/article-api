@@ -110,7 +110,7 @@ class LenkeConverterTest extends UnitSuite with TestEnvironment {
   test("That LenkeConverter returns a prezi embed for prezi resources") {
     val preziUrl = "http://prezi.com/123123123"
     val preziSrc = "https://prezi.com/embed/123123123&autoplay=0"
-    val preziEmbedCode = s"""<iframe id=\"iframe_container\" frameborder=\"0\" webkitallowfullscreen=\"\" mozallowfullscreen=\"\" allowfullscreen=\"\" width=\"620\" height=\"451\" src=\"$preziSrc\"></iframe>"""
+    val preziEmbedCode = s"""<iframe id="iframe_container" frameborder="0" webkitallowfullscreen="" mozallowfullscreen="" allowfullscreen="" width="620" height="451" src="$preziSrc"></iframe>"""
 
     val insertion = "inline"
     val contentString = s"[contentbrowser ==nid=$nodeId==imagecache=Fullbredde==width===alt=$altText==link===node_link=1==link_type=link_to_content==lightbox_size===remove_fields[76661]=1==remove_fields[76663]=1==remove_fields[76664]=1==remove_fields[76666]=1==insertion=$insertion==link_title_text= ==link_text= ==text_align===css_class=contentbrowser contentbrowser]"
@@ -118,6 +118,23 @@ class LenkeConverterTest extends UnitSuite with TestEnvironment {
     val expectedResult = s"""<$resourceHtmlEmbedTag data-height="451" data-resource="${ResourceType.Prezi}" data-url="$preziSrc" data-width="620" />"""
 
     when(extractService.getNodeEmbedMeta(nodeId)).thenReturn(Success(MigrationEmbedMeta(Some(preziUrl), Some(preziEmbedCode))))
+    val Success((result, _, errors)) = LenkeConverter.convert(content, Seq())
+
+    result should equal(expectedResult)
+    errors.messages.length should equal(1)
+  }
+
+  test("That LenkeConverter returns a commoncraft embed for commoncraft resources") {
+    val CcraftUrl = "http://www.commoncraft.com/123123123"
+    val CcraftSrc = "http://www.commoncraft.com/embed/db233ba&autoplay=0"
+    val CcraftEmbedCode = s"""<iframe id="cc-embed" frameborder="0" width="620" height="451" src="$CcraftSrc" scrolling="false"></iframe>"""
+
+    val insertion = "inline"
+    val contentString = s"[contentbrowser ==nid=$nodeId==imagecache=Fullbredde==width===alt=$altText==link===node_link=1==link_type=link_to_content==lightbox_size===remove_fields[76661]=1==remove_fields[76663]=1==remove_fields[76664]=1==remove_fields[76666]=1==insertion=$insertion==link_title_text= ==link_text= ==text_align===css_class=contentbrowser contentbrowser]"
+    val content = ContentBrowser(contentString, "nb")
+    val expectedResult = s"""<$resourceHtmlEmbedTag data-height="451" data-resource="${ResourceType.Commoncraft}" data-url="$CcraftSrc" data-width="620" />"""
+
+    when(extractService.getNodeEmbedMeta(nodeId)).thenReturn(Success(MigrationEmbedMeta(Some(CcraftUrl), Some(CcraftEmbedCode))))
     val Success((result, _, errors)) = LenkeConverter.convert(content, Seq())
 
     result should equal(expectedResult)

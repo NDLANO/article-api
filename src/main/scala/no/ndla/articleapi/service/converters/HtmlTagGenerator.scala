@@ -96,6 +96,16 @@ trait HtmlTagGenerator {
       buildEmbedContent(dataAttributes)
     }
 
+    def buildCommoncraftInlineContent(url: String, width: String, height: String) = {
+      val dataAttributes = Map(
+        Attributes.DataResource -> ResourceType.Commoncraft.toString,
+        Attributes.DataUrl -> url,
+        Attributes.DataWidth -> width,
+        Attributes.DataHeight -> height,
+      )
+      buildEmbedContent(dataAttributes)
+    }
+
     def buildDetailsSummaryContent(linkText: String, content: String) = {
       s"<details><summary>$linkText</summary>$content</details>"
     }
@@ -123,6 +133,7 @@ object ResourceType extends Enumeration {
   val NRKContent = Value("nrk")
   val ConceptLink = Value("concept")
   val Prezi = Value("prezi")
+  val Commoncraft = Value("commoncraft")
 
   def all: Set[String] = ResourceType.values.map(_.toString)
 
