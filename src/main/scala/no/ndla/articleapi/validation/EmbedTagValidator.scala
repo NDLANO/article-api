@@ -15,7 +15,7 @@ import no.ndla.articleapi.model.domain.EmbedTag
 import no.ndla.articleapi.model.domain.EmbedTag.EmbedTagAttributeRules
 import no.ndla.articleapi.service.converters.{Attributes, HTMLCleaner, ResourceType}
 import org.jsoup.nodes.Element
-
+import com.netaporter.uri.dsl._
 import scala.collection.JavaConverters._
 
 class EmbedTagValidator {
@@ -76,7 +76,8 @@ class EmbedTagValidator {
     val attributeRulesForTag = EmbedTag.attributesForResourceType(resourceType)
 
     verifyEmbedTagBasedOnResourceType(fieldName, attributeRulesForTag, attributeKeys, resourceType) ++
-    verifyOptionalEmbedTagRules(fieldName, attributeRulesForTag, attributeKeys, resourceType)
+    verifyOptionalEmbedTagRules(fieldName, attributeRulesForTag, attributeKeys, resourceType) ++
+    verifySourceUrl(fieldName, attributeRulesForTag, attributes, resourceType)
   }
 
   private def verifyEmbedTagBasedOnResourceType(fieldName: String, attrRules: EmbedTagAttributeRules, actualAttributes: Set[Attributes.Value], resourceType: ResourceType.Value): Seq[ValidationMessage] = {
@@ -99,6 +100,15 @@ class EmbedTagValidator {
         Seq(ValidationMessage(fieldName,
         s"An $resourceHtmlEmbedTag HTML tag with ${Attributes.DataResource}=$resourceType must contain all or none of the optional attributes (${attrs.optional.mkString(",")}). Missing $missingAttrs")
       )
+      case _ => Seq.empty
+    }
+  }
+
+  private def verifySourceUrl(fieldName: String, attrs: EmbedTagAttributeRules, usedAttributes: Map[Attributes.Value, String], resourceType: ResourceType.Value): Seq[ValidationMessage] = {
+    usedAttributes.get(Attributes.DataUrl) match {
+      case Some(url) if attrs.validSrcDomains.nonEmpty && !attrs.validSrcDomains.contains(url.host.getOrElse("")) =>
+        Seq(ValidationMessage(fieldName,
+          s"An $resourceHtmlEmbedTag HTML tag with ${Attributes.DataResource}=$resourceType can only contain ${Attributes.DataUrl} urls from the following domains: ${attrs.validSrcDomains.mkString(",")}"))
       case _ => Seq.empty
     }
   }

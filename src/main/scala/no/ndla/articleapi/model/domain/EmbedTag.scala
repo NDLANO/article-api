@@ -9,7 +9,7 @@ import scala.io.Source
 
 object EmbedTag {
   case class EmbedThings(attrsForResource: Map[ResourceType.Value, EmbedTagAttributeRules])
-  case class EmbedTagAttributeRules(required: Set[Attributes.Value], optional: Set[Attributes.Value]) {
+  case class EmbedTagAttributeRules(required: Set[Attributes.Value], optional: Set[Attributes.Value], validSrcDomains: Set[String]) {
     lazy val all: Set[Attributes.Value] = required ++ optional
   }
 
@@ -26,7 +26,8 @@ object EmbedTag {
     def toEmbedTagAttributeRules(map: Map[String, Seq[String]]) = {
       EmbedTagAttributeRules(
         map("required").flatMap(Attributes.valueOf).toSet,
-        map.get("optional").map(x => x.flatMap(Attributes.valueOf)).getOrElse(Seq.empty).toSet
+        map.get("optional").map(x => x.flatMap(Attributes.valueOf)).getOrElse(Seq.empty).toSet,
+        map.getOrElse("validSrcDomains", Seq.empty).toSet
       )
     }
 
