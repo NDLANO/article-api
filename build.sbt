@@ -93,7 +93,7 @@ dockerfile in docker := {
   val artifact = (assemblyOutputPath in assembly).value
   val artifactTargetPath = s"/app/${artifact.name}"
   new Dockerfile {
-    from("java")
+    from("openjdk:8")
 
     add(artifact, artifactTargetPath)
     entryPoint("java", "-Dorg.scalatra.environment=production", "-jar", artifactTargetPath)
