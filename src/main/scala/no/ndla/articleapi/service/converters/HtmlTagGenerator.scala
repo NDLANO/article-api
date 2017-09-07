@@ -91,7 +91,7 @@ trait HtmlTagGenerator {
         Attributes.DataResource -> ResourceType.Prezi.toString,
         Attributes.DataUrl -> url,
         Attributes.DataWidth -> width,
-        Attributes.DataHeight -> height,
+        Attributes.DataHeight -> height
       )
       buildEmbedContent(dataAttributes)
     }
@@ -101,7 +101,17 @@ trait HtmlTagGenerator {
         Attributes.DataResource -> ResourceType.Commoncraft.toString,
         Attributes.DataUrl -> url,
         Attributes.DataWidth -> width,
-        Attributes.DataHeight -> height,
+        Attributes.DataHeight -> height
+      )
+      buildEmbedContent(dataAttributes)
+    }
+
+    def buildNdlaFilmIundervisningInlineContent(url: String, width: String, height: String) = {
+      val dataAttributes = Map(
+        Attributes.DataResource -> ResourceType.NdlaFilmIundervisning.toString,
+        Attributes.DataUrl -> url,
+        Attributes.DataWidth -> width,
+        Attributes.DataHeight -> height
       )
       buildEmbedContent(dataAttributes)
     }
@@ -134,6 +144,7 @@ object ResourceType extends Enumeration {
   val ConceptLink = Value("concept")
   val Prezi = Value("prezi")
   val Commoncraft = Value("commoncraft")
+  val NdlaFilmIundervisning = Value("ndla-filmiundervisning")
 
   def all: Set[String] = ResourceType.values.map(_.toString)
 

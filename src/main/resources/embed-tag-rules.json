@@ -86,6 +86,14 @@
         "data-width",
         "data-height"
       ]
+    },
+    "ndla-filmiundervisning": {
+      "required": [
+        "data-resource",
+        "data-url",
+        "data-width",
+        "data-height"
+      ]
     }
 
   }

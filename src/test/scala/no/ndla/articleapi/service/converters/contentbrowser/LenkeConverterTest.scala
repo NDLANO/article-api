@@ -140,4 +140,21 @@ class LenkeConverterTest extends UnitSuite with TestEnvironment {
     result should equal(expectedResult)
     errors.messages.length should equal(1)
   }
+
+  test("That LenkeConverter returns a ndla.filmundervisningen embed for ndla.filmundervisningen resources") {
+    val NdlaFilmUrl = "https://ndla.filmiundervisning.no/film/ndlafilm.aspx?filmId=12412"
+    val NdlaFilmSrc = "//ndla.filmiundervisning.no/film/ndlafilm.aspx?filmId=12412"
+    val NdlaFilmEmbedCode = s"""<iframe src="$NdlaFilmSrc" style="border: none;" frameBorder="0" width="632px" height="337px" allowfullscreen></iframe>"""
+
+    val insertion = "inline"
+    val contentString = s"[contentbrowser ==nid=$nodeId==imagecache=Fullbredde==width===alt=$altText==link===node_link=1==link_type=link_to_content==lightbox_size===remove_fields[76661]=1==remove_fields[76663]=1==remove_fields[76664]=1==remove_fields[76666]=1==insertion=$insertion==link_title_text= ==link_text= ==text_align===css_class=contentbrowser contentbrowser]"
+    val content = ContentBrowser(contentString, "nb")
+    val expectedResult = s"""<$resourceHtmlEmbedTag data-height="337px" data-resource="${ResourceType.NdlaFilmIundervisning}" data-url="$NdlaFilmSrc" data-width="632px" />"""
+
+    when(extractService.getNodeEmbedMeta(nodeId)).thenReturn(Success(MigrationEmbedMeta(Some(NdlaFilmUrl), Some(NdlaFilmEmbedCode))))
+    val Success((result, _, errors)) = LenkeConverter.convert(content, Seq())
+
+    result should equal(expectedResult)
+    errors.messages.length should equal(1)
+  }
 }
