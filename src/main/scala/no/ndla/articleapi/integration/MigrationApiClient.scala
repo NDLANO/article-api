@@ -12,30 +12,30 @@ package no.ndla.articleapi.integration
 import java.net.URL
 import java.util.Date
 
-import no.ndla.articleapi.ArticleApiProperties
+import no.ndla.articleapi.ArticleApiProperties.{MigrationHost, MigrationPassword, MigrationUser, Environment}
 import no.ndla.articleapi.model.domain._
 import no.ndla.articleapi.service.TagsService
 import no.ndla.network.NdlaClient
 
 import scala.util.Try
 import scalaj.http.Http
+import com.netaporter.uri.dsl._
 
 trait MigrationApiClient {
   this: NdlaClient with TagsService =>
-
   val migrationApiClient: MigrationApiClient
 
   class MigrationApiClient {
-
-    private val ContentMigrationBaseEndpoint = s"${ArticleApiProperties.MigrationHost}/contents"
-    private val ContentDataEndpoint = s"$ContentMigrationBaseEndpoint/:node_id"
-    private val ContentTypeEndpoint = s"$ContentMigrationBaseEndpoint/type/:node_id"
-    private val ContentEmbedEndpoint = s"$ContentMigrationBaseEndpoint/embedmeta/:node_id"
-    private val ContentAudioEndpoint = s"$ContentMigrationBaseEndpoint/audiometa/:node_id"
-    private val ContentFileEndpoint = s"$ContentMigrationBaseEndpoint/filemeta/:node_id"
-    private val ContentGeneralEndpoint = s"$ContentMigrationBaseEndpoint/generalcontent/:node_id"
-    private val ContentBiblioMetaEndpoint = s"$ContentMigrationBaseEndpoint/bibliometa/:node_id"
-    private val ContentSubjectMetaEndpoint = s"$ContentMigrationBaseEndpoint/subjectfornode/:node_id"
+    val DBSource = if (Environment == "prod") "cm" else "red"
+    private val ContentMigrationBaseEndpoint = s"$MigrationHost/contents"
+    private val ContentDataEndpoint = s"$ContentMigrationBaseEndpoint/:node_id" ? (s"db-source" -> s"$DBSource")
+    private val ContentTypeEndpoint = s"$ContentMigrationBaseEndpoint/type/:node_id" ? (s"db-source" -> s"$DBSource")
+    private val ContentEmbedEndpoint = s"$ContentMigrationBaseEndpoint/embedmeta/:node_id" ? (s"db-source" -> s"$DBSource")
+    private val ContentAudioEndpoint = s"$ContentMigrationBaseEndpoint/audiometa/:node_id" ? (s"db-source" -> s"$DBSource")
+    private val ContentFileEndpoint = s"$ContentMigrationBaseEndpoint/filemeta/:node_id" ? (s"db-source" -> s"$DBSource")
+    private val ContentGeneralEndpoint = s"$ContentMigrationBaseEndpoint/generalcontent/:node_id" ? (s"db-source" -> s"$DBSource")
+    private val ContentBiblioMetaEndpoint = s"$ContentMigrationBaseEndpoint/bibliometa/:node_id" ? (s"db-source" -> s"$DBSource")
+    private val ContentSubjectMetaEndpoint = s"$ContentMigrationBaseEndpoint/subjectfornode/:node_id" ? (s"db-source" -> s"$DBSource")
 
     def getContentNodeData(nodeId: String): Try[MigrationMainNodeImport] =
       get[MigrationMainNodeImport](ContentDataEndpoint, nodeId)
@@ -43,7 +43,7 @@ trait MigrationApiClient {
     private def get[A](endpointUrl: String, nodeId: String)(implicit mf: Manifest[A]): Try[A] = {
       ndlaClient.fetchWithBasicAuth[A](
         Http(endpointUrl.replace(":node_id", nodeId)),
-        ArticleApiProperties.MigrationUser, ArticleApiProperties.MigrationPassword)
+        MigrationUser, MigrationPassword)
     }
 
     def getContentType(nodeId: String): Try[MigrationNodeType] =

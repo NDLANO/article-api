@@ -45,7 +45,7 @@ trait ExtractConvertStoreContent {
       val importedArticle = for {
         (node, mainNodeId) <- extract(externalId)
         (convertedContent, updatedImportStatus) <- convert(node, importStatus)
-        _ <- importValidator.validate(convertedContent)
+        _ <- importValidator.validate(convertedContent, allowUnknownLanguage=true)
         concept <- store(convertedContent, mainNodeId)
         _ <- indexContent(concept)
       } yield (concept, updatedImportStatus ++ ImportStatus(Seq(s"Successfully imported node $externalId: ${concept.id.get}")))
