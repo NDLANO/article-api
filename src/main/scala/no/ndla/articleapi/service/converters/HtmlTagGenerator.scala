@@ -86,6 +86,36 @@ trait HtmlTagGenerator {
       buildEmbedContent(dataAttributes)
     }
 
+    def buildPreziInlineContent(url: String, width: String, height: String) = {
+      val dataAttributes = Map(
+        Attributes.DataResource -> ResourceType.Prezi.toString,
+        Attributes.DataUrl -> url,
+        Attributes.DataWidth -> width,
+        Attributes.DataHeight -> height
+      )
+      buildEmbedContent(dataAttributes)
+    }
+
+    def buildCommoncraftInlineContent(url: String, width: String, height: String) = {
+      val dataAttributes = Map(
+        Attributes.DataResource -> ResourceType.Commoncraft.toString,
+        Attributes.DataUrl -> url,
+        Attributes.DataWidth -> width,
+        Attributes.DataHeight -> height
+      )
+      buildEmbedContent(dataAttributes)
+    }
+
+    def buildNdlaFilmIundervisningInlineContent(url: String, width: String, height: String) = {
+      val dataAttributes = Map(
+        Attributes.DataResource -> ResourceType.NdlaFilmIundervisning.toString,
+        Attributes.DataUrl -> url,
+        Attributes.DataWidth -> width,
+        Attributes.DataHeight -> height
+      )
+      buildEmbedContent(dataAttributes)
+    }
+
     def buildDetailsSummaryContent(linkText: String, content: String) = {
       s"<details><summary>$linkText</summary>$content</details>"
     }
@@ -112,6 +142,9 @@ object ResourceType extends Enumeration {
   val ExternalContent = Value("external")
   val NRKContent = Value("nrk")
   val ConceptLink = Value("concept")
+  val Prezi = Value("prezi")
+  val Commoncraft = Value("commoncraft")
+  val NdlaFilmIundervisning = Value("ndla-filmiundervisning")
 
   def all: Set[String] = ResourceType.values.map(_.toString)
 
@@ -125,6 +158,8 @@ object Attributes extends Enumeration {
   val DataAlt = Value("data-alt")
   val DataSize = Value("data-size")
   val DataAlign = Value("data-align")
+  val DataWidth = Value("data-width")
+  val DataHeight = Value("data-height")
   val DataPlayer = Value("data-player")
   val DataMessage = Value("data-message")
   val DataCaption = Value("data-caption")

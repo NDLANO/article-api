@@ -70,6 +70,40 @@
         "data-content-id",
         "data-link-text"
       ]
+    },
+    "prezi": {
+      "required": [
+        "data-resource",
+        "data-url",
+        "data-width",
+        "data-height"
+      ],
+      "validSrcDomains": [
+        "prezi.com",
+      ]
+    },
+    "commoncraft": {
+      "required": [
+        "data-resource",
+        "data-url",
+        "data-width",
+        "data-height"
+      ],
+      "validSrcDomains": [
+        "www.commoncraft.com"
+      ]
+    },
+    "ndla-filmiundervisning": {
+      "required": [
+        "data-resource",
+        "data-url",
+        "data-width",
+        "data-height"
+      ],
+      "validSrcDomains": [
+        "ndla.filmiundervisning.no"
+      ]
     }
+
   }
 }

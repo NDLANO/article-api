@@ -206,4 +206,28 @@ class EmbedTagValidatorTest extends UnitSuite {
     embedTagValidator.validate("content", tag).size should be (0)
   }
 
+  test("validate should succeed if source url is from a legal domain") {
+    val tag = generateTagWithAttrs(Map(
+      Attributes.DataResource -> ResourceType.Prezi.toString,
+      Attributes.DataUrl -> "https://prezi.com",
+      Attributes.DataWidth -> "1",
+      Attributes.DataHeight -> "1"
+    ))
+
+    embedTagValidator.validate("content", tag).size should be (0)
+  }
+
+  test("validate should fail if source url is from an illlegal domain") {
+    val tag = generateTagWithAttrs(Map(
+      Attributes.DataResource -> ResourceType.Prezi.toString,
+      Attributes.DataUrl -> "https://evilprezi.com",
+      Attributes.DataWidth -> "1",
+      Attributes.DataHeight -> "1"
+    ))
+
+    val result = embedTagValidator.validate("content", tag)
+    result.size should be (1)
+    result.head.message.contains(s"can only contain ${Attributes.DataUrl} urls from the following domains:")  should be(true)
+  }
+
 }
