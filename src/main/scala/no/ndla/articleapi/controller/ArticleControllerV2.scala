@@ -104,7 +104,7 @@ trait ArticleControllerV2 {
         notes "Creates a new article"
         parameters(
           headerParam[Option[String]]("X-Correlation-ID").description("User supplied correlation-id"),
-          bodyParam[NewArticle]
+          bodyParam[NewArticleV2]
         )
         authorizations "oauth2"
         responseMessages(response400, response403, response500))
@@ -116,7 +116,7 @@ trait ArticleControllerV2 {
         parameters(
           headerParam[Option[String]]("X-Correlation-ID").description("User supplied correlation-id"),
           pathParam[Long]("article_id").description("Id of the article that is to be updated"),
-          bodyParam[UpdatedArticle]
+          bodyParam[UpdatedArticleV2]
         )
         authorizations "oauth2"
         responseMessages(response400, response403, response404, response500))
