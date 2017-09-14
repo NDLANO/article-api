@@ -261,7 +261,7 @@ trait ConverterService {
     }
 
     def toDomainVisualElement(visual: api.VisualElement): VisualElement = {
-      VisualElement(removeUnknownEmbedTagAttributes(visual.content), visual.language)
+      VisualElement(removeUnknownEmbedTagAttributes(visual.visualElement), visual.language)
     }
 
     def toDomainVisualElementV2(visual: Option[String], language: String): Seq[VisualElement] = {
