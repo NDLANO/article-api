@@ -26,4 +26,13 @@ class LeafNodeConverterTest extends UnitSuite with TestEnvironment {
     result.requiredLibraries.size should equal (1)
   }
 
+  test("Leaf node converter should create an article from a pure h5p node") {
+    val sampleLanguageContent = TestData.sampleContent.copy(content="", nodeType = "h5p_content")
+    val expectedResult = s"""<section><$resourceHtmlEmbedTag data-resource="h5p" data-url="//ndla.no/h5p/embed/1234" /></section>"""
+    val Success((result, _)) = LeafNodeConverter.convert(sampleLanguageContent, ImportStatus(Seq(), Seq()))
+
+    result.content should equal (expectedResult)
+    result.requiredLibraries.size should equal (1)
+  }
+
 }
