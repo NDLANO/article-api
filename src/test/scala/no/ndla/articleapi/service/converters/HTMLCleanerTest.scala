@@ -32,7 +32,7 @@ class HTMLCleanerTest extends UnitSuite with TestEnvironment {
     val Success((result, _)) = htmlCleaner.convert(initialContent, defaultImportStatus)
 
     result.content should equal (expectedResult)
-    result.requiredLibraries.length should equal (0)
+    result.requiredLibraries.size should equal (0)
   }
 
   test("That HTMLCleaner unwraps illegal tags") {
@@ -41,7 +41,7 @@ class HTMLCleanerTest extends UnitSuite with TestEnvironment {
     val Success((result, _)) = htmlCleaner.convert(initialContent, defaultImportStatus)
 
     result.content should equal (expectedResult)
-    result.requiredLibraries.length should equal (0)
+    result.requiredLibraries.size should equal (0)
   }
 
   test("That HTMLCleaner removes comments") {
@@ -50,7 +50,7 @@ class HTMLCleanerTest extends UnitSuite with TestEnvironment {
     val Success((result, _)) = htmlCleaner.convert(initialContent, defaultImportStatus)
 
     result.content should equal (expectedResult)
-    result.requiredLibraries.length should equal (0)
+    result.requiredLibraries.size should equal (0)
   }
 
   test("That HTMLCleaner removes empty p,div,section,aside tags") {
@@ -59,7 +59,7 @@ class HTMLCleanerTest extends UnitSuite with TestEnvironment {
     val Success((result, _)) = htmlCleaner.convert(initialContent, defaultImportStatus)
 
     result.content should equal (expectedResult)
-    result.requiredLibraries.length should equal (0)
+    result.requiredLibraries.size should equal (0)
   }
 
   test("ingress is extracted when wrapped in <p> tags") {
@@ -101,7 +101,7 @@ class HTMLCleanerTest extends UnitSuite with TestEnvironment {
 
     result.content should equal(expectedContentResult)
     result.ingress should equal(expectedIngressResult)
-    result.requiredLibraries.length should equal (0)
+    result.requiredLibraries.size should equal (0)
   }
 
   test("ingress with word count less than 3 should not be interpreted as an ingress") {
@@ -133,7 +133,7 @@ class HTMLCleanerTest extends UnitSuite with TestEnvironment {
     val Success((result, _)) = htmlCleaner.convert(TestData.sampleContent.copy(content=content), defaultImportStatus)
     result.content should equal(expectedContentResult)
     result.ingress should equal(Some(expectedIngressResult))
-    result.requiredLibraries.length should equal (0)
+    result.requiredLibraries.size should equal (0)
   }
 
   test("ingress text is extracted when wrapped in <strong> tags") {

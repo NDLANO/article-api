@@ -94,13 +94,14 @@ case class MigrationMainNodeImport(titles: Seq[MigrationContentTitle], ingresses
 
   def asLanguageContents: Seq[LanguageContent] = {
     contents.map(content => {
-      LanguageContent(
-        content.nid,
+      LanguageContent(content.nid,
         content.tnid,
         content.content,
         getMetaDescription(content),
         Language.languageOrUnknown(content.language),
         visualElements.find(_.language == content.language).map(_.element),
+        nodeType.getOrElse("unknown"),
+        titles.find(_.language == content.language).map(_.title),
         ingress = getIngress(content.language))
     })
   }

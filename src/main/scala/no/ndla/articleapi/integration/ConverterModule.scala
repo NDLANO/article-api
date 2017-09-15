@@ -52,10 +52,17 @@ object ConverterModule {
   }
 }
 
-case class LanguageContent(nid: String, tnid: String, content: String, metaDescription: String, language: String,
+case class LanguageContent(nid: String,
+                           tnid: String,
+                           content: String,
+                           metaDescription: String,
+                           language: String,
                            visualElement: Option[String],
-                           requiredLibraries: Seq[RequiredLibrary] = List[RequiredLibrary](),
-                           footNotes: Option[Map[String, FootNoteItem]] = None,
+                           nodeType: String,
+                           title: Option[String],
+                           requiredLibraries: Set[RequiredLibrary] = Set[RequiredLibrary](),
+                           footNotes: Option[Map[String,
+                           FootNoteItem]] = None,
                            ingress: Option[LanguageIngress] = None) {
   def isMainNode = nid == tnid || tnid == "0"
   def isTranslation = !isMainNode

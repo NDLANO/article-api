@@ -40,7 +40,7 @@ class ContentBrowserConverterTest extends UnitSuite with TestEnvironment {
     val Success((result, _)) = contentBrowserConverter.convert(initialContent, ImportStatus(Seq(), Seq()))
 
     result.content should equal (expectedResult)
-    result.requiredLibraries.length should equal (0)
+    result.requiredLibraries.size should equal (0)
   }
 
   test("That Content-browser strings of type image are converted into HTML img tags") {
@@ -57,7 +57,7 @@ class ContentBrowserConverterTest extends UnitSuite with TestEnvironment {
     val Success((result, _)) = contentBrowserConverter.convert(sampleContent, ImportStatus(Seq(), Seq()))
 
     result.content should equal (expectedResult)
-    result.requiredLibraries.length should equal (0)
+    result.requiredLibraries.size should equal (0)
   }
 
   test("That Content-browser strings of type oppgave are converted into content") {
@@ -119,7 +119,7 @@ class ContentBrowserConverterTest extends UnitSuite with TestEnvironment {
     val strippedResult = " +".r.replaceAllIn(result.content.replace("\n", ""), " ")
 
     strippedResult should equal (expectedResult)
-    result.requiredLibraries.length should equal (1)
+    result.requiredLibraries.size should equal (1)
   }
 
   test("That content-browser strings of type biblio are converted into content") {

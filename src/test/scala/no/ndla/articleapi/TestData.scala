@@ -293,7 +293,7 @@ object TestData {
 
   val (nodeId, nodeId2) = ("1234", "4321")
   val sampleTitle = ArticleTitle("title", "en")
-  val sampleContent = LanguageContent(nodeId, nodeId, "sample content", "metadescription",  "en", None)
+  val sampleContent = LanguageContent(nodeId, nodeId, "sample content", "metadescription", "en", None, "fagstoff", Some("title"))
   val sampleTranslationContent = sampleContent.copy(tnid=nodeId2)
 
   val visualElement = VisualElement(s"""<$resourceHtmlEmbedTag  data-align="" data-alt="" data-caption="" data-resource="image" data-resource_id="1" data-size="" />""", "nb")

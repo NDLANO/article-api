@@ -60,7 +60,8 @@ object ArticleApiProperties extends LazyLogging {
   val ApiClientsCacheAgeInMs: Long = 1000 * 60 * 60 // 1 hour caching
 
   val nodeTypeBegrep: String = "begrep"
-  val supportedContentTypes = Set("fagstoff", "oppgave", "veiledning", "aktualitet", "emneartikkel", nodeTypeBegrep)
+  val nodeTypeVideo: String = "video"
+  val supportedContentTypes = Set("fagstoff", "oppgave", "veiledning", "aktualitet", "emneartikkel", nodeTypeBegrep, nodeTypeVideo)
 
 
   // When converting a content node, the converter may run several times over the content to make sure
