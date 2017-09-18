@@ -34,7 +34,7 @@ trait ExtractConvertStoreContent {
   val extractConvertStoreContent: ExtractConvertStoreContent
 
   class ExtractConvertStoreContent extends LazyLogging {
-    def processNode(externalId: String, importStatus: ImportStatus = ImportStatus(Seq(), Seq())): Try[(Content, ImportStatus)] = {
+    def processNode(externalId: String, importStatus: ImportStatus = ImportStatus.empty): Try[(Content, ImportStatus)] = {
       if (importStatus.visitedNodes.contains(externalId)) {
         return getMainNodeId(externalId).flatMap(readService.getContentByExternalId) match {
           case Some(content) => Success(content, importStatus)

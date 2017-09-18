@@ -46,6 +46,7 @@ object ComponentRegistry
     with ExtractService
     with ConverterModules
     with ConverterService
+    with LeafNodeConverter
     with ContentBrowserConverterModules
     with ContentBrowserConverter
     with BiblioConverterModule
@@ -114,10 +115,19 @@ object ComponentRegistry
   lazy val contentBrowserConverter = new ContentBrowserConverter
   lazy val biblioConverter = new BiblioConverter
   lazy val htmlCleaner = new HTMLCleaner
-  lazy val articleConverterModules = List(contentBrowserConverter)
-  lazy val articlePostProcessorModules = List(SimpleTagConverter, biblioConverter, TableConverter, MathMLConverter, htmlCleaner, VisualElementConverter)
-  lazy val conceptConverterModules = List(contentBrowserConverter)
-  lazy val conceptPostProcessorModules = List(ConceptConverter)
+
+  override lazy val articleConverter = ConverterPipeLine(
+    mainConverters = List(contentBrowserConverter),
+    postProcessorConverters = List(LeafNodeConverter, biblioConverter, TableConverter, MathMLConverter, htmlCleaner, VisualElementConverter)
+  )
+  override lazy val conceptConverter = ConverterPipeLine(
+    mainConverters = List(contentBrowserConverter),
+    postProcessorConverters = List(ConceptConverter)
+  )
+  override lazy val leafNodeConverter = ConverterPipeLine(
+    mainConverters = Seq.empty,
+    postProcessorConverters = List(LeafNodeConverter, htmlCleaner)
+  )
 
   lazy val jestClient: NdlaJestClient = JestClientFactory.getClient()
   lazy val audioApiClient = new AudioApiClient

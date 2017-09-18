@@ -32,7 +32,7 @@ trait VisualElementConverter {
 
       content.visualElement.flatMap(nodeIdToVisualElement) match {
         case Some((visual, requiredLibs)) =>
-          val requiredLibraries = (content.requiredLibraries ++ requiredLibs).distinct
+          val requiredLibraries = content.requiredLibraries ++ requiredLibs
           Success(content.copy(visualElement=Some(visual), requiredLibraries=requiredLibraries), importStatus)
         case None => Failure(ImportException(s"Failed to convert node id ${content.visualElement.get}"))
       }

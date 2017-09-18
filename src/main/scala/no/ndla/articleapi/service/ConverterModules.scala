@@ -12,28 +12,31 @@ package no.ndla.articleapi.service
 import no.ndla.articleapi.integration.ConverterModule
 import no.ndla.articleapi.model.api.ImportExceptions
 import no.ndla.articleapi.model.domain.{ImportStatus, NodeToConvert}
-import no.ndla.articleapi.ArticleApiProperties.nodeTypeBegrep
+import no.ndla.articleapi.ArticleApiProperties.{nodeTypeBegrep, nodeTypeVideo}
 
 import scala.util.{Failure, Success, Try}
 
+case class ConverterPipeLine(mainConverters: Seq[ConverterModule], postProcessorConverters: Seq[ConverterModule])
+
 trait ConverterModules {
-  val articleConverterModules: Seq[ConverterModule]
-  val articlePostProcessorModules: Seq[ConverterModule]
-  val conceptConverterModules: Seq[ConverterModule]
-  val conceptPostProcessorModules: Seq[ConverterModule]
+  val articleConverter: ConverterPipeLine
+  val conceptConverter: ConverterPipeLine
+  val leafNodeConverter: ConverterPipeLine
 
   def executeConverterModules(nodeToConvert: NodeToConvert, importStatus: ImportStatus): Try[(NodeToConvert, ImportStatus)] = {
     val modulesToRun = nodeToConvert.nodeType.toLowerCase match {
-      case `nodeTypeBegrep` => conceptConverterModules
-      case _ => articleConverterModules
+      case `nodeTypeBegrep` => conceptConverter.mainConverters
+      case `nodeTypeVideo` => leafNodeConverter.mainConverters
+      case _ => articleConverter.mainConverters
     }
     runConverters(modulesToRun, nodeToConvert, importStatus)
   }
 
   def executePostprocessorModules(nodeToConvert: NodeToConvert, importStatus: ImportStatus): Try[(NodeToConvert, ImportStatus)] = {
     val modulesToRun = nodeToConvert.nodeType.toLowerCase match {
-      case `nodeTypeBegrep` => conceptPostProcessorModules
-      case _ => articlePostProcessorModules
+      case `nodeTypeBegrep` => conceptConverter.postProcessorConverters
+      case `nodeTypeVideo` => leafNodeConverter.postProcessorConverters
+      case _ => articleConverter.postProcessorConverters
     }
     runConverters(modulesToRun, nodeToConvert, importStatus)
   }

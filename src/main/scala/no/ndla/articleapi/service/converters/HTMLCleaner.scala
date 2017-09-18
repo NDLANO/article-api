@@ -40,7 +40,7 @@ trait HTMLCleaner {
       moveMisplacedAsideTags(element)
       val finalCleanedDocument = allContentMustBeWrappedInSectionBlocks(element)
 
-      Success((content.copy(content=jsoupDocumentToString(finalCleanedDocument), ingress=ingress, metaDescription=metaDescription),
+      Success((content.copy(content=jsoupDocumentToString(finalCleanedDocument), metaDescription=metaDescription, ingress=ingress),
         ImportStatus(importStatus.messages ++ illegalTags ++ illegalAttributes, importStatus.visitedNodes)))
     }
 

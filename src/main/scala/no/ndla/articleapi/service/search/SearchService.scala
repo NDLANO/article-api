@@ -9,10 +9,11 @@
 
 package no.ndla.articleapi.service.search
 
+import java.lang.Math.max
 import com.google.gson.JsonObject
 import com.typesafe.scalalogging.LazyLogging
 import io.searchbox.core.{Count, SearchResult}
-import no.ndla.articleapi.ArticleApiProperties.MaxPageSize
+import no.ndla.articleapi.ArticleApiProperties.{MaxPageSize, DefaultPageSize}
 import no.ndla.articleapi.integration.ElasticClient
 import no.ndla.articleapi.model.domain
 import no.ndla.articleapi.model.domain._
@@ -66,12 +67,11 @@ trait SearchService {
     }
 
     def getStartAtAndNumResults(page: Int, pageSize: Int): (Int, Int) = {
-      val numResults = pageSize.min(MaxPageSize)
+      val numResults = max(pageSize.min(MaxPageSize), 0)
       val startAt = (page - 1).max(0) * numResults
 
       (startAt, numResults)
     }
-
 
   }
 }

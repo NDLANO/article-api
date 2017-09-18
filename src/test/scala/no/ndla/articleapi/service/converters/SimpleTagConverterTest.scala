@@ -24,7 +24,7 @@ class SimpleTagConverterTest extends UnitSuite {
     val Success((result, _)) = SimpleTagConverter.convert(sampleLanguageContent, ImportStatus(Seq(), Seq()))
 
     result.content should equal (expectedResult)
-    result.requiredLibraries.length should equal (0)
+    result.requiredLibraries.size should equal (0)
   }
 
   test("That divs with class 'full' are removed") {
@@ -33,7 +33,7 @@ class SimpleTagConverterTest extends UnitSuite {
     val Success((result, _)) = SimpleTagConverter.convert(initialContent, ImportStatus(Seq(), Seq()))
 
     result.content should equal (expectedResult)
-    result.requiredLibraries.length should equal (0)
+    result.requiredLibraries.size should equal (0)
   }
 
   test("That children of pre tags are wrapped in code tags") {
@@ -42,7 +42,7 @@ class SimpleTagConverterTest extends UnitSuite {
     val Success((result, _)) = SimpleTagConverter.convert(initialContent, ImportStatus(Seq(), Seq()))
 
     result.content should equal (expectedResult)
-    result.requiredLibraries.length should equal (0)
+    result.requiredLibraries.size should equal (0)
   }
 
   test("That divs with class 'quote' are replaced with a blockquote tag") {
@@ -51,7 +51,7 @@ class SimpleTagConverterTest extends UnitSuite {
     val Success((result, _)) = SimpleTagConverter.convert(initialContent, ImportStatus(Seq(), Seq()))
 
     result.content should equal (expectedResult)
-    result.requiredLibraries.length should equal (0)
+    result.requiredLibraries.size should equal (0)
   }
 
   test("That divs with class 'right' are replaced with a aside tag") {
@@ -60,21 +60,21 @@ class SimpleTagConverterTest extends UnitSuite {
     val Success((result, _)) = SimpleTagConverter.convert(initialContent, ImportStatus(Seq(), Seq()))
 
     result.content should equal (expectedResult)
-    result.requiredLibraries.length should equal (0)
+    result.requiredLibraries.size should equal (0)
   }
 
   test("That divs with class 'hide' converted to details-summary tags") {
     val initialContent = TestData.sampleContent.copy(content="""<div class="hide">Eksempel: <a href="#" class="read-more">les mer</a>
-      |<div class="details">
-        |<p>Hello, this is content</p>
-        |<a class="re-collapse" href="#">skjul</a>
-      |</div>
-    |</div>""".stripMargin.replace("\n", ""))
+          |<div class="details">
+            |<p>Hello, this is content</p>
+            |<a class="re-collapse" href="#">skjul</a>
+          |</div>
+        |</div>""".stripMargin.replace("\n", ""))
     val expectedResult = "<details><summary>Eksempel: les mer</summary><p>Hello, this is content</p></details>"
     val Success((result, _)) = SimpleTagConverter.convert(initialContent, ImportStatus(Seq(), Seq()))
 
     result.content should equal (expectedResult)
-    result.requiredLibraries.length should equal (0)
+    result.requiredLibraries.size should equal (0)
   }
 
   test("That divs with class 'frame' convertet to class c-bodybox"){
@@ -91,7 +91,7 @@ class SimpleTagConverterTest extends UnitSuite {
     val Success((result, _)) = SimpleTagConverter.convert(initialContent, ImportStatus(Seq(), Seq()))
 
     result.content should equal (expectedResult)
-    result.requiredLibraries.length should equal (0)
+    result.requiredLibraries.size should equal (0)
   }
 
   test("That divs with class 'ndla_table' is converted to table") {
@@ -103,7 +103,7 @@ class SimpleTagConverterTest extends UnitSuite {
     val Success((content, _)) = result
 
     content.content should equal (expectedResult)
-    content.requiredLibraries.length should equal (0)
+    content.requiredLibraries.size should equal (0)
   }
 
   test("That divs with class 'ndla_table_row' is converted to tr") {
@@ -114,7 +114,7 @@ class SimpleTagConverterTest extends UnitSuite {
 
     val Success((content, _)) = result
     content.content should equal (expectedResult)
-    content.requiredLibraries.length should equal (0)
+    content.requiredLibraries.size should equal (0)
   }
 
   test("That divs with class 'ndla_table_cell' is converted to td") {
@@ -125,7 +125,7 @@ class SimpleTagConverterTest extends UnitSuite {
 
     val Success((content, _)) = result
     content.content should equal (expectedResult)
-    content.requiredLibraries.length should equal (0)
+    content.requiredLibraries.size should equal (0)
   }
 
   test("That divs with class 'ndla_table_cell_content' is removed") {
@@ -136,7 +136,7 @@ class SimpleTagConverterTest extends UnitSuite {
 
     val Success((content, _)) = result
     content.content should equal (expectedResult)
-    content.requiredLibraries.length should equal (0)
+    content.requiredLibraries.size should equal (0)
   }
 
 }

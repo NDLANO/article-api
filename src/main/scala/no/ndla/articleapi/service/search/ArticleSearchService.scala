@@ -99,7 +99,8 @@ trait ArticleSearchService {
       val (startAt, numResults) = getStartAtAndNumResults(page, pageSize)
       val request = new Search.Builder(searchQuery.toString)
         .addIndex(searchIndex)
-        .setParameter(Parameters.SIZE, numResults) .setParameter("from", startAt)
+        .setParameter(Parameters.SIZE, numResults)
+        .setParameter("from", startAt)
 
       jestClient.execute(request.build()) match {
         case Success(response) => SearchResult(response.getTotal.toLong, page, numResults, searchLanguage, response)
