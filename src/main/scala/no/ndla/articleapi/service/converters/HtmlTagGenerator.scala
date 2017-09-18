@@ -116,6 +116,16 @@ trait HtmlTagGenerator {
       buildEmbedContent(dataAttributes)
     }
 
+    def buildKahootInlineContent(url: String, width: String, height: String) = {
+      val dataAttributes = Map(
+        Attributes.DataResource -> ResourceType.Kahoot.toString,
+        Attributes.DataUrl -> url,
+        Attributes.DataWidth -> width,
+        Attributes.DataHeight -> height
+      )
+      buildEmbedContent(dataAttributes)
+    }
+
     def buildDetailsSummaryContent(linkText: String, content: String) = {
       s"<details><summary>$linkText</summary>$content</details>"
     }
@@ -145,6 +155,7 @@ object ResourceType extends Enumeration {
   val Prezi = Value("prezi")
   val Commoncraft = Value("commoncraft")
   val NdlaFilmIundervisning = Value("ndla-filmiundervisning")
+  val Kahoot = Value("kahoot")
 
   def all: Set[String] = ResourceType.values.map(_.toString)
 

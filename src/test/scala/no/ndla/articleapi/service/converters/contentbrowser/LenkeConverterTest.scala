@@ -157,4 +157,21 @@ class LenkeConverterTest extends UnitSuite with TestEnvironment {
     result should equal(expectedResult)
     errors.messages.length should equal(1)
   }
+
+  test("That LenkeConverter returns a kahoot embed for kahoot resources") {
+    val KahootUrl = "https://play.kahoot.it/#/k/e577f7e9-59ff-4a80-89a1-c95acf04815d"
+    val KahootSrc = "https://embed.kahoot.it/e577f7e9-59ff-4a80-89a1-c95acf04815d"
+    val KahootEmbedCode = s"""<iframe src="$KahootSrc" name="iframe1" scrolling="no" frameborder="no" align="center" height = "350px" width = "620px"></iframe>"""
+
+    val insertion = "inline"
+    val contentString = s"[contentbrowser ==nid=$nodeId==imagecache=Fullbredde==width===alt=$altText==link===node_link=1==link_type=link_to_content==lightbox_size===remove_fields[76661]=1==remove_fields[76663]=1==remove_fields[76664]=1==remove_fields[76666]=1==insertion=$insertion==link_title_text= ==link_text= ==text_align===css_class=contentbrowser contentbrowser]"
+    val content = ContentBrowser(contentString, "nb")
+    val expectedResult = s"""<$resourceHtmlEmbedTag data-height="350px" data-resource="${ResourceType.Kahoot}" data-url="$KahootSrc" data-width="620px" />"""
+
+    when(extractService.getNodeEmbedMeta(nodeId)).thenReturn(Success(MigrationEmbedMeta(Some(KahootUrl), Some(KahootEmbedCode))))
+    val Success((result, _, errors)) = LenkeConverter.convert(content, Seq())
+
+    result should equal(expectedResult)
+    errors.messages.length should equal(1)
+  }
 }
