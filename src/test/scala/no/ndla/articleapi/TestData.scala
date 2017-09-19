@@ -132,7 +132,8 @@ object TestData {
                                   |  "tags": [
                                   |	    "string"
                                   |	  ],
-                                  |  "content": { "content": "string" },
+                                  |  "content": "string",
+                                  |  "footNotes": [ "string " ],
                                   |  "title": "string",
                                   |  "articleType": "standard",
                                   |  "metaImageId": "22",
@@ -213,7 +214,8 @@ object TestData {
 
   val newArticleV2 = api.NewArticleV2(
     "test",
-    api.ArticleContentV2("<article><div>test</div></article>", None),
+    "<article><div>test</div></article>",
+    None,
     Seq(),
     None,
     None,
