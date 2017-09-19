@@ -448,9 +448,16 @@ trait ConverterService {
       api.ArticleMetaDescription(metaDescription.content, metaDescription.language)
     }
 
-    def toUpdatedArticle(updatedArticle: api.UpdatedArticleV2): api.UpdatedArticle = {
+    def toUpdatedArticle(updatedArticle: api.UpdatedArticleV2, fullArticle: Article): api.UpdatedArticle = {
       val title = updatedArticle.title.map(t => api.ArticleTitle(t, updatedArticle.language)).toSeq
-      val content = updatedArticle.content.map(c => api.ArticleContent(c, updatedArticle.footNotes, updatedArticle.language)).toSeq
+      val content = updatedArticle.content match {
+        case Some(updatedContent) => api.ArticleContent(updatedContent, updatedArticle.footNotes, updatedArticle.language)
+        case None => fullArticle.content.find(_.language == updatedArticle.language)
+          .map(c => api.ArticleContent(c.content, updatedArticle.footNotes, updatedArticle.language))
+            .getOrElse(api.ArticleContent("", updatedArticle.footNotes, updatedArticle.language))
+      }
+
+
       val tags = Seq(api.ArticleTag(updatedArticle.tags, updatedArticle.language))
       val introduction = updatedArticle.introduction.map(i => api.ArticleIntroduction(i, updatedArticle.language)).toSeq
       val meta= updatedArticle.metaDescription.map(m => api.ArticleMetaDescription(m, updatedArticle.language)).toSeq
@@ -460,7 +467,7 @@ trait ConverterService {
       api.UpdatedArticle(
         title,
         updatedArticle.revision,
-        content,
+        Seq(content),
         tags,
         introduction,
         meta,
