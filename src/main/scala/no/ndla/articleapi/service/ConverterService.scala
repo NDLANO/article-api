@@ -217,7 +217,6 @@ trait ConverterService {
       val domainTitle = Seq(ArticleTitle(newArticle.title, newArticle.language))
       val domainContent = Seq(ArticleContent(
         removeUnknownEmbedTagAttributes(newArticle.content),
-        newArticle.footNotes.map(toDomainFootNotes),
         newArticle.language)
       )
 
@@ -245,7 +244,7 @@ trait ConverterService {
     }
 
     def toDomainContent(articleContent: api.ArticleContent): ArticleContent = {
-      ArticleContent(removeUnknownEmbedTagAttributes(articleContent.content), articleContent.footNotes.map(toDomainFootNotes), articleContent.language)
+      ArticleContent(removeUnknownEmbedTagAttributes(articleContent.content), articleContent.language)
     }
 
     def toDomainTag(tag: api.ArticleTag): ArticleTag = {
@@ -296,15 +295,7 @@ trait ConverterService {
       }
     }
 
-    def toDomainFootNotes(footNotes: Map[String, api.FootNoteItem]): Map[String, FootNoteItem] = {
-      footNotes map { case (key, value) => key -> toDomainFootNote(value) }
-    }
-
-    def toDomainFootNote(footNote: api.FootNoteItem): FootNoteItem = {
-      FootNoteItem(footNote.title, footNote.`type`, footNote.year, footNote.edition, footNote.publisher, footNote.authors)
-    }
-
-    def toDomainCopyright(copyright: api.Copyright): Copyright = {
+   def toDomainCopyright(copyright: api.Copyright): Copyright = {
       Copyright(copyright.license.license, copyright.origin, copyright.authors.map(toDomainAuthor))
     }
 
@@ -364,7 +355,7 @@ trait ConverterService {
       val title = findByLanguageOrBestEffort(article.title, language).map(toApiArticleTitle).getOrElse(api.ArticleTitle("", DefaultLanguage))
       val introduction = findByLanguageOrBestEffort(article.introduction, language).map(toApiArticleIntroduction)
       val visualElement = findByLanguageOrBestEffort(article.visualElement, language).map(toApiVisualElement)
-      val articleContent = findByLanguageOrBestEffort(article.content, language).map(toApiArticleContent).getOrElse(api.ArticleContent("", None, DefaultLanguage))
+      val articleContent = findByLanguageOrBestEffort(article.content, language).map(toApiArticleContent).getOrElse(api.ArticleContent("", DefaultLanguage))
 
 
       Some(api.ArticleV2(
@@ -394,19 +385,14 @@ trait ConverterService {
     def toApiArticleContent(content: ArticleContent): api.ArticleContent = {
       api.ArticleContent(
         content.content,
-        content.footNotes.map(_ map {case (key, value) => key -> toApiFootNoteItem(value)}),
         content.language)
     }
 
     def toApiArticleContentV2(content: ArticleContent): api.ArticleContentV2 = {
       api.ArticleContentV2(
         content.content,
-        content.footNotes.map(_ map { case (key, value) => key -> toApiFootNoteItem(value)})
+        content.language
       )
-    }
-
-    def toApiFootNoteItem(footNote: FootNoteItem): api.FootNoteItem = {
-      api.FootNoteItem(footNote.title, footNote.`type`, footNote.year, footNote.edition, footNote.publisher, footNote.authors)
     }
 
     def toApiCopyright(copyright: Copyright): api.Copyright = {
@@ -448,16 +434,9 @@ trait ConverterService {
       api.ArticleMetaDescription(metaDescription.content, metaDescription.language)
     }
 
-    def toUpdatedArticle(updatedArticle: api.UpdatedArticleV2, fullArticle: Article): api.UpdatedArticle = {
+    def toUpdatedArticle(updatedArticle: api.UpdatedArticleV2): api.UpdatedArticle = {
       val title = updatedArticle.title.map(t => api.ArticleTitle(t, updatedArticle.language)).toSeq
-      val content = updatedArticle.content match {
-        case Some(updatedContent) => api.ArticleContent(updatedContent, updatedArticle.footNotes, updatedArticle.language)
-        case None => fullArticle.content.find(_.language == updatedArticle.language)
-          .map(c => api.ArticleContent(c.content, updatedArticle.footNotes, updatedArticle.language))
-            .getOrElse(api.ArticleContent("", updatedArticle.footNotes, updatedArticle.language))
-      }
-
-
+      val content = updatedArticle.content.map(c => api.ArticleContent(c, updatedArticle.language)).toSeq
       val tags = Seq(api.ArticleTag(updatedArticle.tags, updatedArticle.language))
       val introduction = updatedArticle.introduction.map(i => api.ArticleIntroduction(i, updatedArticle.language)).toSeq
       val meta= updatedArticle.metaDescription.map(m => api.ArticleMetaDescription(m, updatedArticle.language)).toSeq
@@ -467,7 +446,7 @@ trait ConverterService {
       api.UpdatedArticle(
         title,
         updatedArticle.revision,
-        Seq(content),
+        content,
         tags,
         introduction,
         meta,

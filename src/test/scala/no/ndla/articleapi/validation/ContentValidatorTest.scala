@@ -19,54 +19,54 @@ class ContentValidatorTest extends UnitSuite with TestEnvironment {
   val invalidDocument = """<section><invalid></invalid></section>"""
 
   test("validateArticle does not throw an exception on a valid document") {
-    val article = TestData.sampleArticleWithByNcSa.copy(content=Seq(ArticleContent(validDocument, None, "nb")))
+    val article = TestData.sampleArticleWithByNcSa.copy(content=Seq(ArticleContent(validDocument, "nb")))
     contentValidator.validateArticle(article, false).isSuccess should be (true)
   }
 
   test("validateArticle throws a validation exception on an invalid document") {
-    val article = TestData.sampleArticleWithByNcSa.copy(content=Seq(ArticleContent(invalidDocument, None, "nb")))
+    val article = TestData.sampleArticleWithByNcSa.copy(content=Seq(ArticleContent(invalidDocument, "nb")))
     contentValidator.validateArticle(article, false).isFailure should be (true)
   }
 
   test("validateArticle does not throw an exception for MathMl tags") {
     val content = """<section><math xmlns="http://www.w3.org/1998/Math/MathML"></math></section>"""
-    val article = TestData.sampleArticleWithByNcSa.copy(content=Seq(ArticleContent(content, None, "nb")))
+    val article = TestData.sampleArticleWithByNcSa.copy(content=Seq(ArticleContent(content, "nb")))
 
     contentValidator.validateArticle(article, false).isSuccess should be (true)
   }
 
   test("validateArticle should throw an error if introduction contains HTML tags") {
-    val article = TestData.sampleArticleWithByNcSa.copy(content=Seq(ArticleContent(validDocument, None, "nb")), introduction=Seq(ArticleIntroduction(validDocument, "nb")))
+    val article = TestData.sampleArticleWithByNcSa.copy(content=Seq(ArticleContent(validDocument, "nb")), introduction=Seq(ArticleIntroduction(validDocument, "nb")))
     contentValidator.validateArticle(article, false).isFailure should be (true)
   }
 
   test("validateArticle should not throw an error if introduction contains plain text") {
-    val article = TestData.sampleArticleWithByNcSa.copy(content=Seq(ArticleContent(validDocument, None, "nb")), introduction=Seq(ArticleIntroduction("introduction", "nb")))
+    val article = TestData.sampleArticleWithByNcSa.copy(content=Seq(ArticleContent(validDocument, "nb")), introduction=Seq(ArticleIntroduction("introduction", "nb")))
     contentValidator.validateArticle(article, false).isSuccess should be(true)
   }
 
   test("validateArticle should throw an error if metaDescription contains HTML tags") {
-    val article = TestData.sampleArticleWithByNcSa.copy(content=Seq(ArticleContent(validDocument, None, "nb")), metaDescription=Seq(ArticleMetaDescription(validDocument, "nb")))
+    val article = TestData.sampleArticleWithByNcSa.copy(content=Seq(ArticleContent(validDocument, "nb")), metaDescription=Seq(ArticleMetaDescription(validDocument, "nb")))
     contentValidator.validateArticle(article, false).isFailure should be(true)
   }
 
   test("validateArticle should not throw an error if metaDescription contains plain text") {
-    val article = TestData.sampleArticleWithByNcSa.copy(content=Seq(ArticleContent(validDocument, None, "nb")), metaDescription=Seq(ArticleMetaDescription("meta description", "nb")))
+    val article = TestData.sampleArticleWithByNcSa.copy(content=Seq(ArticleContent(validDocument, "nb")), metaDescription=Seq(ArticleMetaDescription("meta description", "nb")))
     contentValidator.validateArticle(article, false).isSuccess should be (true)
   }
 
   test("validateArticle should throw an error if title contains HTML tags") {
-    val article = TestData.sampleArticleWithByNcSa.copy(content=Seq(ArticleContent(validDocument, None, "nb")), title=Seq(ArticleTitle(validDocument, "nb")))
+    val article = TestData.sampleArticleWithByNcSa.copy(content=Seq(ArticleContent(validDocument, "nb")), title=Seq(ArticleTitle(validDocument, "nb")))
     contentValidator.validateArticle(article, false).isFailure should be(true)
   }
 
   test("validateArticle should not throw an error if title contains plain text") {
-    val article = TestData.sampleArticleWithByNcSa.copy(content=Seq(ArticleContent(validDocument, None, "nb")), title=Seq(ArticleTitle("title", "nb")))
+    val article = TestData.sampleArticleWithByNcSa.copy(content=Seq(ArticleContent(validDocument, "nb")), title=Seq(ArticleTitle("title", "nb")))
     contentValidator.validateArticle(article, false).isSuccess should be (true)
   }
 
   test("Validation should fail if content contains other tags than section on root") {
-    val article = TestData.sampleArticleWithByNcSa.copy(content=Seq(ArticleContent("<h1>lolol</h1>", None, "nb")))
+    val article = TestData.sampleArticleWithByNcSa.copy(content=Seq(ArticleContent("<h1>lolol</h1>", "nb")))
     val result = contentValidator.validateArticle(article, false)
     result.isFailure should be (true)
 

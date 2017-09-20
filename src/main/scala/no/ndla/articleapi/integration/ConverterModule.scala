@@ -61,13 +61,11 @@ case class LanguageContent(nid: String,
                            nodeType: String,
                            title: Option[String],
                            requiredLibraries: Set[RequiredLibrary] = Set[RequiredLibrary](),
-                           footNotes: Option[Map[String,
-                           FootNoteItem]] = None,
                            ingress: Option[LanguageIngress] = None) {
   def isMainNode = nid == tnid || tnid == "0"
   def isTranslation = !isMainNode
 
-  def asContent: ArticleContent = ArticleContent(content, footNotes, language)
+  def asContent: ArticleContent = ArticleContent(content, language)
   def asArticleIntroduction: Option[ArticleIntroduction] = ingress.map(x => ArticleIntroduction(x.content, language))
   def asArticleMetaDescription: ArticleMetaDescription = ArticleMetaDescription(metaDescription, language)
   def asVisualElement: Option[VisualElement] = visualElement.map(visual => VisualElement(visual, language))
