@@ -130,8 +130,12 @@ trait HtmlTagGenerator {
       s"<details><summary>$linkText</summary>$content</details>"
     }
 
-    def buildAnchor(href: String, anchorText: String, title: String): String = {
-      val attributes = Map(Attributes.Href -> href, Attributes.Title -> title)
+    def buildAnchor(href: String, anchorText: String, title: String, openInNewTab: Boolean): String = {
+      val target = openInNewTab match {
+        case true => Map(Attributes.Target -> "_blank", Attributes.Rel -> "noopener noreferrer")
+        case false => Map[Attributes.Value, String]()
+      }
+      val attributes = Map(Attributes.Href -> href, Attributes.Title -> title) ++ target
       s"<a ${buildAttributesString(attributes)}>$anchorText</a>"
     }
 
@@ -195,6 +199,8 @@ object Attributes extends Enumeration {
   val Title = Value("title")
   val Align = Value("align")
   val Valign = Value("valign")
+  val Target = Value("target")
+  val Rel = Value("rel")
 
   val DataType = Value("data-type")
 

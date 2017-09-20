@@ -14,7 +14,9 @@
     "a": [
       "href",
       "title",
-      "name"
+      "name",
+      "target",
+      "rel"
     ],
     "ol": [
       "data-type"

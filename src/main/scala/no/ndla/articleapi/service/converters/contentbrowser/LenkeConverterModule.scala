@@ -29,8 +29,7 @@ trait LenkeConverterModule {
       logger.info(s"Converting lenke with nid ${content.get("nid")}")
 
       convertLink(content) match {
-        case Success((linkHtml, requiredLibraries, errors)) =>
-          Success(linkHtml, requiredLibraries, ImportStatus(errors, visitedNodes))
+        case Success((linkHtml, requiredLibraries, errors)) => Success(linkHtml, requiredLibraries, ImportStatus(errors, visitedNodes))
         case Failure(x) => Failure(x)
       }
     }
@@ -42,7 +41,7 @@ trait LenkeConverterModule {
           case "link" => insertAnchor(url, cont)
           case "inline" => insertInline(url, embedCode, cont)
           case "lightbox_large" => insertAnchor(url, cont)
-          case "collapsed_body" => insertDetailSummary(url, embedCode, cont)
+          case "collapsed_body" => insertAnchor(url, cont)
           case _ => insertUnhandled(url, cont)
         }
 
@@ -126,7 +125,7 @@ trait LenkeConverterModule {
     }
 
     private def insertAnchor(url: String, cont: ContentBrowser): (String, Option[RequiredLibrary], Seq[String]) = {
-      val htmlTag = HtmlTagGenerator.buildAnchor(url, cont.get("link_text"), cont.get("link_title_text"))
+      val htmlTag = HtmlTagGenerator.buildAnchor(url, cont.get("link_text"), cont.get("link_title_text"), true)
       (s" $htmlTag", None, Seq())
     }
 
