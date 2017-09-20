@@ -56,12 +56,15 @@
         "data-align"
       ],
       "optional": [
-       "data-upper-left-x",
-       "data-upper-left-y",
-       "data-lower-right-x",
-       "data-lower-right-y",
-       "data-focal-x",
-       "data-focal-y"
+        [
+          "data-upper-left-x",
+          "data-upper-left-y",
+          "data-lower-right-x",
+          "data-lower-right-y",
+        ], [
+          "data-focal-x",
+          "data-focal-y"
+        ]
       ]
     },
     "concept": {
