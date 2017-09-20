@@ -20,9 +20,6 @@ class HTMLCleanerTest extends UnitSuite with TestEnvironment {
     val dataAttrs = Attributes.values.map(_.toString).filter(x => x.startsWith("data-") && x != Attributes.DataType.toString).toSet
     val legalEmbedAttrs = HTMLCleaner.legalAttributesForTag("embed")
 
-    println(legalEmbedAttrs)
-    println(dataAttrs)
-
     dataAttrs.foreach(x => legalEmbedAttrs should contain(x))
   }
 

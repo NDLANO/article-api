@@ -35,11 +35,10 @@ class ArticleConverterRegressionTest extends IntegrationSuite with TestEnvironme
 
   override val converterService = new ConverterService
   override val contentBrowserConverter = new ContentBrowserConverter
-  override val biblioConverter = new BiblioConverter
   override val htmlCleaner = new HTMLCleaner
   override lazy val articleConverter = ConverterPipeLine(
     mainConverters = List(contentBrowserConverter),
-    postProcessorConverters = List(LeafNodeConverter, biblioConverter, TableConverter, MathMLConverter, htmlCleaner, VisualElementConverter)
+    postProcessorConverters = List(LeafNodeConverter, TableConverter, MathMLConverter, htmlCleaner, VisualElementConverter)
   )
 
   override val readService = new ReadService

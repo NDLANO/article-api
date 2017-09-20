@@ -11,7 +11,7 @@
         "data-url"
       ],
       "optional": [
-        "data-caption"
+        [ "data-caption" ]
       ]
     },
     "error": {
@@ -119,6 +119,17 @@
       ],
       "validSrcDomains": [
         "embed.kahoot.it"
+      ]
+    },
+    "footnote": {
+      "required": [
+        "data-resource",
+        "data-title",
+        "data-type",
+        "data-year",
+        "data-edition",
+        "data-publisher",
+        "data-authors"
       ]
     }
 

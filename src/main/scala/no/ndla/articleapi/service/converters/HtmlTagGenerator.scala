@@ -139,8 +139,22 @@ trait HtmlTagGenerator {
       s"<a ${buildAttributesString(attributes)}>$anchorText</a>"
     }
 
+    def buildFootNoteItem(title: String, `type`: String, year: String, edition: String, publisher: String, authors: Seq[String]) = {
+      val attrs = Map(
+        Attributes.DataResource -> ResourceType.FootNote.toString,
+        Attributes.DataTitle -> title,
+        Attributes.DataType -> `type`,
+        Attributes.DataYear -> year,
+        Attributes.DataEdition -> edition,
+        Attributes.DataPublisher -> publisher,
+        Attributes.DataAuthors -> authors.mkString(";")
+      )
+      buildEmbedContent(attrs)
+    }
+
     private def buildAttributesString(figureDataAttributeMap: Map[Attributes.Value, String]): String =
       figureDataAttributeMap.toList.sortBy(_._1.toString).map { case (key, value) => s"""$key="${value.trim}"""" }.mkString(" ")
+
 
   }
 
@@ -160,6 +174,7 @@ object ResourceType extends Enumeration {
   val Commoncraft = Value("commoncraft")
   val NdlaFilmIundervisning = Value("ndla-filmiundervisning")
   val Kahoot = Value("kahoot")
+  val FootNote = Value("footnote")
 
   def all: Set[String] = ResourceType.values.map(_.toString)
 
@@ -185,6 +200,12 @@ object Attributes extends Enumeration {
   val DataContentId = Value("data-content-id")
   val DataNRKVideoId = Value("data-nrk-video-id")
   val DataResource_Id = Value("data-resource_id")
+  val DataTitle = Value("data-title")
+  val DataType = Value("data-type")
+  val DataYear = Value("data-year")
+  val DataEdition = Value("data-edition")
+  val DataPublisher = Value("data-publisher")
+  val DataAuthors = Value("data-authors")
 
   val DataUpperLeftY =  Value("data-upper-left-y")
   val DataUpperLeftX = Value("data-upper-left-x")
@@ -202,7 +223,6 @@ object Attributes extends Enumeration {
   val Target = Value("target")
   val Rel = Value("rel")
 
-  val DataType = Value("data-type")
 
   def all: Set[String] = Attributes.values.map(_.toString)
 
