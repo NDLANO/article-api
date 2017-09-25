@@ -102,9 +102,9 @@ trait TestEnvironment
     mainConverters = List(contentBrowserConverter),
     postProcessorConverters = List(ConceptConverter)
   )
-  lazy val leafNodeConverter = ConverterPipeLine(
-    mainConverters = Seq.empty,
-    postProcessorConverters = List(LeafNodeConverter, htmlCleaner)
+  override lazy val leafNodeConverter = ConverterPipeLine(
+    mainConverters = Seq(contentBrowserConverter),
+    postProcessorConverters = List(LeafNodeConverter) ++ articleConverter.postProcessorConverters
   )
   val attachmentStorageService = mock[AmazonStorageService]
   val readService = mock[ReadService]

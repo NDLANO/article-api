@@ -14,7 +14,7 @@ import no.ndla.articleapi.model.domain.ImportStatus
 import no.ndla.articleapi.service.{ExtractService, TagsService}
 import no.ndla.articleapi.service.converters.contentbrowser.{H5PConverterModule, VideoConverterModule}
 import no.ndla.network.NdlaClient
-
+import no.ndla.articleapi.integration.ConverterModule.{jsoupDocumentToString, stringToJsoupDocument}
 import scala.util.{Success, Try}
 
 trait LeafNodeConverter {
@@ -23,17 +23,21 @@ trait LeafNodeConverter {
   object LeafNodeConverter extends ConverterModule {
 
     def convert(content: LanguageContent, importStatus: ImportStatus): Try[(LanguageContent, ImportStatus)] = {
-      val (articleContent, requiredLibraries) = content.nodeType match {
+      val element = stringToJsoupDocument(content.content)
+
+      val requiredLibraries = content.nodeType match {
         case `nodeTypeVideo` =>
           val (html, requiredLibrary) = VideoConverter.toVideo("", content.nid)
-          (s"<section>$html</section>", Set(requiredLibrary) ++ content.requiredLibraries)
+          element.append(s"<section>$html</section>")
+          Set(requiredLibrary) ++ content.requiredLibraries
         case `nodeTypeH5P` =>
           val (html, requiredLibrary) = H5PConverter.toH5PEmbed(content.nid)
-          (s"<section>$html</section>", Set(requiredLibrary) ++ content.requiredLibraries)
-        case _ => (content.content, content.requiredLibraries)
+          element.append(s"<section>$html</section>")
+          Set(requiredLibrary) ++ content.requiredLibraries
+        case _ => content.requiredLibraries
       }
 
-      Success(content.copy(content = articleContent, requiredLibraries=requiredLibraries), importStatus)
+      Success(content.copy(content=jsoupDocumentToString(element), requiredLibraries=requiredLibraries), importStatus)
     }
 
   }
