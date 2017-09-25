@@ -9,6 +9,9 @@
       "required": [
         "data-resource",
         "data-url"
+      ],
+      "optional": [
+        "data-caption"
       ]
     },
     "error": {
