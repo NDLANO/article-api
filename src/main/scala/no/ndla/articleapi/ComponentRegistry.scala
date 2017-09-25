@@ -118,15 +118,15 @@ object ComponentRegistry
 
   override lazy val articleConverter = ConverterPipeLine(
     mainConverters = List(contentBrowserConverter),
-    postProcessorConverters = List(LeafNodeConverter, biblioConverter, TableConverter, MathMLConverter, htmlCleaner, VisualElementConverter)
+    postProcessorConverters = List(SimpleTagConverter, biblioConverter, TableConverter, MathMLConverter, htmlCleaner, VisualElementConverter)
   )
   override lazy val conceptConverter = ConverterPipeLine(
     mainConverters = List(contentBrowserConverter),
     postProcessorConverters = List(ConceptConverter)
   )
   override lazy val leafNodeConverter = ConverterPipeLine(
-    mainConverters = Seq.empty,
-    postProcessorConverters = List(LeafNodeConverter, htmlCleaner)
+    mainConverters = Seq(contentBrowserConverter),
+    postProcessorConverters = List(LeafNodeConverter) ++ articleConverter.postProcessorConverters
   )
 
   lazy val jestClient: NdlaJestClient = JestClientFactory.getClient()

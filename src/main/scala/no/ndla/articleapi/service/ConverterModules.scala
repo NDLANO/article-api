@@ -12,7 +12,7 @@ package no.ndla.articleapi.service
 import no.ndla.articleapi.integration.ConverterModule
 import no.ndla.articleapi.model.api.ImportExceptions
 import no.ndla.articleapi.model.domain.{ImportStatus, NodeToConvert}
-import no.ndla.articleapi.ArticleApiProperties.{nodeTypeBegrep, nodeTypeVideo}
+import no.ndla.articleapi.ArticleApiProperties.{nodeTypeBegrep, nodeTypeVideo, nodeTypeH5P}
 
 import scala.util.{Failure, Success, Try}
 
@@ -23,23 +23,17 @@ trait ConverterModules {
   val conceptConverter: ConverterPipeLine
   val leafNodeConverter: ConverterPipeLine
 
-  def executeConverterModules(nodeToConvert: NodeToConvert, importStatus: ImportStatus): Try[(NodeToConvert, ImportStatus)] = {
-    val modulesToRun = nodeToConvert.nodeType.toLowerCase match {
-      case `nodeTypeBegrep` => conceptConverter.mainConverters
-      case `nodeTypeVideo` => leafNodeConverter.mainConverters
-      case _ => articleConverter.mainConverters
-    }
-    runConverters(modulesToRun, nodeToConvert, importStatus)
-  }
+  private lazy val Converters = Map(
+    nodeTypeBegrep -> conceptConverter,
+    nodeTypeH5P -> leafNodeConverter,
+    nodeTypeVideo -> leafNodeConverter
+  ).withDefaultValue(articleConverter)
 
-  def executePostprocessorModules(nodeToConvert: NodeToConvert, importStatus: ImportStatus): Try[(NodeToConvert, ImportStatus)] = {
-    val modulesToRun = nodeToConvert.nodeType.toLowerCase match {
-      case `nodeTypeBegrep` => conceptConverter.postProcessorConverters
-      case `nodeTypeVideo` => leafNodeConverter.postProcessorConverters
-      case _ => articleConverter.postProcessorConverters
-    }
-    runConverters(modulesToRun, nodeToConvert, importStatus)
-  }
+  def executeConverterModules(nodeToConvert: NodeToConvert, importStatus: ImportStatus): Try[(NodeToConvert, ImportStatus)] =
+    runConverters(Converters(nodeToConvert.nodeType.toLowerCase).mainConverters, nodeToConvert, importStatus)
+
+  def executePostprocessorModules(nodeToConvert: NodeToConvert, importStatus: ImportStatus): Try[(NodeToConvert, ImportStatus)] =
+    runConverters(Converters(nodeToConvert.nodeType.toLowerCase).postProcessorConverters, nodeToConvert, importStatus)
 
   private def runConverters(converters: Seq[ConverterModule], nodeToConvert: NodeToConvert, importStatus: ImportStatus): Try[(NodeToConvert, ImportStatus)] = {
      val (convertedNode, finalImportStatus, exceptions) = converters.foldLeft((nodeToConvert, importStatus, Seq[Throwable]()))((element, converter) => {
