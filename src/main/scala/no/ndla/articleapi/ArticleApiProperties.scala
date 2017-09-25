@@ -73,7 +73,7 @@ object ArticleApiProperties extends LazyLogging {
 
   val externalApiUrls = Map(
     ResourceType.Image.toString -> s"$Domain/image-api/v2/images",
-    ResourceType.Audio.toString -> s"$Domain/audio-api/v2/audio"
+    ResourceType.Audio.toString -> s"$Domain/audio-api/v1/audio"
   )
 
   val resourceHtmlEmbedTag = "embed"
