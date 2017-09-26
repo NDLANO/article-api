@@ -29,7 +29,7 @@ object TestData {
     oldNdlaUrl = None,
     revision=1,
     title=api.ArticleTitle("title", "nb"),
-    content=api.ArticleContent("this is content", Some(Map(("something", api.FootNoteItem("title", "type", "year", "edition", "publisher", Seq("author"))))), "nb"),
+    content=api.ArticleContent("this is content", "nb"),
     copyright = api.Copyright(api.License("licence", None, None), "origin", Seq(api.Author("developer", "Per"))),
     tags = api.ArticleTag(Seq("tag"), "nb"),
     requiredLibraries = Seq(api.RequiredLibrary("JS", "JavaScript", "url")),
@@ -77,7 +77,7 @@ object TestData {
     Some(s"//red.ndla.no/node/$externalId"),
     2,
     Seq(api.ArticleTitle("title", "nb")),
-    Seq(api.ArticleContent("content", None, "nb")),
+    Seq(api.ArticleContent("content", "nb")),
     api.Copyright(api.License("by", Some("Creative Commons Attribution 2.0 Generic"), Some("https://creativecommons.org/licenses/by/2.0/")), "", Seq()),
     Seq(),
     Seq(),
@@ -95,7 +95,7 @@ object TestData {
     Some(s"//red.ndla.no/node/$externalId"),
     2,
     api.ArticleTitle("title", "nb"),
-    api.ArticleContent("content", None, "nb"),
+    api.ArticleContent("content", "nb"),
     api.Copyright(api.License("by", Some("Creative Commons Attribution 2.0 Generic"), Some("https://creativecommons.org/licenses/by/2.0/")), "", Seq()),
     api.ArticleTag(Seq(), "nb"),
     Seq(),
@@ -150,7 +150,7 @@ object TestData {
     Option(1),
     Option(1),
     Seq(ArticleTitle("test", "en")),
-    Seq(ArticleContent("<section><div>test</div></section>", None, "en")),
+    Seq(ArticleContent("<section><div>test</div></section>", "en")),
     publicDomainCopyright,
     Seq(),
     Seq(),
@@ -167,7 +167,7 @@ object TestData {
     Option(articleId),
     Option(2),
     Seq(ArticleTitle("title", "nb")),
-    Seq(ArticleContent("content", None, "nb")),
+    Seq(ArticleContent("content", "nb")),
     Copyright("by", "", Seq()),
     Seq(),
     Seq(),
@@ -185,7 +185,7 @@ object TestData {
     None,
     None,
     Seq(ArticleTitle("test", "en")),
-    Seq(ArticleContent("<article><div>test</div></article>", None, "en")),
+    Seq(ArticleContent("<article><div>test</div></article>", "en")),
     Copyright("publicdomain", "", Seq()),
     Seq(),
     Seq(),
@@ -201,7 +201,7 @@ object TestData {
 
   val newArticle = api.NewArticle(
     Seq(api.ArticleTitle("test", "en")),
-    Seq(api.ArticleContent("<article><div>test</div></article>", None, "en")),
+    Seq(api.ArticleContent("<article><div>test</div></article>", "en")),
     Seq(),
     None,
     None,
@@ -215,7 +215,6 @@ object TestData {
   val newArticleV2 = api.NewArticleV2(
     "test",
     "<article><div>test</div></article>",
-    None,
     Seq(),
     None,
     None,
@@ -233,7 +232,7 @@ object TestData {
   val updatedArticle = api.UpdatedArticle(
     Seq(api.ArticleTitle("test", "en")),
     1,
-    Seq(api.ArticleContent("<section><div>test</div></section>", None, "en")),
+    Seq(api.ArticleContent("<section><div>test</div></section>", "en")),
     Seq.empty,
     Seq.empty,
     Seq.empty,
@@ -254,7 +253,7 @@ object TestData {
         |<ul><li><h2>Det er ikke lov å gjøre dette.</h2></li><li>Dette er helt ok</li></ul>
         |<ol><li><h3>Det er ikke lov å gjøre dette.</h3></li><li>Dette er helt ok</li></ol>
         |<ol><li><h4>Det er ikke lov å gjøre dette.</h4></li><li>Dette er helt ok</li></ol>
-      """.stripMargin, None, "en")),
+      """.stripMargin, "en")),
     api.Copyright(api.License("publicdomain", None, None), "", Seq()),
     Nil,
     Nil,
@@ -277,7 +276,7 @@ object TestData {
         |<ul><li><h2>Det er ikke lov å gjøre dette.</h2></li><li>Dette er helt ok</li></ul>
         |<ol><li><h3>Det er ikke lov å gjøre dette.</h3></li><li>Dette er helt ok</li></ol>
         |<ol><li><h4>Det er ikke lov å gjøre dette.</h4></li><li>Dette er helt ok</li></ol>
-      """.stripMargin, None, "en"),
+      """.stripMargin, "en"),
     api.Copyright(api.License("publicdomain", None, None), "", Seq()),
     api.ArticleTag(Seq.empty, "en"),
     Seq.empty,

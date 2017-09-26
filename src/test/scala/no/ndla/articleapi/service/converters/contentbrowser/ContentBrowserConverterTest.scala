@@ -12,7 +12,7 @@ package no.ndla.articleapi.service.converters.contentbrowser
 import no.ndla.articleapi.ArticleApiProperties._
 import no.ndla.articleapi.{TestData, TestEnvironment, UnitSuite}
 import no.ndla.articleapi.integration.{ImageCopyright, ImageLicense, ImageMetaInformation}
-import no.ndla.articleapi.model.domain.{ImportStatus, NodeGeneralContent}
+import no.ndla.articleapi.model.domain._
 import org.mockito.Mockito._
 
 import scala.util.Success
@@ -124,9 +124,11 @@ class ContentBrowserConverterTest extends UnitSuite with TestEnvironment {
 
   test("That content-browser strings of type biblio are converted into content") {
     val initialContent = sampleContent.copy(content=s"""<article>$sampleContentString</a><h1>CONTENT</h1>more content</article>""")
-    val expectedResult = s"""<article><a id="biblio-$nodeId"></a><h1>CONTENT</h1>more content</article>"""
+    val biblio = BiblioMeta(Biblio("title", "book", "2009", "1", "me"), Seq(BiblioAuthor("first last", "last", "first")))
+    val expectedResult = s"""<article><$resourceHtmlEmbedTag data-authors="${biblio.authors.head.name}" data-edition="${biblio.biblio.edition}" data-publisher="${biblio.biblio.publisher}" data-resource="footnote" data-title="${biblio.biblio.title}" data-type="${biblio.biblio.bibType}" data-year="${biblio.biblio.year}"><h1>CONTENT</h1>more content</article>"""
 
     when(extractService.getNodeType(nodeId)).thenReturn(Some("biblio"))
+    when(extractService.getBiblioMeta(nodeId)).thenReturn(Some(biblio))
     val Success((result, status)) = contentBrowserConverter.convert(initialContent, ImportStatus(Seq(), Seq()))
     val strippedContent = " +".r.replaceAllIn(result.content, " ")
 

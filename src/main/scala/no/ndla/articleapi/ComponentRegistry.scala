@@ -50,7 +50,6 @@ object ComponentRegistry
     with ContentBrowserConverterModules
     with ContentBrowserConverter
     with BiblioConverterModule
-    with BiblioConverter
     with VisualElementConverter
     with AmazonClient
     with AttachmentStorageService
@@ -113,12 +112,11 @@ object ComponentRegistry
   lazy val readService = new ReadService
   lazy val writeService = new WriteService
   lazy val contentBrowserConverter = new ContentBrowserConverter
-  lazy val biblioConverter = new BiblioConverter
   lazy val htmlCleaner = new HTMLCleaner
 
   override lazy val articleConverter = ConverterPipeLine(
     mainConverters = List(contentBrowserConverter),
-    postProcessorConverters = List(SimpleTagConverter, biblioConverter, TableConverter, MathMLConverter, htmlCleaner, VisualElementConverter)
+    postProcessorConverters = List(SimpleTagConverter, TableConverter, MathMLConverter, htmlCleaner, VisualElementConverter)
   )
   override lazy val conceptConverter = ConverterPipeLine(
     mainConverters = List(contentBrowserConverter),

@@ -19,10 +19,10 @@ class HtmlTagsUsageTest extends UnitSuite with TestEnvironment {
   val embedUrl = "http://hello.yes.this.is.dog"
   val copyright = Copyright("publicdomain", "", List())
 
-  val article1 = TestData.sampleArticleWithPublicDomain.copy(id=Option(1), content=Seq(ArticleContent("<section><div>test</div></section>", None, "en")))
-  val article2 = TestData.sampleArticleWithPublicDomain.copy(id=Option(2), content=Seq(ArticleContent("<article><div>test</div><p>paragraph</p></article>", None, "en")))
-  val article3 = TestData.sampleArticleWithPublicDomain.copy(id=Option(3), content=Seq(ArticleContent("<article><img></img></article>", None, "en")))
-  val article4 = TestData.sampleArticleWithPublicDomain.copy(id=Option(4), content=Seq(ArticleContent(s"""<article><$resourceHtmlEmbedTag data-resource="external" data-url="$embedUrl"" /></article>""", None, "en")))
+  val article1 = TestData.sampleArticleWithPublicDomain.copy(id=Option(1), content=Seq(ArticleContent("<section><div>test</div></section>", "en")))
+  val article2 = TestData.sampleArticleWithPublicDomain.copy(id=Option(2), content=Seq(ArticleContent("<article><div>test</div><p>paragraph</p></article>", "en")))
+  val article3 = TestData.sampleArticleWithPublicDomain.copy(id=Option(3), content=Seq(ArticleContent("<article><img></img></article>", "en")))
+  val article4 = TestData.sampleArticleWithPublicDomain.copy(id=Option(4), content=Seq(ArticleContent(s"""<article><$resourceHtmlEmbedTag data-resource="external" data-url="$embedUrl"" /></article>""", "en")))
 
 
   test("That getHtmlTagsMap counts html elements correctly") {

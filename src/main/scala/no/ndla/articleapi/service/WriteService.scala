@@ -88,12 +88,7 @@ trait WriteService {
     }
 
     def updateArticleV2(articleId: Long, updatedApiArticle: api.UpdatedArticleV2): Try[api.ArticleV2] = {
-      val toUpdate = articleRepository.withId(articleId) match {
-        case None => return Failure(NotFoundException(s"Article with id $articleId does not exist"))
-        case Some(existing) => existing
-      }
-
-      val v1UpdatedArticle = converterService.toUpdatedArticle(updatedApiArticle, toUpdate)
+      val v1UpdatedArticle = converterService.toUpdatedArticle(updatedApiArticle)
       updateArticle(articleId, v1UpdatedArticle).map(article => converterService.toApiArticleV2(article, updatedApiArticle.language).get)
     }
 
