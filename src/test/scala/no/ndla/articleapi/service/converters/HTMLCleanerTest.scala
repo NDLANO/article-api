@@ -4,6 +4,7 @@ import no.ndla.articleapi.{TestData, TestEnvironment, UnitSuite}
 import no.ndla.articleapi.integration.LanguageIngress
 import no.ndla.articleapi.ArticleApiProperties.resourceHtmlEmbedTag
 import no.ndla.articleapi.model.domain.ImportStatus
+import no.ndla.articleapi.integration.ConverterModule.{jsoupDocumentToString, stringToJsoupDocument}
 
 import scala.util.Success
 
@@ -170,9 +171,7 @@ class HTMLCleanerTest extends UnitSuite with TestEnvironment {
          |<h2>Tips til aktuelle verktøy og bruk av verktøy</h2>
          |</section>""".stripMargin
     val expectedContentResult = s"""<section><embed data-align="" data-alt="Hånd som tegner" data-caption="" data-resource="image" data-resource_id="200" data-size="fullbredde">
-
-      |<h2>Tips til aktuelle verktøy og bruk av verktøy</h2>
-      |</section>""".stripMargin
+      |<h2>Tips til aktuelle verktøy og bruk av verktøy</h2></section>""".stripMargin.replace("\n", "")
     val expectedIngressResult = LanguageIngress("Når du skal jobbe med fotoutstilling, er det lurt å sette seg godt inn i tema for utstillingen og bestemme seg for hvilket uttrykk man er ute etter å skape allerede i planleggingsfasen.", None)
 
     val Success((result, _)) = htmlCleaner.convert(TestData.sampleContent.copy(content=content), defaultImportStatus)
@@ -254,13 +253,25 @@ class HTMLCleanerTest extends UnitSuite with TestEnvironment {
     result.content should equal(expectedContentResult)
   }
 
-  test("blank standalone text in a section is not wrapped in <p> tags") {
-    val content = s"""<section>Medievanene er i endring.<p>Noe innhold</p>  <h2>Mediehverdagen</h2></section>"""
-    val expectedContentResult = s"""<section><p>Medievanene er i endring.</p><p>Noe innhold</p>  <h2>Mediehverdagen</h2></section>"""
+  test("standalone text and <em> tags in a section should be wrapped in <p> tags") {
+    val origContent = """<section>
+                        |<h3>De kursiverte ordene og ordforbindelsene i denne teksten er enten skrevet feil eller brukt feil. Hva er riktig?</h3>
+                        |Det har <em>skjelden</em> vært så mange <em>tilstede</em> som <em>igår</em>.
+                        |<h1>lolol</h1>
+                        |should be wrapped
+                        |</section>""".stripMargin.replace("\n", "")
 
-    val Success((result, _)) = htmlCleaner.convert(TestData.sampleContent.copy(content=content), defaultImportStatus)
+    val expectedContent = """<section>
+                            |<h3>De kursiverte ordene og ordforbindelsene i denne teksten er enten skrevet feil eller brukt feil. Hva er riktig?</h3>
+                            |<p>
+                            |Det har <em>skjelden</em> vært så mange <em>tilstede</em> som <em>igår</em>.
+                            |</p>
+                            |<h1>lolol</h1>
+                            |<p>should be wrapped</p>
+                            |</section>""".stripMargin.replace("\n", "")
 
-    result.content should equal(expectedContentResult)
+    val Success((res, _)) = htmlCleaner.convert(TestData.sampleContent.copy(content=origContent), defaultImportStatus)
+    res.content should equal(expectedContent)
   }
 
   test("That isAttributeKeyValid returns false for illegal attributes") {
@@ -516,13 +527,13 @@ class HTMLCleanerTest extends UnitSuite with TestEnvironment {
         |<ol style="list-style-type: lower-alpha;">
         |<li>Definer makt</li>
         |</ol>
-        |</section>""".stripMargin
+        |</section>""".stripMargin.replace("\n", "")
     val expectedContent =
       s"""<section>
          |<ol ${Attributes.DataType}="letters">
          |<li>Definer makt</li>
          |</ol>
-         |</section>""".stripMargin
+         |</section>""".stripMargin.replace("\n", "")
 
     val Success((result, _))  = htmlCleaner.convert(TestData.sampleContent.copy(content=originalContent), defaultImportStatus)
 
