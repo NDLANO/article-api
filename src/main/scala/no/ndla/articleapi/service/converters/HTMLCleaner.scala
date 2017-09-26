@@ -28,10 +28,10 @@ trait HTMLCleaner {
       moveImagesOutOfPTags(element)
       removeComments(element)
       removeNbsp(element)
+      wrapStandaloneTextInPTag(element)
       // Jsoup doesn't support removing elements while iterating the dom-tree.
       // Thus executes the routine 3 times in order to be sure to remove all tags
       (1 to 3).foreach(_ => removeEmptyTags(element))
-      wrapStandaloneTextInPTag(element)
 
       val metaDescription = prepareMetaDescription(content.metaDescription)
       mergeTwoFirstSectionsIfFeasible(element)
@@ -207,14 +207,34 @@ trait HTMLCleaner {
       elementToExtract.text()
     }
 
-    private def wrapStandaloneTextInPTag(element: Element): Element = {
+    val NodeTypesToGroupTogether = "em" :: "#text" :: Nil
+
+    private def wrapThingsInP(nodes: Seq[Node]) {
+      val grouped = new Element("p")
+
+      val firstNonTextElementIdx = nodes.indexWhere(n => !NodeTypesToGroupTogether.contains(n.nodeName()) && n.toString.trim.length > 0) match {
+        case idx: Int if idx < 0 => nodes.length
+        case idx => idx
+      }
+
+      val toBeWrapped = nodes.slice(0, firstNonTextElementIdx)
+      toBeWrapped.foreach(child => grouped.appendChild(child.clone))
+      toBeWrapped.drop(1).foreach(_.remove())
+      nodes.headOption.foreach(_.replaceWith(grouped))
+    }
+
+    def wrapStandaloneTextInPTag(element: Element): Element = {
       val sections = element.select("body>section").asScala
-      sections.map(node => node.childNodes().asScala.map(child => {
-        if (child.nodeName() == "#text" && !child.asInstanceOf[TextNode].isBlank) {
-          child.wrap("<p>")
+
+      sections.foreach(section => {
+        def firstTextNodeIdx: Int =
+          section.childNodes.asScala.indexWhere(n => NodeTypesToGroupTogether.contains(n.nodeName()))
+
+        while (firstTextNodeIdx > -1) {
+          val childNodes = section.childNodes().asScala
+          wrapThingsInP(childNodes.drop(firstTextNodeIdx))
         }
-        child
-      }))
+      })
 
       element
     }
