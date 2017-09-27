@@ -44,6 +44,9 @@ A `data-id` attribute is appended to each `<embed>` tag.
 
 ### Resource types for embed tags
 The embed tag contains a set of attributes which define what content should be inserted. The list below provides an explaination of each recognized attribute.
+
+#### Required Attributes
+
 * **data-resource** - defines the type of resource that should be inserted (can be image, audio, link to another article, ...). Present in every embed tag
 * **data-id** - a unique number identifying the embed tag in an article. Present in every embed tag
 * **data-url** - a url linking to the resource to insert. Present in image, audio, h5p, external, and nrk
@@ -60,10 +63,21 @@ The embed tag contains a set of attributes which define what content should be i
 * **data-nrk-video-id** - an ID to nrk videos. Present in nrk
 * **data-resource_id** - an ID to an internal resource to be inserted. Present in image and audio
 
+#### Optional attributes
+
+Optional attribute groups are defined in [src/main/resources/embed-tag-rules.json](src/main/resources/embed-tag-rules.json).
+Every attribute in an attribute group must be specified. Otherwise validation will fail.
+The following attribute groups exists:
+* `data-upper-left-x`, `data-upper-left-y`, `data-lower-right-x`, `data-lower-right-y`: Can only be used for image embed-tags
+* `data-focal-x`, `data-focal-y`: Can only be used for image embed-tags
+
+
 ### Other tags with extra attributes
 The following tags may contain extra attributes which conveys information about how they should be displayed
 * `ol`
   * **data-type** - If present and with the value "letters" the bullets should be letters.
+* `aside`
+  * **data-type** - Specifies how the aside should be viewed
 
 ## Developer documentation
 

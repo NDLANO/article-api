@@ -115,10 +115,10 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
   }
 
   test("That mergeLanguageFields also updates the correct content") {
-    val desc1 = ArticleContent("Beskrivelse 1", None, "nb")
-    val desc2 = ArticleContent("Beskrivelse 2", None, "unknown")
-    val desc3 = ArticleContent("Beskrivelse 3", None, "en")
-    val oppdatertDesc2 = ArticleContent("Beskrivelse 2 er oppdatert", None, "unknown")
+    val desc1 = ArticleContent("Beskrivelse 1", "nb")
+    val desc2 = ArticleContent("Beskrivelse 2", "unknown")
+    val desc3 = ArticleContent("Beskrivelse 3", "en")
+    val oppdatertDesc2 = ArticleContent("Beskrivelse 2 er oppdatert", "unknown")
 
     val existing = Seq(desc1, desc2, desc3)
     val updated = Seq(oppdatertDesc2)

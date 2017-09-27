@@ -101,7 +101,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
          |<$resourceHtmlEmbedTag data-size="fullbredde" data-url="http://image-api/images/5359" data-align="" data-resource="image" data-alt="To personer" data-caption="capt.">
          |<p><strong>Når man driver med medieproduksjon, er det mye arbeid som må gjøres<br></strong></p>
          |</section>
-         |<section> <p>Det som kan gi helse- og sikkerhetsproblemer på en dataarbeidsplass, er:</p></section>""".stripMargin.replace("\n", ""), None, "nb")
+         |<section><p>Det som kan gi helse- og sikkerhetsproblemer på en dataarbeidsplass, er:</p></section>""".stripMargin.replace("\n", ""), "nb")
 
     val expectedIngressResult = ArticleIntroduction("Hvem er sterkest?", "nb")
 
@@ -176,7 +176,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
   test("&nbsp is removed") {
     val contentNodeBokmal = sampleLanguageContent.copy(content="""<section> <p>hello&nbsp; you</section>""")
     val node = sampleNode.copy(contents=List(contentNodeBokmal))
-    val expectedResult = """<section> <p>hello you</p></section>"""
+    val expectedResult = """<section><p>hello you</p></section>"""
 
     val Success((result: Article, status)) = service.toDomainArticle(node, ImportStatus(Seq(), Seq()))
     val strippedResult = " +".r.replaceAllIn(result.content.head.content.replace("\n", ""), " ")
@@ -189,7 +189,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
   test("That empty html tags are removed") {
     val contentNodeBokmal = sampleLanguageContent.copy(content=s"""<section> <div></div><p><div></div></p><$resourceHtmlEmbedTag ></$resourceHtmlEmbedTag></section>""")
     val node = sampleNode.copy(contents=List(contentNodeBokmal))
-    val expectedResult = s"""<section> <$resourceHtmlEmbedTag></section>"""
+    val expectedResult = s"""<section><$resourceHtmlEmbedTag></section>"""
 
     val Success((result: Article, status)) = service.toDomainArticle(node, ImportStatus(Seq(), Seq()))
 
@@ -303,7 +303,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     val expectedContent = s"""<h1>hello</h1><embed ${Attributes.DataResource}="${ResourceType.Image}">"""
     val visualElement = s"""<embed ${Attributes.DataResource}="${ResourceType.Image}" ${Attributes.DataUrl}="http://some-url" data-random="hehe" />"""
     val expectedVisualElement = s"""<embed ${Attributes.DataResource}="${ResourceType.Image}">"""
-    val articleContent = api.ArticleContent(content, None, "en")
+    val articleContent = api.ArticleContent(content, "en")
     val articleVisualElement = api.VisualElement(visualElement, "en")
     val apiArticle = TestData.newArticle.copy(content=Seq(articleContent), visualElement=Some(Seq(articleVisualElement)))
 

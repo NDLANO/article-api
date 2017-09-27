@@ -40,7 +40,7 @@ class ArticleSearchServiceTest extends UnitSuite with TestEnvironment {
     id = Option(1),
     title = List(ArticleTitle("Batmen er på vift med en bil", "nb")),
     introduction = List(ArticleIntroduction("Batmen", "nb")),
-    content = List(ArticleContent("Bilde av en <strong>bil</strong> flaggermusmann som vifter med vingene <em>bil</em>.", None, "nb")),
+    content = List(ArticleContent("Bilde av en <strong>bil</strong> flaggermusmann som vifter med vingene <em>bil</em>.", "nb")),
     tags = List(ArticleTag(List("fugl"), "nb")),
     created = today.minusDays(4).toDate,
     updated = today.minusDays(3).toDate)
@@ -48,7 +48,7 @@ class ArticleSearchServiceTest extends UnitSuite with TestEnvironment {
     id = Option(2),
     title = List(ArticleTitle("Pingvinen er ute og går", "nb")),
     introduction = List(ArticleIntroduction("Pingvinen", "nb")),
-    content = List(ArticleContent("<p>Bilde av en</p><p> en <em>pingvin</em> som vagger borover en gate</p>", None, "nb")),
+    content = List(ArticleContent("<p>Bilde av en</p><p> en <em>pingvin</em> som vagger borover en gate</p>", "nb")),
     tags = List(ArticleTag(List("fugl"), "nb")),
     created = today.minusDays(4).toDate,
     updated = today.minusDays(2).toDate)
@@ -56,7 +56,7 @@ class ArticleSearchServiceTest extends UnitSuite with TestEnvironment {
     id = Option(3),
     title = List(ArticleTitle("Donald Duck kjører bil", "nb")),
     introduction = List(ArticleIntroduction("Donald Duck", "nb")),
-    content = List(ArticleContent("<p>Bilde av en en and</p><p> som <strong>kjører</strong> en rød bil.</p>", None, "nb")),
+    content = List(ArticleContent("<p>Bilde av en en and</p><p> som <strong>kjører</strong> en rød bil.</p>", "nb")),
     tags = List(ArticleTag(List("and"), "nb")),
     created = today.minusDays(4).toDate,
     updated = today.minusDays(1).toDate
@@ -65,7 +65,7 @@ class ArticleSearchServiceTest extends UnitSuite with TestEnvironment {
     id = Option(4),
     title = List(ArticleTitle("Superman er ute og flyr", "nb")),
     introduction = List(ArticleIntroduction("Superman", "nb")),
-    content = List(ArticleContent("<p>Bilde av en flygende mann</p><p> som <strong>har</strong> superkrefter.</p>", None, "nb")),
+    content = List(ArticleContent("<p>Bilde av en flygende mann</p><p> som <strong>har</strong> superkrefter.</p>", "nb")),
     tags = List(ArticleTag(List("supermann"), "nb")),
     created = today.minusDays(4).toDate,
     updated = today.toDate
@@ -74,7 +74,7 @@ class ArticleSearchServiceTest extends UnitSuite with TestEnvironment {
     id = Option(5),
     title = List(ArticleTitle("Hulken løfter biler", "nb")),
     introduction = List(ArticleIntroduction("Hulken", "nb")),
-    content = List(ArticleContent("<p>Bilde av hulk</p><p> som <strong>løfter</strong> en rød bil.</p>", None, "nb")),
+    content = List(ArticleContent("<p>Bilde av hulk</p><p> som <strong>løfter</strong> en rød bil.</p>", "nb")),
     tags = List(ArticleTag(List("hulk"), "nb")),
     created = today.minusDays(40).toDate,
     updated = today.minusDays(35).toDate
@@ -83,7 +83,7 @@ class ArticleSearchServiceTest extends UnitSuite with TestEnvironment {
     id = Option(6),
     title = List(ArticleTitle("Loke og Tor prøver å fange midgaardsormen", "nb")),
     introduction = List(ArticleIntroduction("Loke og Tor", "nb")),
-    content = List(ArticleContent("<p>Bilde av <em>Loke</em> og <em>Tor</em></p><p> som <strong>fisker</strong> fra Naglfar.</p>", None, "nb")),
+    content = List(ArticleContent("<p>Bilde av <em>Loke</em> og <em>Tor</em></p><p> som <strong>fisker</strong> fra Naglfar.</p>", "nb")),
     tags = List(ArticleTag(List("Loke", "Tor", "Naglfar"), "nb")),
     created = today.minusDays(30).toDate,
     updated = today.minusDays(25).toDate
@@ -92,7 +92,7 @@ class ArticleSearchServiceTest extends UnitSuite with TestEnvironment {
     id = Option(7),
     title = List(ArticleTitle("Yggdrasil livets tre", "nb")),
     introduction = List(ArticleIntroduction("Yggdrasil", "nb")),
-    content = List(ArticleContent("<p>Bilde av <em>Yggdrasil</em> livets tre med alle dyrene som bor i det.", None, "nb")),
+    content = List(ArticleContent("<p>Bilde av <em>Yggdrasil</em> livets tre med alle dyrene som bor i det.", "nb")),
     tags = List(ArticleTag(List("yggdrasil"), "nb")),
     created = today.minusDays(20).toDate,
     updated = today.minusDays(15).toDate
@@ -101,7 +101,7 @@ class ArticleSearchServiceTest extends UnitSuite with TestEnvironment {
     id = Option(8),
     title = List(ArticleTitle("Baldur har mareritt", "nb")),
     introduction = List(ArticleIntroduction("Baldur", "nb")),
-    content = List(ArticleContent("<p>Bilde av <em>Baldurs</em> mareritt om Ragnarok.", None, "nb")),
+    content = List(ArticleContent("<p>Bilde av <em>Baldurs</em> mareritt om Ragnarok.", "nb")),
     tags = List(ArticleTag(List("baldur"), "nb")),
     created = today.minusDays(10).toDate,
     updated = today.minusDays(5).toDate,
@@ -111,7 +111,7 @@ class ArticleSearchServiceTest extends UnitSuite with TestEnvironment {
     id = Option(9),
     title = List(ArticleTitle("Baldur har mareritt om Ragnarok", "nb")),
     introduction = List(ArticleIntroduction("Baldur", "nb")),
-    content = List(ArticleContent("<p>Bilde av <em>Baldurs</em> som har  mareritt.", None, "nb")),
+    content = List(ArticleContent("<p>Bilde av <em>Baldurs</em> som har  mareritt.", "nb")),
     tags = List(ArticleTag(List("baldur"), "nb")),
     created = today.minusDays(10).toDate,
     updated = today.minusDays(5).toDate,

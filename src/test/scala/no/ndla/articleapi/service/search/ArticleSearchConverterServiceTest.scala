@@ -28,10 +28,10 @@ class ArticleSearchConverterServiceTest extends UnitSuite with TestEnvironment {
     ArticleTitle("Nekonata titolo", "unknown"))
 
   val articles = Seq(
-    ArticleContent("Bokmål artikkel", None, "nb"), ArticleContent("Nynorsk artikkel", None, "nn"),
-    ArticleContent("English article", None, "en"), ArticleContent("Francais article", None, "fr"),
-    ArticleContent("Deutsch Artikel", None, "de"), ArticleContent("Articulo espanol", None, "es"),
-    ArticleContent("Nekonata artikolo", None, "unknown")
+    ArticleContent("Bokmål artikkel", "nb"), ArticleContent("Nynorsk artikkel", "nn"),
+    ArticleContent("English article", "en"), ArticleContent("Francais article", "fr"),
+    ArticleContent("Deutsch Artikel", "de"), ArticleContent("Articulo espanol", "es"),
+    ArticleContent("Nekonata artikolo", "unknown")
   )
 
   val articleTags = Seq(

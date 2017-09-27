@@ -9,21 +9,37 @@
 package no.ndla.articleapi.service.converters.contentbrowser
 
 import com.typesafe.scalalogging.LazyLogging
-import no.ndla.articleapi.model.domain.{ImportStatus, RequiredLibrary}
+import no.ndla.articleapi.model.api.ImportException
+import no.ndla.articleapi.model.domain.{FootNoteItem, ImportStatus, RequiredLibrary}
 import no.ndla.articleapi.repository.ArticleRepository
+import no.ndla.articleapi.service.converters.HtmlTagGenerator
 import no.ndla.articleapi.service.{ExtractConvertStoreContent, ExtractService}
 
-import scala.util.{Success, Try}
+import scala.util.{Failure, Success, Try}
 
 trait BiblioConverterModule {
-  this: ExtractService with ExtractConvertStoreContent with ArticleRepository =>
+  this: ExtractService with ExtractConvertStoreContent with ArticleRepository with HtmlTagGenerator =>
 
   object BiblioConverter extends ContentBrowserConverterModule with LazyLogging {
     override val typeName: String = "biblio"
 
     override def convert(content: ContentBrowser, visitedNodes: Seq[String]): Try[(String, Seq[RequiredLibrary], ImportStatus)] = {
       val nodeId = content.get("nid")
-      Success(s"""<a id="biblio-$nodeId"></a>""", List[RequiredLibrary](), ImportStatus(Seq(), visitedNodes))
+      getFootNoteData(nodeId) match {
+        case None => Failure(ImportException(s"Failed to fetch biblio meta data with node id $nodeId"))
+        case Some(meta) => Success(HtmlTagGenerator.buildFootNoteItem(
+          title = meta.title,
+          `type` = meta.`type`,
+          year = meta.year,
+          edition = meta.edition,
+          publisher = meta.publisher,
+          authors = meta.authors
+        ), List[RequiredLibrary](), ImportStatus(Seq.empty, visitedNodes))
+      }
     }
+
+    private def getFootNoteData(nodeId: String): Option[FootNoteItem] =
+      extractService.getBiblioMeta(nodeId).map(biblioMeta => FootNoteItem(biblioMeta.biblio, biblioMeta.authors))
+
   }
 }

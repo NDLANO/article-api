@@ -9,8 +9,8 @@ import scala.io.Source
 
 object EmbedTag {
   case class EmbedThings(attrsForResource: Map[ResourceType.Value, EmbedTagAttributeRules])
-  case class EmbedTagAttributeRules(required: Set[Attributes.Value], optional: Set[Attributes.Value], validSrcDomains: Set[String]) {
-    lazy val all: Set[Attributes.Value] = required ++ optional
+  case class EmbedTagAttributeRules(required: Set[Attributes.Value], optional: Seq[Set[Attributes.Value]], validSrcDomains: Set[String]) {
+    lazy val all: Set[Attributes.Value] = required ++ optional.flatten
   }
 
   private[domain] lazy val attributeRules: Map[ResourceType.Value, EmbedTagAttributeRules] = embedRulesToJson
@@ -20,21 +20,25 @@ object EmbedTag {
   def attributesForResourceType(resourceType: ResourceType.Value): EmbedTagAttributeRules = attributeRules(resourceType)
 
   private def embedRulesToJson = {
-    val requiredAttrs = convertJsonStr(Source.fromResource("embed-tag-rules.json").mkString)
-      .get("attrsForResource").map(_.asInstanceOf[Map[String, Map[String, Seq[String]] ]])
+    val attrs = convertJsonStr(Source.fromResource("embed-tag-rules.json").mkString)
+      .get("attrsForResource").map(_.asInstanceOf[Map[String, Map[String, Any]]])
 
-    def toEmbedTagAttributeRules(map: Map[String, Seq[String]]) = {
+    def toEmbedTagAttributeRules(map: Map[String, Any]) = {
+      val optionalAttrs: List[List[Attributes.Value]] = map.get("optional")
+        .map(_.asInstanceOf[List[List[String]]].map(_.flatMap(Attributes.valueOf))).getOrElse(List.empty)
+      val validSrcDomains: Seq[String] = map.get("validSrcDomains").map(_.asInstanceOf[Seq[String]]).getOrElse(Seq.empty)
+
       EmbedTagAttributeRules(
-        map("required").flatMap(Attributes.valueOf).toSet,
-        map.get("optional").map(x => x.flatMap(Attributes.valueOf)).getOrElse(Seq.empty).toSet,
-        map.getOrElse("validSrcDomains", Seq.empty).toSet
+        map("required").asInstanceOf[Seq[String]].flatMap(Attributes.valueOf).toSet,
+        optionalAttrs.map(_.toSet),
+        validSrcDomains.toSet
       )
     }
 
     def strToResourceType(str: String): ResourceType.Value =
       ResourceType.valueOf(str).getOrElse(throw new ConfigurationException(s"Missing declaration of resource type '$str' in ResourceType enum"))
 
-    requiredAttrs.get.map {
+    attrs.get.map {
       case (resourceType, attrRules) => strToResourceType(resourceType) -> toEmbedTagAttributeRules(attrRules)
     }
   }

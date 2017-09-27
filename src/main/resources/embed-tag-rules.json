@@ -11,7 +11,7 @@
         "data-url"
       ],
       "optional": [
-        "data-caption"
+        [ "data-caption" ]
       ]
     },
     "error": {
@@ -59,12 +59,15 @@
         "data-align"
       ],
       "optional": [
-       "data-upper-left-x",
-       "data-upper-left-y",
-       "data-lower-right-x",
-       "data-lower-right-y",
-       "data-focal-x",
-       "data-focal-y"
+        [
+          "data-upper-left-x",
+          "data-upper-left-y",
+          "data-lower-right-x",
+          "data-lower-right-y",
+        ], [
+          "data-focal-x",
+          "data-focal-y"
+        ]
       ]
     },
     "concept": {
@@ -116,6 +119,17 @@
       ],
       "validSrcDomains": [
         "embed.kahoot.it"
+      ]
+    },
+    "footnote": {
+      "required": [
+        "data-resource",
+        "data-title",
+        "data-type",
+        "data-year",
+        "data-edition",
+        "data-publisher",
+        "data-authors"
       ]
     }
 
