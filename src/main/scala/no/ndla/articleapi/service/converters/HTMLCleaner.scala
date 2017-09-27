@@ -25,7 +25,7 @@ trait HTMLCleaner {
       convertLists(element)
       val illegalAttributes = removeAttributes(element).map(x => s"Illegal attribute(s) removed: $x").distinct
 
-      moveImagesOutOfPTags(element)
+      moveFiguresOutOfPTags(element)
       removeComments(element)
       removeNbsp(element)
       wrapStandaloneTextInPTag(element)
@@ -44,12 +44,19 @@ trait HTMLCleaner {
         ImportStatus(importStatus.messages ++ illegalTags ++ illegalAttributes, importStatus.visitedNodes)))
     }
 
-    private def moveImagesOutOfPTags(element: Element) {
+    private def moveFiguresOutOfPTags(element: Element) {
+      val figuresThatShouldNotBeInPTags = Set(
+        ResourceType.Audio,
+        ResourceType.Brightcove,
+        ResourceType.ExternalContent,
+        ResourceType.Image
+      )
+
+      val figureTypeString = figuresThatShouldNotBeInPTags.mkString(s"[${DataResource}=",s"],[${DataResource}=","]")
+      val searchString = s"${resourceHtmlEmbedTag}${figureTypeString}"
+
       element.select("p").asScala.foreach(pTag => {
-        pTag.select(s"""
-                |$resourceHtmlEmbedTag[$DataResource=${ResourceType.Image}],
-                |$resourceHtmlEmbedTag[$DataResource=${ResourceType.Brightcove}]"""
-          .stripMargin).asScala.toList.foreach(el => {
+        pTag.select(searchString).asScala.toList.foreach(el => {
           pTag.before(el.outerHtml())
           el.remove()
         })
@@ -66,10 +73,7 @@ trait HTMLCleaner {
       if (firstSectionChildren.size != 1)
         return
 
-      firstSectionChildren.select(s"""
-           |$resourceHtmlEmbedTag[$DataResource=${ResourceType.Image}],
-           |$resourceHtmlEmbedTag[$DataResource=${ResourceType.Brightcove}]"""
-          .stripMargin).asScala.headOption match {
+      firstSectionChildren.select(resourceHtmlEmbedTag).asScala.headOption match {
         case Some(e) =>
           sections(1).prepend(e.outerHtml())
           e.remove()
