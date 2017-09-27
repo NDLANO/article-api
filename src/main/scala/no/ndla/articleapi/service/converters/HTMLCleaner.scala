@@ -62,12 +62,14 @@ trait HTMLCleaner {
       val firstSectionChildren = sections.head.children
       if (firstSectionChildren.size != 1)
         return
-
       firstSectionChildren.select(s"""$resourceHtmlEmbedTag[$DataResource=${ResourceType.Image}]""").asScala.headOption match {
         case Some(e) =>
           sections(1).prepend(e.outerHtml())
           e.remove()
-          sections.head.remove()
+          sections.head.childNodeSize() match {
+            case x if x == 0  => sections.head.remove()
+            case _ =>
+          }
         case _ =>
       }
     }
