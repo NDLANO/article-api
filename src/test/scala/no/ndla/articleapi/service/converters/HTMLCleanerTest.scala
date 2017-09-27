@@ -532,4 +532,20 @@ class HTMLCleanerTest extends UnitSuite with TestEnvironment {
     result.content should equal(expectedContent)
   }
 
+  test("Ingress should still be fetched if image is placed in ingress section") {
+    val originalContent =
+      """<section>
+        |        <div><p><embed data-align="" data-alt="Identitet (kollasje)" data-caption="" data-resource="image" data-resource_id="1" data-size="fullbredde"><strong></strong></p><p><strong>Du er et unikt individ!<br></strong></p></div></section><section>
+        |        <div><p>Er det de genene vi arver fra foreldrene og familien vår, eller er det forholdene vi vokser opp under, for eksempel hjemstedet, familien, venner og skolen? Det er summen av arv og miljø som danner identiteten vår.</p><h2>Normer og regler</h2><p>Normer og regler former oss som individer.</p></div></section>""".stripMargin
+
+    val expectedContent = """<section><embed data-align="" data-alt="Identitet (kollasje)" data-caption="" data-resource="image" data-resource_id="1" data-size="fullbredde">
+                            |        <div><p>Er det de genene vi arver fra foreldrene og familien vår, eller er det forholdene vi vokser opp under, for eksempel hjemstedet, familien, venner og skolen? Det er summen av arv og miljø som danner identiteten vår.</p><h2>Normer og regler</h2><p>Normer og regler former oss som individer.</p></div></section>""".stripMargin
+    val expectedIngress = """Du er et unikt individ!"""
+
+
+    val Success((result, _)) = htmlCleaner.convert(TestData.sampleContent.copy(content=originalContent), defaultImportStatus)
+
+    result.content should equal(expectedContent)
+    result.ingress should equal(Some(LanguageIngress(expectedIngress, None)))
+  }
 }

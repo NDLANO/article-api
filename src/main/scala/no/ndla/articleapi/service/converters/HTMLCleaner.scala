@@ -62,12 +62,14 @@ trait HTMLCleaner {
       val firstSectionChildren = sections.head.children
       if (firstSectionChildren.size != 1)
         return
-
       firstSectionChildren.select(s"""$resourceHtmlEmbedTag[$DataResource=${ResourceType.Image}]""").asScala.headOption match {
         case Some(e) =>
           sections(1).prepend(e.outerHtml())
           e.remove()
-          sections.head.remove()
+          sections.head.childNodeSize() match {
+            case x if x == 0  => sections.head.remove()
+            case _ =>
+          }
         case _ =>
       }
     }
@@ -184,6 +186,7 @@ trait HTMLCleaner {
       //   2. first paragraph in first nested div inside first section, ei. <section><div><div><p> HERE </p></div></div></section>
       //   3. first paragraph in first div inside first section, ei. <section><div><p> HERE </p></div></section>
       val ingress = (firstSection.flatMap(getIngressText), firstDivSection, secondDivSection) match {
+
         case (Some(ing), _, _) => Some(ing)
         case (None, _, Some(secondDiv)) => getIngressText(secondDiv)
         case (None, Some(firstDiv), _) => getIngressText(firstDiv)
