@@ -56,7 +56,7 @@ class ExtractConvertStoreContentTest extends UnitSuite with TestEnvironment {
     when(extractConvertStoreContent.processNode(nodeId2, ImportStatus(Seq(), Seq(nodeId)))).thenReturn(Try((sampleArticle, ImportStatus(Seq(), Seq(nodeId, nodeId2)))))
 
     val result = eCSService.processNode(nodeId)
-    result should equal(Success(sampleArticle, ImportStatus(List(s"Successfully imported node $nodeId: 1"), List(nodeId, nodeId2))))
+    result should equal(Success(sampleArticle, ImportStatus(List(s"Successfully imported node $nodeId: 1"), List(nodeId, nodeId2), sampleArticle.id)))
   }
 
   test("That ETL returns a list of visited nodes") {
@@ -64,7 +64,7 @@ class ExtractConvertStoreContentTest extends UnitSuite with TestEnvironment {
     when(extractConvertStoreContent.processNode(nodeId2, ImportStatus(Seq(), Seq("9876", nodeId)))).thenReturn(Try((sampleArticle, ImportStatus(Seq(), Seq("9876", nodeId, nodeId2)))))
 
     val result = eCSService.processNode(nodeId, ImportStatus(Seq(), Seq("9876")))
-    result should equal(Success(sampleArticle, ImportStatus(List(s"Successfully imported node $nodeId: 1"), List("9876", nodeId, nodeId2))))
+    result should equal(Success(sampleArticle, ImportStatus(List(s"Successfully imported node $nodeId: 1"), List("9876", nodeId, nodeId2), sampleArticle.id)))
   }
 
   test("That ETL returns a Failure if the node was not found") {

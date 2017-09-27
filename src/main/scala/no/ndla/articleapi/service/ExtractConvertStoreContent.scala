@@ -46,9 +46,9 @@ trait ExtractConvertStoreContent {
         (node, mainNodeId) <- extract(externalId)
         (convertedContent, updatedImportStatus) <- convert(node, importStatus)
         _ <- importValidator.validate(convertedContent, allowUnknownLanguage=true)
-        concept <- store(convertedContent, mainNodeId)
-        _ <- indexContent(concept)
-      } yield (concept, updatedImportStatus ++ ImportStatus(Seq(s"Successfully imported node $externalId: ${concept.id.get}")))
+        content <- store(convertedContent, mainNodeId)
+        _ <- indexContent(content)
+      } yield (content, updatedImportStatus.addMessage(s"Successfully imported node $externalId: ${content.id.get}").setArticleId(content.id.get))
 
       if (importedArticle.isFailure) {
         deleteArticleByExternalId(externalId)

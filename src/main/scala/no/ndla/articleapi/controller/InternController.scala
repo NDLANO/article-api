@@ -57,7 +57,7 @@ trait InternController {
       val externalId = params("external_id")
 
       extractConvertStoreContent.processNode(externalId) match {
-        case Success((content, status)) => ImportStatus(status.messages :+ s"Successfully imported node $externalId: ${content.id.get}", status.visitedNodes)
+        case Success((content, status)) => status.addMessage(s"Successfully imported node $externalId: ${content.id.get}")
         case Failure(exc) => errorHandler(exc)
       }
     }
