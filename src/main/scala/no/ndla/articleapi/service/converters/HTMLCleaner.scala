@@ -53,10 +53,9 @@ trait HTMLCleaner {
       )
 
       val figureTypeString = figuresThatShouldNotBeInPTags.mkString(s"[${DataResource}=",s"],[${DataResource}=","]")
-      val searchString = s"${resourceHtmlEmbedTag}${figureTypeString}"
 
       element.select("p").asScala.foreach(pTag => {
-        pTag.select(searchString).asScala.toList.foreach(el => {
+        pTag.select(s"${resourceHtmlEmbedTag}${figureTypeString}").asScala.toList.foreach(el => {
           pTag.before(el.outerHtml())
           el.remove()
         })
