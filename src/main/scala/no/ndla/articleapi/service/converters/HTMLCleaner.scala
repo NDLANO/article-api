@@ -46,7 +46,10 @@ trait HTMLCleaner {
 
     private def moveImagesOutOfPTags(element: Element) {
       element.select("p").asScala.foreach(pTag => {
-        pTag.select(s"""$resourceHtmlEmbedTag[$DataResource=${ResourceType.Image}]""").asScala.toList.foreach(el => {
+        pTag.select(s"""
+                |$resourceHtmlEmbedTag[$DataResource=${ResourceType.Image}],
+                |$resourceHtmlEmbedTag[$DataResource=${ResourceType.Brightcove}]"""
+          .stripMargin).asScala.toList.foreach(el => {
           pTag.before(el.outerHtml())
           el.remove()
         })
@@ -62,7 +65,11 @@ trait HTMLCleaner {
       val firstSectionChildren = sections.head.children
       if (firstSectionChildren.size != 1)
         return
-      firstSectionChildren.select(s"""$resourceHtmlEmbedTag[$DataResource=${ResourceType.Image}]""").asScala.headOption match {
+
+      firstSectionChildren.select(s"""
+           |$resourceHtmlEmbedTag[$DataResource=${ResourceType.Image}],
+           |$resourceHtmlEmbedTag[$DataResource=${ResourceType.Brightcove}]"""
+          .stripMargin).asScala.headOption match {
         case Some(e) =>
           sections(1).prepend(e.outerHtml())
           e.remove()

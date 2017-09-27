@@ -553,4 +553,22 @@ class HTMLCleanerTest extends UnitSuite with TestEnvironment {
     result.content should equal(expectedContent)
     result.ingress should equal(Some(LanguageIngress(expectedIngress, None)))
   }
+
+  test("Ingress should not be merged if brightcove placed in ingress section") {
+    val originalContent = """<section>
+                            |        <div><p><embed data-account="4806596774001" data-caption="" data-player="BkLm8fT" data-resource="brightcove" data-videoid="ref:86043"><strong></strong></p><p><strong>Ulike kulturer har ulike måter å organisere samfunnet sitt på, de har forskjellige samfunnskontrakter.</strong></p></div></section><section>
+                            |        <div class="c-bodybox"><p>Den norske samfunnskontrakten oppmuntrer til at vi skal være aktive i samfunnslivet og ta stilling i politiske spørsmål.</p><p> </p><p>– Nordmenn med flerkulturell bakgrunn glimrer ofte med sitt fravær i interesseorganisasjoner og politiske partier.</p></div></section>""".stripMargin
+
+    val expectedContent = """<section><embed data-account="4806596774001" data-caption="" data-player="BkLm8fT" data-resource="brightcove" data-videoid="ref:86043"><div class="c-bodybox"><p>Den norske samfunnskontrakten oppmuntrer til at vi skal være aktive i samfunnslivet og ta stilling i politiske spørsmål.</p><p>– Nordmenn med flerkulturell bakgrunn glimrer ofte med sitt fravær i interesseorganisasjoner og politiske partier.</p></div></section>"""
+    val expectedIngress = """Ulike kulturer har ulike måter å organisere samfunnet sitt på, de har forskjellige samfunnskontrakter."""
+
+    val Success((result, _)) = htmlCleaner.convert(TestData.sampleContent.copy(content=originalContent), defaultImportStatus)
+
+    result.content should equal(expectedContent)
+    result.ingress should equal(Some(LanguageIngress(expectedIngress, None)))
+  }
+
+
+
+
 }
