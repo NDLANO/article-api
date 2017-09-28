@@ -25,7 +25,7 @@ trait HTMLCleaner {
       convertLists(element)
       val illegalAttributes = removeAttributes(element).map(x => s"Illegal attribute(s) removed: $x").distinct
 
-      moveFiguresOutOfPTags(element)
+      moveEmbedsOutOfPTags(element)
       removeComments(element)
       removeNbsp(element)
       wrapStandaloneTextInPTag(element)
@@ -44,18 +44,18 @@ trait HTMLCleaner {
         ImportStatus(importStatus.messages ++ illegalTags ++ illegalAttributes, importStatus.visitedNodes)))
     }
 
-    private def moveFiguresOutOfPTags(element: Element) {
-      val figuresThatShouldNotBeInPTags = Set(
+    private def moveEmbedsOutOfPTags(element: Element) {
+      val embedsThatShouldNotBeInPTags = Set(
         ResourceType.Audio,
         ResourceType.Brightcove,
         ResourceType.ExternalContent,
         ResourceType.Image
       )
 
-      val figureTypeString = figuresThatShouldNotBeInPTags.mkString(s"[${DataResource}=",s"],[${DataResource}=","]")
+      val embedTypeString = embedsThatShouldNotBeInPTags.map(t => s"[$DataResource=$t]").mkString(",")
 
       element.select("p").asScala.foreach(pTag => {
-        pTag.select(s"${resourceHtmlEmbedTag}${figureTypeString}").asScala.toList.foreach(el => {
+        pTag.select(s"${resourceHtmlEmbedTag}${embedTypeString}").asScala.toList.foreach(el => {
           pTag.before(el.outerHtml())
           el.remove()
         })
