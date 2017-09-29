@@ -72,13 +72,7 @@ trait HTMLCleaner {
       if (firstSectionChildren.size != 1)
         return
 
-      // TODO: Maybe find a better way to decide if merging sections.
-      // Maybe by only merging if embed tag is rootNode in section.
-      sections.head.children.asScala.foreach{e =>
-        if (e.children.size > 2) {
-          return
-        }
-      }
+      sections.head.children.asScala.foreach{e => if (e.children.size > 2) return}
 
       firstSectionChildren.select(resourceHtmlEmbedTag).asScala.headOption match {
         case Some(e) =>
