@@ -69,10 +69,8 @@ trait HTMLCleaner {
         return
 
       val firstSectionChildren = sections.head.children
-      if (firstSectionChildren.size != 1)
+      if (firstSectionChildren.size != 1 || firstSectionChildren.asScala.head.children.size > 2)
         return
-
-      sections.head.children.asScala.foreach{e => if (e.children.size > 2) return}
 
       firstSectionChildren.select(resourceHtmlEmbedTag).asScala.headOption match {
         case Some(e) =>
