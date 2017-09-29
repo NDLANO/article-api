@@ -581,11 +581,16 @@ class HTMLCleanerTest extends UnitSuite with TestEnvironment {
     val Success((result, _)) = htmlCleaner.convert(TestData.sampleContent.copy(content=originalContent), defaultImportStatus)
     result.content should equal(expectedContent)
     result.ingress should equal(Some(LanguageIngress(expectedIngress, None)))
-
-
   }
 
+  test("Ingress should still be extracted if first <p> is only an embed") {
+    val originalContent = """<section><p><embed data-height="337px" data-resource="ndla-filmiundervisning" data-url="//ndla.filmiundervisning.no/film/ndlafilm.aspx?filmId=12414" data-width="632px"></p><p><strong>I en film er det bildenes rekkefølge som skaper sammenheng og mening.</strong></p><p>Når vi ser to bilder.</p></section><div class="paragraph"><div class="full"><p><embed data-height="337px" data-resource="ndla-filmiundervisning" data-url="//ndla.filmiundervisning.no/film/ndlafilm.aspx?filmId=12414" data-width="632px">&#xa0;</p><p><strong>Something</strong></p></div></div>"""
+    val expectedContent = """<section><p><embed data-height="337px" data-resource="ndla-filmiundervisning" data-url="//ndla.filmiundervisning.no/film/ndlafilm.aspx?filmId=12414" data-width="632px"></p><p>Når vi ser to bilder.</p><div class="paragraph"><div class="full"><p><embed data-height="337px" data-resource="ndla-filmiundervisning" data-url="//ndla.filmiundervisning.no/film/ndlafilm.aspx?filmId=12414" data-width="632px"></p><p><strong>Something</strong></p></div></div></section>"""
 
+    val expectedIngress = """I en film er det bildenes rekkefølge som skaper sammenheng og mening."""
 
-
+    val Success((result, _)) = htmlCleaner.convert(TestData.sampleContent.copy(content=originalContent), defaultImportStatus)
+    result.content should equal(expectedContent)
+    result.ingress should equal(Some(LanguageIngress(expectedIngress, None)))
+  }
 }
