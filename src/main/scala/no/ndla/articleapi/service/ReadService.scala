@@ -43,18 +43,12 @@ trait ReadService {
       article.copy(content = articleWithUrls, visualElement = visualElementWithUrls)
     }
 
-    def getNMostUsedTags(n: Int, language: String): Option[Seq[api.ArticleTag]] = {
+    def getNMostUsedTags(n: Int, language: String): Option[api.ArticleTag] = {
       val tagUsageMap = getTagUsageMap()
-      val supportedLanguages = tagUsageMap.keys.toSeq.distinct
       val searchLanguage = getSearchLanguage(language, supportedLanguages)
 
-      if (supportedLanguages.isEmpty || (!supportedLanguages.contains(language) && language != AllLanguages)) return None
-
-      Some(tagUsageMap
-        .filterKeys(lang => lang == searchLanguage)
-        .map { case (lang, tags) =>
-          api.ArticleTag(tags.getNMostFrequent(n), lang)
-        }.toSeq)
+      tagUsageMap.get(searchLanguage)
+        .map(tags => api.ArticleTag(tags.getNMostFrequent(n), searchLanguage))
     }
 
     val getTagUsageMap = MemoizeAutoRenew(() => {

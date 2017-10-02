@@ -122,7 +122,7 @@ trait ArticleControllerV2 {
         responseMessages(response400, response403, response404, response500))
 
     val getTags =
-      (apiOperation[List[ArticleTag]]("getTags")
+      (apiOperation[ArticleTag]("getTags")
         summary "Retrieves a list of all previously used tags in articles"
         notes "Retrieves a list of all previously used tags in articles"
         parameters(
@@ -137,7 +137,7 @@ trait ArticleControllerV2 {
       val defaultSize = 20
       val language = paramOrDefault("language", Language.AllLanguages)
       val size = intOrDefault("size", defaultSize) match {
-        case toSmall if toSmall < 1 => defaultSize
+        case tooSmall if tooSmall < 1 => defaultSize
         case x => x
       }
       val tags = readService.getNMostUsedTags(size, language)
