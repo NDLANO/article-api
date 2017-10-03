@@ -569,6 +569,28 @@ class HTMLCleanerTest extends UnitSuite with TestEnvironment {
   }
 
 
+  test("Merging should not happen in cases where there are a container with more info than an image") {
+    val originalContent = """<section>
+                            |        <div class="c-bodybox"><p><embed data-align="" data-alt="Journalist Mads A. Andersen foran PC-skjerm i VGs redaksjonslokale. Fotografi." data-caption="" data-resource="image" data-resource_id="6" data-size="fullbredde">  </p><p><strong>Det er en stille dag i redaksjonen.</strong></p><p> </p><h2>Oppdrag</h2><ol><li>Du skal lage en nyhetssak om bankranet til nyhetssendingen på lokalradio kl. 17.30 og til den lokale TV-sendingen kl. 18.40 samme dag.</li><li>Skriv teksten til den nyhetsmeldingen du vil ha på radio.</li></ol></div> </section><section>
+                            |        <h2>Kildeliste</h2> <p><strong>Kilde 1: Bankansatt</strong></p> <p><embed data-account="4806596774001" data-caption="Kildeeksempel 1: Banksjef" data-player="BkLm8fT" data-resource="brightcove" data-videoid="ref:78120"> </p> </section>""".stripMargin
 
+    val expectedContent = """<section><div class="c-bodybox"><embed data-align="" data-alt="Journalist Mads A. Andersen foran PC-skjerm i VGs redaksjonslokale. Fotografi." data-caption="" data-resource="image" data-resource_id="6" data-size="fullbredde"><h2>Oppdrag</h2><ol><li>Du skal lage en nyhetssak om bankranet til nyhetssendingen på lokalradio kl. 17.30 og til den lokale TV-sendingen kl. 18.40 samme dag.</li><li>Skriv teksten til den nyhetsmeldingen du vil ha på radio.</li></ol></div></section><section><h2>Kildeliste</h2><p><strong>Kilde 1: Bankansatt</strong></p><embed data-account="4806596774001" data-caption="Kildeeksempel 1: Banksjef" data-player="BkLm8fT" data-resource="brightcove" data-videoid="ref:78120"></section>"""
 
+    val expectedIngress = """Det er en stille dag i redaksjonen."""
+
+    val Success((result, _)) = htmlCleaner.convert(TestData.sampleContent.copy(content=originalContent), defaultImportStatus)
+    result.content should equal(expectedContent)
+    result.ingress should equal(Some(LanguageIngress(expectedIngress, None)))
+  }
+
+  test("Ingress should still be extracted if first <p> is only an embed") {
+    val originalContent = """<section><p><embed data-height="337px" data-resource="ndla-filmiundervisning" data-url="//ndla.filmiundervisning.no/film/ndlafilm.aspx?filmId=12414" data-width="632px"></p><p><strong>I en film er det bildenes rekkefølge som skaper sammenheng og mening.</strong></p><p>Når vi ser to bilder.</p></section><div class="paragraph"><div class="full"><p><embed data-height="337px" data-resource="ndla-filmiundervisning" data-url="//ndla.filmiundervisning.no/film/ndlafilm.aspx?filmId=12414" data-width="632px">&#xa0;</p><p><strong>Something</strong></p></div></div>"""
+    val expectedContent = """<section><p><embed data-height="337px" data-resource="ndla-filmiundervisning" data-url="//ndla.filmiundervisning.no/film/ndlafilm.aspx?filmId=12414" data-width="632px"></p><p>Når vi ser to bilder.</p><div class="paragraph"><div class="full"><p><embed data-height="337px" data-resource="ndla-filmiundervisning" data-url="//ndla.filmiundervisning.no/film/ndlafilm.aspx?filmId=12414" data-width="632px"></p><p><strong>Something</strong></p></div></div></section>"""
+
+    val expectedIngress = """I en film er det bildenes rekkefølge som skaper sammenheng og mening."""
+
+    val Success((result, _)) = htmlCleaner.convert(TestData.sampleContent.copy(content=originalContent), defaultImportStatus)
+    result.content should equal(expectedContent)
+    result.ingress should equal(Some(LanguageIngress(expectedIngress, None)))
+  }
 }

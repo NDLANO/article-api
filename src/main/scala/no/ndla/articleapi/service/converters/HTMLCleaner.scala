@@ -69,7 +69,7 @@ trait HTMLCleaner {
         return
 
       val firstSectionChildren = sections.head.children
-      if (firstSectionChildren.size != 1)
+      if (firstSectionChildren.size != 1 || firstSectionChildren.asScala.head.children.size > 2)
         return
 
       firstSectionChildren.select(resourceHtmlEmbedTag).asScala.headOption match {
@@ -166,7 +166,6 @@ trait HTMLCleaner {
     private def getIngressText(el: Element): Option[Seq[Element]] = {
       val firstParagraphs = Option(el.select(">p")).map(_.asScala.toList)
         .flatMap(paragraphs => paragraphs.headOption.map(_ => paragraphs.take(2))) // select two first paragraphs
-
       val ingress = firstParagraphs.flatMap(ps => {
         val ingresses = ps.map(p => Option(p.select(">strong").first))
 
@@ -175,6 +174,12 @@ trait HTMLCleaner {
           case Some(head) :: Some(second) :: _ => Some(Seq(head, second))
           case Some(head) :: None :: _ => Some(Seq(head))
           case Some(head) :: _ => Some(Seq(head))
+          case None :: Some(second) :: _ =>
+            ps.head.select(">embed").first match {
+              case _ : Element => Some(Seq(second))
+              case _ => None
+            }
+
           case _ => None
         }
       })
