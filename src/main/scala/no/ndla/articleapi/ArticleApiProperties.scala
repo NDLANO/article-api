@@ -47,6 +47,7 @@ object ArticleApiProperties extends LazyLogging {
   val DefaultPageSize = 10
   val MaxPageSize = 100
   val IndexBulkSize = 200
+  val ElasticSearchIndexMaxResultWindow = 10000
 
   val TopicAPIUrl = "http://api.topic.ndla.no/rest/v1/keywords/?filter[node]=ndlanode_"
   val MigrationHost = prop("MIGRATION_HOST")
