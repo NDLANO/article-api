@@ -27,11 +27,13 @@ object Error {
   val VALIDATION = "VALIDATION"
   val RESOURCE_OUTDATED = "RESOURCE_OUTDATED"
   val ACCESS_DENIED = "ACCESS DENIED"
+  val WINDOW_TOO_LARGE = "RESULT_WINDOW_TOO_LARGE"
 
   val VALIDATION_DESCRIPTION = "Validation Error"
   val GENERIC_DESCRIPTION = s"Ooops. Something we didn't anticipate occured. We have logged the error, and will look into it. But feel free to contact ${ArticleApiProperties.ContactEmail} if the error persists."
   val INDEX_MISSING_DESCRIPTION = s"Ooops. Our search index is not available at the moment, but we are trying to recreate it. Please try again in a few minutes. Feel free to contact ${ArticleApiProperties.ContactEmail} if the error persists."
   val RESOURCE_OUTDATED_DESCRIPTION = "The resource is outdated. Please try fetching before submitting again."
+  val WINDOW_TOO_LARGE_DESCRIPTION = s"The result window is too large. Fetching pages above ${ArticleApiProperties.ElasticSearchIndexMaxResultWindow} results are unsupported."
 
   val GenericError = Error(GENERIC, GENERIC_DESCRIPTION)
   val IndexMissingError = Error(INDEX_MISSING, INDEX_MISSING_DESCRIPTION)
@@ -45,3 +47,4 @@ class ImportExceptions(val message: String, val errors: Seq[Throwable]) extends 
 class ValidationException(message: String = "Validation Error", val errors: Seq[ValidationMessage]) extends RuntimeException(message)
 class OptimisticLockException(message: String = Error.RESOURCE_OUTDATED_DESCRIPTION) extends RuntimeException(message)
 class ConfigurationException(message: String) extends RuntimeException(message)
+class ResultWindowTooLargeException(message: String = Error.WINDOW_TOO_LARGE_DESCRIPTION) extends RuntimeException(message)
