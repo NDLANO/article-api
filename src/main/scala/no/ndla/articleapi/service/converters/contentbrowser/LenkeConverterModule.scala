@@ -101,8 +101,9 @@ trait LenkeConverterModule {
     def getCommoncraftEmbedTag(embedCode: String): (String, Option[RequiredLibrary]) = {
       val doc = Jsoup.parseBodyFragment(embedCode).select("iframe").first()
       val (src, width, height) = (doc.attr("src"), doc.attr("width"), doc.attr("height"))
+      val httpsSrc = stringToUri(src).withScheme("https")
 
-      (HtmlTagGenerator.buildCommoncraftInlineContent(src, width, height), None)
+      (HtmlTagGenerator.buildCommoncraftInlineContent(httpsSrc, width, height), None)
     }
 
     def getNdlaFilmundervisningEmbedTag(embedCode: String): (String, Option[RequiredLibrary]) = {
