@@ -39,7 +39,7 @@ trait LenkeConverterModule {
         val (url, embedCode) = (meta.url.getOrElse(""), meta.embedCode.getOrElse(""))
         val (htmlTag, requiredLibrary, errors) = cont.get("insertion") match {
           case "link" => insertAnchor(url, cont)
-          case "inline" => insertInline(url, embedCode, cont)
+          case "inline" => insertInlineLink(url, embedCode)
           case "lightbox_large" => insertAnchor(url, cont)
           case "collapsed_body" => insertAnchor(url, cont)
           case _ => insertUnhandled(url, cont)
@@ -62,7 +62,7 @@ trait LenkeConverterModule {
       }
     }
 
-    private def insertInline(url: String, embedCode: String, cont: ContentBrowser): (String, Option[RequiredLibrary], Seq[String]) = {
+    def insertInlineLink(url: String, embedCode: String): (String, Option[RequiredLibrary], Seq[String]) = {
       val message = s"External resource to be embedded: $url"
       logger.info(message)
 
@@ -120,7 +120,7 @@ trait LenkeConverterModule {
     }
 
     private def insertDetailSummary(url: String, embedCode: String, cont: ContentBrowser): (String, Option[RequiredLibrary], Seq[String]) = {
-      val (elementToInsert, requiredLib, figureErrors) = insertInline(url, embedCode, cont)
+      val (elementToInsert, requiredLib, figureErrors) = insertInlineLink(url, embedCode)
       (s"<details><summary>${cont.get("link_text")}</summary>$elementToInsert</details>", requiredLib, figureErrors)
     }
 

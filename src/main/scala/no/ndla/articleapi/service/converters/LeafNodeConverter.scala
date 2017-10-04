@@ -8,37 +8,49 @@
 
 package no.ndla.articleapi.service.converters
 
-import no.ndla.articleapi.ArticleApiProperties.{nodeTypeH5P, nodeTypeVideo}
-import no.ndla.articleapi.integration.{ConverterModule, LanguageContent, MigrationApiClient}
-import no.ndla.articleapi.model.domain.ImportStatus
+import no.ndla.articleapi.ArticleApiProperties.{nodeTypeH5P, nodeTypeLenke, nodeTypeVideo}
+import no.ndla.articleapi.integration.{ConverterModule, LanguageContent, MigrationApiClient, MigrationEmbedMeta}
+import no.ndla.articleapi.model.domain.{ImportStatus, RequiredLibrary}
 import no.ndla.articleapi.service.{ExtractService, TagsService}
-import no.ndla.articleapi.service.converters.contentbrowser.{H5PConverterModule, VideoConverterModule}
+import no.ndla.articleapi.service.converters.contentbrowser.{H5PConverterModule, LenkeConverterModule, VideoConverterModule}
 import no.ndla.network.NdlaClient
 import no.ndla.articleapi.integration.ConverterModule.{jsoupDocumentToString, stringToJsoupDocument}
-import scala.util.{Success, Try}
+import no.ndla.articleapi.model.api.ImportException
+
+import scala.util.{Failure, Success, Try}
 
 trait LeafNodeConverter {
-  this: VideoConverterModule with HtmlTagGenerator with H5PConverterModule with ExtractService with MigrationApiClient with TagsService with NdlaClient with TagsService =>
+  this: VideoConverterModule with LenkeConverterModule with HtmlTagGenerator with H5PConverterModule with ExtractService with MigrationApiClient with TagsService with NdlaClient with TagsService =>
 
   object LeafNodeConverter extends ConverterModule {
 
     def convert(content: LanguageContent, importStatus: ImportStatus): Try[(LanguageContent, ImportStatus)] = {
       val element = stringToJsoupDocument(content.content)
+      val supportedContentTypes = Seq("video", "ekstern ressurs")
 
-      val requiredLibraries = content.nodeType match {
+      val (embedHtml, requiredLibraries) = content.nodeType match {
         case `nodeTypeVideo` =>
-          val (html, requiredLibrary) = VideoConverter.toVideo("", content.nid)
-          element.append(s"<section>$html</section>")
-          Set(requiredLibrary) ++ content.requiredLibraries
+          val (html, reqLib) = VideoConverter.toVideo("", content.nid)
+          (html, Set(reqLib))
         case `nodeTypeH5P` =>
-          val (html, requiredLibrary) = H5PConverter.toH5PEmbed(content.nid)
-          element.append(s"<section>$html</section>")
-          Set(requiredLibrary) ++ content.requiredLibraries
-        case _ => content.requiredLibraries
+          val (html, reqLib) = H5PConverter.toH5PEmbed(content.nid)
+          (html, Set(reqLib))
+        case `nodeTypeLenke` if supportedContentTypes.contains(content.contentType.getOrElse("")) =>
+          convertLenke(content.nid) match {
+            case Success((html, requiredLib, _)) =>
+              (html, requiredLib.toSet)
+            case Failure(ex) => return Failure(ex)
+          }
+        case _ => return Failure(ImportException(s"Tried to import node with unsupported node/content -type: ${content.nodeType}/${content.contentType}"))
       }
 
-      Success(content.copy(content=jsoupDocumentToString(element), requiredLibraries=requiredLibraries), importStatus)
+      element.append(s"<section>$embedHtml</section>")
+
+      Success(content.copy(content=jsoupDocumentToString(element), requiredLibraries=content.requiredLibraries ++ requiredLibraries), importStatus)
     }
+
+    private def convertLenke(nodeId: String): Try[(String, Option[RequiredLibrary], Seq[String])] =
+      extractService.getNodeEmbedMeta(nodeId).map(m => LenkeConverter.insertInlineLink(m.url.getOrElse(""), m.embedCode.getOrElse("")))
 
   }
 }

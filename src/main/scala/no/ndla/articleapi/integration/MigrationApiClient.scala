@@ -101,6 +101,7 @@ case class MigrationMainNodeImport(titles: Seq[MigrationContentTitle], ingresses
         Language.languageOrUnknown(content.language),
         visualElements.find(_.language == content.language).map(_.element),
         nodeType.getOrElse("unknown"),
+        contentType.headOption.map(_.`type`.toLowerCase),
         titles.find(_.language == content.language).map(_.title),
         ingress = getIngress(content.language))
     })

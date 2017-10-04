@@ -63,7 +63,8 @@ object ArticleApiProperties extends LazyLogging {
   val nodeTypeBegrep: String = "begrep"
   val nodeTypeVideo: String = "video"
   val nodeTypeH5P: String = "h5p_content"
-  val supportedContentTypes = Set("fagstoff", "oppgave", "veiledning", "aktualitet", "emneartikkel", nodeTypeBegrep, nodeTypeVideo, nodeTypeH5P)
+  val nodeTypeLenke: String = "lenke"
+  val supportedContentTypes = Set("fagstoff", "oppgave", "veiledning", "aktualitet", "emneartikkel", nodeTypeBegrep, nodeTypeVideo, nodeTypeH5P, nodeTypeLenke)
 
 
   // When converting a content node, the converter may run several times over the content to make sure
