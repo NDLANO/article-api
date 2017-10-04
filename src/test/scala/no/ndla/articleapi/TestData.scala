@@ -12,6 +12,7 @@ import no.ndla.articleapi.integration._
 import no.ndla.articleapi.model.domain._
 import no.ndla.articleapi.ArticleApiProperties.resourceHtmlEmbedTag
 import no.ndla.articleapi.model.api
+import no.ndla.articleapi.model.api.License
 import org.joda.time.{DateTime, DateTimeZone}
 
 object TestData {
@@ -311,7 +312,7 @@ object TestData {
     Some(1),
     Seq(ConceptTitle("Tittel for begrep", "nb")),
     Seq(ConceptContent("Innhold for begrep", "nb")),
-    Seq(),
+    Some(Copyright("publicdomain", "", Seq())),
     DateTime.now().minusDays(4).toDate,
     DateTime.now().minusDays(2).toDate
   )
@@ -320,7 +321,7 @@ object TestData {
     1,
     api.ConceptTitle("Tittel for begrep", "nb"),
     api.ConceptContent("Innhold for begrep", "nb"),
-    Seq(),
+    Some(api.Copyright(api.License("publicdomain", None, None), "", Seq())),
     DateTime.now().minusDays(4).toDate,
     DateTime.now().minusDays(2).toDate,
     Set("nb")
