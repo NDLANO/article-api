@@ -16,6 +16,7 @@ import io.searchbox.params.Parameters
 import no.ndla.articleapi.ArticleApiProperties
 import no.ndla.articleapi.integration.ElasticClient
 import no.ndla.articleapi.model.api
+import no.ndla.articleapi.model.api.ResultWindowTooLargeException
 import no.ndla.articleapi.model.domain._
 import no.ndla.network.ApplicationUrl
 import org.apache.lucene.search.join.ScoreMode
@@ -23,8 +24,8 @@ import org.elasticsearch.ElasticsearchException
 import org.elasticsearch.index.IndexNotFoundException
 import org.elasticsearch.index.query._
 import org.elasticsearch.search.builder.SearchSourceBuilder
-import scala.concurrent.ExecutionContext.Implicits.global
 
+import scala.concurrent.ExecutionContext.Implicits.global
 import scala.collection.JavaConverters._
 import scala.concurrent.Future
 import scala.util.{Failure, Success}
@@ -77,6 +78,7 @@ trait ArticleSearchService {
     }
 
     def executeSearch(withIdIn: List[Long], language: String, license: Option[String], sort: Sort.Value, page: Int, pageSize: Int, queryBuilder: BoolQueryBuilder): SearchResult = {
+
       val (filteredSearch, searchLanguage) = {
         val licenseFilteredSearch = license match {
           case None => queryBuilder.filter(noCopyright)
@@ -101,6 +103,12 @@ trait ArticleSearchService {
         .addIndex(searchIndex)
         .setParameter(Parameters.SIZE, numResults)
         .setParameter("from", startAt)
+
+      val requestedResultWindow = pageSize * page
+      if (requestedResultWindow > ArticleApiProperties.ElasticSearchIndexMaxResultWindow) {
+        logger.info(s"Max supported results are ${ArticleApiProperties.ElasticSearchIndexMaxResultWindow}, user requested ${requestedResultWindow}")
+        throw new ResultWindowTooLargeException()
+      }
 
       jestClient.execute(request.build()) match {
         case Success(response) => SearchResult(response.getTotal.toLong, page, numResults, searchLanguage, response)

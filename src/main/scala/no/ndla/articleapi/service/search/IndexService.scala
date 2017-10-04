@@ -121,7 +121,10 @@ trait IndexService {
       if (indexExists(indexName)) {
         Success(indexName)
       } else {
-        val createIndexResponse = jestClient.execute(new CreateIndex.Builder(indexName).build())
+        val createIndexResponse = jestClient.execute(
+          new CreateIndex.Builder(indexName)
+            .settings(s"""{"index":{"max_result_window":${ArticleApiProperties.ElasticSearchIndexMaxResultWindow}}}""")
+            .build())
         createIndexResponse.map(_ => createMapping(indexName)).map(_ => indexName)
       }
     }
