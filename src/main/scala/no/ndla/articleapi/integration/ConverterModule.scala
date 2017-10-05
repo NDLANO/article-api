@@ -59,6 +59,7 @@ case class LanguageContent(nid: String,
                            language: String,
                            visualElement: Option[String],
                            nodeType: String,
+                           contentType: Option[String],
                            title: Option[String],
                            requiredLibraries: Set[RequiredLibrary] = Set[RequiredLibrary](),
                            ingress: Option[LanguageIngress] = None) {
