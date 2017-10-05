@@ -49,6 +49,7 @@ trait HTMLCleaner {
         ResourceType.Audio,
         ResourceType.Brightcove,
         ResourceType.ExternalContent,
+        ResourceType.KhanAcademy,
         ResourceType.Image
       )
 
