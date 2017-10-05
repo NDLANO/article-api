@@ -126,7 +126,7 @@ class LenkeConverterTest extends UnitSuite with TestEnvironment {
 
   test("That LenkeConverter returns a commoncraft embed for commoncraft resources") {
     val CcraftUrl = "http://www.commoncraft.com/123123123"
-    val CcraftSrc = "http://www.commoncraft.com/embed/db233ba&autoplay=0"
+    val CcraftSrc = "https://www.commoncraft.com/embed/db233ba&autoplay=0"
     val CcraftEmbedCode = s"""<iframe id="cc-embed" frameborder="0" width="620" height="451" src="$CcraftSrc" scrolling="false"></iframe>"""
 
     val insertion = "inline"
