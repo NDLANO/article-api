@@ -129,7 +129,8 @@
         "data-height"
       ],
       "validSrcDomains": [
-        "nb.khanacademy.org"
+        ".*.khanacademy.org",
+        "khanacademy.org"
       ]
     },
     "footnote": {
