@@ -14,6 +14,8 @@ import no.ndla.articleapi.ArticleApiProperties.resourceHtmlEmbedTag
 import no.ndla.articleapi.integration.ConverterModule.stringToJsoupDocument
 import no.ndla.articleapi.model.domain.{Article, HtmlFaultRapport}
 import no.ndla.articleapi.repository.ArticleRepository
+import no.ndla.articleapi.service.converters.Attributes
+import no.ndla.articleapi.service.converters.ResourceType._
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Element
 
@@ -58,7 +60,8 @@ trait ArticleContentInformation {
       articleRepository.allWithExternalSubjectId(subjectId).flatMap(articleInfo => {
         val externalId = articleRepository.getExternalIdFromId(articleInfo.id.get).getOrElse("unknown ID")
         val urls = articleInfo.content.flatMap(content => {
-          val elements = Jsoup.parseBodyFragment(content.content).select(s"""$resourceHtmlEmbedTag[data-resource~=(external|nrk)]""")
+          val resourceTypes = Seq(ExternalContent, Kahoot, Prezi, Commoncraft, NdlaFilmIundervisning, NRKContent).mkString("|")
+          val elements = Jsoup.parseBodyFragment(content.content).select(s"""$resourceHtmlEmbedTag[${Attributes.DataResource}~=($resourceTypes)]""")
           elements.asScala.toList.map(el => el.attr("data-url"))
         })
 
