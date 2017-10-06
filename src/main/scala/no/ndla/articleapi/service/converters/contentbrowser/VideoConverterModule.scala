@@ -12,22 +12,41 @@ package no.ndla.articleapi.service.converters.contentbrowser
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.articleapi.ArticleApiProperties.{NDLABrightcoveAccountId, NDLABrightcovePlayerId, NDLABrightcoveVideoScriptUrl}
 import no.ndla.articleapi.model.domain.{ImportStatus, RequiredLibrary}
+import no.ndla.articleapi.service.ExtractConvertStoreContent
 import no.ndla.articleapi.service.converters.HtmlTagGenerator
-import scala.util.{Success, Try}
+
+import scala.util.{Failure, Success, Try}
 
 trait VideoConverterModule {
-  this: HtmlTagGenerator =>
+  this: HtmlTagGenerator with ExtractConvertStoreContent =>
 
   object VideoConverter extends ContentBrowserConverterModule with LazyLogging {
     override val typeName: String = "video"
 
     override def convert(content: ContentBrowser, visitedNodes: Seq[String]): Try[(String, Seq[RequiredLibrary], ImportStatus)] = {
-      val (embedVideo, requiredLibrary) = toVideo(content.get("link_text"), content.get("nid"))
+      val (linkText, nodeId) = (content.get("link_text"), content.get("nid"))
+
+      val (embedVideo, requiredLibraries) = content.get("insertion") match {
+        case "link" =>
+          toVideoLink(linkText, nodeId) match {
+            case Success(link) => (link, Seq.empty)
+            case Failure(e) => return Failure(e)
+          }
+        case _ => toInlineVideo(linkText, nodeId)
+      }
+
       logger.info(s"Added video with nid ${content.get("nid")}")
-      Success(embedVideo, List(requiredLibrary), ImportStatus(Seq(), visitedNodes))
+      Success(embedVideo, requiredLibraries, ImportStatus(Seq(), visitedNodes))
     }
 
-    def toVideo(linkText: String, nodeId: String): (String, RequiredLibrary) = {
+    private def toVideoLink(linkText: String, nodeId: String): Try[String] = {
+      extractConvertStoreContent.processNode(nodeId) match {
+        case Success((content, _)) => Success(HtmlTagGenerator.buildLinkEmbedContent(s"${content.id.get}", linkText))
+        case Failure(ex) => Failure(ex)
+      }
+    }
+
+    def toInlineVideo(linkText: String, nodeId: String): (String, Seq[RequiredLibrary]) = {
       val requiredLibrary = RequiredLibrary("text/javascript", "Brightcove video", NDLABrightcoveVideoScriptUrl)
       val embedVideoMeta = HtmlTagGenerator.buildBrightCoveEmbedContent(
         caption=linkText,
@@ -35,7 +54,7 @@ trait VideoConverterModule {
         account=s"$NDLABrightcoveAccountId",
         player=s"$NDLABrightcovePlayerId")
 
-      (embedVideoMeta, requiredLibrary)
+      (embedVideoMeta, Seq(requiredLibrary))
     }
 
   }

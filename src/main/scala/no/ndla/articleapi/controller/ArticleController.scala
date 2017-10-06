@@ -107,7 +107,7 @@ trait ArticleController {
         responseMessages(response400, response403, response404, response500))
 
     val getTags =
-      (apiOperation[List[ArticleTag]]("getTags")
+      (apiOperation[ArticleTag]("getTags")
         summary "Retrieves a list of all previously used tags in articles"
         notes "Retrieves a list of all previously used tags in articles"
         parameters(
