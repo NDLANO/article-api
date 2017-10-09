@@ -25,6 +25,9 @@ trait ReadService {
   val readService: ReadService
 
   class ReadService {
+    def getInternalIdByExternalId(externalId: Long): Option[api.ArticleIdV2] =
+      articleRepository.getIdFromExternalId(externalId.toString()).map(api.ArticleIdV2)
+
     def articleWithId(id: Long): Option[api.Article] =
       articleRepository.withId(id)
         .map(addUrlsOnEmbedResources)

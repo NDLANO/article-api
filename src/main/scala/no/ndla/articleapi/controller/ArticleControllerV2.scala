@@ -88,6 +88,17 @@ trait ArticleControllerV2 {
         authorizations "oauth2"
         responseMessages(response404, response500))
 
+    val getInternalIdByExternalId =
+      (apiOperation[ArticleIdV2]("getInternalIdByExternalId")
+        summary "Get internal id of article for a specified ndla_node_id"
+        notes "Get internal id of article for a specified ndla_node_id"
+        parameters(
+          headerParam[Option[String]]("X-Correlation-ID").description("User supplied correlation-id. May be omitted."),
+          pathParam[Long]("ndla_node_id").description("Id of old NDLA node")
+        )
+        authorizations "oauth2"
+        responseMessages(response404, response500))
+
     val getLicenses =
       (apiOperation[List[License]]("getLicenses")
         summary "Show all valid licenses"
@@ -217,6 +228,14 @@ trait ArticleControllerV2 {
       readService.withIdV2(articleId, language) match {
         case Some(article) => article
         case None => NotFound(body = Error(Error.NOT_FOUND, s"No article with id $articleId and language $language found"))
+      }
+    }
+
+    get("/external_id/:ndla_node_id", operation(getInternalIdByExternalId)) {
+      val externalId = long("ndla_node_id")
+      readService.getInternalIdByExternalId(externalId) match {
+        case Some(id) => id
+        case None => NotFound(body = Error(Error.NOT_FOUND, s"No article with id $externalId"))
       }
     }
 
