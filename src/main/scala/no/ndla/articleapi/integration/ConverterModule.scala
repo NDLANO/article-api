@@ -60,6 +60,7 @@ case class LanguageContent(nid: String,
                            visualElement: Option[String],
                            nodeType: String,
                            title: Option[String],
+                           relatedContent: Seq[MigrationRelatedContent],
                            requiredLibraries: Set[RequiredLibrary] = Set[RequiredLibrary](),
                            ingress: Option[LanguageIngress] = None) {
   def isMainNode = nid == tnid || tnid == "0"

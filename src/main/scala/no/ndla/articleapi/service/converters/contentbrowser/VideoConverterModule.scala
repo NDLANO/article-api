@@ -41,7 +41,7 @@ trait VideoConverterModule {
 
     private def toVideoLink(linkText: String, nodeId: String): Try[String] = {
       extractConvertStoreContent.processNode(nodeId, ImportStatus.empty) match {
-        case Success((content, _)) => Success(HtmlTagGenerator.buildLinkEmbedContent(s"${content.id.get}", linkText))
+        case Success((content, _)) => Success(HtmlTagGenerator.buildContentLinkEmbedContent(s"${content.id.get}", linkText))
         case Failure(ex) => Failure(ex)
       }
     }
