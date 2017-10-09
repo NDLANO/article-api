@@ -89,7 +89,7 @@ trait ArticleControllerV2 {
         responseMessages(response404, response500))
 
     val getInternalIdByExternalId =
-      (apiOperation[List[ArticleIdV2]]("getInternalIdByExternalId")
+      (apiOperation[ArticleIdV2]("getInternalIdByExternalId")
         summary "Get internal id of article for a specified ndla_node_id"
         notes "Get internal id of article for a specified ndla_node_id"
         parameters(
