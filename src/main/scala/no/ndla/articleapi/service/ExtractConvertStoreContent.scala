@@ -47,7 +47,7 @@ trait ExtractConvertStoreContent {
 
       val importedArticle = for {
         (node, mainNodeId) <- extract(externalId)
-        (convertedContent, updatedImportStatus) <- convert(node, importStatus)
+        (convertedContent, updatedImportStatus) <- converterService.toDomainArticle(node, importStatus)
         _ <- importValidator.validate(convertedContent, allowUnknownLanguage=true)
         content <- store(convertedContent, mainNodeId, forceUpdateArticles)
         _ <- indexContent(content)
@@ -83,9 +83,6 @@ trait ExtractConvertStoreContent {
             Failure(ImportException(s"Tried to import node of unsupported type '${node.nodeType.toLowerCase}/${node.contentType.toLowerCase()}'"))
       }
     }
-
-    private def convert(nodeToConvert: NodeToConvert, importStatus: ImportStatus): Try[(Content, ImportStatus)] =
-      converterService.toDomainArticle(nodeToConvert, importStatus)
 
     private def store(content: Content, mainNodeId: String, forceUpdateArticle: Boolean): Try[Content] = {
       content match {

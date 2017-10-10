@@ -49,7 +49,7 @@ class TableConverterTest extends UnitSuite {
          |</table>""".stripMargin.replace("\n", "")
 
     val initialContent = TestData.sampleContent.copy(content=tableWithoutThead)
-    val Success((result, _)) = TableConverter.convert(initialContent, ImportStatus(Seq(), Seq()))
+    val Success((result, _)) = TableConverter.convert(initialContent, ImportStatus.empty)
     result.content should equal(expectedTable)
   }
 
@@ -86,7 +86,7 @@ class TableConverterTest extends UnitSuite {
          |</table>""".stripMargin.replace("\n", "")
 
     val initialContent = TestData.sampleContent.copy(content=tableWithoutThead)
-    val Success((result, _)) = TableConverter.convert(initialContent, ImportStatus(Seq(), Seq()))
+    val Success((result, _)) = TableConverter.convert(initialContent, ImportStatus.empty)
     result.content should equal(expectedTable)
   }
 
@@ -119,7 +119,7 @@ class TableConverterTest extends UnitSuite {
          |</table>""".stripMargin.replace("\n", "")
 
     val initialContent = TestData.sampleContent.copy(content=tableWithoutThead)
-    val Success((result, _)) = TableConverter.convert(initialContent, ImportStatus(Seq(), Seq()))
+    val Success((result, _)) = TableConverter.convert(initialContent, ImportStatus.empty)
     result.content should equal(expectedTable)
   }
 
@@ -154,7 +154,7 @@ class TableConverterTest extends UnitSuite {
          |</table>""".stripMargin.replace("\n", "")
 
     val initialContent = TestData.sampleContent.copy(content=tableWithoutTheadWithTbody)
-    val Success((result, _)) = TableConverter.convert(initialContent, ImportStatus(Seq(), Seq()))
+    val Success((result, _)) = TableConverter.convert(initialContent, ImportStatus.empty)
     result.content should equal(expectedTable)
   }
 
@@ -180,7 +180,7 @@ class TableConverterTest extends UnitSuite {
           |</table>""".stripMargin.replace("\n", "")
 
     val initialContent = TestData.sampleContent.copy(content=table2x3)
-    val Success((result, _)) = TableConverter.convert(initialContent, ImportStatus(Seq(), Seq()))
+    val Success((result, _)) = TableConverter.convert(initialContent, ImportStatus.empty)
 
     result.content should equal(table2x3ExpectedResult)
   }
@@ -217,7 +217,7 @@ class TableConverterTest extends UnitSuite {
           |</table>""".stripMargin.replace("\n", "")
 
     val initialContent = TestData.sampleContent.copy(content=table2x3)
-    val Success((result, _)) = TableConverter.convert(initialContent, ImportStatus(Seq(), Seq()))
+    val Success((result, _)) = TableConverter.convert(initialContent, ImportStatus.empty)
 
     result.content should equal(table2x3ExpectedResult)
   }
@@ -254,7 +254,7 @@ class TableConverterTest extends UnitSuite {
           |</table>""".stripMargin.replace("\n", "")
 
     val initialContent = TestData.sampleContent.copy(content=table2x3)
-    val Success((result, _)) = TableConverter.convert(initialContent, ImportStatus(Seq(), Seq()))
+    val Success((result, _)) = TableConverter.convert(initialContent, ImportStatus.empty)
 
     result.content should equal(table2x3ExpectedResult)
   }

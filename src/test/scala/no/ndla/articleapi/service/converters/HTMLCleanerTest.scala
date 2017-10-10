@@ -10,7 +10,7 @@ import scala.util.Success
 
 class HTMLCleanerTest extends UnitSuite with TestEnvironment {
   val nodeId = "1234"
-  val defaultImportStatus = ImportStatus(Seq(), Seq())
+  val defaultImportStatus = ImportStatus.empty
 
   val defaultLanguageIngress = LanguageIngress("Jeg er en ingress", None)
   val defaultLanguageIngressWithHtml = LanguageIngress("<p>Jeg er en ingress</p>", None)
