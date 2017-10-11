@@ -29,7 +29,7 @@ object TableConverter extends ConverterModule {
 
   def wrapHeaderRowInThead(el: Element) = {
     for (table <- el.select("table").asScala) {
-      if (table.select("thead").asScala.headOption == None) {
+      if (table.select("thead").asScala.isEmpty) {
         val header_row = table.select("tr>th").parents.first()
         table.prepend(header_row.outerHtml())
         header_row.remove()
