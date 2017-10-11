@@ -34,10 +34,7 @@ object TableConverter extends ConverterModule {
         table.prepend(header_row.outerHtml())
         header_row.remove()
         table.select("tbody").first.tagName("thead")
-        table.select("tbody").asScala.foreach(tb => tb.childNodeSize() match {
-          case 0 => tb.remove()
-          case _ =>
-        })
+        table.select("tbody").asScala.foreach(tb => if(tb.childNodeSize() == 0) tb.remove())
       }
     }
   }
