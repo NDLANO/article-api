@@ -30,10 +30,13 @@ object TableConverter extends ConverterModule {
   def wrapHeaderRowInThead(el: Element) = {
     for (table <- el.select("table").asScala) {
       if (table.select("thead").asScala.isEmpty) {
-        val header_row = table.select("tr>th").parents.first()
-        table.prepend(header_row.outerHtml())
-        header_row.remove()
-        table.select("tbody").first.tagName("thead")
+        table.select("tr>th").parents.first() match {
+          case row: Element =>
+            table.prepend(row.outerHtml())
+            row.remove()
+            table.select("tbody").first.tagName("thead")
+          case _ =>
+        }
         table.select("tbody").asScala.foreach(tb => if(tb.childNodeSize() == 0) tb.remove())
       }
     }
