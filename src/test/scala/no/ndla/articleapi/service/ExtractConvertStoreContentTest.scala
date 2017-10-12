@@ -40,6 +40,7 @@ class ExtractConvertStoreContentTest extends UnitSuite with TestEnvironment {
     when(extractService.getNodeData(nodeId)).thenReturn(sampleNode)
     when(extractService.getNodeType(nodeId2)).thenReturn(Some("fagstoff"))
     when(extractService.getNodeGeneralContent(nodeId2)).thenReturn(Seq(NodeGeneralContent(nodeId2, nodeId2, "title", "content", "en")))
+    when(articleRepository.getIdFromExternalId(nodeId)).thenReturn(None)
     when(articleRepository.getIdFromExternalId(nodeId2)).thenReturn(None)
     when(migrationApiClient.getSubjectForNode(nodeId)).thenReturn(Try(Seq(MigrationSubjectMeta("52", "helsearbeider vg2"))))
 
@@ -141,6 +142,7 @@ class ExtractConvertStoreContentTest extends UnitSuite with TestEnvironment {
     when(extractConvertStoreContent.processNode(nodeId2, status.addVisitedNode(nodeId))).thenReturn(Try((sampleArticle, ImportStatus(Seq(), Set(nodeId, nodeId2)))))
     when(articleRepository.exists(nodeId)).thenReturn(true)
     when(articleRepository.updateWithExternalId(any[Article], any[String])(any[DBSession])).thenReturn(Success(sampleArticle))
+    when(articleRepository.getIdFromExternalId(nodeId)).thenReturn(Some(1: Long))
 
     val result = eCSService.processNode(nodeId, status)
     result should equal(Success(sampleArticle, ImportStatus(List(s"Successfully imported node $nodeId: 1"), Set(nodeId, nodeId2), sampleArticle.id)))

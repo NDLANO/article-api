@@ -165,7 +165,7 @@ trait HtmlTagGenerator {
     def buildRelatedContent(articleIds: Set[Long]): String = {
       val attrs = Map(
         Attributes.DataResource -> ResourceType.RelatedContent.toString,
-        Attributes.ArticleIds -> articleIds.map(_.toString).mkString(",")
+        Attributes.DataArticleIds -> articleIds.map(_.toString).mkString(",")
       )
       buildEmbedContent(attrs)
     }
@@ -225,7 +225,7 @@ object Attributes extends Enumeration {
   val DataEdition = Value("data-edition")
   val DataPublisher = Value("data-publisher")
   val DataAuthors = Value("data-authors")
-  val ArticleIds = Value("data-article-ids")
+  val DataArticleIds = Value("data-article-ids")
 
   val DataUpperLeftY =  Value("data-upper-left-y")
   val DataUpperLeftX = Value("data-upper-left-x")

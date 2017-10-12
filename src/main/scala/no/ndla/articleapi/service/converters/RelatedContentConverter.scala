@@ -9,7 +9,7 @@ package no.ndla.articleapi.service.converters
 
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.articleapi.integration.ConverterModule.{jsoupDocumentToString, stringToJsoupDocument}
-import no.ndla.articleapi.integration.{ConverterModule, LanguageContent}
+import no.ndla.articleapi.integration.{ConverterModule, LanguageContent, MigrationApiClient}
 import no.ndla.articleapi.model.api.ImportException
 import no.ndla.articleapi.model.domain.{Article, Concept, ImportStatus}
 import no.ndla.articleapi.service.ExtractConvertStoreContent
@@ -17,17 +17,22 @@ import no.ndla.articleapi.service.ExtractConvertStoreContent
 import scala.util.{Failure, Success, Try}
 
 trait RelatedContentConverter {
-  this: ExtractConvertStoreContent with HtmlTagGenerator with LazyLogging =>
+  this: ExtractConvertStoreContent with HtmlTagGenerator with MigrationApiClient with LazyLogging =>
 
   object RelatedContentConverter extends ConverterModule {
     override def convert(content: LanguageContent, importStatus: ImportStatus): Try[(LanguageContent, ImportStatus)] = {
-      val element = stringToJsoupDocument(content.content)
+      val nids = content.relatedContent.map(_.nid).toSet
 
-      importRelatedContent(content.relatedContent.map(_.nid).toSet) match {
-        case Success(relatedEmbed) =>
-          element.append(s"<section>$relatedEmbed</section>")
-          Success(content.copy(content = jsoupDocumentToString(element)), importStatus)
-        case Failure(ex) => Failure(ex)
+      if (nids.isEmpty) {
+        Success(content, importStatus)
+      } else {
+        importRelatedContent(nids) match {
+          case Success(relatedEmbed) =>
+            val element = stringToJsoupDocument(content.content)
+            element.append(s"<section>$relatedEmbed</section>")
+            Success(content.copy(content = jsoupDocumentToString(element)), importStatus)
+          case Failure(ex) => Failure(ex)
+        }
       }
 
     }

@@ -13,10 +13,11 @@ import com.typesafe.scalalogging.LazyLogging
 import no.ndla.articleapi.integration.MigrationApiClient
 import no.ndla.articleapi.model.api.{ImportException, NotFoundException}
 import no.ndla.articleapi.model.domain._
-import no.ndla.articleapi.repository.{ArticleRepository, ConceptRepository}
+import no.ndla.articleapi.repository.{ArticleRepository, ConceptRepository, Repository}
 import no.ndla.articleapi.service.search.{ArticleIndexService, ConceptIndexService}
-import no.ndla.articleapi.ArticleApiProperties.supportedContentTypes
+import no.ndla.articleapi.ArticleApiProperties.{nodeTypeBegrep, supportedContentTypes}
 import no.ndla.articleapi.validation.ContentValidator
+
 import scala.language.postfixOps
 import scala.util.{Failure, Success, Try}
 
@@ -45,8 +46,16 @@ trait ExtractConvertStoreContent {
         }
       }
 
+      val (node, mainNodeId) = extract(externalId) match {
+        case Success((n, mnid)) => (n, mnid)
+        case Failure(f) => return Failure(f)
+      }
+
+      // Generate an ID for the content before converting the node.
+      // This ensures that cyclic dependencies between articles does not cause an infinite recursive import job
+      generateNewIdIfFirstTimeImported(mainNodeId, node.nodeType)
+
       val importedArticle = for {
-        (node, mainNodeId) <- extract(externalId)
         (convertedContent, updatedImportStatus) <- converterService.toDomainArticle(node, importStatus)
         _ <- importValidator.validate(convertedContent, allowUnknownLanguage=true)
         content <- store(convertedContent, mainNodeId, forceUpdateArticles)
@@ -54,10 +63,17 @@ trait ExtractConvertStoreContent {
       } yield (content, updatedImportStatus.addMessage(s"Successfully imported node $externalId: ${content.id.get}").setArticleId(content.id.get))
 
       if (importedArticle.isFailure) {
-        deleteArticleByExternalId(externalId)
+        deleteContent(externalId, node.nodeType)
       }
 
       importedArticle
+    }
+
+    private def deleteContent(externalId: String, nodeType: String): Unit = {
+      nodeType match {
+        case `nodeTypeBegrep` => deleteConceptByExternalId(externalId)
+        case _ => deleteArticleByExternalId(externalId)
+      }
     }
 
     private def deleteArticleByExternalId(externalId: String) = {
@@ -65,6 +81,14 @@ trait ExtractConvertStoreContent {
         logger.info(s"Deleting previously imported article (id=$articleId, external id=$externalId) from database because the article could not be re-imported")
         articleRepository.delete(articleId)
         articleIndexService.deleteDocument(articleId)
+      })
+    }
+
+    private def deleteConceptByExternalId(externalId: String) = {
+      conceptRepository.getIdFromExternalId(externalId).map(conceptId => {
+        logger.info(s"Deleting previously imported concept(id=$conceptId, external id=$externalId) from database because the concept could not be re-imported")
+        conceptRepository.delete(conceptId)
+        conceptIndexService.deleteDocument(conceptId)
       })
     }
 
@@ -92,11 +116,11 @@ trait ExtractConvertStoreContent {
     }
 
     private def storeArticle(article: Article, mainNodeNid: String, forceUpdateArticle: Boolean): Try[Content] = {
-      val subjectIds = getSubjectIds(mainNodeNid)
       articleRepository.exists(mainNodeNid) match {
         case true if !forceUpdateArticle => articleRepository.updateWithExternalId(article, mainNodeNid)
         case true if forceUpdateArticle => articleRepository.updateWithExternalIdOverrideManualChanges(article, mainNodeNid)
-        case false => Try(articleRepository.insertWithExternalIds(article, mainNodeNid, subjectIds))
+        case false =>
+          Try(articleRepository.insertWithExternalIds(article, mainNodeNid, getSubjectIds(mainNodeNid)))
       }
     }
 
@@ -119,6 +143,27 @@ trait ExtractConvertStoreContent {
         case Failure(ex) => Seq()
         case Success(subjectMetas) => subjectMetas.map(_.nid)
       }
+
+    private def generateNewIdIfFirstTimeImported(nodeId: String, nodeType: String): Option[Long] = {
+      nodeType match {
+        case `nodeTypeBegrep` => generateNewConceptIdIfExternalIdDoesNotExist(nodeId)
+        case _ => generateNewArticleIdIfExternalIdDoesNotExist(nodeId)
+      }
+    }
+
+    private def generateNewArticleIdIfExternalIdDoesNotExist(nodeId: String): Option[Long] = {
+      articleRepository.getIdFromExternalId(nodeId) match {
+        case None => Try(articleRepository.insertWithoutContent(nodeId, getSubjectIds(nodeId))).toOption
+        case Some(_) => None
+      }
+    }
+
+    private def generateNewConceptIdIfExternalIdDoesNotExist(externalId: String): Option[Long] = {
+      conceptRepository.getIdFromExternalId(externalId) match {
+        case None => Try(conceptRepository.insertWithoutContent(externalId)).toOption
+        case Some(_) => None
+      }
+    }
 
   }
 }
