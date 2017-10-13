@@ -605,6 +605,17 @@ class HTMLCleanerTest extends UnitSuite with TestEnvironment {
     result.content should equal(expectedContent)
   }
 
+  test("Nested divs with no siblings in asides should be unwrapped") {
+    val originalContent =
+      """<section><embed data-resource="image" /></section>""" +
+        "<section><aside><div><div><div><h3>Tallene</h3></div></div></div></aside><p><strong>Dette er en oversikt over tall</strong></p></section>"
+    val expectedContent = """<section><embed data-resource="image"><aside><h3>Tallene</h3></aside></section>"""
+
+    val Success((result, _)) = htmlCleaner.convert(TestData.sampleContent.copy(content = originalContent), defaultImportStatus)
+
+    result.content should equal(expectedContent)
+  }
+
   test("details should be moved out of div boxes") {
     val originalContent = """<section><div><details><summary>nice</summary>nice</details></div></section>"""
     val expectedContent = """<section><details><summary>nice</summary>nice</details></section>"""
