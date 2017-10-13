@@ -84,7 +84,7 @@ object ArticleType extends Enumeration {
 case class Concept(id: Option[Long],
                    title: Seq[ConceptTitle],
                    content: Seq[ConceptContent],
-                   authors: Seq[Author],
+                   copyright: Option[Copyright],
                    created: Date,
                    updated: Date) extends Content {
   lazy val supportedLanguages: Set[String] = (content union title).map(_.language).toSet
@@ -102,7 +102,7 @@ object Concept extends SQLSyntaxSupport[Concept] {
       Some(rs.long(lp.c("id"))),
       meta.title,
       meta.content,
-      meta.authors,
+      meta.copyright,
       meta.created,
       meta.updated
     )

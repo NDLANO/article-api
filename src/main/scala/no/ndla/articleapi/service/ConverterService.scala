@@ -177,11 +177,13 @@ trait ConverterService {
     }
 
     private def toDomainConcept(convertedNode: NodeToConvert): Concept = {
+      val license = Option(convertedNode.license).filter(_.nonEmpty)
+
       Concept(
         None,
         convertedNode.titles.map(title => ConceptTitle(title.title, title.language)),
         convertedNode.contents.map(content => ConceptContent(content.content, content.language)),
-        convertedNode.authors,
+        license.map(l => toDomainCopyright(l, convertedNode.authors)),
         convertedNode.created,
         convertedNode.updated
       )
@@ -468,7 +470,7 @@ trait ConverterService {
         concept.id.get,
         title,
         content,
-        concept.authors.map(toApiAuthor),
+        concept.copyright.map(toApiCopyright),
         concept.created,
         concept.updated,
         concept.supportedLanguages
