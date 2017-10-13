@@ -593,4 +593,28 @@ class HTMLCleanerTest extends UnitSuite with TestEnvironment {
     result.content should equal(expectedContent)
     result.ingress should equal(Some(LanguageIngress(expectedIngress, None)))
   }
+
+  test("details should be moved out of div boxes") {
+    val originalContent = """<section><div><details><summary>nice</summary>nice</details></div></section>"""
+    val expectedContent = """<section><details><summary>nice</summary>nice</details></section>"""
+
+    val Success((result, _)) = htmlCleaner.convert(TestData.sampleContent.copy(content=originalContent), defaultImportStatus)
+    result.content should equal(expectedContent)
+  }
+
+  test("details should be moved out of nested div boxes") {
+    val originalContent = """<section><div><div class="yolo"><div><div><details><summary>nice</summary>nice</details></div></div></div></div></section>"""
+    val expectedContent = """<section><details><summary>nice</summary>nice</details></section>"""
+
+    val Success((result, _)) = htmlCleaner.convert(TestData.sampleContent.copy(content=originalContent), defaultImportStatus)
+    result.content should equal(expectedContent)
+  }
+
+  test("details should not be moved out of div boxes if it has siblings") {
+    val originalContent = """<section><div><div><details><summary>nice</summary>nice</details></div><p>here is a paragraph</p></div></section>"""
+    val expectedContent = """<section><div><details><summary>nice</summary>nice</details><p>here is a paragraph</p></div></section>"""
+
+    val Success((result, _)) = htmlCleaner.convert(TestData.sampleContent.copy(content=originalContent), defaultImportStatus)
+    result.content should equal(expectedContent)
+  }
 }
