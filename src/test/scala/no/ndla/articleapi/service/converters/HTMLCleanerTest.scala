@@ -593,4 +593,14 @@ class HTMLCleanerTest extends UnitSuite with TestEnvironment {
     result.content should equal(expectedContent)
     result.ingress should equal(Some(LanguageIngress(expectedIngress, None)))
   }
+
+  test("Divs with no siblings in asides should be unwrapped") {
+    val originalContent = """<section><embed data-resource="image" /></section>""" +
+      "<section><aside><div><h3>Tallene</h3></div></aside><p><strong>Dette er en oversikt over tall</strong></p></section>"
+    val expectedContent = """<section><embed data-resource="image"><aside><h3>Tallene</h3></aside></section>"""
+
+    val Success((result, _))  = htmlCleaner.convert(TestData.sampleContent.copy(content=originalContent), defaultImportStatus)
+
+    result.content should equal(expectedContent)
+  }
 }
