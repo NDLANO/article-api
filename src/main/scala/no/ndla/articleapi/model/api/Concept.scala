@@ -16,7 +16,7 @@ import java.util.Date
 case class Concept(@(ApiModelProperty@field)(description = "The unique id of the concept") id: Long,
                    @(ApiModelProperty@field)(description = "Available titles for the concept") title: ConceptTitle,
                    @(ApiModelProperty@field)(description = "The content of the concept") content: ConceptContent,
-                   @(ApiModelProperty@field)(description = "The author(s) of this concept") authors: Seq[Author],
+                   @(ApiModelProperty@field)(description = "Describes the copyright information for the concept") copyright: Option[Copyright],
                    @(ApiModelProperty@field)(description = "When the concept was created") created: Date,
                    @(ApiModelProperty@field)(description = "When the concept was last updated") updated: Date,
                    @(ApiModelProperty@field)(description = "All available languages of the current concept") supportedLanguages: Set[String]
