@@ -161,7 +161,7 @@ case class MigrationBiblioAuthor(name: String, lastname: String, firstname: Stri
 }
 
 case class MigrationContentFileMeta(nid: String, tnid: String, title: String, fileName: String, url: String, mimeType: String, fileSize: String) {
-  def asContentFilMeta: ContentFilMeta = ContentFilMeta(nid, tnid, title, fileName, new URL(url), mimeType, fileSize)
+  def asContentFilMeta: ContentFilMeta = ContentFilMeta(nid, tnid, title, fileName, new URL(url.withScheme("https")), mimeType, fileSize)
 }
 
 case class MigrationEmbedMeta(url: Option[String], embedCode: Option[String])

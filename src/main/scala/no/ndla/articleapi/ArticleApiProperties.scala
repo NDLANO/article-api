@@ -22,7 +22,7 @@ object ArticleApiProperties extends LazyLogging {
   val RoleWithWriteAccess = "articles:write"
   val SecretsFile = "article-api.secrets"
 
-  val ApplicationPort = 80
+  val ApplicationPort = propOrElse("APPLICATION_PORT", "80").toInt
   val ContactEmail = "christergundersen@ndla.no"
   val Environment = propOrElse("NDLA_ENVIRONMENT", "local")
 

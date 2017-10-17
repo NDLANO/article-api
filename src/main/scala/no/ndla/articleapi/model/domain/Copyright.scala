@@ -8,8 +8,4 @@
 
 package no.ndla.articleapi.model.domain
 
-import org.scalatra.swagger.annotations.{ApiModel, ApiModelProperty}
-
-import scala.annotation.meta.field
-
 case class Copyright(license: String, origin: String, authors: Seq[Author])

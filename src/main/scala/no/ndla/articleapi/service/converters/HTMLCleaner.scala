@@ -10,6 +10,7 @@ import org.json4s._
 import org.json4s.native.JsonMethods.parse
 import org.jsoup.nodes.{Element, Node, TextNode}
 
+import scala.annotation.tailrec
 import scala.collection.JavaConverters._
 import scala.io.Source
 import scala.util.{Success, Try}
@@ -38,10 +39,24 @@ trait HTMLCleaner {
       val ingress = getIngress(content, element)
 
       moveMisplacedAsideTags(element)
+      unwrapDivsAroundDetailSummaryBox(element)
+
       val finalCleanedDocument = allContentMustBeWrappedInSectionBlocks(element)
 
       Success((content.copy(content=jsoupDocumentToString(finalCleanedDocument), metaDescription=metaDescription, ingress=ingress),
         ImportStatus(importStatus.messages ++ illegalTags ++ illegalAttributes, importStatus.visitedNodes)))
+    }
+
+    private def unwrapDivsAroundDetailSummaryBox(element: Element) {
+      @tailrec
+      def unwrapNestedDivs(detailsElem: Element) {
+        if (detailsElem.parent.tagName == "div" && detailsElem.siblingElements.size == 0) {
+          detailsElem.parent.unwrap()
+          unwrapNestedDivs(detailsElem)
+        }
+      }
+
+      element.select("details").asScala.foreach(unwrapNestedDivs)
     }
 
     private def moveEmbedsOutOfPTags(element: Element) {

@@ -8,8 +8,8 @@
 
 package no.ndla.articleapi.service.converters
 
-import no.ndla.articleapi.integration.{ConverterModule, LanguageContent}
 import no.ndla.articleapi.integration.ConverterModule.{jsoupDocumentToString, stringToJsoupDocument}
+import no.ndla.articleapi.integration.{ConverterModule, LanguageContent}
 import no.ndla.articleapi.model.domain.ImportStatus
 import org.jsoup.nodes.Element
 
@@ -22,8 +22,24 @@ object TableConverter extends ConverterModule {
 
     stripParagraphTag(element)
     convertFirstTrToTh(element)
+    wrapHeaderRowInThead(element)
 
     Success(content.copy(content=jsoupDocumentToString(element)), importStatus)
+  }
+
+  def wrapHeaderRowInThead(el: Element) = {
+    for (table <- el.select("table").asScala) {
+      if (table.select("thead").asScala.isEmpty) {
+        table.select("tr>th").parents.first() match {
+          case row: Element =>
+            table.prepend(row.outerHtml())
+            row.remove()
+            table.select("tbody").first.tagName("thead")
+          case _ =>
+        }
+        table.select("tbody").asScala.foreach(tb => if(tb.childNodeSize() == 0) tb.remove())
+      }
+    }
   }
 
   def stripParagraphTag(el: Element) = {

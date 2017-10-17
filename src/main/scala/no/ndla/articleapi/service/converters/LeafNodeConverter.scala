@@ -27,9 +27,9 @@ trait LeafNodeConverter {
 
       val requiredLibraries = content.nodeType match {
         case `nodeTypeVideo` =>
-          val (html, requiredLibrary) = VideoConverter.toVideo("", content.nid)
+          val (html, requiredLibrary) = VideoConverter.toInlineVideo("", content.nid)
           element.append(s"<section>$html</section>")
-          Set(requiredLibrary) ++ content.requiredLibraries
+          content.requiredLibraries ++ requiredLibrary
         case `nodeTypeH5P` =>
           val (html, requiredLibrary) = H5PConverter.toH5PEmbed(content.nid)
           element.append(s"<section>$html</section>")
