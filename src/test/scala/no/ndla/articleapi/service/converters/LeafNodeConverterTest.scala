@@ -18,8 +18,8 @@ class LeafNodeConverterTest extends UnitSuite with TestEnvironment {
   val nodeId = "1234"
 
   test("Leaf node converter should create an article from a pure video node") {
-    val sampleLanguageContent = TestData.sampleContent.copy(content="", nodeType = "video")
-    val expectedResult = s"""<section><$resourceHtmlEmbedTag data-account="some-account-id" data-caption="" data-player="some-player-id" data-resource="brightcove" data-videoid="ref:${sampleLanguageContent.nid}"></section>"""
+    val sampleLanguageContent = TestData.sampleContent.copy(content="<p>lolol</p>", nodeType = "video")
+    val expectedResult = s"""<section><$resourceHtmlEmbedTag data-account="some-account-id" data-caption="" data-player="some-player-id" data-resource="brightcove" data-videoid="ref:${sampleLanguageContent.nid}"></section>${sampleLanguageContent.content}"""
     val Success((result, _)) = LeafNodeConverter.convert(sampleLanguageContent, ImportStatus(Seq(), Seq()))
 
     result.content should equal (expectedResult)
@@ -28,7 +28,7 @@ class LeafNodeConverterTest extends UnitSuite with TestEnvironment {
 
   test("Leaf node converter should create an article from a pure h5p node") {
     val sampleLanguageContent = TestData.sampleContent.copy(content="<div><h1>hi</h1></div>", nodeType = "h5p_content")
-    val expectedResult = s"""${sampleLanguageContent.content}<section><$resourceHtmlEmbedTag data-resource="h5p" data-url="//ndla.no/h5p/embed/1234"></section>"""
+    val expectedResult = s"""<section><$resourceHtmlEmbedTag data-resource="h5p" data-url="//ndla.no/h5p/embed/1234"></section>${sampleLanguageContent.content}"""
     val Success((result, _)) = LeafNodeConverter.convert(sampleLanguageContent, ImportStatus(Seq(), Seq()))
 
     result.content should equal (expectedResult)

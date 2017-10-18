@@ -356,7 +356,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
 
   test("Leaf node converter should create an article from a pure h5p node") {
     val sampleLanguageContent = TestData.sampleContent.copy(content="<div><h1>hi</h1></div>", nodeType="h5p_content")
-    val expectedResult = s"""<section>${sampleLanguageContent.content}</section><section><$resourceHtmlEmbedTag data-resource="h5p" data-url="//ndla.no/h5p/embed/1234"></section>"""
+    val expectedResult = s"""<section><$resourceHtmlEmbedTag data-resource="h5p" data-url="//ndla.no/h5p/embed/1234">${sampleLanguageContent.content}</section>"""
     val node = sampleNode.copy(contents=Seq(sampleLanguageContent), nodeType="h5p_content", contentType="oppgave")
 
     val Success((result: Article, _)) = service.toDomainArticle(node, ImportStatus.empty)
