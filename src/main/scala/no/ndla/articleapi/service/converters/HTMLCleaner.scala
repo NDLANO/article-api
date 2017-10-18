@@ -40,6 +40,7 @@ trait HTMLCleaner {
 
       moveMisplacedAsideTags(element)
       unwrapDivsAroundDetailSummaryBox(element)
+      unwrapDivsInAsideTags(element)
 
       val finalCleanedDocument = allContentMustBeWrappedInSectionBlocks(element)
 
@@ -270,6 +271,24 @@ trait HTMLCleaner {
 
       element
     }
+
+    private def unwrapDivsInAsideTags(element: Element): Element = {
+      val asides = element.select("body>section>aside").asScala
+      for (aside <- asides) {
+        if(aside.children.size == 1)
+          unwrapNestedDivs(aside.children.first)
+      }
+      element
+    }
+
+    private def unwrapNestedDivs(child: Element) {
+      if (child.tagName() == "div" && child.siblingElements.size == 0) {
+        val firstChild = child.children.first
+        child.unwrap()
+        unwrapNestedDivs(firstChild)
+      }
+    }
+
 
     private def moveMisplacedAsideTags(element: Element) = {
       val aside = element.select("body>section:eq(0)>aside:eq(0)").asScala.headOption
