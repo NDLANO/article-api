@@ -262,4 +262,15 @@ class EmbedTagValidatorTest extends UnitSuite {
     result.head.message.contains(s"can only contain ${Attributes.DataUrl} urls from the following domains:")  should be(true)
   }
 
+  test("validate should succeed if source url is from a legal wildcard domain") {
+    val tag = generateTagWithAttrs(Map(
+      Attributes.DataResource -> ResourceType.KhanAcademy.toString,
+      Attributes.DataUrl -> "https://thisisatest.khanacademy.org",
+      Attributes.DataWidth -> "1",
+      Attributes.DataHeight -> "1"
+    ))
+
+    embedTagValidator.validate("content", tag).size should be (0)
+  }
+
 }
