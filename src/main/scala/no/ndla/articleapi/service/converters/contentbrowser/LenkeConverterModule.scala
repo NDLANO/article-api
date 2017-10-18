@@ -72,6 +72,7 @@ trait LenkeConverterModule {
       val NdlaFilmIundervisningUrlPattern = """(.*\.?ndla.filmiundervisning.no)""".r
       val KahootUrlPattern = """(.*\.?play.kahoot.it)""".r
       val vimeoProUrlPattern = """(.*\.?vimeopro.com)""".r
+      val khanAcademyUrlPattern = """(.*\.?khanacademy.org)""".r
 
       val (embedTag, requiredLibs) = url.host.getOrElse("") match {
         case NRKUrlPattern(_) => getNrkEmbedTag(embedCode, url)
@@ -80,6 +81,7 @@ trait LenkeConverterModule {
         case NdlaFilmIundervisningUrlPattern(_) => getNdlaFilmundervisningEmbedTag(embedCode)
         case KahootUrlPattern(_) => getKahootEmbedTag(embedCode)
         case vimeoProUrlPattern(_) => getVimeoProEmbedTag(embedCode)
+        case khanAcademyUrlPattern(_) => getKhanAcademyEmbedTag(embedCode)
         case _ => (HtmlTagGenerator.buildExternalInlineEmbedContent(url), None)
       }
       (embedTag, requiredLibs, message :: Nil)
@@ -127,6 +129,13 @@ trait LenkeConverterModule {
       val src = doc.attr("src")
 
       (HtmlTagGenerator.buildExternalInlineEmbedContent(src), None)
+    }
+
+    def getKhanAcademyEmbedTag(embedCode: String): (String, Option[RequiredLibrary]) = {
+      val doc = Jsoup.parseBodyFragment(embedCode).select("iframe").first()
+      val (src, width, height) = (doc.attr("src"), doc.attr("width"), doc.attr("height"))
+
+      (HtmlTagGenerator.buildKhanAcademyInlineContent(src, width, height), None)
     }
 
     private def insertDetailSummary(url: String, embedCode: String, cont: ContentBrowser): (String, Option[RequiredLibrary], Seq[String]) = {

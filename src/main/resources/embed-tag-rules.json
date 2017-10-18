@@ -121,6 +121,18 @@
         "embed.kahoot.it"
       ]
     },
+    "khan-academy": {
+      "required": [
+        "data-resource",
+        "data-url",
+        "data-width",
+        "data-height"
+      ],
+      "validSrcDomains": [
+        ".*.khanacademy.org",
+        "khanacademy.org"
+      ]
+    },
     "footnote": {
       "required": [
         "data-resource",

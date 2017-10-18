@@ -121,7 +121,7 @@ class EmbedTagValidator {
 
   private def verifySourceUrl(fieldName: String, attrs: EmbedTagAttributeRules, usedAttributes: Map[Attributes.Value, String], resourceType: ResourceType.Value): Seq[ValidationMessage] = {
     usedAttributes.get(Attributes.DataUrl) match {
-      case Some(url) if attrs.validSrcDomains.nonEmpty && !attrs.validSrcDomains.contains(url.host.getOrElse("")) =>
+      case Some(url) if attrs.validSrcDomains.nonEmpty && !attrs.validSrcDomains.exists(url.host.getOrElse("").matches(_)) =>
         Seq(ValidationMessage(fieldName,
           s"An $resourceHtmlEmbedTag HTML tag with ${Attributes.DataResource}=$resourceType can only contain ${Attributes.DataUrl} urls from the following domains: ${attrs.validSrcDomains.mkString(",")}"))
       case _ => Seq.empty
