@@ -23,12 +23,12 @@ trait FilConverterModule {
   object FilConverter extends ContentBrowserConverterModule with LazyLogging {
     override val typeName: String = "fil"
 
-    override def convert(content: ContentBrowser, visitedNodes: Seq[String]): Try[(String, Seq[RequiredLibrary], ImportStatus)] = {
+    override def convert(content: ContentBrowser, importStatus: ImportStatus): Try[(String, Seq[RequiredLibrary], ImportStatus)] = {
       val nodeId = content.get("nid")
       val importedFile = for {
         fileMeta <- extractService.getNodeFilMeta(nodeId)
         filePath <- attachmentStorageService.uploadFileFromUrl(nodeId, fileMeta)
-      } yield (HtmlTagGenerator.buildAnchor(s"$Domain/files/$filePath", fileMeta.fileName, fileMeta.fileName, openInNewTab=false), Seq.empty, ImportStatus(Seq.empty, visitedNodes))
+      } yield (HtmlTagGenerator.buildAnchor(s"$Domain/files/$filePath", fileMeta.fileName, fileMeta.fileName, openInNewTab=false), Seq.empty, importStatus)
 
       importedFile match {
         case Success(x) => Success(x)

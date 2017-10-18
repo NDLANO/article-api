@@ -9,9 +9,10 @@
 
 package no.ndla.articleapi.service.converters.contentbrowser
 
-import no.ndla.articleapi.model.domain.{Biblio, BiblioAuthor, BiblioMeta}
+import no.ndla.articleapi.model.domain.{Biblio, BiblioAuthor, BiblioMeta, ImportStatus}
 import no.ndla.articleapi.{TestEnvironment, UnitSuite}
 import no.ndla.articleapi.ArticleApiProperties.resourceHtmlEmbedTag
+
 import scala.util.Success
 import org.mockito.Mockito._
 
@@ -29,7 +30,7 @@ class BiblioConverterModuleTest extends UnitSuite with TestEnvironment {
     val expectedResult = s"""<$resourceHtmlEmbedTag data-authors="${biblio.authors.head.name}" data-edition="${biblio.biblio.edition}" data-publisher="${biblio.biblio.publisher}" data-resource="footnote" data-title="${biblio.biblio.title}" data-type="${biblio.biblio.bibType}" data-year="${biblio.biblio.year}" />"""
 
     when(extractService.getBiblioMeta(nodeId)).thenReturn(Some(biblio))
-    val Success((result, requiredLibraries, importStatus)) = BiblioConverter.convert(content, Seq())
+    val Success((result, requiredLibraries, importStatus)) = BiblioConverter.convert(content, ImportStatus.empty)
 
     result should equal (expectedResult)
     requiredLibraries.isEmpty should be (true)

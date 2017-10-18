@@ -45,7 +45,7 @@ trait HTMLCleaner {
       val finalCleanedDocument = allContentMustBeWrappedInSectionBlocks(element)
 
       Success((content.copy(content=jsoupDocumentToString(finalCleanedDocument), metaDescription=metaDescription, ingress=ingress),
-        ImportStatus(importStatus.messages ++ illegalTags ++ illegalAttributes, importStatus.visitedNodes)))
+        importStatus.addMessages(illegalTags ++ illegalAttributes)))
     }
 
     private def unwrapDivsAroundDetailSummaryBox(element: Element) {

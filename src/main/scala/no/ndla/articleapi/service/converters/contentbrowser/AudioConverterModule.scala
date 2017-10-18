@@ -24,12 +24,12 @@ trait AudioConverterModule  {
   object AudioConverter extends ContentBrowserConverterModule with LazyLogging {
     override val typeName: String = "audio"
 
-    override def convert(content: ContentBrowser, visitedNodes: Seq[String]): Try[(String, Seq[RequiredLibrary], ImportStatus)] = {
+    override def convert(content: ContentBrowser, importStatus: ImportStatus): Try[(String, Seq[RequiredLibrary], ImportStatus)] = {
       val nodeId = content.get("nid")
       logger.info(s"Converting audio with nid $nodeId")
 
       toAudio(nodeId) match {
-        case Success(audioHtml) => Success((audioHtml, Seq.empty, ImportStatus(Seq(), visitedNodes)))
+        case Success(audioHtml) => Success((audioHtml, Seq.empty, importStatus))
         case Failure(_) => Failure(ImportException(s"Failed to import audio with node id $nodeId"))
       }
     }

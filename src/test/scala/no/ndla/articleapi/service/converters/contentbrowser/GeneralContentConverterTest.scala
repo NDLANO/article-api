@@ -39,7 +39,7 @@ class GeneralContentConverterTest extends UnitSuite with TestEnvironment {
     val content = ContentBrowser(contentString, "nb")
 
     when(extractService.getNodeGeneralContent(nodeId)).thenReturn(Seq(sampleFagstoff1, sampleFagstoff2))
-    val Success((result, requiredLibraries, status)) = generalContentConverter.convert(content, Seq())
+    val Success((result, requiredLibraries, status)) = generalContentConverter.convert(content, ImportStatus.empty)
 
     result should equal (sampleFagstoff1.content)
     status.messages.isEmpty should equal (true)
@@ -50,7 +50,7 @@ class GeneralContentConverterTest extends UnitSuite with TestEnvironment {
     val content = ContentBrowser(contentString, "nb")
 
     when(extractService.getNodeGeneralContent(nodeId)).thenReturn(Seq())
-    generalContentConverter.convert(content, Seq()).isFailure should be (true)
+    generalContentConverter.convert(content, ImportStatus.empty).isFailure should be (true)
   }
 
   test("That GeneralContentConverter inserts the content if insertion mode is 'collapsed_body'") {
@@ -60,7 +60,7 @@ class GeneralContentConverterTest extends UnitSuite with TestEnvironment {
 
     when(extractService.getNodeGeneralContent(nodeId)).thenReturn(Seq(sampleFagstoff1, sampleFagstoff2))
     when(readService.getContentByExternalId(nodeId)).thenReturn(Some(sampleArticle))
-    val Success((result, requiredLibraries, status)) = generalContentConverter.convert(content, Seq())
+    val Success((result, requiredLibraries, status)) = generalContentConverter.convert(content, ImportStatus.empty)
 
     result should equal (expectedResult)
     status.messages.isEmpty should equal (true)
@@ -75,7 +75,7 @@ class GeneralContentConverterTest extends UnitSuite with TestEnvironment {
 
     when(extractService.getNodeGeneralContent(nodeId)).thenReturn(Seq(sampleFagstoff1, sampleFagstoff2))
     when(readService.getContentByExternalId(nodeId)).thenReturn(Some(sampleArticle))
-    val Success((result, requiredLibraries, status)) = generalContentConverter.convert(content, Seq())
+    val Success((result, requiredLibraries, status)) = generalContentConverter.convert(content, ImportStatus.empty)
 
     result should equal (expectedResult)
     status.messages.isEmpty should equal (true)
@@ -89,7 +89,7 @@ class GeneralContentConverterTest extends UnitSuite with TestEnvironment {
 
     when(extractService.getNodeGeneralContent(nodeId)).thenReturn(Seq(sampleFagstoff1, sampleFagstoff2))
     when(readService.getContentByExternalId(nodeId)).thenReturn(Some(sampleArticle))
-    val Success((result, requiredLibraries, status)) = generalContentConverter.convert(content, Seq())
+    val Success((result, requiredLibraries, status)) = generalContentConverter.convert(content, ImportStatus.empty)
 
     result should equal (expectedResult)
     status.messages.nonEmpty should equal (true)
@@ -104,7 +104,7 @@ class GeneralContentConverterTest extends UnitSuite with TestEnvironment {
     when(extractService.getNodeGeneralContent(nodeId)).thenReturn(Seq(sampleFagstoff1, sampleFagstoff2))
     when(readService.getContentByExternalId(nodeId)).thenReturn(Some(sampleArticle))
 
-    val Success((result, requiredLibraries, status)) = generalContentConverter.convert(content, Seq())
+    val Success((result, requiredLibraries, status)) = generalContentConverter.convert(content, ImportStatus.empty)
 
     result should equal (expectedResult)
     status.messages.nonEmpty should equal (true)
@@ -122,7 +122,7 @@ class GeneralContentConverterTest extends UnitSuite with TestEnvironment {
     when(extractConvertStoreContent.processNode(nodeId, ImportStatus(Seq(), Seq(nodeId2)))).thenReturn(Try((TestData.sampleArticleWithByNcSa.copy(id=Some(newNodeid)), ImportStatus(Seq(), Seq(nodeId2, nodeId)))))
 
     val languageContent = sampleContent.copy(content="<div>sample content</div>")
-    val Success((result, _, status)) = generalContentConverter.convert(content, Seq(nodeId2))
+    val Success((result, _, status)) = generalContentConverter.convert(content, ImportStatus(Seq.empty, Seq(nodeId2)))
 
     result should equal(expectedResult)
     status should equal (ImportStatus(List(), List(nodeId2, nodeId)))
@@ -137,6 +137,6 @@ class GeneralContentConverterTest extends UnitSuite with TestEnvironment {
     when(readService.getContentByExternalId(nodeId)).thenReturn(None)
     when(extractConvertStoreContent.processNode(nodeId, ImportStatus(Seq(), Seq(nodeId2)))).thenReturn(Failure(NotFoundException("Node was not found")))
 
-    generalContentConverter.convert(content, Seq(nodeId2)).isFailure should be (true)
+    generalContentConverter.convert(content, ImportStatus(Seq.empty, Seq(nodeId2))).isFailure should be (true)
   }
 }

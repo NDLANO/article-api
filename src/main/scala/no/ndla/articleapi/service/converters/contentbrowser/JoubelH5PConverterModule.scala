@@ -23,13 +23,13 @@ trait JoubelH5PConverterModule {
     override val typeName: String = "h5p_content"
     val JoubelH5PBaseUrl = "https://ndlah5p.joubel.com/node"
 
-    override def convert(content: ContentBrowser, visitedNodes: Seq[String]): Try[(String, Seq[RequiredLibrary], ImportStatus)] = {
+    override def convert(content: ContentBrowser, importStatus: ImportStatus): Try[(String, Seq[RequiredLibrary], ImportStatus)] = {
       val ndlaNodeId = content.get("nid")
 
       ValidH5PNodeIds.get(ndlaNodeId) match {
         case Some(joubelNodeId) => Success(validH5PResource(joubelNodeId, content),
-          Seq(), ImportStatus(Seq(), visitedNodes))
-        case None => Success(invalidH5PResource(ndlaNodeId, content, visitedNodes))
+          Seq(), importStatus)
+        case None => Success(invalidH5PResource(ndlaNodeId, content, importStatus))
       }
     }
 
@@ -39,13 +39,13 @@ trait JoubelH5PConverterModule {
       HtmlTagGenerator.buildH5PEmbedContent(s"$JoubelH5PBaseUrl/${ValidH5PNodeIds(ndlaNodeId)}")
     }
 
-    private def invalidH5PResource(nodeId: String, content: ContentBrowser, visitedNodes: Seq[String]) = {
+    private def invalidH5PResource(nodeId: String, content: ContentBrowser, importStatus: ImportStatus): (String, Seq[RequiredLibrary], ImportStatus) = {
       val ndlaNodeId = content.get("nid")
       val message = s"H5P node $ndlaNodeId is not yet exported to new H5P service"
       logger.error(message)
 
       val replacement = HtmlTagGenerator.buildErrorContent(message)
-      (replacement, Seq(), ImportStatus(message, visitedNodes))
+      (replacement, Seq(), importStatus.addMessage(message))
     }
 
   }

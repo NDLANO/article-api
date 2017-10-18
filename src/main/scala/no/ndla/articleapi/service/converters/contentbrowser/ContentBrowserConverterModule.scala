@@ -24,7 +24,7 @@ import scala.util.Try
 
 
 trait ContentBrowserConverterModule {
-  def convert(content: ContentBrowser, visitedNodes: Seq[String]): Try[(String, Seq[RequiredLibrary], ImportStatus)]
+  def convert(content: ContentBrowser, importStatus: ImportStatus): Try[(String, Seq[RequiredLibrary], ImportStatus)]
   val typeName: String
 }
 

@@ -29,7 +29,7 @@ class VideoConverterTest extends UnitSuite with TestEnvironment {
   test("That VideoConverter converts a ContentBrowser to html code") {
     val content = ContentBrowser(contentString, "nb")
     val expectedResult = s"""<$resourceHtmlEmbedTag data-account="$NDLABrightcoveAccountId" data-caption="" data-player="$NDLABrightcovePlayerId" data-resource="brightcove" data-videoid="ref:${content.get("nid")}" />"""
-    val Success((result, requiredLibraries, _)) = VideoConverter.convert(content, Seq())
+    val Success((result, requiredLibraries, _)) = VideoConverter.convert(content, ImportStatus.empty)
 
     result should equal(expectedResult)
     requiredLibraries.length should equal(1)
@@ -38,7 +38,7 @@ class VideoConverterTest extends UnitSuite with TestEnvironment {
   test("Captions are added as video metadata") {
     val content = ContentBrowser(contentStringWithCaptions, "nb")
     val expectedResult = s"""<$resourceHtmlEmbedTag data-account="$NDLABrightcoveAccountId" data-caption="$caption" data-player="$NDLABrightcovePlayerId" data-resource="brightcove" data-videoid="ref:${content.get("nid")}" />"""
-    val Success((result, requiredLibraries, _)) = VideoConverter.convert(content, Seq())
+    val Success((result, requiredLibraries, _)) = VideoConverter.convert(content, ImportStatus.empty)
 
     result should equal(expectedResult)
     requiredLibraries.length should equal(1)
@@ -50,7 +50,7 @@ class VideoConverterTest extends UnitSuite with TestEnvironment {
 
     when(extractConvertStoreContent.processNode(any[String], any[ImportStatus])).thenReturn(Success(TestData.sampleArticleWithByNcSa, ImportStatus.empty))
 
-    val Success((result, requiredLibraries, _)) = VideoConverter.convert(content, Seq())
+    val Success((result, requiredLibraries, _)) = VideoConverter.convert(content, ImportStatus.empty)
     result should equal(expectedResult)
     requiredLibraries.length should equal(0)
   }
