@@ -57,6 +57,7 @@ class ExtractConvertStoreContentTest extends UnitSuite with TestEnvironment {
 
     val result = eCSService.processNode(nodeId)
     result should equal(Success(sampleArticle, ImportStatus(List(s"Successfully imported node $nodeId: 1"), List(nodeId, nodeId2), sampleArticle.id)))
+    verify(articleRepository, times(1)).insertWithExternalIds(any[Article], any[String], any[Seq[String]])
   }
 
   test("That ETL returns a list of visited nodes") {
@@ -113,11 +114,38 @@ class ExtractConvertStoreContentTest extends UnitSuite with TestEnvironment {
     when(articleIndexService.indexDocument(any[Article])).thenReturn(Failure(mock[RuntimeException]))
     when(articleRepository.getIdFromExternalId(any[String])(any[DBSession])).thenReturn(Some(1: Long))
 
-    val result = eCSService.processNode(nodeId, ImportStatus(Seq.empty, Seq.empty))
+    val result = eCSService.processNode(nodeId, ImportStatus.empty)
     result.isFailure should be (true)
 
     verify(articleRepository, times(1)).delete(1)
     verify(articleIndexService, times(1)).deleteDocument(1)
+  }
+
+  test("Articles should be force-updated if flag is set") {
+    val status = ImportStatus.empty.setForceUpdateArticle(true)
+    val sampleArticle = TestData.sampleArticleWithPublicDomain
+    when(extractConvertStoreContent.processNode(nodeId2, status.addVisitedNode(nodeId))).thenReturn(Try((sampleArticle, ImportStatus(Seq(), Seq(nodeId, nodeId2)))))
+    when(articleRepository.exists(nodeId)).thenReturn(true)
+    when(articleRepository.updateWithExternalIdOverrideManualChanges(any[Article], any[String])(any[DBSession])).thenReturn(Success(sampleArticle))
+
+    val result = eCSService.processNode(nodeId, status)
+    result should equal(Success(sampleArticle, ImportStatus(List(s"Successfully imported node $nodeId: 1"), List(nodeId, nodeId2), sampleArticle.id)))
+    verify(articleRepository, times(1)).updateWithExternalIdOverrideManualChanges(any[Article], any[String])
+    verify(articleRepository, times(0)).updateWithExternalId(any[Article], any[String])
+  }
+
+  test("Articles should not be force-updated if flag is not set") {
+    val status = ImportStatus.empty
+    val sampleArticle = TestData.sampleArticleWithPublicDomain
+    reset(articleRepository)
+    when(extractConvertStoreContent.processNode(nodeId2, status.addVisitedNode(nodeId))).thenReturn(Try((sampleArticle, ImportStatus(Seq(), Seq(nodeId, nodeId2)))))
+    when(articleRepository.exists(nodeId)).thenReturn(true)
+    when(articleRepository.updateWithExternalId(any[Article], any[String])(any[DBSession])).thenReturn(Success(sampleArticle))
+
+    val result = eCSService.processNode(nodeId, status)
+    result should equal(Success(sampleArticle, ImportStatus(List(s"Successfully imported node $nodeId: 1"), List(nodeId, nodeId2), sampleArticle.id)))
+    verify(articleRepository, times(0)).updateWithExternalIdOverrideManualChanges(any[Article], any[String])
+    verify(articleRepository, times(1)).updateWithExternalId(any[Article], any[String])
   }
 
 }

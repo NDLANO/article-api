@@ -34,6 +34,9 @@ trait ExtractConvertStoreContent {
   val extractConvertStoreContent: ExtractConvertStoreContent
 
   class ExtractConvertStoreContent extends LazyLogging {
+    def processNode(externalId: String, forceUpdateArticles: Boolean): Try[(Content, ImportStatus)] =
+      processNode(externalId, ImportStatus.empty.setForceUpdateArticle(forceUpdateArticles))
+
     def processNode(externalId: String, importStatus: ImportStatus = ImportStatus.empty): Try[(Content, ImportStatus)] = {
       if (importStatus.visitedNodes.contains(externalId)) {
         return getMainNodeId(externalId).flatMap(readService.getContentByExternalId) match {
@@ -46,7 +49,7 @@ trait ExtractConvertStoreContent {
         (node, mainNodeId) <- extract(externalId)
         (convertedContent, updatedImportStatus) <- convert(node, importStatus)
         _ <- importValidator.validate(convertedContent, allowUnknownLanguage=true)
-        content <- store(convertedContent, mainNodeId)
+        content <- store(convertedContent, mainNodeId, importStatus.forceUpdateArticle)
         _ <- indexContent(content)
       } yield (content, updatedImportStatus.addMessage(s"Successfully imported node $externalId: ${content.id.get}").setArticleId(content.id.get))
 
@@ -84,17 +87,18 @@ trait ExtractConvertStoreContent {
     private def convert(nodeToConvert: NodeToConvert, importStatus: ImportStatus): Try[(Content, ImportStatus)] =
       converterService.toDomainArticle(nodeToConvert, importStatus)
 
-    private def store(content: Content, mainNodeId: String): Try[Content] = {
+    private def store(content: Content, mainNodeId: String, forceUpdateArticle: Boolean): Try[Content] = {
       content match {
-        case article: Article => storeArticle(article, mainNodeId)
+        case article: Article => storeArticle(article, mainNodeId, forceUpdateArticle)
         case concept: Concept => storeConcept(concept, mainNodeId)
       }
     }
 
-    private def storeArticle(article: Article, mainNodeNid: String): Try[Content] = {
+    private def storeArticle(article: Article, mainNodeNid: String, forceUpdateArticle: Boolean): Try[Content] = {
       val subjectIds = getSubjectIds(mainNodeNid)
       articleRepository.exists(mainNodeNid) match {
-        case true => articleRepository.updateWithExternalId(article, mainNodeNid)
+        case true if !forceUpdateArticle => articleRepository.updateWithExternalId(article, mainNodeNid)
+        case true if forceUpdateArticle => articleRepository.updateWithExternalIdOverrideManualChanges(article, mainNodeNid)
         case false => Try(articleRepository.insertWithExternalIds(article, mainNodeNid, subjectIds))
       }
     }
