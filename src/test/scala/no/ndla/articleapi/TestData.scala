@@ -67,7 +67,7 @@ object TestData {
                       |      "language": "nn"
                       |    }
                       |  ],
-                      |  "url": "http://localhost:30002/article-api/v1/articles/4",
+                      |  "url": "http://localhost:30002/article-api/v2/articles/4",
                       |  "license": "by-sa",
                       |  "articleType": "standard"
                       |}
