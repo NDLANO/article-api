@@ -18,6 +18,7 @@ import no.ndla.articleapi.integration.ElasticClient
 import no.ndla.articleapi.model.api
 import no.ndla.articleapi.model.api.ResultWindowTooLargeException
 import no.ndla.articleapi.model.domain._
+import no.ndla.articleapi.service.ConverterService
 import no.ndla.network.ApplicationUrl
 import org.apache.lucene.search.join.ScoreMode
 import org.elasticsearch.ElasticsearchException
@@ -31,24 +32,16 @@ import scala.concurrent.Future
 import scala.util.{Failure, Success}
 
 trait ArticleSearchService {
-  this: ElasticClient with SearchConverterService with SearchService with ArticleIndexService =>
+  this: ElasticClient with SearchConverterService with SearchService with ArticleIndexService with ConverterService =>
   val articleSearchService: ArticleSearchService
 
-  class ArticleSearchService extends LazyLogging with SearchService[api.ArticleSummary] {
+  class ArticleSearchService extends LazyLogging with SearchService[api.ArticleSummaryV2] {
     private val noCopyright = QueryBuilders.boolQuery().mustNot(QueryBuilders.termQuery("license", "copyrighted"))
 
     override val searchIndex: String = ArticleApiProperties.ArticleSearchIndex
 
-    override def hitToApiModel(hit: JsonObject, language: String): api.ArticleSummary = {
-      api.ArticleSummary(
-        hit.get("id").getAsString,
-        hit.get("title").getAsJsonObject.entrySet().asScala.to[Seq].map(entr => api.ArticleTitle(entr.getValue.getAsString, entr.getKey)),
-        hit.get("visualElement").getAsJsonObject.entrySet().asScala.to[Seq].map(entr => api.VisualElement(entr.getValue.getAsString, entr.getKey)),
-        hit.get("introduction").getAsJsonObject.entrySet().asScala.to[Seq].map(entr => api.ArticleIntroduction(entr.getValue.getAsString, entr.getKey)),
-        ApplicationUrl.get + hit.get("id").getAsString,
-        hit.get("license").getAsString,
-        hit.get("articleType").getAsString
-      )
+    override def hitToApiModel(hit: JsonObject, language: String): api.ArticleSummaryV2 = {
+      converterService.hitAsArticleSummaryV2(hit, language)
     }
 
     def all(withIdIn: List[Long], language: String, license: Option[String], page: Int, pageSize: Int, sort: Sort.Value, articleTypes: Seq[String]): SearchResult = {

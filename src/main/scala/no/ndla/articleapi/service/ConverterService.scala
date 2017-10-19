@@ -19,7 +19,7 @@ import no.ndla.articleapi.auth.User
 import no.ndla.articleapi.integration.ConverterModule.{jsoupDocumentToString, stringToJsoupDocument}
 import no.ndla.articleapi.integration.ImageApiClient
 import no.ndla.articleapi.model.api
-import no.ndla.articleapi.model.api.{ArticleSummary, ArticleSummaryV2}
+import no.ndla.articleapi.model.api.ArticleSummaryV2
 import no.ndla.articleapi.model.domain.Language._
 import no.ndla.articleapi.model.domain._
 import no.ndla.articleapi.repository.ArticleRepository
@@ -36,33 +36,6 @@ trait ConverterService {
   val converterService: ConverterService
 
   class ConverterService extends LazyLogging {
-
-    def getHits(response: JestSearchResult): Seq[ArticleSummary] = {
-      var resultList = Seq[ArticleSummary]()
-      response.getTotal match {
-        case count: Integer if count > 0 => {
-          val resultArray = response.getJsonObject.get("hits").asInstanceOf[JsonObject].get("hits").getAsJsonArray
-          val iterator = resultArray.iterator()
-          while (iterator.hasNext) {
-            resultList = resultList :+ hitAsArticleSummary(iterator.next().asInstanceOf[JsonObject].get("_source").asInstanceOf[JsonObject])
-          }
-          resultList
-        }
-        case _ => Seq()
-      }
-    }
-
-    def hitAsArticleSummary(hit: JsonObject): ArticleSummary = {
-      ArticleSummary(
-        hit.get("id").getAsString,
-        hit.get("title").getAsJsonObject.entrySet.asScala.to[Seq].map(entr => api.ArticleTitle(entr.getValue.getAsString, entr.getKey)),
-        hit.get("visualElement").getAsJsonObject.entrySet.asScala.to[Seq].map(entr => api.VisualElement(entr.getValue.getAsString, entr.getKey)),
-        hit.get("introduction").getAsJsonObject.entrySet.asScala.to[Seq].map(entr => api.ArticleIntroduction(entr.getValue.getAsString, entr.getKey)),
-        ApplicationUrl.get + hit.get("id").getAsString,
-        hit.get("license").getAsString,
-        hit.get("articleType").getAsString
-      )
-    }
 
     def getHitsV2(response: JestSearchResult, language: String): Seq[ArticleSummaryV2] = {
       var resultList = Seq[ArticleSummaryV2]()
