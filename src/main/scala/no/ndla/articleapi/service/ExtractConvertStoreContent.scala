@@ -35,9 +35,9 @@ trait ExtractConvertStoreContent {
 
   class ExtractConvertStoreContent extends LazyLogging {
     def processNode(externalId: String, forceUpdateArticles: Boolean): Try[(Content, ImportStatus)] =
-      processNode(externalId, ImportStatus.empty.setForceUpdateArticle(forceUpdateArticles))
+      processNode(externalId, ImportStatus.empty, forceUpdateArticles)
 
-    def processNode(externalId: String, importStatus: ImportStatus = ImportStatus.empty): Try[(Content, ImportStatus)] = {
+    def processNode(externalId: String, importStatus: ImportStatus = ImportStatus.empty, forceUpdateArticles: Boolean = false): Try[(Content, ImportStatus)] = {
       if (importStatus.visitedNodes.contains(externalId)) {
         return getMainNodeId(externalId).flatMap(readService.getContentByExternalId) match {
           case Some(content) => Success(content, importStatus)
@@ -49,7 +49,7 @@ trait ExtractConvertStoreContent {
         (node, mainNodeId) <- extract(externalId)
         (convertedContent, updatedImportStatus) <- convert(node, importStatus)
         _ <- importValidator.validate(convertedContent, allowUnknownLanguage=true)
-        content <- store(convertedContent, mainNodeId, importStatus.forceUpdateArticle)
+        content <- store(convertedContent, mainNodeId, forceUpdateArticles)
         _ <- indexContent(content)
       } yield (content, updatedImportStatus.addMessage(s"Successfully imported node $externalId: ${content.id.get}").setArticleId(content.id.get))
 

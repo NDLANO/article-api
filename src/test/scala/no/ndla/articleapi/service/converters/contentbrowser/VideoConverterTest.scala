@@ -48,7 +48,7 @@ class VideoConverterTest extends UnitSuite with TestEnvironment {
     val content = ContentBrowser(contentStringWithInsertionLink, "nb")
     val expectedResult = s"""<$resourceHtmlEmbedTag data-content-id="1" data-link-text="$caption" data-resource="${ResourceType.ContentLink}" />"""
 
-    when(extractConvertStoreContent.processNode(any[String], any[ImportStatus])).thenReturn(Success(TestData.sampleArticleWithByNcSa, ImportStatus.empty))
+    when(extractConvertStoreContent.processNode(nodeId, ImportStatus.empty)).thenReturn(Success(TestData.sampleArticleWithByNcSa, ImportStatus.empty))
 
     val Success((result, requiredLibraries, _)) = VideoConverter.convert(content, ImportStatus.empty)
     result should equal(expectedResult)

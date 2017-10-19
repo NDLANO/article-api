@@ -98,7 +98,7 @@ trait ArticleRepository {
       val startRevision = 1
       Try(sql"update ${Article.table} set document=${dataObject}, revision=$startRevision where external_id=${externalId}".updateAndReturnGeneratedKey().apply) match {
         case Success(articleId) =>
-          logger.info(s"Updated article with external_id=$externalId, id=$articleId")
+          logger.info(s"Updated article with external_id=$externalId, id=$articleId. Revision reset to 1")
           Success(article.copy(id=Some(articleId)))
         case Failure(ex) =>
           logger.warn(s"Failed to update article with external id $externalId: ${ex.getMessage}")

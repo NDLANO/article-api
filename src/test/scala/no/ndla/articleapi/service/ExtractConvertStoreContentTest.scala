@@ -122,13 +122,13 @@ class ExtractConvertStoreContentTest extends UnitSuite with TestEnvironment {
   }
 
   test("Articles should be force-updated if flag is set") {
-    val status = ImportStatus.empty.setForceUpdateArticle(true)
+    val status = ImportStatus.empty
     val sampleArticle = TestData.sampleArticleWithPublicDomain
     when(extractConvertStoreContent.processNode(nodeId2, status.addVisitedNode(nodeId))).thenReturn(Try((sampleArticle, ImportStatus(Seq(), Seq(nodeId, nodeId2)))))
     when(articleRepository.exists(nodeId)).thenReturn(true)
     when(articleRepository.updateWithExternalIdOverrideManualChanges(any[Article], any[String])(any[DBSession])).thenReturn(Success(sampleArticle))
 
-    val result = eCSService.processNode(nodeId, status)
+    val result = eCSService.processNode(nodeId, status, forceUpdateArticles = true)
     result should equal(Success(sampleArticle, ImportStatus(List(s"Successfully imported node $nodeId: 1"), List(nodeId, nodeId2), sampleArticle.id)))
     verify(articleRepository, times(1)).updateWithExternalIdOverrideManualChanges(any[Article], any[String])
     verify(articleRepository, times(0)).updateWithExternalId(any[Article], any[String])
