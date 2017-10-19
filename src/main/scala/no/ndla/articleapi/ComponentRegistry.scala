@@ -13,8 +13,8 @@ import com.amazonaws.regions.Regions
 import com.amazonaws.services.s3.AmazonS3ClientBuilder
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.articleapi.auth.{Role, User}
-import no.ndla.articleapi.controller.{ArticleController, ConceptController, HealthController, InternController}
-import no.ndla.articleapi.controller.{ArticleController, ArticleControllerV2, HealthController, InternController}
+import no.ndla.articleapi.controller.{ConceptController, HealthController, InternController}
+import no.ndla.articleapi.controller.{ArticleControllerV2, HealthController, InternController}
 import no.ndla.articleapi.integration._
 import no.ndla.articleapi.repository.{ArticleRepository, ConceptRepository}
 import no.ndla.articleapi.service._
@@ -29,7 +29,6 @@ import scalikejdbc.{ConnectionPool, DataSourceConnectionPool}
 object ComponentRegistry
   extends DataSource
     with InternController
-    with ArticleController
     with ConceptController
     with ConceptSearchService
     with ConceptIndexService
@@ -83,7 +82,6 @@ object ComponentRegistry
 
   lazy val extractConvertStoreContent = new ExtractConvertStoreContent
   lazy val internController = new InternController
-  lazy val articleController = new ArticleController
   lazy val articleControllerV2 = new ArticleControllerV2
   lazy val conceptController = new ConceptController
   lazy val resourcesApp = new ResourcesApp
