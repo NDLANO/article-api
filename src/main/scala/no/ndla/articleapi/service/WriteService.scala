@@ -23,17 +23,6 @@ trait WriteService {
   val writeService: WriteService
 
   class WriteService {
-    def newArticle(newArticle: api.NewArticle): Try[api.Article] = {
-      val domainArticle = converterService.toDomainArticle(newArticle)
-      contentValidator.validateArticle(domainArticle, false) match {
-        case Success(_) =>
-          val article = articleRepository.insert(domainArticle)
-          articleIndexService.indexDocument(article)
-          Success(converterService.toApiArticle(article))
-        case Failure(exception) => Failure(exception)
-      }
-    }
-
     def newArticleV2(newArticle: api.NewArticleV2): Try[ArticleV2] = {
       val domainArticle = converterService.toDomainArticle(newArticle)
       contentValidator.validateArticle(domainArticle, false) match {
@@ -81,10 +70,6 @@ trait WriteService {
           } yield readService.addUrlsOnEmbedResources(article)
         }
       }
-    }
-
-    def updateArticleV1(articleId: Long, updatedApiArticle: api.UpdatedArticle): Try[api.Article] = {
-      updateArticle(articleId, updatedApiArticle).map(converterService.toApiArticle)
     }
 
     def updateArticleV2(articleId: Long, updatedApiArticle: api.UpdatedArticleV2): Try[api.ArticleV2] = {
