@@ -23,12 +23,12 @@ trait H5PConverterModule {
   object H5PConverter extends ContentBrowserConverterModule with LazyLogging {
     override val typeName: String = "h5p_content"
 
-    override def convert(content: ContentBrowser, visitedNodes: Seq[String]): Try[(String, Seq[RequiredLibrary], ImportStatus)] = {
+    override def convert(content: ContentBrowser, importStatus: ImportStatus): Try[(String, Seq[RequiredLibrary], ImportStatus)] = {
       val nodeId = content.get("nid")
 
       logger.info(s"Converting h5p_content with nid $nodeId")
       val (replacement, requiredLibrary) = toH5PEmbed(nodeId)
-      Success(replacement, Seq(requiredLibrary), ImportStatus(Seq(), visitedNodes))
+      Success(replacement, Seq(requiredLibrary), importStatus)
     }
 
     def toH5PEmbed(nodeId: String): (String, RequiredLibrary) = {

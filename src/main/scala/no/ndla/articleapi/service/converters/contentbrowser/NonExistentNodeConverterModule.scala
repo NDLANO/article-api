@@ -20,7 +20,7 @@ trait NonExistentNodeConverterModule {
   object NonExistentNodeConverter extends ContentBrowserConverterModule with LazyLogging {
     override val typeName: String = "NodeDoesNotExist"
 
-    override def convert(content: ContentBrowser, visitedNodes: Seq[String]): Try[(String, Seq[RequiredLibrary], ImportStatus)] = {
+    override def convert(content: ContentBrowser, importStatus: ImportStatus): Try[(String, Seq[RequiredLibrary], ImportStatus)] = {
       Failure(ImportException(s"Found nonexistant node with id ${content.get("nid")}"))
     }
   }

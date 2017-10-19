@@ -60,21 +60,17 @@ trait ContentBrowserConverter {
 
         val converterModule = getConverterModule(cont)
 
-        converterModule.convert(cont, importStatus.visitedNodes) match {
-          case Failure(x) => {
+        converterModule.convert(cont, importStatus) match {
+          case Failure(x) =>
             val (start, end) = cont.getStartEndIndex()
             replaceHtmlInElement(element, start, end, "")
             convert(element, languageContent, importStatus, exceptions :+ x)
-          }
-          case Success((newContent, reqLibs, status)) => {
+          case Success((newContent, reqLibs, status)) =>
             val (start, end) = cont.getStartEndIndex()
             replaceHtmlInElement(element, start, end, newContent)
 
             val updatedRequiredLibraries = languageContent.requiredLibraries ++ reqLibs
-            val updatedImportStatusMessages = importStatus.messages ++ status.messages
-            convert(element, languageContent.copy(requiredLibraries = updatedRequiredLibraries),
-              status.copy(messages = updatedImportStatusMessages), exceptions)
-          }
+            convert(element, languageContent.copy(requiredLibraries = updatedRequiredLibraries), status, exceptions)
         }
       }
 

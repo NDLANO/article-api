@@ -13,7 +13,9 @@ case class ImportStatus(messages: Seq[String], visitedNodes: Seq[String] = Seq()
   def ++(importStatus: ImportStatus): ImportStatus =
     ImportStatus(messages ++ importStatus.messages, visitedNodes ++ importStatus.visitedNodes, importStatus.articleId)
   def addMessage(message: String): ImportStatus = this.copy(messages = this.messages :+ message)
-  def setArticleId(id: Long) = this.copy(articleId = Some(id))
+  def addMessages(messages: Seq[String]): ImportStatus = this.copy(messages = this.messages ++ messages)
+  def addVisitedNode(nodeId: String): ImportStatus = this.copy(visitedNodes = this.visitedNodes :+ nodeId)
+  def setArticleId(id: Long): ImportStatus = this.copy(articleId = Some(id))
 }
 
 object ImportStatus {

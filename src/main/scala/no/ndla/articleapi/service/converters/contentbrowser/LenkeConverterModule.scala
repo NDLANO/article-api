@@ -25,11 +25,11 @@ trait LenkeConverterModule {
   object LenkeConverter extends ContentBrowserConverterModule with LazyLogging {
     override val typeName: String = "lenke"
 
-    override def convert(content: ContentBrowser, visitedNodes: Seq[String]): Try[(String, Seq[RequiredLibrary], ImportStatus)] = {
+    override def convert(content: ContentBrowser, importStatus: ImportStatus): Try[(String, Seq[RequiredLibrary], ImportStatus)] = {
       logger.info(s"Converting lenke with nid ${content.get("nid")}")
 
       convertLink(content) match {
-        case Success((linkHtml, requiredLibraries, errors)) => Success(linkHtml, requiredLibraries, ImportStatus(errors, visitedNodes))
+        case Success((linkHtml, requiredLibraries, errors)) => Success(linkHtml, requiredLibraries, importStatus.addMessages(errors))
         case Failure(x) => Failure(x)
       }
     }

@@ -23,7 +23,7 @@ trait BiblioConverterModule {
   object BiblioConverter extends ContentBrowserConverterModule with LazyLogging {
     override val typeName: String = "biblio"
 
-    override def convert(content: ContentBrowser, visitedNodes: Seq[String]): Try[(String, Seq[RequiredLibrary], ImportStatus)] = {
+    override def convert(content: ContentBrowser, importStatus: ImportStatus): Try[(String, Seq[RequiredLibrary], ImportStatus)] = {
       val nodeId = content.get("nid")
       getFootNoteData(nodeId) match {
         case None => Failure(ImportException(s"Failed to fetch biblio meta data with node id $nodeId"))
@@ -34,7 +34,7 @@ trait BiblioConverterModule {
           edition = meta.edition,
           publisher = meta.publisher,
           authors = meta.authors
-        ), List[RequiredLibrary](), ImportStatus(Seq.empty, visitedNodes))
+        ), List[RequiredLibrary](), importStatus)
       }
     }
 
