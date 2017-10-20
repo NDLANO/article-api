@@ -42,10 +42,16 @@ trait HTMLCleaner {
       unwrapDivsAroundDetailSummaryBox(element)
       unwrapDivsInAsideTags(element)
 
+      convertH3sToH2s(element)
       val finalCleanedDocument = allContentMustBeWrappedInSectionBlocks(element)
 
       Success((content.copy(content=jsoupDocumentToString(finalCleanedDocument), metaDescription=metaDescription, ingress=ingress),
         importStatus.addMessages(illegalTags ++ illegalAttributes)))
+    }
+
+    private def convertH3sToH2s(element: Element) {
+      if (element.select("h2").size() == 0)
+        element.select("h3").asScala.foreach(_.tagName("h2"))
     }
 
     private def unwrapDivsAroundDetailSummaryBox(element: Element) {
