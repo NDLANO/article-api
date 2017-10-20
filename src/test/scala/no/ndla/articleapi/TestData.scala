@@ -78,7 +78,7 @@ object TestData {
     Some(s"//red.ndla.no/node/$externalId"),
     2,
     Seq(api.ArticleTitle("title", "nb")),
-    Seq(api.ArticleContent("content", "nb")),
+    Seq(api.ArticleContentV2("content", "nb")),
     api.Copyright(api.License("by", Some("Creative Commons Attribution 2.0 Generic"), Some("https://creativecommons.org/licenses/by/2.0/")), "", Seq()),
     Seq(),
     Seq(),

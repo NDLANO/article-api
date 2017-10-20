@@ -28,10 +28,10 @@ trait ReadService {
     def getInternalIdByExternalId(externalId: Long): Option[api.ArticleIdV2] =
       articleRepository.getIdFromExternalId(externalId.toString()).map(api.ArticleIdV2)
 
-    def articleWithId(id: Long): Option[api.Article] =
+    def withIdV2(id: Long): Option[api.ArticleV2] =
       articleRepository.withId(id)
         .map(addUrlsOnEmbedResources)
-        .map(converterService.toApiArticle)
+        .flatMap(article => converterService.toApiArticleV2(article, DefaultLanguage))
 
     def withIdV2(id: Long, language: String): Option[api.ArticleV2] = {
       articleRepository.withId(id)

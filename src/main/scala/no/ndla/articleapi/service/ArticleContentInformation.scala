@@ -80,19 +80,18 @@ trait ArticleContentInformation {
 
       logger.info(s"Found ${ids.length} article ids")
       ids.foreach(m => {
-        val article = readService.articleWithId(m.articleId)
+        val article = readService.withIdV2(m.articleId)
         article match {
           case Some(art) => {
-            art.content.foreach(c => {
+            val c = art.content
               val listElements = stringToJsoupDocument(c.content).select("li").asScala
               listElements.foreach(li => {
                 val hTags = li.select("h1, h2, h3, h4, h5, h6").asScala
                 hTags.foreach(h => {
                 val error = s"html element $h er ikke lov inni: [$li]"
-                errorMessages = HtmlFaultRapport(art.id, error) :: errorMessages
+                errorMessages = HtmlFaultRapport(art.id.toString, error) :: errorMessages
                 })
               })
-            })
           }
           case None => logger.warn(s"Did not find article given id ${m.articleId} gotten from articleRepository.getAllIds, should be investigated if not due to race condition")
         }
