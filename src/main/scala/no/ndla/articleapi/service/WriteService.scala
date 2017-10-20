@@ -45,7 +45,7 @@ trait WriteService {
       (toKeep ++ updated).filterNot(_.tags.isEmpty)
     }
 
-    def updateArticleV2(articleId: Long, updatedApiArticle: api.UpdatedArticleV2): Try[Article] = {
+    private def _updateArticleV2(articleId: Long, updatedApiArticle: api.UpdatedArticleV2): Try[Article] = {
       articleRepository.withId(articleId) match {
         case None => Failure(NotFoundException(s"Article with id $articleId does not exist"))
         case Some(existing) => {
@@ -71,6 +71,9 @@ trait WriteService {
           } yield readService.addUrlsOnEmbedResources(article)
         }
       }
+    }
+    def updateArticleV2(articleId: Long, updatedApiArticle: api.UpdatedArticleV2): Try[api.ArticleV2] = {
+      _updateArticleV2(articleId, updatedApiArticle).map(article => converterService.toApiArticleV2(article, updatedApiArticle.language).get)
     }
   }
 }

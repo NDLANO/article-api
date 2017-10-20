@@ -11,7 +11,6 @@ package no.ndla.articleapi.model.api
 import org.scalatra.swagger.annotations.{ApiModel, ApiModelProperty}
 
 import scala.annotation.meta.field
-
 @ApiModel(description = "Information about the article")
 case class NewArticleV2(@(ApiModelProperty@field)(description = "The title of the article") title: String,
                         @(ApiModelProperty@field)(description = "The content of the article") content: String,

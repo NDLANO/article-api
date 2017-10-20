@@ -26,8 +26,6 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
 
   val articleId = 13
   val article: Article = TestData.sampleArticleWithPublicDomain.copy(id=Some(articleId), created=yesterday, updated=yesterday)
-  val updatedArticle = TestData.updatedArticle
-  val newArticle = TestData.newArticle
 
   override def beforeEach() = {
     Mockito.reset(articleIndexService, articleRepository)
