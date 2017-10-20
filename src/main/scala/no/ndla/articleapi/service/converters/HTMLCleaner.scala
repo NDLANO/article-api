@@ -208,7 +208,7 @@ trait HTMLCleaner {
       })
 
       ingress match {
-        case None => Option(el.select(">strong").first).map(x => Seq(x))
+        case None => Option(el.select(">strong:eq(0)").first).orElse(Option(el.select(">strong:eq(1)").first)).map(Seq(_))
         case x => x
       }
     }
