@@ -12,6 +12,7 @@ package no.ndla.articleapi.service
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.articleapi.ArticleApiProperties.resourceHtmlEmbedTag
 import no.ndla.articleapi.integration.ConverterModule.stringToJsoupDocument
+import no.ndla.articleapi.model.api.ArticleV2
 import no.ndla.articleapi.model.domain.{Article, HtmlFaultRapport}
 import no.ndla.articleapi.repository.ArticleRepository
 import no.ndla.articleapi.service.converters.Attributes
@@ -26,7 +27,7 @@ import scala.collection.immutable
 trait ArticleContentInformation {
   this: ArticleRepository with ReadService =>
 
-  object ArticleContentInformation extends LazyLogging{
+  object ArticleContentInformation extends LazyLogging {
     def getHtmlTagsMap: Map[String, Seq[Long]] = {
       @tailrec def getHtmlTagsMap(nodes: Seq[Article], tagsMap: Map[String, List[Long]]): Map[String, List[Long]] = {
         if (nodes.isEmpty)
@@ -80,28 +81,28 @@ trait ArticleContentInformation {
 
       logger.info(s"Found ${ids.length} article ids")
       ids.foreach(m => {
-        val article = readService.withIdV2(m.articleId)
-        article match {
-          case Some(art) => {
-            val c = art.content
-              val listElements = stringToJsoupDocument(c.content).select("li").asScala
-              listElements.foreach(li => {
-                val hTags = li.select("h1, h2, h3, h4, h5, h6").asScala
-                hTags.foreach(h => {
-                val error = s"html element $h er ikke lov inni: [$li]"
-                errorMessages = HtmlFaultRapport(art.id.toString, error) :: errorMessages
-                })
-              })
-          }
-          case None => logger.warn(s"Did not find article given id ${m.articleId} gotten from articleRepository.getAllIds, should be investigated if not due to race condition")
+        val articles = readService.getAllLanguagesWithIdV2(m.articleId)
+        articles.size match {
+          case 0 => logger.warn(s"Did not find article given id ${m.articleId} gotten from articleRepository.getAllIds, should be investigated if not due to race condition")
+        }
+        articles.foreach { art: ArticleV2 =>
+          val listElements = stringToJsoupDocument(art.content.content).select("li").asScala
+          listElements.foreach(li => {
+            val hTags = li.select("h1, h2, h3, h4, h5, h6").asScala
+            hTags.foreach(h => {
+              val error = s"html element $h er ikke lov inni: [$li]"
+              errorMessages = HtmlFaultRapport(art.id.toString, error) :: errorMessages
+            })
+          })
         }
       })
       val stop = System.currentTimeMillis()
       logger.info(s"Done searching for header elements in Lists time taken ${stop - start} ms. Found ${errorMessages.size} faults.")
       //Change the list to CSV format with header row.
-      return (s"""artikkel id;feil funnet""" :: errorMessages.map(e => s"""${e.articleId};"${e.faultMessage}"""")).mkString("\n")
+      (s"""artikkel id;feil funnet""" :: errorMessages.map(e => s"""${e.articleId};"${e.faultMessage}"""")).mkString("\n")
     }
 
   }
+
 }
 
