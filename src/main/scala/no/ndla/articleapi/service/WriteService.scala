@@ -53,39 +53,24 @@ trait WriteService {
 
           val toUpdate = existing.copy(
             revision = Option(updatedApiArticle.revision),
-            title = mergeLanguageFields(existing.title, updatedApiArticle.title.toSeq.map(t => converterService.toDomainTitle(api.ArticleTitle(t, lang)))),
-            content = mergeLanguageFields(existing.content, updatedApiArticle.content.toSeq.map(c => converterService.toDomainContent(api.ArticleContentV2(c, lang)))),
-            copyright = updatedApiArticle.copyright.map(c => converterService.toDomainCopyright(c)).getOrElse(existing.copyright),
+            title = mergeLanguageFields(existing.title, updatedApiArticle.title.toSeq.map(t =>
+              converterService.toDomainTitle(api.ArticleTitle(t, lang)))),
+            content = mergeLanguageFields(existing.content, updatedApiArticle.content.toSeq.map(c =>
+              converterService.toDomainContent(api.ArticleContentV2(c, lang)))),
+            copyright = updatedApiArticle.copyright.map(c =>
+              converterService.toDomainCopyright(c)).getOrElse(existing.copyright),
             tags = mergeTags(existing.tags, converterService.toDomainTagV2(updatedApiArticle.tags, lang)),
-            //TODO: Look over the below ones
             requiredLibraries = updatedApiArticle.requiredLibraries.map(converterService.toDomainRequiredLibraries),
-            visualElement = mergeLanguageFields(existing.visualElement, converterService.toDomainVisualElementV2(updatedApiArticle.visualElement, lang)),
-            introduction = mergeLanguageFields(existing.introduction, converterService.toDomainIntroductionV2(updatedApiArticle.introduction, lang)),
-            metaDescription = mergeLanguageFields(existing.metaDescription, converterService.toDomainMetaDescriptionV2(updatedApiArticle.metaDescription, lang)),
-
+            visualElement = mergeLanguageFields(existing.visualElement, updatedApiArticle.visualElement.map(c =>
+              converterService.toDomainVisualElementV2(Some(c), lang)).getOrElse(Seq())),
+            introduction = mergeLanguageFields(existing.introduction, updatedApiArticle.introduction.map(i =>
+              converterService.toDomainIntroductionV2(Some(i), lang)).getOrElse(Seq())),
+            metaDescription = mergeLanguageFields(existing.metaDescription, updatedApiArticle.metaDescription.map(m =>
+              converterService.toDomainMetaDescriptionV2(Some(m), lang)).getOrElse(Seq())),
             metaImageId = if (updatedApiArticle.metaImageId.isDefined) updatedApiArticle.metaImageId else existing.metaImageId,
             updated = clock.now(),
             updatedBy = authUser.id()
           )
-          /*
-          val v1Title = Seq(api.ArticleTitle(updatedApiArticle.title.getOrElse(""), lang))
-          val toUpdatev1 = existing.copy(
-            revision = Option(updatedApiArticle.revision),
-            title = mergeLanguageFields(existing.title, updatedApiArticle.title.map(converterService.toDomainTitle)),
-            content = mergeLanguageFields(existing.content, updatedApiArticle.content.map(converterService.toDomainContent)),
-            copyright = updatedApiArticle.copyright.map(converterService.toDomainCopyright).getOrElse(existing.copyright),
-            tags = mergeTags(existing.tags, updatedApiArticle.tags.map(converterService.toDomainTag)),
-            requiredLibraries = updatedApiArticle.requiredLibraries.map(converterService.toDomainRequiredLibraries),
-            visualElement = mergeLanguageFields(existing.visualElement, updatedApiArticle.visualElement.map(converterService.toDomainVisualElement)),
-            introduction = mergeLanguageFields(existing.introduction, updatedApiArticle.introduction.map(converterService.toDomainIntroduction)),
-            metaDescription = mergeLanguageFields(existing.metaDescription, updatedApiArticle.metaDescription.map(converterService.toDomainMetaDescription)),
-            metaImageId = if(updatedApiArticle.metaImageId.isDefined) updatedApiArticle.metaImageId else existing.metaImageId,
-            updated = clock.now(),
-            updatedBy = authUser.id()
-          )
-          */
-
-
 
           for {
             _ <- contentValidator.validateArticle(toUpdate, allowUnknownLanguage = true)
@@ -95,8 +80,10 @@ trait WriteService {
         }
       }
     }
+
     def updateArticleV2(articleId: Long, updatedApiArticle: api.UpdatedArticleV2): Try[api.ArticleV2] = {
       _updateArticleV2(articleId, updatedApiArticle).map(article => converterService.toApiArticleV2(article, updatedApiArticle.language).get)
     }
   }
+
 }
