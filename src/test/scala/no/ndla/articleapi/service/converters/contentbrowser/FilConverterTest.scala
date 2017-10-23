@@ -9,7 +9,7 @@
 
 package no.ndla.articleapi.service.converters.contentbrowser
 
-import no.ndla.articleapi.model.domain.ContentFilMeta
+import no.ndla.articleapi.model.domain.{ContentFilMeta, ImportStatus}
 import no.ndla.articleapi.{TestEnvironment, UnitSuite}
 import org.mockito.Mockito._
 import no.ndla.articleapi.model.domain.ContentFilMeta._
@@ -30,7 +30,7 @@ class FilConverterTest extends UnitSuite with TestEnvironment {
 
     when(extractService.getNodeFilMeta(nodeId)).thenReturn(Success(fileMeta))
     when(attachmentStorageService.uploadFileFromUrl(nodeId, fileMeta)).thenReturn(Success(filePath))
-    val Success((result, _, _)) = FilConverter.convert(content, Seq())
+    val Success((result, _, _)) = FilConverter.convert(content, ImportStatus.empty)
 
     result should equal(expectedResult)
     verify(extractService, times(1)).getNodeFilMeta(nodeId)

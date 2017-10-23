@@ -23,12 +23,12 @@ trait BegrepConverterModule {
   object BegrepConverter extends ContentBrowserConverterModule with LazyLogging {
     override val typeName: String = "begrep"
 
-    override def convert(content: ContentBrowser, visitedNodes: Seq[String]): Try[(String, Seq[RequiredLibrary], ImportStatus)] = {
+    override def convert(content: ContentBrowser, importStatus: ImportStatus): Try[(String, Seq[RequiredLibrary], ImportStatus)] = {
       val nodeId = content.get("nid")
-      extractConvertStoreContent.processNode(nodeId, ImportStatus(Seq.empty, visitedNodes)) match {
-        case Success((c: Concept, importStatus)) =>
+      extractConvertStoreContent.processNode(nodeId, importStatus) match {
+        case Success((c: Concept, is)) =>
           val embedContent = HtmlTagGenerator.buildConceptEmbedContent(c.id.get, content.get("link_text"))
-          Success((embedContent, Seq.empty, ImportStatus(s"Imported concept with id ${c.id}", importStatus.visitedNodes)))
+          Success((embedContent, Seq.empty, is.addMessage(s"Imported concept with id ${c.id}")))
 
         case Success((x: Article, _)) =>
           val msg = s"THIS IS A BUG: Imported begrep node with nid $nodeId but is marked as an article (id ${x.id})"

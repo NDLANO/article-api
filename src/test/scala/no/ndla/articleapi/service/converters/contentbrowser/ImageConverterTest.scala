@@ -9,7 +9,7 @@
 
 package no.ndla.articleapi.service.converters.contentbrowser
 
-import no.ndla.articleapi.model.domain.Author
+import no.ndla.articleapi.model.domain.{Author, ImportStatus}
 import no.ndla.articleapi.integration._
 import no.ndla.articleapi.{TestEnvironment, UnitSuite}
 import no.ndla.articleapi.ArticleApiProperties.resourceHtmlEmbedTag
@@ -35,7 +35,7 @@ class ImageConverterTest extends UnitSuite with TestEnvironment {
 
     when(imageApiClient.importOrGetMetaByExternId(nodeId)).thenReturn(Some(image))
 
-    val Success((result, requiredLibraries, errors)) = ImageConverter.convert(content, Seq())
+    val Success((result, requiredLibraries, errors)) = ImageConverter.convert(content, ImportStatus.empty)
     result should equal (expectedResult)
     errors.messages.length should equal(0)
     requiredLibraries.length should equal(0)
@@ -46,7 +46,7 @@ class ImageConverterTest extends UnitSuite with TestEnvironment {
     val expectedResult = s"""<$resourceHtmlEmbedTag data-align="" data-alt="$altText" data-caption="" data-resource="image" data-resource_id="1234" data-size="fullbredde" />"""
 
     when(imageApiClient.importOrGetMetaByExternId(nodeId)).thenReturn(Some(image))
-    val Success((result, requiredLibraries, errors)) = ImageConverter.convert(ContentBrowser(contentStringEmptyCaption, "nb"), Seq())
+    val Success((result, requiredLibraries, errors)) = ImageConverter.convert(ContentBrowser(contentStringEmptyCaption, "nb"), ImportStatus.empty)
 
     result should equal (expectedResult)
     errors.messages.length should equal(0)
@@ -57,7 +57,7 @@ class ImageConverterTest extends UnitSuite with TestEnvironment {
     val expectedResult = s"""<img src='stock.jpeg' alt='The image with id $nodeId was not not found' />"""
 
     when(imageApiClient.importOrGetMetaByExternId(nodeId)).thenReturn(None)
-    ImageConverter.convert(content, Seq()).isFailure should be (true)
+    ImageConverter.convert(content, ImportStatus.empty).isFailure should be (true)
   }
 
   test("That a the html tag contains an alignment attribute with the correct value") {
@@ -65,7 +65,7 @@ class ImageConverterTest extends UnitSuite with TestEnvironment {
     val expectedResult = s"""<$resourceHtmlEmbedTag data-align="right" data-alt="$altText" data-caption="$caption" data-resource="image" data-resource_id="1234" data-size="fullbredde" />"""
 
     when(imageApiClient.importOrGetMetaByExternId(nodeId)).thenReturn(Some(image))
-    val Success((result, requiredLibraries, errors)) = ImageConverter.convert(ContentBrowser(contentStringWithLeftMargin, "nb"), Seq())
+    val Success((result, requiredLibraries, errors)) = ImageConverter.convert(ContentBrowser(contentStringWithLeftMargin, "nb"), ImportStatus.empty)
 
     result should equal (expectedResult)
     errors.messages.length should equal(0)

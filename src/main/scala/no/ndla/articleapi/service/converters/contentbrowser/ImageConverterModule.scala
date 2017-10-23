@@ -23,10 +23,10 @@ trait ImageConverterModule {
   object ImageConverter extends ContentBrowserConverterModule with LazyLogging {
     override val typeName: String = "image"
 
-    override def convert(content: ContentBrowser, visitedNodes: Seq[String]): Try[(String, Seq[RequiredLibrary], ImportStatus)] = {
+    override def convert(content: ContentBrowser, importStatus: ImportStatus): Try[(String, Seq[RequiredLibrary], ImportStatus)] = {
       val nodeId = content.get("nid")
       logger.info(s"Converting image with nid $nodeId")
-      val a = getImage(content).map(imageHtml => (imageHtml, Seq(), ImportStatus(Seq(), visitedNodes))) match {
+      val a = getImage(content).map(imageHtml => (imageHtml, Seq(), importStatus)) match {
         case Success(x) => Success(x)
         case Failure(_) => Failure(ImportException(s"Failed to import image with node id $nodeId"))
       }

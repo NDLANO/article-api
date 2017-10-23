@@ -255,14 +255,14 @@ class HTMLCleanerTest extends UnitSuite with TestEnvironment {
 
   test("standalone text and <em> tags in a section should be wrapped in <p> tags") {
     val origContent = """<section>
-                        |<h3>De kursiverte ordene og ordforbindelsene i denne teksten er enten skrevet feil eller brukt feil. Hva er riktig?</h3>
+                        |<h2>De kursiverte ordene og ordforbindelsene i denne teksten er enten skrevet feil eller brukt feil. Hva er riktig?</h2>
                         |Det har <em>skjelden</em> vært så mange <em>tilstede</em> som <em>igår</em>.
                         |<h1>lolol</h1>
                         |should be wrapped
                         |</section>""".stripMargin.replace("\n", "")
 
     val expectedContent = """<section>
-                            |<h3>De kursiverte ordene og ordforbindelsene i denne teksten er enten skrevet feil eller brukt feil. Hva er riktig?</h3>
+                            |<h2>De kursiverte ordene og ordforbindelsene i denne teksten er enten skrevet feil eller brukt feil. Hva er riktig?</h2>
                             |<p>
                             |Det har <em>skjelden</em> vært så mange <em>tilstede</em> som <em>igår</em>.
                             |</p>
@@ -511,8 +511,8 @@ class HTMLCleanerTest extends UnitSuite with TestEnvironment {
 
   test("first section with only image should be merged with the second section") {
     val originalContent = """<section><embed data-resource="image" /></section>""" +
-      "<section><aside><h3>Tallene</h3></aside><p><strong>Dette er en oversikt over tall</strong></p></section>"
-    val expectedContent = """<section><embed data-resource="image"><aside><h3>Tallene</h3></aside></section>"""
+      "<section><aside><h2>Tallene</h2></aside><p><strong>Dette er en oversikt over tall</strong></p></section>"
+    val expectedContent = """<section><embed data-resource="image"><aside><h2>Tallene</h2></aside></section>"""
     val expectedIngress = "Dette er en oversikt over tall"
 
     val Success((result, _))  = htmlCleaner.convert(TestData.sampleContent.copy(content=originalContent), defaultImportStatus)
@@ -597,8 +597,8 @@ class HTMLCleanerTest extends UnitSuite with TestEnvironment {
   test("Divs with no siblings in asides should be unwrapped") {
     val originalContent =
       """<section><embed data-resource="image" /></section>""" +
-        "<section><aside><div><h3>Tallene</h3></div></aside><p><strong>Dette er en oversikt over tall</strong></p></section>"
-    val expectedContent = """<section><embed data-resource="image"><aside><h3>Tallene</h3></aside></section>"""
+        "<section><aside><div><h2>Tallene</h2></div></aside><p><strong>Dette er en oversikt over tall</strong></p></section>"
+    val expectedContent = """<section><embed data-resource="image"><aside><h2>Tallene</h2></aside></section>"""
 
     val Success((result, _)) = htmlCleaner.convert(TestData.sampleContent.copy(content = originalContent), defaultImportStatus)
 
@@ -608,8 +608,8 @@ class HTMLCleanerTest extends UnitSuite with TestEnvironment {
   test("Nested divs with no siblings in asides should be unwrapped") {
     val originalContent =
       """<section><embed data-resource="image" /></section>""" +
-        "<section><aside><div><div><div><h3>Tallene</h3></div></div></div></aside><p><strong>Dette er en oversikt over tall</strong></p></section>"
-    val expectedContent = """<section><embed data-resource="image"><aside><h3>Tallene</h3></aside></section>"""
+        "<section><aside><div><div><div><h2>Tallene</h2></div></div></div></aside><p><strong>Dette er en oversikt over tall</strong></p></section>"
+    val expectedContent = """<section><embed data-resource="image"><aside><h2>Tallene</h2></aside></section>"""
 
     val Success((result, _)) = htmlCleaner.convert(TestData.sampleContent.copy(content = originalContent), defaultImportStatus)
 
@@ -651,4 +651,17 @@ class HTMLCleanerTest extends UnitSuite with TestEnvironment {
 
     result.content should equal(expectedContent)
   }
+
+  test("H3s should be converted to H2s if no H2s are used") {
+    val originalContent = """<section><h1>hi</h1><h3>sup</h3><div>nice<h3>doge</h3></div></section>"""
+    val expectedContent = """<section><h1>hi</h1><h2>sup</h2><div>nice<h2>doge</h2></div></section>"""
+
+    val Success((result, _)) = htmlCleaner.convert(TestData.sampleContent.copy(content=originalContent), defaultImportStatus)
+    result.content should equal(expectedContent)
+
+    val originalContent2 = """<section><h2>hi</h2><h3>sup</h3></section>"""
+    val Success((result2, _)) = htmlCleaner.convert(TestData.sampleContent.copy(content=originalContent2), defaultImportStatus)
+    result2.content should equal(originalContent2)
+  }
+
 }

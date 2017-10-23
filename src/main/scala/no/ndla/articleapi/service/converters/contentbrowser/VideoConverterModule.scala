@@ -23,7 +23,7 @@ trait VideoConverterModule {
   object VideoConverter extends ContentBrowserConverterModule with LazyLogging {
     override val typeName: String = "video"
 
-    override def convert(content: ContentBrowser, visitedNodes: Seq[String]): Try[(String, Seq[RequiredLibrary], ImportStatus)] = {
+    override def convert(content: ContentBrowser, importStatus: ImportStatus): Try[(String, Seq[RequiredLibrary], ImportStatus)] = {
       val (linkText, nodeId) = (content.get("link_text"), content.get("nid"))
 
       val (embedVideo, requiredLibraries) = content.get("insertion") match {
@@ -36,11 +36,11 @@ trait VideoConverterModule {
       }
 
       logger.info(s"Added video with nid ${content.get("nid")}")
-      Success(embedVideo, requiredLibraries, ImportStatus(Seq(), visitedNodes))
+      Success(embedVideo, requiredLibraries, importStatus)
     }
 
     private def toVideoLink(linkText: String, nodeId: String): Try[String] = {
-      extractConvertStoreContent.processNode(nodeId) match {
+      extractConvertStoreContent.processNode(nodeId, ImportStatus.empty) match {
         case Success((content, _)) => Success(HtmlTagGenerator.buildLinkEmbedContent(s"${content.id.get}", linkText))
         case Failure(ex) => Failure(ex)
       }
