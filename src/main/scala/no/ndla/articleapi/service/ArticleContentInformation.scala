@@ -83,7 +83,7 @@ trait ArticleContentInformation {
       ids.foreach(m => {
         val article = articleRepository.withId(m.articleId)
         article match {
-          case Some(art) =>
+          case Some(art) => {
             art.content.foreach(c => {
               val listElements = stringToJsoupDocument(c.content).select("li").asScala
               listElements.foreach(li => {
@@ -94,13 +94,14 @@ trait ArticleContentInformation {
                 })
               })
             })
+          }
           case None => logger.warn(s"Did not find article given id ${m.articleId} gotten from articleRepository.getAllIds, should be investigated if not due to race condition")
         }
       })
       val stop = System.currentTimeMillis()
       logger.info(s"Done searching for header elements in Lists time taken ${stop - start} ms. Found ${errorMessages.size} faults.")
       //Change the list to CSV format with header row.
-      (s"""artikkel id;feil funnet""" :: errorMessages.map(e => s"""${e.articleId};"${e.faultMessage}"""")).mkString("\n")
+      return (s"""artikkel id;feil funnet""" :: errorMessages.map(e => s"""${e.articleId};"${e.faultMessage}"""")).mkString("\n")
     }
 
   }
