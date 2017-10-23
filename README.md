@@ -11,7 +11,7 @@ It also has as internal import routines for importing data from the old system t
 reporting services pertaining to the import which are only available for internal admin services. 
 
 ## Article format
-The endpoint `GET /article-api/v1/articles/<id>` will fetch a json-object containing the article in all languages it is translated to.
+The endpoint `GET /article-api/v2/articles/<id>` will fetch a json-object containing the article in the selected language.
 The article body contained in this json-object consists of a strict subset of permitted HTML tags. It may also contain a special tag, `<embed>`,
 which is used to refer to content located in other APIs (including, but not limited to images, audio, video and H5P).
 
