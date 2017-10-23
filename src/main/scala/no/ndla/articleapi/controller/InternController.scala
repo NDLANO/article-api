@@ -11,12 +11,13 @@ package no.ndla.articleapi.controller
 
 import java.util.concurrent.TimeUnit
 
-import no.ndla.articleapi.model.domain.ImportStatus
+import no.ndla.articleapi.model.domain.{ImportStatus, Language}
 import no.ndla.articleapi.repository.ArticleRepository
 import no.ndla.articleapi.service._
 import no.ndla.articleapi.service.search.{ArticleIndexService, ConceptIndexService, IndexService}
 import org.json4s.{DefaultFormats, Formats}
 import org.scalatra.{InternalServerError, NotFound, Ok}
+
 import scala.concurrent._
 import ExecutionContext.Implicits.global
 import scala.concurrent.duration.Duration
@@ -86,6 +87,14 @@ trait InternController {
     get("/reports/headerElementsInLists") {
       contentType = "text/csv"
       ArticleContentInformation.getFaultyHtmlReport
+    }
+
+    get("/articles") {
+      val pageNo = intOrDefault("page", 1)
+      val pageSize = intOrDefault("page-size", 250)
+      val lang = paramOrDefault("language", Language.AllLanguages)
+
+      readService.getArticlesByPage(pageNo, pageSize, lang)
     }
 
   }

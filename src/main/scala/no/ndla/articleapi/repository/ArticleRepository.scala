@@ -133,6 +133,15 @@ trait ArticleRepository {
       sql"select id, external_id from ${Article.table}".map(rs => ArticleIds(rs.long("id"), rs.stringOpt("external_id"))).list.apply
     }
 
+    def articleCount(implicit session: DBSession = AutoSession): Long = {
+      sql"select count(*) from ${Article.table}".map(rs => rs.long("count")).single().apply().getOrElse(0)
+    }
+
+    def getArticlesByPage(pageSize: Int, offset: Int)(implicit session: DBSession = AutoSession): Seq[Article] = {
+      val ar = Article.syntax("ar")
+      sql"select ${ar.result.*} from ${Article.as(ar)} offset $offset limit $pageSize".map(Article(ar)).list.apply()
+    }
+
     def allTags(implicit session: DBSession = AutoSession): Seq[ArticleTag] = {
       val allTags = sql"""select document->>'tags' from ${Article.table}""".map(rs => rs.string(1)).list.apply
 
