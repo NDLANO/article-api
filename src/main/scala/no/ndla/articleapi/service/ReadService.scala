@@ -17,7 +17,7 @@ import no.ndla.articleapi.model.domain.Language._
 import no.ndla.articleapi.repository.{ArticleRepository, ConceptRepository}
 import no.ndla.articleapi.service.converters.Attributes
 import org.jsoup.nodes.Element
-
+import scala.math.max
 import scala.collection.JavaConverters._
 
 trait ReadService {
@@ -52,6 +52,12 @@ trait ReadService {
 
       tagUsageMap.get(searchLanguage)
         .map(tags => api.ArticleTag(tags.getNMostFrequent(n), searchLanguage))
+    }
+
+    def getArticlesByPage(pageNo: Int, pageSize: Int, lang: String): api.ArticleDump = {
+      val (safePageNo, safePageSize) = (max(pageNo, 1), max(pageSize, 0))
+      val results = articleRepository.getArticlesByPage(safePageSize, (safePageNo - 1) * safePageSize).flatMap(article => converterService.toApiArticleV2(article, lang))
+      api.ArticleDump(articleRepository.articleCount, pageNo, pageSize, lang, results)
     }
 
     val getTagUsageMap = MemoizeAutoRenew(() => {
