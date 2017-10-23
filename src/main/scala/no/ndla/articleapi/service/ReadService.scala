@@ -29,16 +29,6 @@ trait ReadService {
     def getInternalIdByExternalId(externalId: Long): Option[api.ArticleIdV2] =
       articleRepository.getIdFromExternalId(externalId.toString).map(api.ArticleIdV2)
 
-    def getAllLanguagesWithIdV2(id: Long): Seq[api.ArticleV2] = {
-      articleRepository.withId(id)
-        .map(addUrlsOnEmbedResources)
-        .map(article => {
-          getSupportedLanguages(Seq(article.title)).flatMap(lang => {
-            converterService.toApiArticleV2(article, lang)
-          })
-        }).getOrElse(Seq())
-    }
-
     def withIdV2(id: Long, language: String): Option[api.ArticleV2] = {
       articleRepository.withId(id)
         .map(addUrlsOnEmbedResources)

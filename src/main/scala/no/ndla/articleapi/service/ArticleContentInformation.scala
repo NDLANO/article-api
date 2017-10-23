@@ -81,18 +81,20 @@ trait ArticleContentInformation {
 
       logger.info(s"Found ${ids.length} article ids")
       ids.foreach(m => {
-        val articles = readService.getAllLanguagesWithIdV2(m.articleId)
-        if (articles.isEmpty)
-          logger.warn(s"Did not find article given id ${m.articleId} gotten from articleRepository.getAllIds, should be investigated if not due to race condition")
-        articles.foreach { art: ArticleV2 =>
-          val listElements = stringToJsoupDocument(art.content.content).select("li").asScala
-          listElements.foreach(li => {
-            val hTags = li.select("h1, h2, h3, h4, h5, h6").asScala
-            hTags.foreach(h => {
-              val error = s"html element $h er ikke lov inni: [$li]"
-              errorMessages = HtmlFaultRapport(art.id.toString, error) :: errorMessages
+        val article = articleRepository.withId(m.articleId)
+        article match {
+          case Some(art) =>
+            art.content.foreach(c => {
+              val listElements = stringToJsoupDocument(c.content).select("li").asScala
+              listElements.foreach(li => {
+                val hTags = li.select("h1, h2, h3, h4, h5, h6").asScala
+                hTags.foreach(h => {
+                  val error = s"html element $h er ikke lov inni: [$li]"
+                  errorMessages = HtmlFaultRapport(art.id.getOrElse(-1).toString, error) :: errorMessages
+                })
+              })
             })
-          })
+          case None => logger.warn(s"Did not find article given id ${m.articleId} gotten from articleRepository.getAllIds, should be investigated if not due to race condition")
         }
       })
       val stop = System.currentTimeMillis()

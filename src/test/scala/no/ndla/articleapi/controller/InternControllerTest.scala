@@ -62,7 +62,7 @@ class InternControllerTest extends UnitSuite with TestEnvironment with ScalatraF
 
     var test: Seq[ArticleIds] = Nil
     when(articleRepository.getAllIds()).thenReturn(Seq(ArticleIds(1, None)))
-    when(readService.getAllLanguagesWithIdV2(1L)).thenReturn(Seq(TestData.apiArticleWithHtmlFaultV2)) //thenReturn(Some(TestData.newArticle))
+    when(articleRepository.withId(1L)).thenReturn(Some(TestData.sampleDomainArticleWithHtmlFault)) //thenReturn(Some(TestData.newArticle))
     get(s"/reports/headerElementsInLists") {
       status should equal(200)
       //Very end of line sensitive, do not adjust code with your IDE!
