@@ -82,9 +82,8 @@ trait ArticleContentInformation {
       logger.info(s"Found ${ids.length} article ids")
       ids.foreach(m => {
         val articles = readService.getAllLanguagesWithIdV2(m.articleId)
-        articles.size match {
-          case 0 => logger.warn(s"Did not find article given id ${m.articleId} gotten from articleRepository.getAllIds, should be investigated if not due to race condition")
-        }
+        if (articles.isEmpty)
+          logger.warn(s"Did not find article given id ${m.articleId} gotten from articleRepository.getAllIds, should be investigated if not due to race condition")
         articles.foreach { art: ArticleV2 =>
           val listElements = stringToJsoupDocument(art.content.content).select("li").asScala
           listElements.foreach(li => {

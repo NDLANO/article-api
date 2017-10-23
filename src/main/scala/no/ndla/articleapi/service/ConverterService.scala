@@ -363,40 +363,6 @@ trait ConverterService {
       api.ArticleMetaDescription(metaDescription.content, metaDescription.language)
     }
 
-    /*def toUpdatedArticle(updatedArticle: api.UpdatedArticleV2): api.UpdatedArticleV2 = {
-      val title = updatedArticle.title.map(t => api.ArticleTitle(t, updatedArticle.language)).toSeq
-      val content = updatedArticle.content.map(c => api.ArticleContentV2(c, updatedArticle.language)).toSeq
-      val tags = Seq(api.ArticleTag(updatedArticle.tags, updatedArticle.language))
-      val introduction = updatedArticle.introduction.map(i => api.ArticleIntroduction(i, updatedArticle.language)).toSeq
-      val meta= updatedArticle.metaDescription.map(m => api.ArticleMetaDescription(m, updatedArticle.language)).toSeq
-      val vElement = updatedArticle.visualElement.map(v => api.VisualElement(v, updatedArticle.language)).toSeq
-      val reqLibraries = updatedArticle.requiredLibraries
-
-      api.UpdatedArticleV2(
-        updatedArticle.revision,
-        updatedArticle.language,
-        updatedArticle.title,
-        tags
-
-      )
-
-      /*
-      api.UpdatedArticle(
-        title,
-        updatedArticle.revision,
-        content,
-        tags,
-        introduction,
-        meta,
-        updatedArticle.metaImageId,
-        vElement,
-        updatedArticle.copyright,
-        reqLibraries,
-        updatedArticle.articleType
-      )
-      */
-    }*/
-
     def createLinkToOldNdla(nodeId: String): String = s"//red.ndla.no/node/$nodeId"
 
     def toApiConcept(concept: Concept, language: String): api.Concept = {
