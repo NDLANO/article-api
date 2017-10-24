@@ -186,6 +186,18 @@ trait HTMLCleaner {
       el.html(el.html().replace(NBSP, ""))
     }
 
+    // A paragraph containing an ingress can also be split up into mulitple strong-tags
+    // e.g <p><strong>first</strong> <em><strong>second</strong></em></p>.
+    // returns a sequence of all ingress elements
+    private def getAllIngressElements(el: Element): Seq[Element] = {
+      val paragraph = if (el.tagName == "p") el else el.parent
+
+      if (paragraph.select("strong").text == paragraph.text)
+        paragraph.select("strong").asScala
+      else
+        Seq(el)
+    }
+
     private def getIngressText(el: Element): Option[Seq[Element]] = {
       val firstParagraphs = Option(el.select(">p")).map(_.asScala.toList)
         .flatMap(paragraphs => paragraphs.headOption.map(_ => paragraphs.take(2))) // select two first paragraphs
@@ -194,12 +206,12 @@ trait HTMLCleaner {
 
         // In some cases the ingress is split up into two paragraphs
         ingresses match {
-          case Some(head) :: Some(second) :: _ => Some(Seq(head, second))
-          case Some(head) :: None :: _ => Some(Seq(head))
-          case Some(head) :: _ => Some(Seq(head))
+          case Some(head) :: Some(second) :: _ => Some(getAllIngressElements(head) ++ getAllIngressElements(second))
+          case Some(head) :: None :: _ => Some(getAllIngressElements(head))
+          case Some(head) :: _ => Some(getAllIngressElements(head))
           case None :: Some(second) :: _ =>
             ps.head.select(">embed").first match {
-              case _ : Element => Some(Seq(second))
+              case _ : Element => Some(getAllIngressElements(second))
               case _ => None
             }
 
@@ -208,7 +220,7 @@ trait HTMLCleaner {
       })
 
       ingress match {
-        case None => Option(el.select(">strong").first).map(x => Seq(x))
+        case None => Option(el.select(">strong:eq(0)").first).orElse(Option(el.select(">strong:eq(1)").first)).map(Seq(_))
         case x => x
       }
     }
