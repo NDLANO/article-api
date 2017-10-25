@@ -167,7 +167,7 @@ trait ArticleControllerV2 {
           searchLanguage = language,
           license = license,
           page = page,
-          pageSize = pageSize,
+          pageSize = if (idList.isEmpty) pageSize else idList.size,
           sort = sort.getOrElse(Sort.ByRelevanceDesc),
           if (articleTypesFilter.isEmpty) ArticleType.all else articleTypesFilter
         )
@@ -177,7 +177,7 @@ trait ArticleControllerV2 {
           language = language,
           license = license,
           page = page,
-          pageSize = pageSize,
+          pageSize = if (idList.isEmpty) pageSize else idList.size,
           sort = sort.getOrElse(Sort.ByTitleAsc),
           if (articleTypesFilter.isEmpty) ArticleType.all else articleTypesFilter
         )
