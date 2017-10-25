@@ -12,6 +12,7 @@ import no.ndla.articleapi.ArticleApiProperties.{externalApiUrls, resourceHtmlEmb
 import no.ndla.articleapi.caching.MemoizeAutoRenew
 import no.ndla.articleapi.integration.ConverterModule.{jsoupDocumentToString, stringToJsoupDocument}
 import no.ndla.articleapi.model.api
+import no.ndla.articleapi.model.api.ArticleV2
 import no.ndla.articleapi.model.domain._
 import no.ndla.articleapi.model.domain.Language._
 import no.ndla.articleapi.repository.{ArticleRepository, ConceptRepository}
@@ -26,12 +27,7 @@ trait ReadService {
 
   class ReadService {
     def getInternalIdByExternalId(externalId: Long): Option[api.ArticleIdV2] =
-      articleRepository.getIdFromExternalId(externalId.toString()).map(api.ArticleIdV2)
-
-    def articleWithId(id: Long): Option[api.Article] =
-      articleRepository.withId(id)
-        .map(addUrlsOnEmbedResources)
-        .map(converterService.toApiArticle)
+      articleRepository.getIdFromExternalId(externalId.toString).map(api.ArticleIdV2)
 
     def withIdV2(id: Long, language: String): Option[api.ArticleV2] = {
       articleRepository.withId(id)
@@ -40,8 +36,8 @@ trait ReadService {
     }
 
     private[service] def addUrlsOnEmbedResources(article: Article): Article = {
-      val articleWithUrls = article.content.map(content => content.copy(content=addUrlOnResource(content.content)))
-      val visualElementWithUrls = article.visualElement.map(visual => visual.copy(resource=addUrlOnResource(visual.resource)))
+      val articleWithUrls = article.content.map(content => content.copy(content = addUrlOnResource(content.content)))
+      val visualElementWithUrls = article.visualElement.map(visual => visual.copy(resource = addUrlOnResource(visual.resource)))
 
       article.copy(content = articleWithUrls, visualElement = visualElementWithUrls)
     }
@@ -101,4 +97,5 @@ trait ReadService {
     def getContentByExternalId(externalId: String): Option[Content] =
       articleRepository.withExternalId(externalId) orElse conceptRepository.withExternalId(externalId)
   }
+
 }

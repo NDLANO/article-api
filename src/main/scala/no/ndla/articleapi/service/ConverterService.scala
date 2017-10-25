@@ -19,7 +19,7 @@ import no.ndla.articleapi.auth.User
 import no.ndla.articleapi.integration.ConverterModule.{jsoupDocumentToString, stringToJsoupDocument}
 import no.ndla.articleapi.integration.ImageApiClient
 import no.ndla.articleapi.model.api
-import no.ndla.articleapi.model.api.{ArticleSummary, ArticleSummaryV2}
+import no.ndla.articleapi.model.api.ArticleSummaryV2
 import no.ndla.articleapi.model.domain.Language._
 import no.ndla.articleapi.model.domain._
 import no.ndla.articleapi.repository.ArticleRepository
@@ -36,33 +36,6 @@ trait ConverterService {
   val converterService: ConverterService
 
   class ConverterService extends LazyLogging {
-
-    def getHits(response: JestSearchResult): Seq[ArticleSummary] = {
-      var resultList = Seq[ArticleSummary]()
-      response.getTotal match {
-        case count: Integer if count > 0 => {
-          val resultArray = response.getJsonObject.get("hits").asInstanceOf[JsonObject].get("hits").getAsJsonArray
-          val iterator = resultArray.iterator()
-          while (iterator.hasNext) {
-            resultList = resultList :+ hitAsArticleSummary(iterator.next().asInstanceOf[JsonObject].get("_source").asInstanceOf[JsonObject])
-          }
-          resultList
-        }
-        case _ => Seq()
-      }
-    }
-
-    def hitAsArticleSummary(hit: JsonObject): ArticleSummary = {
-      ArticleSummary(
-        hit.get("id").getAsString,
-        hit.get("title").getAsJsonObject.entrySet.asScala.to[Seq].map(entr => api.ArticleTitle(entr.getValue.getAsString, entr.getKey)),
-        hit.get("visualElement").getAsJsonObject.entrySet.asScala.to[Seq].map(entr => api.VisualElement(entr.getValue.getAsString, entr.getKey)),
-        hit.get("introduction").getAsJsonObject.entrySet.asScala.to[Seq].map(entr => api.ArticleIntroduction(entr.getValue.getAsString, entr.getKey)),
-        ApplicationUrl.get + hit.get("id").getAsString,
-        hit.get("license").getAsString,
-        hit.get("articleType").getAsString
-      )
-    }
 
     def getHitsV2(response: JestSearchResult, language: String): Seq[ArticleSummaryV2] = {
       var resultList = Seq[ArticleSummaryV2]()
@@ -195,26 +168,6 @@ trait ConverterService {
       Copyright(license, origin, authorsExcludingOrigin)
     }
 
-    def toDomainArticle(newArticle: api.NewArticle): Article = {
-      Article(
-        id=None,
-        revision=None,
-        title=newArticle.title.map(toDomainTitle),
-        content=newArticle.content.map(toDomainContent),
-        copyright=toDomainCopyright(newArticle.copyright),
-        tags=newArticle.tags.map(toDomainTag),
-        requiredLibraries=newArticle.requiredLibraries.getOrElse(Seq()).map(toDomainRequiredLibraries),
-        visualElement=newArticle.visualElement.getOrElse(Seq()).map(toDomainVisualElement),
-        introduction=newArticle.introduction.getOrElse(Seq()).map(toDomainIntroduction),
-        metaDescription=newArticle.metaDescription.getOrElse(Seq()).map(toDomainMetaDescription),
-        metaImageId=newArticle.metaImageId,
-        created=clock.now(),
-        updated=clock.now(),
-        updatedBy=authUser.id(),
-        newArticle.articleType
-      )
-    }
-
     def toDomainArticle(newArticle: api.NewArticleV2): Article = {
       val domainTitle = Seq(ArticleTitle(newArticle.title, newArticle.language))
       val domainContent = Seq(ArticleContent(
@@ -245,7 +198,7 @@ trait ConverterService {
       ArticleTitle(articleTitle.title, articleTitle.language)
     }
 
-    def toDomainContent(articleContent: api.ArticleContent): ArticleContent = {
+    def toDomainContent(articleContent: api.ArticleContentV2): ArticleContent = {
       ArticleContent(removeUnknownEmbedTagAttributes(articleContent.content), articleContent.language)
     }
 
@@ -324,26 +277,6 @@ trait ConverterService {
       jsoupDocumentToString(document)
     }
 
-    def toApiArticle(article: Article): api.Article = {
-      api.Article(
-        article.id.get.toString,
-        article.id.flatMap(getLinkToOldNdla),
-        article.revision.get,
-        article.title.map(toApiArticleTitle),
-        article.content.map(toApiArticleContent),
-        toApiCopyright(article.copyright),
-        article.tags.map(toApiArticleTag),
-        article.requiredLibraries.map(toApiRequiredLibrary),
-        article.visualElement.map(toApiVisualElement),
-        article.introduction.map(toApiArticleIntroduction),
-        article.metaDescription.map(toApiArticleMetaDescription),
-        article.created,
-        article.updated,
-        article.updatedBy,
-        article.articleType
-      )
-    }
-
     def toApiArticleV2(article: Article, language: String): Option[api.ArticleV2] = {
       val supportedLanguages = getSupportedLanguages(
         Seq(article.title, article.visualElement, article.introduction, article.metaDescription, article.tags, article.content)
@@ -357,7 +290,7 @@ trait ConverterService {
       val title = findByLanguageOrBestEffort(article.title, language).map(toApiArticleTitle).getOrElse(api.ArticleTitle("", DefaultLanguage))
       val introduction = findByLanguageOrBestEffort(article.introduction, language).map(toApiArticleIntroduction)
       val visualElement = findByLanguageOrBestEffort(article.visualElement, language).map(toApiVisualElement)
-      val articleContent = findByLanguageOrBestEffort(article.content, language).map(toApiArticleContent).getOrElse(api.ArticleContent("", DefaultLanguage))
+      val articleContent = findByLanguageOrBestEffort(article.content, language).map(toApiArticleContentV2).getOrElse(api.ArticleContentV2("", DefaultLanguage))
 
 
       Some(api.ArticleV2(
@@ -382,12 +315,6 @@ trait ConverterService {
 
     def toApiArticleTitle(title: ArticleTitle): api.ArticleTitle = {
       api.ArticleTitle(title.title, title.language)
-    }
-
-    def toApiArticleContent(content: ArticleContent): api.ArticleContent = {
-      api.ArticleContent(
-        content.content,
-        content.language)
     }
 
     def toApiArticleContentV2(content: ArticleContent): api.ArticleContentV2 = {
@@ -434,30 +361,6 @@ trait ConverterService {
 
     def toApiArticleMetaDescription(metaDescription: ArticleMetaDescription): api.ArticleMetaDescription= {
       api.ArticleMetaDescription(metaDescription.content, metaDescription.language)
-    }
-
-    def toUpdatedArticle(updatedArticle: api.UpdatedArticleV2): api.UpdatedArticle = {
-      val title = updatedArticle.title.map(t => api.ArticleTitle(t, updatedArticle.language)).toSeq
-      val content = updatedArticle.content.map(c => api.ArticleContent(c, updatedArticle.language)).toSeq
-      val tags = Seq(api.ArticleTag(updatedArticle.tags, updatedArticle.language))
-      val introduction = updatedArticle.introduction.map(i => api.ArticleIntroduction(i, updatedArticle.language)).toSeq
-      val meta= updatedArticle.metaDescription.map(m => api.ArticleMetaDescription(m, updatedArticle.language)).toSeq
-      val vElement = updatedArticle.visualElement.map(v => api.VisualElement(v, updatedArticle.language)).toSeq
-      val reqLibraries = updatedArticle.requiredLibraries
-
-      api.UpdatedArticle(
-        title,
-        updatedArticle.revision,
-        content,
-        tags,
-        introduction,
-        meta,
-        updatedArticle.metaImageId,
-        vElement,
-        updatedArticle.copyright,
-        reqLibraries,
-        updatedArticle.articleType
-      )
     }
 
     def createLinkToOldNdla(nodeId: String): String = s"//red.ndla.no/node/$nodeId"

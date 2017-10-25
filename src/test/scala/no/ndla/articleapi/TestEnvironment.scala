@@ -32,7 +32,6 @@ trait TestEnvironment
     with IndexService
     with SearchService
     with LazyLogging
-    with ArticleController
     with ArticleControllerV2
     with InternController
     with HealthController
@@ -71,7 +70,6 @@ trait TestEnvironment
   val conceptIndexService = mock[ConceptIndexService]
 
   val internController = mock[InternController]
-  val articleController = mock[ArticleController]
   val articleControllerV2 = mock[ArticleControllerV2]
   val conceptController = mock[ConceptController]
 

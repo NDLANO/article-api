@@ -25,7 +25,7 @@ class InternControllerTest extends UnitSuite with TestEnvironment with ScalatraF
 
   val author = Author("forfatter", "Henrik")
   val sampleNode = NodeToConvert(List(sampleTitle), List(sampleContent), "by-sa", Seq(author), List(ArticleTag(List("tag"), "en")), "fagstoff", "fagstoff", new Date(0), new Date(1), ArticleType.Standard)
-  val sampleNode2 = sampleNode.copy(contents=List(sampleTranslationContent))
+  val sampleNode2 = sampleNode.copy(contents = List(sampleTranslationContent))
   lazy val controller = new InternController
   addServlet(controller, "/*")
 
@@ -46,7 +46,7 @@ class InternControllerTest extends UnitSuite with TestEnvironment with ScalatraF
     post(s"/import/$nodeId", "forceUpdate" -> "false") {
       status should equal(200)
       val convertedBody = read[ImportStatus](body)
-      convertedBody should equal (ImportStatus(s"Successfully imported node $nodeId: $newNodeId", Seq()))
+      convertedBody should equal(ImportStatus(s"Successfully imported node $nodeId: $newNodeId", Seq()))
     }
   }
 
@@ -60,18 +60,19 @@ class InternControllerTest extends UnitSuite with TestEnvironment with ScalatraF
 
   test("Test GET csv repport of illegal use of h tags in li elements") {
 
-    var test:Seq[ArticleIds] = Nil
+    var test: Seq[ArticleIds] = Nil
     when(articleRepository.getAllIds()).thenReturn(Seq(ArticleIds(1, None)))
-    when(readService.articleWithId(1L)).thenReturn(Some(TestData.apiArticleWithHtmlFault)) //thenReturn(Some(TestData.newArticle))
-      get(s"/reports/headerElementsInLists"){
-        status should equal(200)
-        //Very end of line sensitive, do not adjust code with your IDE!
-        body should equal("""artikkel id;feil funnet
+    when(articleRepository.withId(1L)).thenReturn(Some(TestData.sampleDomainArticleWithHtmlFault)) //thenReturn(Some(TestData.newArticle))
+    get(s"/reports/headerElementsInLists") {
+      status should equal(200)
+      //Very end of line sensitive, do not adjust code with your IDE!
+      body should equal(
+        """artikkel id;feil funnet
 1;"html element <h4>Det er ikke lov å gjøre dette.</h4> er ikke lov inni: [<li><h4>Det er ikke lov å gjøre dette.</h4></li>]"
 1;"html element <h3>Det er ikke lov å gjøre dette.</h3> er ikke lov inni: [<li><h3>Det er ikke lov å gjøre dette.</h3></li>]"
 1;"html element <h2>Det er ikke lov å gjøre dette.</h2> er ikke lov inni: [<li><h2>Det er ikke lov å gjøre dette.</h2></li>]"
 1;"html element <h1>Det er ikke lov å gjøre dette.</h1> er ikke lov inni: [<li><h1>Det er ikke lov å gjøre dette.</h1> Tekst utenfor.</li>]"""")
-      }
+    }
   }
 
 }

@@ -30,7 +30,7 @@ object TestData {
     oldNdlaUrl = None,
     revision=1,
     title=api.ArticleTitle("title", "nb"),
-    content=api.ArticleContent("this is content", "nb"),
+    content=api.ArticleContentV2("this is content", "nb"),
     copyright = api.Copyright(api.License("licence", None, None), "origin", Seq(api.Author("developer", "Per"))),
     tags = api.ArticleTag(Seq("tag"), "nb"),
     requiredLibraries = Seq(api.RequiredLibrary("JS", "JavaScript", "url")),
@@ -67,36 +67,18 @@ object TestData {
                       |      "language": "nn"
                       |    }
                       |  ],
-                      |  "url": "http://localhost:30002/article-api/v1/articles/4",
+                      |  "url": "http://localhost:30002/article-api/v2/articles/4",
                       |  "license": "by-sa",
                       |  "articleType": "standard"
                       |}
                     """.stripMargin
-
-  val sampleArticle = api.Article(
-    articleId.toString,
-    Some(s"//red.ndla.no/node/$externalId"),
-    2,
-    Seq(api.ArticleTitle("title", "nb")),
-    Seq(api.ArticleContent("content", "nb")),
-    api.Copyright(api.License("by", Some("Creative Commons Attribution 2.0 Generic"), Some("https://creativecommons.org/licenses/by/2.0/")), "", Seq()),
-    Seq(),
-    Seq(),
-    Seq(),
-    Seq(),
-    Seq(api.ArticleMetaDescription("meta description", "nb")),
-    today,
-    today,
-    "ndalId54321",
-    "standard"
-  )
 
   val apiArticleV2 = api.ArticleV2(
     articleId,
     Some(s"//red.ndla.no/node/$externalId"),
     2,
     api.ArticleTitle("title", "nb"),
-    api.ArticleContent("content", "nb"),
+    api.ArticleContentV2("content", "nb"),
     api.Copyright(api.License("by", Some("Creative Commons Attribution 2.0 Generic"), Some("https://creativecommons.org/licenses/by/2.0/")), "", Seq()),
     api.ArticleTag(Seq(), "nb"),
     Seq(),
@@ -200,19 +182,6 @@ object TestData {
     ArticleType.Standard.toString
   )
 
-  val newArticle = api.NewArticle(
-    Seq(api.ArticleTitle("test", "en")),
-    Seq(api.ArticleContent("<article><div>test</div></article>", "en")),
-    Seq(),
-    None,
-    None,
-    None,
-    None,
-    api.Copyright(api.License("publicdomain", None, None), "", Seq()),
-    None,
-    "standard"
-  )
-
   val newArticleV2 = api.NewArticleV2(
     "test",
     "<article><div>test</div></article>",
@@ -230,41 +199,27 @@ object TestData {
   val sampleArticleWithByNcSa = sampleArticleWithPublicDomain.copy(copyright=byNcSaCopyright)
   val sampleArticleWithCopyrighted = sampleArticleWithPublicDomain.copy(copyright=copyrighted )
 
-  val updatedArticle = api.UpdatedArticle(
-    Seq(api.ArticleTitle("test", "en")),
-    1,
-    Seq(api.ArticleContent("<section><div>test</div></section>", "en")),
-    Seq.empty,
-    Seq.empty,
-    Seq.empty,
+  val sampleDomainArticleWithHtmlFault = Article(
+    Option(articleId),
+    Option(2),
+    Seq(ArticleTitle("test", "en")),
+    Seq(ArticleContent(
+    """<ul><li><h1>Det er ikke lov å gjøre dette.</h1> Tekst utenfor.</li><li>Dette er helt ok</li></ul>
+      |<ul><li><h2>Det er ikke lov å gjøre dette.</h2></li><li>Dette er helt ok</li></ul>
+      |<ol><li><h3>Det er ikke lov å gjøre dette.</h3></li><li>Dette er helt ok</li></ol>
+      |<ol><li><h4>Det er ikke lov å gjøre dette.</h4></li><li>Dette er helt ok</li></ol>
+    """.stripMargin, "en")),
+    Copyright("publicdomain", "", Seq()),
+    Seq(),
+    Seq(),
+    Seq(),
+    Seq(),
+    Seq(ArticleMetaDescription("meta description", "nb")),
     None,
-    Seq.empty,
-    Some(api.Copyright(api.License("publicdomain", None, None), "", Seq.empty)),
-    Seq.empty,
-    Some("standard")
-  )
-
-  val apiArticleWithHtmlFault = api.Article(
-    "1",
-    None,
-    1,
-    Seq(api.ArticleTitle("test", "en")),
-    Seq(api.ArticleContent(
-      """<ul><li><h1>Det er ikke lov å gjøre dette.</h1> Tekst utenfor.</li><li>Dette er helt ok</li></ul>
-        |<ul><li><h2>Det er ikke lov å gjøre dette.</h2></li><li>Dette er helt ok</li></ul>
-        |<ol><li><h3>Det er ikke lov å gjøre dette.</h3></li><li>Dette er helt ok</li></ol>
-        |<ol><li><h4>Det er ikke lov å gjøre dette.</h4></li><li>Dette er helt ok</li></ol>
-      """.stripMargin, "en")),
-    api.Copyright(api.License("publicdomain", None, None), "", Seq()),
-    Nil,
-    Nil,
-    Nil,
-    Nil,
-    Nil,
-    DateTime.now().minusDays(4).toDate,
-    DateTime.now().minusDays(2).toDate,
+    today,
+    today,
     "ndalId54321",
-    "standard"
+    ArticleType.Standard.toString
   )
 
   val apiArticleWithHtmlFaultV2 = api.ArticleV2(
@@ -272,7 +227,7 @@ object TestData {
     None,
     1,
     api.ArticleTitle("test", "en"),
-    api.ArticleContent(
+    api.ArticleContentV2(
       """<ul><li><h1>Det er ikke lov å gjøre dette.</h1> Tekst utenfor.</li><li>Dette er helt ok</li></ul>
         |<ul><li><h2>Det er ikke lov å gjøre dette.</h2></li><li>Dette er helt ok</li></ul>
         |<ol><li><h3>Det er ikke lov å gjøre dette.</h3></li><li>Dette er helt ok</li></ol>

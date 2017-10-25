@@ -10,7 +10,7 @@ package no.ndla.articleapi.service
 
 import no.ndla.articleapi.auth.User
 import no.ndla.articleapi.model.api
-import no.ndla.articleapi.model.api.{ArticleV2, NotFoundException}
+import no.ndla.articleapi.model.api.{ArticleContentV2, ArticleV2, NotFoundException}
 import no.ndla.articleapi.model.domain._
 import no.ndla.articleapi.repository.ArticleRepository
 import no.ndla.articleapi.service.search.ArticleIndexService
@@ -23,17 +23,6 @@ trait WriteService {
   val writeService: WriteService
 
   class WriteService {
-    def newArticle(newArticle: api.NewArticle): Try[api.Article] = {
-      val domainArticle = converterService.toDomainArticle(newArticle)
-      contentValidator.validateArticle(domainArticle, false) match {
-        case Success(_) =>
-          val article = articleRepository.insert(domainArticle)
-          articleIndexService.indexDocument(article)
-          Success(converterService.toApiArticle(article))
-        case Failure(exception) => Failure(exception)
-      }
-    }
-
     def newArticleV2(newArticle: api.NewArticleV2): Try[ArticleV2] = {
       val domainArticle = converterService.toDomainArticle(newArticle)
       contentValidator.validateArticle(domainArticle, false) match {
@@ -56,26 +45,29 @@ trait WriteService {
       (toKeep ++ updated).filterNot(_.tags.isEmpty)
     }
 
-    private def updateArticle(articleId: Long, updatedApiArticle: api.UpdatedArticle): Try[Article] = {
+    private def _updateArticleV2(articleId: Long, updatedApiArticle: api.UpdatedArticleV2): Try[Article] = {
       articleRepository.withId(articleId) match {
         case None => Failure(NotFoundException(s"Article with id $articleId does not exist"))
         case Some(existing) => {
+          val lang = updatedApiArticle.language
+
           val toUpdate = existing.copy(
             revision = Option(updatedApiArticle.revision),
-            title = mergeLanguageFields(existing.title, updatedApiArticle.title.map(converterService.toDomainTitle)),
-            content = mergeLanguageFields(existing.content, updatedApiArticle.content.map(converterService.toDomainContent)),
-            copyright = updatedApiArticle.copyright.map(converterService.toDomainCopyright).getOrElse(existing.copyright),
-            tags = mergeTags(existing.tags, updatedApiArticle.tags.map(converterService.toDomainTag)),
+            title = mergeLanguageFields(existing.title, updatedApiArticle.title.toSeq.map(t => converterService.toDomainTitle(api.ArticleTitle(t, lang)))),
+            content = mergeLanguageFields(existing.content, updatedApiArticle.content.toSeq.map(c => converterService.toDomainContent(api.ArticleContentV2(c, lang)))),
+            copyright = updatedApiArticle.copyright.map(c => converterService.toDomainCopyright(c)).getOrElse(existing.copyright),
+            tags = mergeTags(existing.tags, converterService.toDomainTagV2(updatedApiArticle.tags, lang)),
             requiredLibraries = updatedApiArticle.requiredLibraries.map(converterService.toDomainRequiredLibraries),
-            visualElement = mergeLanguageFields(existing.visualElement, updatedApiArticle.visualElement.map(converterService.toDomainVisualElement)),
-            introduction = mergeLanguageFields(existing.introduction, updatedApiArticle.introduction.map(converterService.toDomainIntroduction)),
-            metaDescription = mergeLanguageFields(existing.metaDescription, updatedApiArticle.metaDescription.map(converterService.toDomainMetaDescription)),
-            metaImageId = if(updatedApiArticle.metaImageId.isDefined) updatedApiArticle.metaImageId else existing.metaImageId,
+            visualElement = mergeLanguageFields(existing.visualElement, updatedApiArticle.visualElement.map(c => converterService.toDomainVisualElementV2(Some(c), lang)).getOrElse(Seq())),
+            introduction = mergeLanguageFields(existing.introduction, updatedApiArticle.introduction.map(i => converterService.toDomainIntroductionV2(Some(i), lang)).getOrElse(Seq())),
+            metaDescription = mergeLanguageFields(existing.metaDescription, updatedApiArticle.metaDescription.map(m => converterService.toDomainMetaDescriptionV2(Some(m), lang)).getOrElse(Seq())),
+            metaImageId = if (updatedApiArticle.metaImageId.isDefined) updatedApiArticle.metaImageId else existing.metaImageId,
             updated = clock.now(),
             updatedBy = authUser.id()
           )
+
           for {
-            _ <- contentValidator.validateArticle(toUpdate, true)
+            _ <- contentValidator.validateArticle(toUpdate, allowUnknownLanguage = true)
             article <- articleRepository.update(toUpdate)
             _ <- articleIndexService.indexDocument(article)
           } yield readService.addUrlsOnEmbedResources(article)
@@ -83,14 +75,9 @@ trait WriteService {
       }
     }
 
-    def updateArticleV1(articleId: Long, updatedApiArticle: api.UpdatedArticle): Try[api.Article] = {
-      updateArticle(articleId, updatedApiArticle).map(converterService.toApiArticle)
-    }
-
     def updateArticleV2(articleId: Long, updatedApiArticle: api.UpdatedArticleV2): Try[api.ArticleV2] = {
-      val v1UpdatedArticle = converterService.toUpdatedArticle(updatedApiArticle)
-      updateArticle(articleId, v1UpdatedArticle).map(article => converterService.toApiArticleV2(article, updatedApiArticle.language).get)
+      _updateArticleV2(articleId, updatedApiArticle).map(article => converterService.toApiArticleV2(article, updatedApiArticle.language).get)
     }
-
   }
+
 }

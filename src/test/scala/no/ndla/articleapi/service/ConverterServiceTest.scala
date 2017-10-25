@@ -250,12 +250,6 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     result.requiredLibraries.isEmpty should equal (true)
   }
 
-  test("toDomainArticle convert a NewArticle to Article") {
-    service.toDomainArticle(TestData.newArticle) should equal(
-      TestData.sampleDomainArticle2.copy(created=clock.now, updated=clock.now, updatedBy=null)
-    )
-  }
-
   test("toDomainArticle convert a NewArticleV2 to Article") {
     service.toDomainArticle(TestData.newArticleV2) should equal(
       TestData.sampleDomainArticle2.copy(created=clock.now, updated=clock.now, updatedBy=null)
@@ -282,11 +276,6 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     service.toApiLicense("by") should equal(api.License("by", Some("Creative Commons Attribution 2.0 Generic"), Some("https://creativecommons.org/licenses/by/2.0/")))
   }
 
-  test("toApiArticle converts a domain.Article to an api.Article") {
-    when(articleRepository.getExternalIdFromId(TestData.articleId)).thenReturn(Some(TestData.externalId))
-    service.toApiArticle(TestData.sampleDomainArticle) should equal(TestData.sampleArticle)
-  }
-
   test("toApiArticleV2 converts a domain.Article to an api.ArticleV2") {
     when(articleRepository.getExternalIdFromId(TestData.articleId)).thenReturn(Some(TestData.externalId))
     service.toApiArticleV2(TestData.sampleDomainArticle, "nb") should equal(Some(TestData.apiArticleV2))
@@ -303,9 +292,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     val expectedContent = s"""<h1>hello</h1><embed ${Attributes.DataResource}="${ResourceType.Image}">"""
     val visualElement = s"""<embed ${Attributes.DataResource}="${ResourceType.Image}" ${Attributes.DataUrl}="http://some-url" data-random="hehe" />"""
     val expectedVisualElement = s"""<embed ${Attributes.DataResource}="${ResourceType.Image}">"""
-    val articleContent = api.ArticleContent(content, "en")
-    val articleVisualElement = api.VisualElement(visualElement, "en")
-    val apiArticle = TestData.newArticle.copy(content=Seq(articleContent), visualElement=Some(Seq(articleVisualElement)))
+    val apiArticle = TestData.newArticleV2.copy(content=content, visualElement=Some(visualElement))
 
     val result = service.toDomainArticle(apiArticle)
     result.content.head.content should equal (expectedContent)
