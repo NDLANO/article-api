@@ -39,7 +39,7 @@ trait ImageConverterModule {
     }
 
     def toImageEmbed(nodeId: String, caption: String, align: String, size: String, altText: String): Try[String] = {
-      imageApiClient.importOrGetMetaByExternId(nodeId) match {
+      imageApiClient.importImage(nodeId) match {
         case Some(image) =>
           Success(HtmlTagGenerator.buildImageEmbedContent(caption, image.id, align, size, altText))
         case None =>

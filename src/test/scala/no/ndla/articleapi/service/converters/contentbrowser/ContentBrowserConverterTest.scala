@@ -53,7 +53,7 @@ class ContentBrowserConverterTest extends UnitSuite with TestEnvironment {
           |</article>""".stripMargin.replace("\n", "")
 
     when(extractService.getNodeType(nodeId)).thenReturn(Some("image"))
-    when(imageApiClient.importOrGetMetaByExternId(nodeId)).thenReturn(Some(imageMeta))
+    when(imageApiClient.importImage(nodeId)).thenReturn(Some(imageMeta))
     val Success((result, _)) = contentBrowserConverter.convert(sampleContent, ImportStatus(Seq(), Seq()))
 
     result.content should equal (expectedResult)
