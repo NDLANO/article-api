@@ -26,7 +26,7 @@ trait MigrationApiClient {
   val migrationApiClient: MigrationApiClient
 
   class MigrationApiClient {
-    val CMSourceEnvironments = "prod" :: "brukertest" :: Nil
+    val CMSourceEnvironments = "prod" :: Nil
     val DBSource = if (CMSourceEnvironments.contains(Environment)) "cm" else "red"
     private val ContentMigrationBaseEndpoint = s"$MigrationHost/contents"
     private val ContentDataEndpoint = s"$ContentMigrationBaseEndpoint/:node_id" ? (s"db-source" -> s"$DBSource")
