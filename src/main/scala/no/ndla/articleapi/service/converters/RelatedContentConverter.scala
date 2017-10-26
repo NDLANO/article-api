@@ -12,16 +12,18 @@ import no.ndla.articleapi.integration.ConverterModule.{jsoupDocumentToString, st
 import no.ndla.articleapi.integration.{ConverterModule, LanguageContent, MigrationApiClient}
 import no.ndla.articleapi.model.api.ImportException
 import no.ndla.articleapi.model.domain.{Article, Concept, ImportStatus}
-import no.ndla.articleapi.service.ExtractConvertStoreContent
-
+import no.ndla.articleapi.service.{ExtractConvertStoreContent, ExtractService}
+import no.ndla.articleapi.ArticleApiProperties.supportedContentTypes
 import scala.util.{Failure, Success, Try}
 
 trait RelatedContentConverter {
-  this: ExtractConvertStoreContent with HtmlTagGenerator with MigrationApiClient with LazyLogging =>
+  this: ExtractConvertStoreContent with HtmlTagGenerator with MigrationApiClient with LazyLogging with ExtractService =>
 
   object RelatedContentConverter extends ConverterModule {
     override def convert(content: LanguageContent, importStatus: ImportStatus): Try[(LanguageContent, ImportStatus)] = {
-      val nids = content.relatedContent.map(_.nid).toSet
+      val nids = content.relatedContent
+        .filter(related => supportedContentTypes.contains(extractService.getNodeType(related.nid).getOrElse("unknown")))
+        .map(_.nid).toSet
 
       if (nids.isEmpty) {
         Success(content, importStatus)
@@ -36,7 +38,6 @@ trait RelatedContentConverter {
       }
 
     }
-
   }
 
   private def importRelatedContent(relatedNids: Set[String]): Try[String] = {

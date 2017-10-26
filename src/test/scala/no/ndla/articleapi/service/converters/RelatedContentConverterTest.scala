@@ -23,6 +23,11 @@ class RelatedContentConverterTest extends UnitSuite with TestEnvironment {
   val relatedContent2 = MigrationRelatedContent("5678", "Palma", "uri", 1)
   val languageContent = TestData.sampleContent.copy(relatedContent = Seq(relatedContent1, relatedContent2))
 
+  override def beforeEach() {
+    when(extractService.getNodeType("1234")).thenReturn(Some("fagstoff"))
+    when(extractService.getNodeType("5678")).thenReturn(Some("fagstoff"))
+  }
+
   test("convert should insert a new section with an related-content embed tag") {
     val origContent = "<section><h1>hmm</h1></section>"
 
@@ -48,5 +53,17 @@ class RelatedContentConverterTest extends UnitSuite with TestEnvironment {
 
     val Success((result, _)) = RelatedContentConverter.convert(languageContent.copy(content=origContent, relatedContent=Seq.empty), ImportStatus.empty)
     result.content should equal (origContent)
+  }
+
+  test("convert should not add related nodes of unsupported types") {
+    val origContent = "<section><h1>hmm</h1></section>"
+
+    when(extractService.getNodeType("5678")).thenReturn(Some("link"))
+    when(extractConvertStoreContent.processNode("1234")).thenReturn(Success((TestData.sampleArticleWithByNcSa.copy(id=Some(1)), ImportStatus.empty)))
+
+    val expectedContent = origContent + s"""<section><$resourceHtmlEmbedTag $DataArticleIds="1" $DataResource="$RelatedContent"></section>"""
+
+    val Success((result, _)) = RelatedContentConverter.convert(languageContent.copy(content=origContent), ImportStatus.empty)
+    result.content should equal (expectedContent)
   }
 }
