@@ -53,7 +53,7 @@ trait ImageApiClient {
   }
 }
 
-case class ImageMetaInformation(id:String, titles:List[ImageTitle], alttexts:List[ImageAltText], imageUrl:String, size:Int, contentType:String, copyright: ImageCopyright, tags:List[ImageTag])
+case class ImageMetaInformation(id:String, titles:List[ImageTitle], alttexts:List[ImageAltText], imageUrl:String, size:Int, contentType:String, copyright: ImageCopyright, tags: ImageTag)
 case class ImageCopyright(license: ImageLicense, origin: String, authors: Seq[Author])
 case class ImageLicense(license: String, description: String, url: Option[String])
 case class ImageTitle(title:String, language:Option[String])

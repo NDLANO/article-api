@@ -261,7 +261,7 @@ object TestData {
     1024,
     "application/jpeg",
     ImageCopyright(ImageLicense("by", "Creative Commons", None), "pix", Seq.empty),
-    List(ImageTag(Seq("sample tag"), Some("nb"))))
+    ImageTag(Seq("sample tag"), Some("nb")))
 
   val sampleConcept = Concept(
     Some(1),

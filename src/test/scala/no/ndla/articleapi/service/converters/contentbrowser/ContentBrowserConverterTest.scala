@@ -11,7 +11,7 @@ package no.ndla.articleapi.service.converters.contentbrowser
 
 import no.ndla.articleapi.ArticleApiProperties._
 import no.ndla.articleapi.{TestData, TestEnvironment, UnitSuite}
-import no.ndla.articleapi.integration.{ImageCopyright, ImageLicense, ImageMetaInformation}
+import no.ndla.articleapi.integration.{ImageCopyright, ImageLicense, ImageMetaInformation, ImageTag}
 import no.ndla.articleapi.model.domain._
 import org.mockito.Mockito._
 
@@ -46,7 +46,7 @@ class ContentBrowserConverterTest extends UnitSuite with TestEnvironment {
   test("That Content-browser strings of type image are converted into HTML img tags") {
     val (nodeId, imageUrl, alt) = ("1234", "full.jpeg", "Fotografi")
     val newId = "1"
-    val imageMeta = ImageMetaInformation(newId, List(), List(), imageUrl, 256, "", ImageCopyright(ImageLicense("", "", Some("")), "", List()), List())
+    val imageMeta = ImageMetaInformation(newId, List(), List(), imageUrl, 256, "", ImageCopyright(ImageLicense("", "", Some("")), "", List()), ImageTag(List(), None))
     val expectedResult =
       s"""|<article>
           |<$resourceHtmlEmbedTag data-align="" data-alt="$alt" data-caption="" data-resource="image" data-resource_id="1" data-size="fullbredde">
