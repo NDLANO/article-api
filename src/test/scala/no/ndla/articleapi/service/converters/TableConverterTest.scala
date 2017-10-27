@@ -171,12 +171,12 @@ class TableConverterTest extends UnitSuite {
 
     val table2x3ExpectedResult =
       s"""<table>
-          |<thead>
+          |<tbody>
           |<tr>
-          |<th>column</th>
-          |<th><p>column</p><p>hey</p></th>
+          |<td>column</td>
+          |<td><p>column</p><p>hey</p></td>
           |</tr>
-          |</thead>
+          |</tbody>
           |</table>""".stripMargin.replace("\n", "")
 
     val initialContent = TestData.sampleContent.copy(content=table2x3)
@@ -190,8 +190,12 @@ class TableConverterTest extends UnitSuite {
       s"""<table>
           |<tbody>
           |<tr>
-          |<td>col 1</td>
-          |<td>col 2</td>
+          |<td><strong>col 1</strong></td>
+          |<td><strong>col 2</strong></td>
+          |</tr>
+          |<tr>
+          |<td>row 2</td>
+          |<td>row 2</td>
           |</tr>
           |</tbody>
           |</table>""".stripMargin.replace("\n", "")
@@ -204,6 +208,12 @@ class TableConverterTest extends UnitSuite {
           |<th>col 2</th>
           |</tr>
           |</thead>
+          |<tbody>
+          |<tr>
+          |<td>row 2</td>
+          |<td>row 2</td>
+          |</tr>
+          |</tbody>
           |</table>""".stripMargin.replace("\n", "")
 
     val initialContent = TestData.sampleContent.copy(content=table2x3)
