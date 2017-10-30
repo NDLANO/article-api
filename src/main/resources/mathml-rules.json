@@ -391,6 +391,12 @@
       "mathcolor",
       "id",
       "href"
+    ],
+    "msqrt": [
+      "id",
+      "href",
+      "mathbackground",
+      "mathcolor"
     ]
   }
 }
