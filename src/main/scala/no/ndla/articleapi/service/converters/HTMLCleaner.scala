@@ -229,7 +229,7 @@ trait HTMLCleaner {
       val minimumIngressWordCount = 3
       val firstSection = Option(el.select("body>section").first)
       val firstDivSection = Option(el.select("body>section:eq(0)>div").first)
-      val secondDivSection = Option(el.select("body>section:eq(0)>div:eq(0)>div").first)
+      val secondDivSection = Option(el.select("body>section:eq(0)>div:eq(0)>div:nth-child(1)").first)
 
       // Look for ingress according to the following priorities:
       //   1. first paragraph in first section, ei. <section><p> HERE </p></section>
@@ -307,7 +307,6 @@ trait HTMLCleaner {
         unwrapNestedDivs(firstChild)
       }
     }
-
 
     private def moveMisplacedAsideTags(element: Element) = {
       val aside = element.select("body>section:eq(0)>aside:eq(0)").asScala.headOption
