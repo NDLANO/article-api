@@ -45,7 +45,7 @@ trait HTMLCleaner {
       convertH3sToH2s(element)
       val finalCleanedDocument = allContentMustBeWrappedInSectionBlocks(element)
 
-      Success((content.copy(content=jsoupDocumentToString(finalCleanedDocument), metaDescription=metaDescription, ingress=ingress),
+      Success((content.copy(content = jsoupDocumentToString(finalCleanedDocument), metaDescription = metaDescription, ingress = ingress),
         importStatus.addMessages(illegalTags ++ illegalAttributes)))
     }
 
@@ -100,7 +100,7 @@ trait HTMLCleaner {
           sections(1).prepend(e.outerHtml())
           e.remove()
           sections.head.childNodeSize() match {
-            case x if x == 0  => sections.head.remove()
+            case x if x == 0 => sections.head.remove()
             case _ =>
           }
         case _ =>
@@ -113,11 +113,11 @@ trait HTMLCleaner {
         case Some(ingress) =>
           val imageEmbedHtml = ingress.ingressImage.flatMap(imageApiClient.importOrGetMetaByExternId)
             .map(imageMetaData => HtmlTagGenerator.buildImageEmbedContent(
-              caption="",
-              imageId=imageMetaData.id.toString,
-              align="",
-              size="",
-              altText=imageMetaData.alttexts.find(_.language==content.language).map(_.alttext).getOrElse("")))
+              caption = "",
+              imageId = imageMetaData.id.toString,
+              align = "",
+              size = "",
+              altText = imageMetaData.alttexts.find(_.language == content.language).map(_.alttext).getOrElse("")))
 
           imageEmbedHtml.map(element.prepend)
 
@@ -160,7 +160,7 @@ trait HTMLCleaner {
         child.nodeName() == "#comment" match {
           case true => child.remove()
           case false => {
-            i+= 1
+            i += 1
             removeComments(child)
           }
         }
@@ -211,7 +211,7 @@ trait HTMLCleaner {
           case Some(head) :: _ => Some(getAllIngressElements(head))
           case None :: Some(second) :: _ =>
             ps.head.select(">embed").first match {
-              case _ : Element => Some(getAllIngressElements(second))
+              case _: Element => Some(getAllIngressElements(second))
               case _ => None
             }
 
@@ -229,7 +229,7 @@ trait HTMLCleaner {
       val minimumIngressWordCount = 3
       val firstSection = Option(el.select("body>section").first)
       val firstDivSection = Option(el.select("body>section:eq(0)>div").first)
-      val secondDivSection = Option(el.select("body>section:eq(0)>div:eq(0)>div").first)
+      val secondDivSection = Option(el.select("body>section:eq(0)>div:eq(0)>div:nth-child(1)").first)
 
       // Look for ingress according to the following priorities:
       //   1. first paragraph in first section, ei. <section><p> HERE </p></section>
@@ -294,7 +294,7 @@ trait HTMLCleaner {
     private def unwrapDivsInAsideTags(element: Element): Element = {
       val asides = element.select("body>section>aside").asScala
       for (aside <- asides) {
-        if(aside.children.size == 1)
+        if (aside.children.size == 1)
           unwrapNestedDivs(aside.children.first)
       }
       element
@@ -307,7 +307,6 @@ trait HTMLCleaner {
         unwrapNestedDivs(firstChild)
       }
     }
-
 
     private def moveMisplacedAsideTags(element: Element) = {
       val aside = element.select("body>section:eq(0)>aside:eq(0)").asScala.headOption
@@ -355,9 +354,11 @@ trait HTMLCleaner {
     }
 
   }
+
 }
 
 object HTMLCleaner {
+
   object PermittedHTML {
     val attributes: Map[String, Seq[String]] = readAttributes
     val tags: Set[String] = readTags
@@ -366,7 +367,9 @@ object HTMLCleaner {
       implicit val formats = org.json4s.DefaultFormats
       parse(jsonStr).extract[Map[String, Any]]
     }
+
     private def htmlRulesJson: Map[String, Any] = convertJsonStr(Source.fromResource("html-rules.json").mkString)
+
     private def mathMLRulesJson: Map[String, Any] = convertJsonStr(Source.fromResource("mathml-rules.json").mkString)
 
     private def readAttributes: Map[String, Seq[String]] = {
