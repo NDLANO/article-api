@@ -391,6 +391,43 @@
       "mathcolor",
       "id",
       "href"
+    ],
+    "msqrt": [
+      "id",
+      "href",
+      "mathbackground",
+      "mathcolor"
+    ],
+    "merror": [
+      "id",
+      "href",
+      "mathbackground",
+      "mathcolor"
+    ],
+    "mphantom": [
+      "id",
+      "mathbackground"
+    ],
+    "mroot": [
+      "id",
+      "href",
+      "mathbackground",
+      "mathcolor"
+    ],
+    "semantics": [],
+    "annotation": [
+      "definitionURL",
+      "encoding",
+      "cd",
+      "name",
+      "src"
+    ],
+    "annotation-xml": [
+      "definitionURL",
+      "encoding",
+      "cd",
+      "name",
+      "src"
     ]
   }
 }

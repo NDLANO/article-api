@@ -54,8 +54,10 @@ object TableConverter extends ConverterModule {
   def convertFirstTrToTh(el: Element) = {
     for (table <- el.select("table").asScala) {
       Option(table.select("tr").first).foreach(firstRow => {
-        firstRow.select("td").tagName("th")
-        firstRow.select("strong").unwrap()
+        if(firstRow.select("strong").asScala.nonEmpty) {
+          firstRow.select("td").tagName("th")
+          firstRow.select("strong").unwrap()
+        }
       })
     }
   }

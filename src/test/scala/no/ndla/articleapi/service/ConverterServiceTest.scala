@@ -133,7 +133,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     val htmlTableWithAlignAttributes = """<section><table><tbody><tr><td align="right" valign="top">Table row cell</td></tr></tbody></table></section>"""
     val contentNodeBokmal = sampleLanguageContent.copy(content=htmlTableWithAlignAttributes)
     val node = sampleNode.copy(contents=List(contentNodeBokmal))
-    val expectedResult = """<section><table><thead><tr><th align="right" valign="top">Table row cell</th></tr></thead></table></section>"""
+    val expectedResult = """<section><table><tbody><tr><td align="right" valign="top">Table row cell</td></tr></tbody></table></section>"""
 
     val Success((result: Article, status)) = service.toDomainArticle(node, ImportStatus(Seq(), Seq()))
 
@@ -210,11 +210,11 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
 
     val tableExpectedResult =
       s"""<table>
-          |<thead>
+          |<tbody>
           |<tr>
-          |<th>column</th>
+          |<td>column</td>
           |</tr>
-          |</thead>
+          |</tbody>
           |</table>""".stripMargin.replace("\n", "")
 
     val initialContent: LanguageContent = sampleLanguageContent.copy(content=table)
