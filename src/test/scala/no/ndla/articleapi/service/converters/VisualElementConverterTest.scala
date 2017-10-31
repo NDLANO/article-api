@@ -15,7 +15,7 @@ class VisualElementConverterTest extends UnitSuite with TestEnvironment {
     val expectedResult = s"""<$resourceHtmlEmbedTag data-align="" data-alt="" data-caption="" data-resource="image" data-resource_id="1" data-size="" />"""
 
     when(extractService.getNodeType(nodeId)).thenReturn(Some("image"))
-    when(imageApiClient.importOrGetMetaByExternId(nodeId)).thenReturn(Some(TestData.sampleImageMetaInformation))
+    when(imageApiClient.importImage(nodeId)).thenReturn(Some(TestData.sampleImageMetaInformation))
     val Success((res, _)) = VisualElementConverter.convert(sampleArticle, ImportStatus.empty)
 
     res.visualElement should equal (Some(expectedResult))
@@ -23,7 +23,7 @@ class VisualElementConverterTest extends UnitSuite with TestEnvironment {
 
   test("Visual element of type image that cannot be found should return a Failure") {
     when(extractService.getNodeType(nodeId)).thenReturn(Some("image"))
-    when(imageApiClient.importOrGetMetaByExternId(nodeId)).thenReturn(None)
+    when(imageApiClient.importImage(nodeId)).thenReturn(None)
 
     VisualElementConverter.convert(sampleArticle, ImportStatus.empty).isFailure should be (true)
   }
