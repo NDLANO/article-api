@@ -224,7 +224,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
 
   test("MathML elements are converted correctly") {
     val originalContent = "<section><math><menclose notation=\"updiagonalstrike\"></menclose>\u00a0</math></section>"
-    val expectedContent = """<section><math xmlns="http://www.w3.org/1998/Math/MathML"><menclose notation="updiagonalstrike"></menclose> </math></section>"""
+    val expectedContent = """<section><p><math xmlns="http://www.w3.org/1998/Math/MathML"><menclose notation="updiagonalstrike"></menclose> </math></p></section>"""
     val initialContent: LanguageContent = sampleLanguageContent.copy(content=originalContent)
     val node = sampleNode.copy(contents=List(initialContent))
 
