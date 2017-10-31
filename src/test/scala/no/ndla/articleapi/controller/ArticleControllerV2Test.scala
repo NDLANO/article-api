@@ -9,12 +9,14 @@
 package no.ndla.articleapi.controller
 
 import no.ndla.articleapi.model.api._
+import no.ndla.articleapi.model.domain.{ArticleType, Language, SearchResult, Sort}
 import no.ndla.articleapi.{ArticleSwagger, TestData, TestEnvironment, UnitSuite}
 import org.scalatra.test.scalatest.ScalatraFunSuite
 import org.mockito.Mockito._
 import org.mockito.Matchers._
 import no.ndla.mapping.License.getLicenses
 import org.json4s.native.Serialization.read
+
 import scala.util.Success
 
 class ArticleControllerV2Test extends UnitSuite with TestEnvironment with ScalatraFunSuite {
@@ -148,6 +150,20 @@ class ArticleControllerV2Test extends UnitSuite with TestEnvironment with Scalat
       status should equal (200)
       val convertedBody = read[Set[License]](body)
       convertedBody should equal(allLicenses)
+    }
+  }
+
+  test("GET / should use size of id-list as page-size if defined") {
+    val searchMock = mock[SearchResult]
+    val searchResultMock = mock[io.searchbox.core.SearchResult]
+    when(articleSearchService.all(any[List[Long]], any[String], any[Option[String]], any[Int], any[Int], any[Sort.Value], any[Seq[String]]))
+      .thenReturn(searchMock)
+    when(searchMock.response).thenReturn(searchResultMock)
+    when(converterService.getHitsV2(searchResultMock, "nb")).thenReturn(Seq.empty)
+
+    get("/test/", "ids" -> "1,2,3,4", "page-size" -> "10", "language" -> "nb") {
+      status should equal (200)
+      verify(articleSearchService, times(1)).all(List(1, 2, 3, 4), Language.DefaultLanguage, None, 1, 4, Sort.ByTitleAsc, ArticleType.all)
     }
   }
 }
