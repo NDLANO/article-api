@@ -12,12 +12,14 @@ import no.ndla.articleapi.integration.ConverterModule.{jsoupDocumentToString, st
 import no.ndla.articleapi.integration.{ConverterModule, LanguageContent, MigrationApiClient}
 import no.ndla.articleapi.model.api.ImportException
 import no.ndla.articleapi.model.domain.{Article, Concept, ImportStatus}
-import no.ndla.articleapi.service.{ExtractConvertStoreContent, ExtractService}
+import no.ndla.articleapi.service.{ExtractConvertStoreContent, ExtractService, ReadService}
 import no.ndla.articleapi.ArticleApiProperties.supportedContentTypes
+import no.ndla.articleapi.repository.ArticleRepository
+
 import scala.util.{Failure, Success, Try}
 
 trait RelatedContentConverter {
-  this: ExtractConvertStoreContent with HtmlTagGenerator with MigrationApiClient with LazyLogging with ExtractService =>
+  this: ExtractConvertStoreContent with HtmlTagGenerator with MigrationApiClient with LazyLogging with ExtractService with ArticleRepository =>
 
   object RelatedContentConverter extends ConverterModule {
     override def convert(content: LanguageContent, importStatus: ImportStatus): Try[(LanguageContent, ImportStatus)] = {
@@ -26,9 +28,11 @@ trait RelatedContentConverter {
         .map(_.nid).toSet
 
       if (nids.isEmpty) {
-        Success(content, importStatus)
+        Success(content, importStatus.copy(importRelatedArticles = false))
       } else {
-        importRelatedContent(nids, importStatus) match {
+        val handlerFunc = if (importStatus.importRelatedArticles) importRelatedContent _ else getRelatedContentFromDb _
+
+        handlerFunc(nids, importStatus) match {
           case Success((relatedEmbed, status)) =>
             val element = stringToJsoupDocument(content.content)
             element.append(s"<section>$relatedEmbed</section>")
@@ -41,7 +45,7 @@ trait RelatedContentConverter {
   }
 
   private def importRelatedContent(relatedNids: Set[String], importStatus: ImportStatus): Try[(String, ImportStatus)] = {
-    val (importedArticles, updatedStatus) = relatedNids.foldLeft((Seq[Try[Article]](), importStatus))((result, nid) => {
+    val (importedArticles, updatedStatus) = relatedNids.foldLeft((Seq[Try[Article]](), importStatus.copy(importRelatedArticles = false)))((result, nid) => {
       val (articles, status) = result
 
       extractConvertStoreContent.processNode(nid, status) match {
@@ -66,6 +70,11 @@ trait RelatedContentConverter {
       logger.info(exceptionMsg)
       Failure(ImportException(exceptionMsg))
     }
+  }
+
+  private def getRelatedContentFromDb(nids: Set[String], importStatus: ImportStatus): Try[(String, ImportStatus)] = {
+    val ids = nids.map(articleRepository.getIdFromExternalId).flatten
+    Success((HtmlTagGenerator.buildRelatedContent(ids), importStatus))
   }
 
 }

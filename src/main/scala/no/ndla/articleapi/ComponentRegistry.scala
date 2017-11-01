@@ -115,7 +115,7 @@ object ComponentRegistry
 
   override lazy val articleConverter = ConverterPipeLine(
     mainConverters = List(contentBrowserConverter),
-    postProcessorConverters = List(SimpleTagConverter, TableConverter, MathMLConverter, RelatedContentConverter, htmlCleaner, VisualElementConverter)
+    postProcessorConverters = List(RelatedContentConverter, SimpleTagConverter, TableConverter, MathMLConverter, htmlCleaner, VisualElementConverter)
   )
   override lazy val conceptConverter = ConverterPipeLine(
     mainConverters = List(contentBrowserConverter),

@@ -68,7 +68,7 @@ trait ConceptRepository {
       sql"select id from ${Concept.table} where external_id=${externalId}".map(rs => rs.long("id")).single.apply()
 
     def exists(externalId: String): Boolean =
-      conceptWhere(sqls"co.external_id=$externalId").isDefined
+      getIdFromExternalId(externalId).isDefined
 
     def delete(id: Long)(implicit session: DBSession = AutoSession) =
       sql"delete from ${Concept.table} where id = $id".update().apply

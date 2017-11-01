@@ -9,9 +9,9 @@
 
 package no.ndla.articleapi.model.domain
 
-case class ImportStatus(messages: Seq[String], visitedNodes: Set[String] = Set(), articleId: Option[Long] = None) {
+case class ImportStatus(messages: Seq[String], visitedNodes: Set[String] = Set(), articleId: Option[Long] = None, importRelatedArticles: Boolean = true) {
   def ++(importStatus: ImportStatus): ImportStatus =
-    ImportStatus(messages ++ importStatus.messages, visitedNodes ++ importStatus.visitedNodes, importStatus.articleId)
+    ImportStatus(messages ++ importStatus.messages, visitedNodes ++ importStatus.visitedNodes, importStatus.articleId, importStatus.importRelatedArticles)
   def addMessage(message: String): ImportStatus = this.copy(messages = this.messages :+ message)
   def addMessages(messages: Seq[String]): ImportStatus = this.copy(messages = this.messages ++ messages)
   def addVisitedNode(nodeID: String): ImportStatus = this.copy(visitedNodes = this.visitedNodes + nodeID)
@@ -20,7 +20,7 @@ case class ImportStatus(messages: Seq[String], visitedNodes: Set[String] = Set()
 }
 
 object ImportStatus {
-  def empty = ImportStatus(Seq.empty, Set.empty, None)
+  def empty = ImportStatus(Seq.empty, Set.empty, None, true)
   def apply(message: String, visitedNodes: Set[String]): ImportStatus = ImportStatus(Seq(message), visitedNodes, None)
   def apply(importStatuses: Seq[ImportStatus]): ImportStatus = {
     val (messages, visitedNodes, articleIds) = importStatuses.map(x => (x.messages, x.visitedNodes, x.articleId)).unzip3

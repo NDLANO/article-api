@@ -62,7 +62,7 @@ class RelatedContentConverterTest extends UnitSuite with TestEnvironment {
     val origContent = "<section><h1>hmm</h1></section>"
 
     when(extractService.getNodeType("5678")).thenReturn(Some("link"))
-    when(extractConvertStoreContent.processNode("1234", ImportStatus.empty)).thenReturn(Success((TestData.sampleArticleWithByNcSa.copy(id=Some(1)), ImportStatus.empty)))
+    when(extractConvertStoreContent.processNode(any[String], any[ImportStatus], any[Boolean])).thenReturn(Success((TestData.sampleArticleWithByNcSa.copy(id=Some(1)), ImportStatus.empty)))
 
     val expectedContent = origContent + s"""<section><$resourceHtmlEmbedTag $DataArticleIds="1" $DataResource="$RelatedContent"></section>"""
 
