@@ -336,13 +336,13 @@ class HTMLCleanerTest extends UnitSuite with TestEnvironment {
     val content =
       s"""<section>
          |<$resourceHtmlEmbedTag data-size="fullbredde" data-url="http://image-api/images/5452" data-align="" data-resource="image" data-alt="Mobiltelefon sender SMS">
-         |<strong>Medievanene er i endring.</strong>
+         |<p><strong>Medievanene er i endring.</strong></p>
          |<h2>Mediehverdagen</h2>
          |</section>""".stripMargin.replace("\n", "")
     val expectedContentResult =
       s"""<section>
          |<$resourceHtmlEmbedTag data-size="fullbredde" data-url="http://image-api/images/5452" data-align="" data-resource="image" data-alt="Mobiltelefon sender SMS">
-         |<strong>Medievanene er i endring.</strong>
+         |<p><strong>Medievanene er i endring.</strong></p>
          |<h2>Mediehverdagen</h2>
          |</section>""".stripMargin.replace("\n", "")
 
@@ -357,17 +357,17 @@ class HTMLCleanerTest extends UnitSuite with TestEnvironment {
 
   }
 
-  test("That HTMLCleaner removes all tags in ingress from seperate table") {
+  test("That HTMLCleaner removes all tags in ingress from separate table") {
     val content =
       s"""<section>
          |<$resourceHtmlEmbedTag data-size="fullbredde" data-url="http://image-api/images/5452" data-align="" data-resource="image" data-alt="Mobiltelefon sender SMS">
-         |<strong>Medievanene er i endring.</strong>
+         |<p><strong>Medievanene er i endring.</strong></p>
          |<h2>Mediehverdagen</h2>
          |</section>""".stripMargin.replace("\n", "")
     val expectedContentResult =
       s"""<section>
          |<$resourceHtmlEmbedTag data-size="fullbredde" data-url="http://image-api/images/5452" data-align="" data-resource="image" data-alt="Mobiltelefon sender SMS">
-         |<strong>Medievanene er i endring.</strong>
+         |<p><strong>Medievanene er i endring.</strong></p>
          |<h2>Mediehverdagen</h2>
          |</section>""".stripMargin.replace("\n", "")
 
