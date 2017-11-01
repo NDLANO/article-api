@@ -182,6 +182,9 @@ trait HTMLCleaner {
       element
     }
 
+    // Since jsoup does not provide a way to remove &nbsp; from a tag, but not its children
+    // We first replace it with a placeholder to then replace replace the placeholder with &nbsp;
+    // in tags where nbsp's are allowed.
     private def removeNbsp(el: Element) {
       el.select("*").select("mo").asScala.foreach(mo => if (mo.html().equals(NBSP)) mo.html("[mathspace]"))
       el.html(el.html().replace(NBSP, ""))
