@@ -28,11 +28,11 @@ trait RelatedContentConverter {
       if (nids.isEmpty) {
         Success(content, importStatus)
       } else {
-        importRelatedContent(nids) match {
-          case Success(relatedEmbed) =>
+        importRelatedContent(nids, importStatus) match {
+          case Success((relatedEmbed, status)) =>
             val element = stringToJsoupDocument(content.content)
             element.append(s"<section>$relatedEmbed</section>")
-            Success(content.copy(content = jsoupDocumentToString(element)), importStatus)
+            Success(content.copy(content = jsoupDocumentToString(element)), status)
           case Failure(ex) => Failure(ex)
         }
       }
@@ -40,15 +40,25 @@ trait RelatedContentConverter {
     }
   }
 
-  private def importRelatedContent(relatedNids: Set[String]): Try[String] = {
-    val (importSuccesses, importFailures) = relatedNids.map(nid => extractConvertStoreContent.processNode(nid)).map {
-      case Success((content: Article, _)) => Success(content.id.get)
-      case Success((_: Concept, _)) => Failure(ImportException("Related content points to a concept. This should not be legal, no?"))
-      case Failure(ex) => Failure(ex)
-    }.partition(_.isSuccess)
+  private def importRelatedContent(relatedNids: Set[String], importStatus: ImportStatus): Try[(String, ImportStatus)] = {
+    val (importedArticles, updatedStatus) = relatedNids.foldLeft((Seq[Try[Article]](), importStatus))((result, nid) => {
+      val (articles, status) = result
+
+      extractConvertStoreContent.processNode(nid, status) match {
+        case Success((content: Article, st)) =>
+          (articles :+ Success(content), st)
+        case Success((_: Concept, _)) =>
+          (articles :+ Failure(ImportException("Related content points to a concept. This should not be legal, no?")), status)
+        case Failure(ex) =>
+          (articles :+ Failure(ex), status)
+      }
+    })
+
+    val (importSuccesses, importFailures) = importedArticles.partition(_.isSuccess)
 
     if (importFailures.isEmpty) {
-      Success(HtmlTagGenerator.buildRelatedContent(importSuccesses.map(_.get)))
+      val ids = importSuccesses.map(_.get.id.get).toSet
+      Success(HtmlTagGenerator.buildRelatedContent(ids), updatedStatus)
     } else {
       val importErrorMsgs = importFailures.map(_.failed.get.getMessage).mkString(", ")
       val exceptionMsg = s"Failed to import one or more related contents: $importErrorMsgs"
