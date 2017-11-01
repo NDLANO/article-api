@@ -25,12 +25,16 @@ object MathMLConverter extends ConverterModule {
     addMathMlAttributes(element)
     replaceNbsp(element)
 
-    Success(content.copy(content=jsoupDocumentToString(element)), importStatus)
+    Success(content.copy(content = jsoupDocumentToString(element)), importStatus)
   }
 
   def addMathMlAttributes(el: Element) = {
     el.select("math").asScala.foreach(e => e.attr(s"$XMLNsAttribute", "http://www.w3.org/1998/Math/MathML"))
   }
 
-  def replaceNbsp(el: Element) = el.html(el.html().replace(NBSP, " "))
+  def replaceNbsp(el: Element) {
+    el.select("*").select("mo").asScala.foreach(mo => if (mo.html().equals(NBSP)) mo.html("[mathspace]"))
+    el.html(el.html().replace(NBSP, " "))
+    el.select("*").select("mo").asScala.foreach(mo => if (mo.html().equals("[mathspace]")) mo.html(NBSP))
+  }
 }

@@ -40,4 +40,13 @@ class MathMLConverterTest extends UnitSuite with TestEnvironment {
     result.content should equal (expectedContent)
   }
 
+  test("nbsp in MathML <mo> tags should not be converted to space if only nbsp") {
+    val originalContent = "<math>\u00a0<mo>\u00a0</mo></math>"
+    val expectedContent = "<math xmlns=\"http://www.w3.org/1998/Math/MathML\"> <mo>&#xa0;</mo></math>"
+    val content = TestData.sampleContent.copy(content=originalContent)
+    val Success((result, _)) = MathMLConverter.convert(content, defaultImportStatus)
+
+    result.content should equal (expectedContent)
+  }
+
 }

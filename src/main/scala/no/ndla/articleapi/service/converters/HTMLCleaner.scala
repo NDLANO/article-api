@@ -183,7 +183,9 @@ trait HTMLCleaner {
     }
 
     private def removeNbsp(el: Element) {
+      el.select("*").select("mo").asScala.foreach(mo => if (mo.html().equals(NBSP)) mo.html("[mathspace]"))
       el.html(el.html().replace(NBSP, ""))
+      el.select("*").select("mo").asScala.foreach(mo => if (mo.html().equals("[mathspace]")) mo.html(NBSP))
     }
 
     // A paragraph containing an ingress can also be split up into mulitple strong-tags
