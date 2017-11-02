@@ -324,25 +324,25 @@ class ArticleSearchServiceTest extends UnitSuite with TestEnvironment {
   }
 
   test("Searching with logical AND only returns results with all terms") {
-    val search1 = articleSearchService.matchingQuery("bilde AND bil", List(), "nb", None, 1, 10, Sort.ByTitleAsc, Seq.empty)
+    val search1 = articleSearchService.matchingQuery("bilde+bil", List(), "nb", None, 1, 10, Sort.ByTitleAsc, Seq.empty)
     val hits1 = converterService.getHitsV2(search1.response, Language.DefaultLanguage)
     hits1.map(_.id) should equal (Seq(1, 3, 5))
 
-    val search2 = articleSearchService.matchingQuery("batmen AND bil", List(), "nb", None, 1, 10, Sort.ByTitleAsc, Seq.empty)
+    val search2 = articleSearchService.matchingQuery("batmen+bil", List(), "nb", None, 1, 10, Sort.ByTitleAsc, Seq.empty)
     val hits2 = converterService.getHitsV2(search1.response, Language.DefaultLanguage)
     hits2.map(_.id) should equal (Seq(1))
 
-    val search3 = articleSearchService.matchingQuery("bil AND bilde AND NOT flaggermusmann", List(), "nb", None, 1, 10, Sort.ByTitleAsc, Seq.empty)
+    val search3 = articleSearchService.matchingQuery("bil+bilde  -flaggermusmann", List(), "nb", None, 1, 10, Sort.ByTitleAsc, Seq.empty)
     val hits3 = converterService.getHitsV2(search1.response, Language.DefaultLanguage)
     hits3.map(_.id) should equal (Seq(3, 5))
 
-    val search4 = articleSearchService.matchingQuery("bil AND NOT hulken", List(), "nb", None, 1, 10, Sort.ByTitleAsc, Seq.empty)
+    val search4 = articleSearchService.matchingQuery("bil -hulken", List(), "nb", None, 1, 10, Sort.ByTitleAsc, Seq.empty)
     val hits4 = converterService.getHitsV2(search1.response, Language.DefaultLanguage)
     hits4.map(_.id) should equal (Seq(1, 3))
   }
 
   test("search in content should be ranked lower than introduction and title") {
-    val search = articleSearchService.matchingQuery("mareritt + ragnarok", List(), "nb", None, 1, 10, Sort.ByRelevanceDesc, Seq.empty)
+    val search = articleSearchService.matchingQuery("mareritt+ragnarok", List(), "nb", None, 1, 10, Sort.ByRelevanceDesc, Seq.empty)
     val hits = converterService.getHitsV2(search.response, Language.DefaultLanguage)
     hits.map(_.id) should equal (Seq(9, 8))
   }
