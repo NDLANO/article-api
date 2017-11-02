@@ -5,7 +5,7 @@ import java.io.File
 import no.ndla.articleapi.integration.JestClientFactory
 import no.ndla.articleapi.model.domain._
 import no.ndla.articleapi.service.converters.{MathMLConverter, SimpleTagConverter, TableConverter}
-import no.ndla.articleapi.{ArticleApiProperties, IntegrationSuite, TestEnvironment}
+import no.ndla.articleapi.{ArticleApiProperties, DBMigrator, IntegrationSuite, TestEnvironment}
 import no.ndla.tag.IntegrationTest
 import org.json4s.native.Serialization.read
 import org.json4s.{DefaultFormats, Formats}
@@ -56,6 +56,8 @@ class ArticleConverterRegressionTest extends IntegrationSuite with TestEnvironme
 
   override def beforeAll() = {
     ConnectionPool.singleton(new DataSourceConnectionPool(getDataSource))
+    DBMigrator.migrate(ConnectionPool.dataSource())
+
     if (!audioApiClient.isHealthy)
       throw new RuntimeException("Audio API must be running in order for the regression tests to run")
     if (!imageApiClient.isHealthy)
