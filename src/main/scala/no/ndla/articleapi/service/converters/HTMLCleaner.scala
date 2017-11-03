@@ -259,7 +259,7 @@ trait HTMLCleaner {
       elementToExtract.text()
     }
 
-    val NodeTypesToGroupTogether = "em" :: "#text" :: "math" :: Nil
+    val NodeTypesToGroupTogether = "em" :: "#text" :: "math" :: "strong" :: Nil
 
     private def wrapThingsInP(nodes: Seq[Node]) {
       val grouped = new Element("p")
