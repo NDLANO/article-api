@@ -714,4 +714,12 @@ class HTMLCleanerTest extends UnitSuite with TestEnvironment {
     result2.content should equal(originalContent2)
   }
 
+  test("Strongs should be moved into p tags") {
+    val originalContent = """<section><p>Hey</p><strong>Mister</strong></section>"""
+    val expectedContent = """<section><p>Hey</p><p><strong>Mister</strong></p></section>"""
+
+    val Success((result, _)) = htmlCleaner.convert(TestData.sampleContent.copy(content = originalContent), defaultImportStatus)
+    result.content should equal(expectedContent)
+  }
+
 }
