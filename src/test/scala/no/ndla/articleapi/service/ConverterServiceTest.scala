@@ -167,7 +167,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
           |</section>""".stripMargin.replace("\n", "")
 
     when(extractService.getNodeType(nodeId)).thenReturn(Some("image"))
-    when(imageApiClient.importOrGetMetaByExternId(nodeId)).thenReturn(Some(imageMeta))
+    when(imageApiClient.importImage(nodeId)).thenReturn(Some(imageMeta))
     val Success((result: Article, status)) = service.toDomainArticle(node, ImportStatus(Seq(), Seq()))
 
     result.content.head.content should equal (expectedResult)
@@ -264,7 +264,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     val node = sampleNode.copy(contents=List(contentNodeBokmal))
 
     when(extractService.getNodeType(s"$nodeId")).thenReturn(Some("image"))
-    when(imageApiClient.importOrGetMetaByExternId(s"$nodeId")).thenReturn(None)
+    when(imageApiClient.importImage(s"$nodeId")).thenReturn(None)
 
     service.toDomainArticle(node, ImportStatus(Seq.empty, Seq.empty)).isFailure should be (true)
   }
@@ -304,7 +304,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     val node = sampleNode.copy(contents=List(TestData.sampleContent.copy(visualElement=Some(nodeId))))
     val expectedResult = s"""<$resourceHtmlEmbedTag data-align="" data-alt="" data-caption="" data-resource="image" data-resource_id="1" data-size="" />"""
     when(extractService.getNodeType(nodeId)).thenReturn(Some("image"))
-    when(imageApiClient.importOrGetMetaByExternId(nodeId)).thenReturn(Some(TestData.sampleImageMetaInformation))
+    when(imageApiClient.importImage(nodeId)).thenReturn(Some(TestData.sampleImageMetaInformation))
 
     val Success((convertedArticle: Article, _)) = service.toDomainArticle(node, ImportStatus.empty)
     convertedArticle.visualElement should equal (Seq(VisualElement(expectedResult, "en")))

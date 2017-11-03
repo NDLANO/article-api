@@ -55,18 +55,18 @@ trait ContentBrowserConverter {
       @tailrec def convert(element: Element, languageContent: LanguageContent, importStatus: ImportStatus, exceptions: Seq[Throwable]): (LanguageContent, ImportStatus, Seq[Throwable]) = {
         val cont = ContentBrowser(element.html(), languageContent.language)
 
-        if (!cont.isContentBrowserField)
+        if (!cont.IsContentBrowserField)
           return (languageContent, importStatus, exceptions)
 
         val converterModule = getConverterModule(cont)
 
         converterModule.convert(cont, importStatus) match {
           case Failure(x) =>
-            val (start, end) = cont.getStartEndIndex()
+            val (start, end) = cont.StartEndIndex
             replaceHtmlInElement(element, start, end, "")
             convert(element, languageContent, importStatus, exceptions :+ x)
           case Success((newContent, reqLibs, status)) =>
-            val (start, end) = cont.getStartEndIndex()
+            val (start, end) = cont.StartEndIndex
             replaceHtmlInElement(element, start, end, newContent)
 
             val updatedRequiredLibraries = languageContent.requiredLibraries ++ reqLibs

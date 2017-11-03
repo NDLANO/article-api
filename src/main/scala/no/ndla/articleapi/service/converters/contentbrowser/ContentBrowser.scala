@@ -13,7 +13,7 @@ import scala.util.matching.Regex
 
 case class ContentBrowser(textContainingContentBrowser: String, language: String) {
   // Extract the contentbrowser variables
-  private val Pattern: Regex = """(?s).*(\[contentbrowser (.*) ?contentbrowser(?:_margin_left)?\]).*""".r
+  private val Pattern: Regex = """(?s).*(\[contentbrowser (.*) ?contentbrowser(?:_margin_left|_margin_right)?\]).*""".r
   val (contentBrowser, contentBrowserData) = textContainingContentBrowser match {
     case Pattern(contentBrowserString, contentBrowserStringData) => (contentBrowserString, contentBrowserStringData)
     case _ => ("", "")
@@ -22,11 +22,9 @@ case class ContentBrowser(textContainingContentBrowser: String, language: String
   private val KeyVal = contentBrowserData.split("==").map(x => x.stripPrefix("=").split("="))
   private val FieldMap = KeyVal.map(el => el(0) -> (if (el.length > 1) el(1) else "")).toMap
 
-  def isContentBrowserField(): Boolean = {
-    textContainingContentBrowser.matches(Pattern.toString)
-  }
+  lazy val IsContentBrowserField: Boolean = textContainingContentBrowser.matches(Pattern.toString)
 
-  def getStartEndIndex(): (Int, Int) = {
+  lazy val StartEndIndex: (Int, Int) = {
     val startIndex = textContainingContentBrowser.indexOf(contentBrowser)
     (startIndex, startIndex + contentBrowser.length)
   }
