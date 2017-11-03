@@ -17,6 +17,7 @@ class ArticleRepositoryTest extends IntegrationSuite with TestEnvironment {
 
   override def beforeAll() = {
     ConnectionPool.singleton(new DataSourceConnectionPool(getDataSource))
+    DBMigrator.migrate(ConnectionPool.dataSource())
   }
 
   test("updating several times updates revision number") {
