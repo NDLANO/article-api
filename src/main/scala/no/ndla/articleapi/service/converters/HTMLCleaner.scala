@@ -187,7 +187,7 @@ trait HTMLCleaner {
     // in tags where nbsp's are allowed.
     private def removeNbsp(el: Element) {
       el.select("*").select("mo").asScala.foreach(mo => if (mo.html().equals(NBSP)) mo.html("[mathspace]"))
-      el.html(el.html().replace(NBSP, ""))
+      el.html(el.html().replace(NBSP, " "))
       el.select("*").select("mo").asScala.foreach(mo => if (mo.html().equals("[mathspace]")) mo.html(NBSP))
     }
 

@@ -353,6 +353,20 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     result.requiredLibraries.size should equal (1)
   }
 
+  test("nbsp in MathML tags should be converted to space") {
+
+    val sampleLanguageContent: LanguageContent = TestData.sampleContent.copy(content="<section><p><math>\u00a0<mi>P\u00a0</mi></math></p></section>")
+    val expectedResult = """<section><p><math xmlns="http://www.w3.org/1998/Math/MathML"> <mi>P </mi></math></p></section>"""
+    val node = sampleNode.copy(contents=List(sampleLanguageContent))
+
+    val result = service.toDomainArticle(node, ImportStatus.empty)
+    result.isSuccess should be (true)
+
+    val Success((content: Article, _)) = result
+
+    content.content.head.content should equal (expectedResult)
+  }
+
   test("nbsp in MathML <mo> tags should not be converted to space if only nbsp") {
     val sampleLanguageContent: LanguageContent = TestData.sampleContent.copy(content="<section><p><math>\u00a0<mo>\u00a0</mo></math></p></section>")
     val expectedResult = "<section><p><math xmlns=\"http://www.w3.org/1998/Math/MathML\"> <mo>&#xa0;</mo></math></p></section>"
