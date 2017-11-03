@@ -10,13 +10,14 @@ package no.ndla.articleapi.service
 
 import java.util.Date
 
-import no.ndla.articleapi.{TestData, TestEnvironment, UnitSuite}
-import no.ndla.articleapi.integration._
-import no.ndla.articleapi.model.domain._
-import no.ndla.articleapi.model.api
-import no.ndla.articleapi.service.converters.{Attributes, ResourceType, TableConverter}
 import no.ndla.articleapi.ArticleApiProperties.resourceHtmlEmbedTag
+import no.ndla.articleapi.integration._
+import no.ndla.articleapi.model.api
+import no.ndla.articleapi.model.domain._
+import no.ndla.articleapi.service.converters.{Attributes, ResourceType, TableConverter}
+import no.ndla.articleapi.{TestData, TestEnvironment, UnitSuite}
 import org.mockito.Mockito._
+
 import scala.util.{Success, Try}
 
 class ConverterServiceTest extends UnitSuite with TestEnvironment {
@@ -352,4 +353,16 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     result.requiredLibraries.size should equal (1)
   }
 
+  test("nbsp in MathML <mo> tags should not be converted to space if only nbsp") {
+    val sampleLanguageContent: LanguageContent = TestData.sampleContent.copy(content="<section><p><math>\u00a0<mo>\u00a0</mo></math></p></section>")
+    val expectedResult = "<section><p><math xmlns=\"http://www.w3.org/1998/Math/MathML\"> <mo>&#xa0;</mo></math></p></section>"
+    val node = sampleNode.copy(contents=List(sampleLanguageContent))
+
+    val result = service.toDomainArticle(node, ImportStatus.empty)
+    result.isSuccess should be (true)
+
+    val Success((content: Article, _)) = result
+
+    content.content.head.content should equal (expectedResult)
+  }
 }
