@@ -56,7 +56,7 @@ trait GeneralContentConverterModule {
     def insertLink(contentBrowser: ContentBrowser, importStatus: ImportStatus): Try[(String, ImportStatus)] = {
       getContentId(contentBrowser.get("nid"), importStatus) match {
         case Success((article: Article, is)) =>
-          val embedContent = HtmlTagGenerator.buildLinkEmbedContent(article.id.get.toString, contentBrowser.get("link_text"))
+          val embedContent = HtmlTagGenerator.buildContentLinkEmbedContent(article.id.get.toString, contentBrowser.get("link_text"))
           Success(s" $embedContent", is)
 
         case Success((concept: Concept, is)) =>

@@ -119,13 +119,13 @@ class GeneralContentConverterTest extends UnitSuite with TestEnvironment {
 
     when(extractService.getNodeGeneralContent(nodeId)).thenReturn(Seq(sampleFagstoff1, sampleFagstoff2))
     when(readService.getContentByExternalId(nodeId)).thenReturn(None)
-    when(extractConvertStoreContent.processNode(nodeId, ImportStatus(Seq(), Seq(nodeId2)))).thenReturn(Try((TestData.sampleArticleWithByNcSa.copy(id=Some(newNodeid)), ImportStatus(Seq(), Seq(nodeId2, nodeId)))))
+    when(extractConvertStoreContent.processNode(nodeId, ImportStatus(Seq(), Set(nodeId2)))).thenReturn(Try((TestData.sampleArticleWithByNcSa.copy(id=Some(newNodeid)), ImportStatus(Seq(), Set(nodeId2, nodeId)))))
 
     val languageContent = sampleContent.copy(content="<div>sample content</div>")
-    val Success((result, _, status)) = generalContentConverter.convert(content, ImportStatus(Seq.empty, Seq(nodeId2)))
+    val Success((result, _, status)) = generalContentConverter.convert(content, ImportStatus(Seq.empty, Set(nodeId2)))
 
     result should equal(expectedResult)
-    status should equal (ImportStatus(List(), List(nodeId2, nodeId)))
+    status should equal (ImportStatus(List(), Set(nodeId2, nodeId)))
   }
 
   test("That GeneralContentConverter returns a Failure if node could not be imported") {
@@ -135,8 +135,8 @@ class GeneralContentConverterTest extends UnitSuite with TestEnvironment {
 
     when(extractService.getNodeGeneralContent(nodeId)).thenReturn(Seq(sampleFagstoff1, sampleFagstoff2))
     when(readService.getContentByExternalId(nodeId)).thenReturn(None)
-    when(extractConvertStoreContent.processNode(nodeId, ImportStatus(Seq(), Seq(nodeId2)))).thenReturn(Failure(NotFoundException("Node was not found")))
+    when(extractConvertStoreContent.processNode(nodeId, ImportStatus(Seq(), Set(nodeId2)))).thenReturn(Failure(NotFoundException("Node was not found")))
 
-    generalContentConverter.convert(content, ImportStatus(Seq.empty, Seq(nodeId2))).isFailure should be (true)
+    generalContentConverter.convert(content, ImportStatus(Seq.empty, Set(nodeId2))).isFailure should be (true)
   }
 }

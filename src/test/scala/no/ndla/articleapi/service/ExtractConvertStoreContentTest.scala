@@ -40,6 +40,7 @@ class ExtractConvertStoreContentTest extends UnitSuite with TestEnvironment {
     when(extractService.getNodeData(nodeId)).thenReturn(sampleNode)
     when(extractService.getNodeType(nodeId2)).thenReturn(Some("fagstoff"))
     when(extractService.getNodeGeneralContent(nodeId2)).thenReturn(Seq(NodeGeneralContent(nodeId2, nodeId2, "title", "content", "en")))
+    when(articleRepository.getIdFromExternalId(nodeId)).thenReturn(None)
     when(articleRepository.getIdFromExternalId(nodeId2)).thenReturn(None)
     when(migrationApiClient.getSubjectForNode(nodeId)).thenReturn(Try(Seq(MigrationSubjectMeta("52", "helsearbeider vg2"))))
 
@@ -47,32 +48,32 @@ class ExtractConvertStoreContentTest extends UnitSuite with TestEnvironment {
     when(importValidator.validate(any[Article], any[Boolean])).thenReturn(Success(TestData.sampleArticleWithByNcSa))
     when(articleRepository.exists(sampleNode.contents.head.nid)).thenReturn(false)
     when(articleRepository.insertWithExternalIds(any[Article], any[String], any[Seq[String]])(any[DBSession])).thenReturn(TestData.sampleArticleWithPublicDomain)
-    when(extractConvertStoreContent.processNode("9876")).thenReturn(Try(TestData.sampleArticleWithPublicDomain, ImportStatus(Seq(), Seq())))
+    when(extractConvertStoreContent.processNode("9876")).thenReturn(Try(TestData.sampleArticleWithPublicDomain, ImportStatus.empty))
     when(articleIndexService.indexDocument(any[Article])).thenReturn(Success(mock[Article]))
   }
 
   test("That ETL extracts, translates and loads a node correctly") {
     val sampleArticle = TestData.sampleArticleWithPublicDomain
-    when(extractConvertStoreContent.processNode(nodeId2, ImportStatus(Seq(), Seq(nodeId)))).thenReturn(Try((sampleArticle, ImportStatus(Seq(), Seq(nodeId, nodeId2)))))
+    when(extractConvertStoreContent.processNode(nodeId2, ImportStatus(Seq(), Set(nodeId)))).thenReturn(Try((sampleArticle, ImportStatus(Seq(), Set(nodeId, nodeId2)))))
 
     val result = eCSService.processNode(nodeId)
-    result should equal(Success(sampleArticle, ImportStatus(List(s"Successfully imported node $nodeId: 1"), List(nodeId, nodeId2), sampleArticle.id)))
+    result should equal(Success(sampleArticle, ImportStatus(List(s"Successfully imported node $nodeId: 1"), Set(nodeId, nodeId2), sampleArticle.id, false)))
     verify(articleRepository, times(1)).insertWithExternalIds(any[Article], any[String], any[Seq[String]])
   }
 
   test("That ETL returns a list of visited nodes") {
     val sampleArticle = TestData.sampleArticleWithPublicDomain
-    when(extractConvertStoreContent.processNode(nodeId2, ImportStatus(Seq(), Seq("9876", nodeId)))).thenReturn(Try((sampleArticle, ImportStatus(Seq(), Seq("9876", nodeId, nodeId2)))))
+    when(extractConvertStoreContent.processNode(nodeId2, ImportStatus(Seq(), Set("9876", nodeId)))).thenReturn(Try((sampleArticle, ImportStatus(Seq(), Set("9876", nodeId, nodeId2)))))
 
-    val result = eCSService.processNode(nodeId, ImportStatus(Seq(), Seq("9876")))
-    result should equal(Success(sampleArticle, ImportStatus(List(s"Successfully imported node $nodeId: 1"), List("9876", nodeId, nodeId2), sampleArticle.id)))
+    val result = eCSService.processNode(nodeId, ImportStatus(Seq(), Set("9876")))
+    result should equal(Success(sampleArticle, ImportStatus(List(s"Successfully imported node $nodeId: 1"), Set("9876", nodeId, nodeId2), sampleArticle.id, false)))
   }
 
   test("That ETL returns a Failure if the node was not found") {
     when(extractService.getNodeData(nodeId)).thenReturn(sampleNode.copy(contents=Seq()))
     when(articleRepository.getIdFromExternalId(nodeId)).thenReturn(None)
 
-    val result = eCSService.processNode(nodeId, ImportStatus(Seq(), Seq("9876")))
+    val result = eCSService.processNode(nodeId, ImportStatus(Seq(), Set("9876")))
     result.isFailure should be (true)
   }
 
@@ -82,7 +83,7 @@ class ExtractConvertStoreContentTest extends UnitSuite with TestEnvironment {
     when(articleRepository.getIdFromExternalId(nodeId)).thenReturn(Some(1: Long))
     when(articleRepository.getIdFromExternalId(nodeId2)).thenReturn(Some(2: Long))
 
-    val result = eCSService.processNode(nodeId, ImportStatus(Seq(), Seq()))
+    val result = eCSService.processNode(nodeId, ImportStatus.empty)
 
     result.isFailure should be (true)
     result.failed.get.isInstanceOf[ValidationException] should be (true)
@@ -97,7 +98,7 @@ class ExtractConvertStoreContentTest extends UnitSuite with TestEnvironment {
     when(articleRepository.exists(sampleNode.contents.head.nid)).thenReturn(true)
     when(articleRepository.getIdFromExternalId(nodeId)).thenReturn(None)
 
-    val result = eCSService.processNode(nodeId, ImportStatus(Seq(), Seq("9876")))
+    val result = eCSService.processNode(nodeId, ImportStatus(Seq(), Set("9876")))
     result.isFailure should be (true)
   }
 
@@ -105,7 +106,7 @@ class ExtractConvertStoreContentTest extends UnitSuite with TestEnvironment {
     when(articleIndexService.indexDocument(any[Article])).thenReturn(Failure(mock[NdlaSearchException]))
     when(articleRepository.getIdFromExternalId(nodeId)).thenReturn(None)
 
-    val result = eCSService.processNode(nodeId, ImportStatus(Seq(), Seq("9876")))
+    val result = eCSService.processNode(nodeId, ImportStatus(Seq(), Set("9876")))
     result.isFailure should be (true)
   }
 
@@ -124,12 +125,12 @@ class ExtractConvertStoreContentTest extends UnitSuite with TestEnvironment {
   test("Articles should be force-updated if flag is set") {
     val status = ImportStatus.empty
     val sampleArticle = TestData.sampleArticleWithPublicDomain
-    when(extractConvertStoreContent.processNode(nodeId2, status.addVisitedNode(nodeId))).thenReturn(Try((sampleArticle, ImportStatus(Seq(), Seq(nodeId, nodeId2)))))
+    when(extractConvertStoreContent.processNode(nodeId2, status.addVisitedNode(nodeId))).thenReturn(Try((sampleArticle, ImportStatus(Seq(), Set(nodeId, nodeId2)))))
     when(articleRepository.exists(nodeId)).thenReturn(true)
     when(articleRepository.updateWithExternalIdOverrideManualChanges(any[Article], any[String])(any[DBSession])).thenReturn(Success(sampleArticle))
 
     val result = eCSService.processNode(nodeId, status, forceUpdateArticles = true)
-    result should equal(Success(sampleArticle, ImportStatus(List(s"Successfully imported node $nodeId: 1"), List(nodeId, nodeId2), sampleArticle.id)))
+    result should equal(Success(sampleArticle, ImportStatus(List(s"Successfully imported node $nodeId: 1"), Set(nodeId, nodeId2), sampleArticle.id, false)))
     verify(articleRepository, times(1)).updateWithExternalIdOverrideManualChanges(any[Article], any[String])
     verify(articleRepository, times(0)).updateWithExternalId(any[Article], any[String])
   }
@@ -138,12 +139,13 @@ class ExtractConvertStoreContentTest extends UnitSuite with TestEnvironment {
     val status = ImportStatus.empty
     val sampleArticle = TestData.sampleArticleWithPublicDomain
     reset(articleRepository)
-    when(extractConvertStoreContent.processNode(nodeId2, status.addVisitedNode(nodeId))).thenReturn(Try((sampleArticle, ImportStatus(Seq(), Seq(nodeId, nodeId2)))))
+    when(extractConvertStoreContent.processNode(nodeId2, status.addVisitedNode(nodeId))).thenReturn(Try((sampleArticle, ImportStatus(Seq(), Set(nodeId, nodeId2)))))
     when(articleRepository.exists(nodeId)).thenReturn(true)
     when(articleRepository.updateWithExternalId(any[Article], any[String])(any[DBSession])).thenReturn(Success(sampleArticle))
+    when(articleRepository.getIdFromExternalId(nodeId)).thenReturn(Some(1: Long))
 
     val result = eCSService.processNode(nodeId, status)
-    result should equal(Success(sampleArticle, ImportStatus(List(s"Successfully imported node $nodeId: 1"), List(nodeId, nodeId2), sampleArticle.id)))
+    result should equal(Success(sampleArticle, ImportStatus(List(s"Successfully imported node $nodeId: 1"), Set(nodeId, nodeId2), sampleArticle.id, false)))
     verify(articleRepository, times(0)).updateWithExternalIdOverrideManualChanges(any[Article], any[String])
     verify(articleRepository, times(1)).updateWithExternalId(any[Article], any[String])
   }
