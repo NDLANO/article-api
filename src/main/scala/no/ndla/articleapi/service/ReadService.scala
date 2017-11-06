@@ -12,11 +12,10 @@ import no.ndla.articleapi.ArticleApiProperties.{externalApiUrls, resourceHtmlEmb
 import no.ndla.articleapi.caching.MemoizeAutoRenew
 import no.ndla.articleapi.integration.ConverterModule.{jsoupDocumentToString, stringToJsoupDocument}
 import no.ndla.articleapi.model.api
-import no.ndla.articleapi.model.api.ArticleV2
 import no.ndla.articleapi.model.domain._
 import no.ndla.articleapi.model.domain.Language._
 import no.ndla.articleapi.repository.{ArticleRepository, ConceptRepository}
-import no.ndla.articleapi.service.converters.Attributes
+import no.ndla.validation.Attributes
 import org.jsoup.nodes.Element
 import scala.math.max
 import scala.collection.JavaConverters._

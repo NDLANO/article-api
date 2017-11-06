@@ -65,7 +65,7 @@ The embed tag contains a set of attributes which define what content should be i
 
 #### Optional attributes
 
-Optional attribute groups are defined in [src/main/resources/embed-tag-rules.json](src/main/resources/embed-tag-rules.json).
+Optional attribute groups are defined in the validatin library [here](https://github.com/NDLANO/validation/blob/master/src/main/resources/embed-tag-rules.json).
 Every attribute in an attribute group must be specified. Otherwise validation will fail.
 The following attribute groups exists:
 * `data-upper-left-x`, `data-upper-left-y`, `data-lower-right-x`, `data-lower-right-y`: Can only be used for image embed-tags

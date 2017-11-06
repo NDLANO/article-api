@@ -10,7 +10,7 @@
 package no.ndla.articleapi
 
 import com.typesafe.scalalogging.LazyLogging
-import no.ndla.articleapi.service.converters.ResourceType
+import no.ndla.validation.ResourceType
 import no.ndla.network.secrets.PropertyKeys
 import no.ndla.network.secrets.Secrets.readSecrets
 import no.ndla.network.Domains

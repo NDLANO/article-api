@@ -3,7 +3,8 @@ package no.ndla.articleapi.service.converters.contentbrowser
 import no.ndla.articleapi.model.domain.ImportStatus
 import no.ndla.articleapi.{TestData, TestEnvironment, UnitSuite}
 import no.ndla.articleapi.ArticleApiProperties.resourceHtmlEmbedTag
-import no.ndla.articleapi.model.api.{ImportException, ValidationException}
+import no.ndla.articleapi.model.api.ImportException
+import no.ndla.validation.ValidationException
 import org.mockito.Mockito._
 
 import scala.util.{Failure, Success}

@@ -4,15 +4,12 @@ import com.typesafe.scalalogging.LazyLogging
 import no.ndla.articleapi.ArticleApiProperties._
 import no.ndla.articleapi.integration.ConverterModule.{jsoupDocumentToString, stringToJsoupDocument}
 import no.ndla.articleapi.integration.{ConverterModule, ImageApiClient, LanguageContent, LanguageIngress}
-import no.ndla.articleapi.model.domain.{EmbedTag, ImportStatus}
-import no.ndla.articleapi.service.converters.Attributes._
-import org.json4s._
-import org.json4s.native.JsonMethods.parse
+import no.ndla.articleapi.model.domain.ImportStatus
+import no.ndla.validation.{Attributes, HtmlRules, ResourceType}
 import org.jsoup.nodes.{Element, Node, TextNode}
 
 import scala.annotation.tailrec
 import scala.collection.JavaConverters._
-import scala.io.Source
 import scala.util.{Success, Try}
 
 trait HTMLCleaner {
@@ -75,7 +72,7 @@ trait HTMLCleaner {
         ResourceType.Image
       )
 
-      val embedTypeString = embedsThatShouldNotBeInPTags.map(t => s"[$DataResource=$t]").mkString(",")
+      val embedTypeString = embedsThatShouldNotBeInPTags.map(t => s"[${Attributes.DataResource}=$t]").mkString(",")
 
       element.select("p").asScala.foreach(pTag => {
         pTag.select(s"${resourceHtmlEmbedTag}${embedTypeString}").asScala.toList.foreach(el => {
@@ -127,7 +124,7 @@ trait HTMLCleaner {
 
     private def unwrapIllegalTags(el: Element): Seq[String] = {
       el.children().select("*").asScala.toList
-        .filter(htmlTag => !HTMLCleaner.isTagValid(htmlTag.tagName))
+        .filter(htmlTag => !HtmlRules.isTagValid(htmlTag.tagName))
         .map(illegalHtmlTag => {
           val tagName = illegalHtmlTag.tagName
           illegalHtmlTag.unwrap()
@@ -147,7 +144,7 @@ trait HTMLCleaner {
 
     private def removeAttributes(el: Element): Seq[String] = {
       el.select("*").asScala.toList.flatMap(tag =>
-        HTMLCleaner.removeIllegalAttributes(tag, HTMLCleaner.legalAttributesForTag(tag.tagName))
+        HtmlRules.removeIllegalAttributes(tag, HtmlRules.legalAttributesForTag(tag.tagName))
       )
     }
 
@@ -362,62 +359,3 @@ trait HTMLCleaner {
 
 }
 
-object HTMLCleaner {
-
-  object PermittedHTML {
-    val attributes: Map[String, Seq[String]] = readAttributes
-    val tags: Set[String] = readTags
-
-    private def convertJsonStr(jsonStr: String): Map[String, Any] = {
-      implicit val formats = org.json4s.DefaultFormats
-      parse(jsonStr).extract[Map[String, Any]]
-    }
-
-    private def htmlRulesJson: Map[String, Any] = convertJsonStr(Source.fromResource("html-rules.json").mkString)
-
-    private def mathMLRulesJson: Map[String, Any] = convertJsonStr(Source.fromResource("mathml-rules.json").mkString)
-
-    private def readAttributes: Map[String, Seq[String]] = {
-      val htmlJson: Map[String, Any] = htmlRulesJson
-      val mathMlJson: Map[String, Any] = mathMLRulesJson
-
-      val htmlAttr = htmlJson.get("attributes").map(_.asInstanceOf[Map[String, Seq[String]]])
-      val mathMlAttrs = mathMlJson.get("attributes").map(_.asInstanceOf[Map[String, Seq[String]]])
-      val embedAttrs = EmbedTag.allEmbedTagAttributes.map(_.toString).toSeq
-      htmlAttr.getOrElse(Map.empty) ++ mathMlAttrs.getOrElse(Map.empty) ++ Map(resourceHtmlEmbedTag -> embedAttrs)
-    }
-
-    private def readTags: Set[String] = {
-      val htmlJson: Map[String, Any] = htmlRulesJson
-      val mathMlJson: Map[String, Any] = mathMLRulesJson
-
-      val htmlTags = htmlJson.get("tags").map(_.asInstanceOf[Seq[String]].toSet)
-      val mathMlTags = mathMlJson.get("tags").map(_.asInstanceOf[Seq[String]].toSet)
-
-      htmlTags.getOrElse(Set.empty) ++ mathMlTags.getOrElse(Set.empty) ++ attributes.keys
-    }
-  }
-
-  def isAttributeKeyValid(attributeKey: String, tagName: String): Boolean = {
-    val legalAttrs = legalAttributesForTag(tagName)
-    legalAttrs.contains(attributeKey)
-  }
-
-  def isTagValid(tagName: String): Boolean = PermittedHTML.tags.contains(tagName)
-
-  def allLegalTags: Set[String] = PermittedHTML.tags
-
-  def legalAttributesForTag(tagName: String): Set[String] = {
-    PermittedHTML.attributes.getOrElse(tagName, Seq.empty).toSet
-  }
-
-  def removeIllegalAttributes(el: Element, legalAttributes: Set[String]): Seq[String] = {
-    el.attributes().asScala.toList.
-      filter(attr => !legalAttributes.contains(attr.getKey))
-      .map(illegalAttribute => {
-        val keyName = illegalAttribute.getKey
-        el.removeAttr(keyName)
-        keyName
-      })
-  }
-}

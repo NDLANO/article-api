@@ -11,7 +11,7 @@ package no.ndla.articleapi.service
 import no.ndla.articleapi.ArticleApiProperties.{externalApiUrls, resourceHtmlEmbedTag}
 import no.ndla.articleapi.model.api
 import no.ndla.articleapi.model.domain.{ArticleContent, ArticleTag, VisualElement}
-import no.ndla.articleapi.service.converters.{Attributes, ResourceType}
+import no.ndla.validation.{Attributes, ResourceType}
 import no.ndla.articleapi.{TestData, TestEnvironment, UnitSuite}
 import org.mockito.Mockito._
 import org.mockito.Matchers._

@@ -10,14 +10,14 @@ package no.ndla.articleapi.service
 
 import java.util.Date
 
-import no.ndla.articleapi.ArticleApiProperties.resourceHtmlEmbedTag
 import no.ndla.articleapi.integration._
 import no.ndla.articleapi.model.api
 import no.ndla.articleapi.model.domain._
-import no.ndla.articleapi.service.converters.{Attributes, ResourceType, TableConverter}
+import no.ndla.articleapi.service.converters.TableConverter
+import no.ndla.validation.{Attributes, ResourceType}
+import no.ndla.validation.EmbedTagRules.ResourceHtmlEmbedTag
 import no.ndla.articleapi.{TestData, TestEnvironment, UnitSuite}
 import org.mockito.Mockito._
-
 import scala.util.{Success, Try}
 
 class ConverterServiceTest extends UnitSuite with TestEnvironment {
@@ -93,13 +93,13 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
   test("ingress is extracted when wrapped in <p> tags") {
     val content =
       s"""<section>
-        |<$resourceHtmlEmbedTag data-size="fullbredde" data-url="http://image-api/images/5359" data-align="" data-resource="image" data-alt="To personer" data-caption="capt.">
+        |<$ResourceHtmlEmbedTag data-size="fullbredde" data-url="http://image-api/images/5359" data-align="" data-resource="image" data-alt="To personer" data-caption="capt.">
         |<p><strong>Når man driver med medieproduksjon, er det mye arbeid som må gjøres<br></strong></p>
         |</section>
         |<section> <p>Det som kan gi helse- og sikkerhetsproblemer på en dataarbeidsplass, er:</section>""".stripMargin.replace("\n", "")
     val expectedContentResult = ArticleContent(
       s"""<section>
-         |<$resourceHtmlEmbedTag data-size="fullbredde" data-url="http://image-api/images/5359" data-align="" data-resource="image" data-alt="To personer" data-caption="capt.">
+         |<$ResourceHtmlEmbedTag data-size="fullbredde" data-url="http://image-api/images/5359" data-align="" data-resource="image" data-alt="To personer" data-caption="capt.">
          |<p><strong>Når man driver med medieproduksjon, er det mye arbeid som må gjøres<br></strong></p>
          |</section>
          |<section><p>Det som kan gi helse- og sikkerhetsproblemer på en dataarbeidsplass, er:</p></section>""".stripMargin.replace("\n", ""), "nb")
@@ -163,7 +163,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     val imageMeta = ImageMetaInformation(newId, List(), List(), imageUrl, 256, "", ImageCopyright(ImageLicense("", "", Some("")), "", List()), ImageTag(List(), None))
     val expectedResult =
       s"""|<section>
-          |<$resourceHtmlEmbedTag data-align="" data-alt="$sampleAlt" data-caption="" data-resource="image" data-resource_id="1" data-size="fullbredde">
+          |<$ResourceHtmlEmbedTag data-align="" data-alt="$sampleAlt" data-caption="" data-resource="image" data-resource_id="1" data-size="fullbredde">
           |</section>""".stripMargin.replace("\n", "")
 
     when(extractService.getNodeType(nodeId)).thenReturn(Some("image"))
@@ -188,9 +188,9 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
   }
 
   test("That empty html tags are removed") {
-    val contentNodeBokmal = sampleLanguageContent.copy(content=s"""<section> <div></div><p><div></div></p><$resourceHtmlEmbedTag ></$resourceHtmlEmbedTag></section>""")
+    val contentNodeBokmal = sampleLanguageContent.copy(content=s"""<section> <div></div><p><div></div></p><$ResourceHtmlEmbedTag ></$resourceHtmlEmbedTag></section>""")
     val node = sampleNode.copy(contents=List(contentNodeBokmal))
-    val expectedResult = s"""<section><$resourceHtmlEmbedTag></section>"""
+    val expectedResult = s"""<section><$ResourceHtmlEmbedTag></section>"""
 
     val Success((result: Article, status)) = service.toDomainArticle(node, ImportStatus.empty)
 
@@ -237,7 +237,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
   test("JoubelH5PConverter is used when ENABLE_JOUBEL_H5P_OEMBED is true") {
     val h5pNodeId = "160303"
     val contentStringWithValidNodeId = s"[contentbrowser ==nid=$h5pNodeId==imagecache=Fullbredde==width===alt=$sampleAlt==link===node_link=1==link_type=link_to_content==lightbox_size===remove_fields[76661]=1==remove_fields[76663]=1==remove_fields[76664]=1==remove_fields[76666]=1==insertion===link_title_text= ==link_text= ==text_align===css_class=contentbrowser contentbrowser]"
-    val expectedResult = s"""<section><$resourceHtmlEmbedTag data-resource="h5p" data-url="${JoubelH5PConverter.JoubelH5PBaseUrl}/1"></section>"""
+    val expectedResult = s"""<section><$ResourceHtmlEmbedTag data-resource="h5p" data-url="${JoubelH5PConverter.JoubelH5PBaseUrl}/1"></section>"""
 
     val contentNodeBokmal = sampleLanguageContent.copy(content=contentStringWithValidNodeId)
     val node = sampleNode.copy(contents=List(contentNodeBokmal))
@@ -302,7 +302,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
 
   test("VisualElement should be converted") {
     val node = sampleNode.copy(contents=List(TestData.sampleContent.copy(visualElement=Some(nodeId))))
-    val expectedResult = s"""<$resourceHtmlEmbedTag data-align="" data-alt="" data-caption="" data-resource="image" data-resource_id="1" data-size="" />"""
+    val expectedResult = s"""<$ResourceHtmlEmbedTag data-align="" data-alt="" data-caption="" data-resource="image" data-resource_id="1" data-size="" />"""
     when(extractService.getNodeType(nodeId)).thenReturn(Some("image"))
     when(imageApiClient.importImage(nodeId)).thenReturn(Some(TestData.sampleImageMetaInformation))
 
@@ -344,7 +344,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
 
   test("Leaf node converter should create an article from a pure h5p node") {
     val sampleLanguageContent = TestData.sampleContent.copy(content="<div><h1>hi</h1></div>", nodeType="h5p_content")
-    val expectedResult = s"""<section><$resourceHtmlEmbedTag data-resource="h5p" data-url="//ndla.no/h5p/embed/1234">${sampleLanguageContent.content}</section>"""
+    val expectedResult = s"""<section><$ResourceHtmlEmbedTag data-resource="h5p" data-url="//ndla.no/h5p/embed/1234">${sampleLanguageContent.content}</section>"""
     val node = sampleNode.copy(contents=Seq(sampleLanguageContent), nodeType="h5p_content", contentType="oppgave")
 
     val Success((result: Article, _)) = service.toDomainArticle(node, ImportStatus.empty)

@@ -5,6 +5,7 @@ import no.ndla.articleapi.integration.LanguageIngress
 import no.ndla.articleapi.ArticleApiProperties.resourceHtmlEmbedTag
 import no.ndla.articleapi.model.domain.ImportStatus
 import no.ndla.articleapi.integration.ConverterModule.{jsoupDocumentToString, stringToJsoupDocument}
+import no.ndla.validation.Attributes
 
 import scala.util.Success
 
@@ -14,15 +15,6 @@ class HTMLCleanerTest extends UnitSuite with TestEnvironment {
 
   val defaultLanguageIngress = LanguageIngress("Jeg er en ingress", None)
   val defaultLanguageIngressWithHtml = LanguageIngress("<p>Jeg er en ingress</p>", None)
-
-  test("embed tag should be an allowed tag and contain data attributes") {
-    HTMLCleaner.isTagValid("embed")
-
-    val dataAttrs = Attributes.values.map(_.toString).filter(x => x.startsWith("data-") && x != Attributes.DataType.toString).toSet
-    val legalEmbedAttrs = HTMLCleaner.legalAttributesForTag("embed")
-
-    dataAttrs.foreach(x => legalEmbedAttrs should contain(x))
-  }
 
   test("That HTMLCleaner unwraps illegal attributes") {
     val initialContent = TestData.sampleContent.copy(content ="""<body><h1 class="useless">heading<div style="width='0px'">hey</div></h1></body>""")
@@ -314,22 +306,6 @@ class HTMLCleanerTest extends UnitSuite with TestEnvironment {
 
     val Success((res, _)) = htmlCleaner.convert(TestData.sampleContent.copy(content = origContent), defaultImportStatus)
     res.content should equal(expectedContent)
-  }
-
-  test("That isAttributeKeyValid returns false for illegal attributes") {
-    HTMLCleaner.isAttributeKeyValid("data-random-junk", "td") should equal(false)
-  }
-
-  test("That isAttributeKeyValid returns true for legal attributes") {
-    HTMLCleaner.isAttributeKeyValid("align", "td") should equal(true)
-  }
-
-  test("That isTagValid returns false for illegal tags") {
-    HTMLCleaner.isTagValid("yodawg") should equal(false)
-  }
-
-  test("That isTagValid returns true for legal attributes") {
-    HTMLCleaner.isTagValid("section") should equal(true)
   }
 
   test("That HTMLCleaner do not insert ingress if already added from seperate table") {

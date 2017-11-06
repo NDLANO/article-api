@@ -23,9 +23,9 @@ import no.ndla.articleapi.model.api.ArticleSummaryV2
 import no.ndla.articleapi.model.domain.Language._
 import no.ndla.articleapi.model.domain._
 import no.ndla.articleapi.repository.ArticleRepository
-import no.ndla.articleapi.service.converters.{Attributes, HTMLCleaner, ResourceType}
 import no.ndla.mapping.License.getLicense
 import no.ndla.network.ApplicationUrl
+import no.ndla.validation.{HtmlRules, EmbedTagRules, ResourceType, Attributes}
 
 import scala.annotation.tailrec
 import scala.collection.JavaConverters._
@@ -270,8 +270,8 @@ trait ConverterService {
       val document = stringToJsoupDocument(html)
       document.select("embed").asScala.map(el => {
         ResourceType.valueOf(el.attr(Attributes.DataResource.toString))
-          .map(EmbedTag.attributesForResourceType)
-          .map(knownAttributes => HTMLCleaner.removeIllegalAttributes(el, knownAttributes.all.map(_.toString)))
+          .map(EmbedTagRules.attributesForResourceType)
+          .map(knownAttributes => HtmlRules.removeIllegalAttributes(el, knownAttributes.all.map(_.toString)))
       })
 
       jsoupDocumentToString(document)

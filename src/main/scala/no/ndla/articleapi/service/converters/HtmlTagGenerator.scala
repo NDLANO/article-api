@@ -9,6 +9,7 @@
 package no.ndla.articleapi.service.converters
 
 import no.ndla.articleapi.ArticleApiProperties._
+import no.ndla.validation.{Attributes, ResourceType}
 
 trait HtmlTagGenerator {
 
@@ -175,79 +176,5 @@ trait HtmlTagGenerator {
 
   }
 
-}
-
-object ResourceType extends Enumeration {
-  val Error = Value("error")
-  val Image = Value("image")
-  val Audio = Value("audio")
-  val H5P = Value("h5p")
-  val Brightcove = Value("brightcove")
-  val ContentLink = Value("content-link")
-  val ExternalContent = Value("external")
-  val NRKContent = Value("nrk")
-  val ConceptLink = Value("concept")
-  val Prezi = Value("prezi")
-  val Commoncraft = Value("commoncraft")
-  val NdlaFilmIundervisning = Value("ndla-filmiundervisning")
-  val Kahoot = Value("kahoot")
-  val KhanAcademy = Value("khan-academy")
-  val FootNote = Value("footnote")
-  val RelatedContent = Value("related-content")
-
-  def all: Set[String] = ResourceType.values.map(_.toString)
-
-  def valueOf(s: String): Option[ResourceType.Value] = {
-    ResourceType.values.find(_.toString == s)
-  }
-}
-
-object Attributes extends Enumeration {
-  val DataUrl = Value("data-url")
-  val DataAlt = Value("data-alt")
-  val DataSize = Value("data-size")
-  val DataAlign = Value("data-align")
-  val DataWidth = Value("data-width")
-  val DataHeight = Value("data-height")
-  val DataPlayer = Value("data-player")
-  val DataMessage = Value("data-message")
-  val DataCaption = Value("data-caption")
-  val DataAccount = Value("data-account")
-  val DataVideoId = Value("data-videoid")
-  val DataResource = Value("data-resource")
-  val DataLinkText = Value("data-link-text")
-  val DataContentId = Value("data-content-id")
-  val DataNRKVideoId = Value("data-nrk-video-id")
-  val DataResource_Id = Value("data-resource_id")
-  val DataTitle = Value("data-title")
-  val DataType = Value("data-type")
-  val DataYear = Value("data-year")
-  val DataEdition = Value("data-edition")
-  val DataPublisher = Value("data-publisher")
-  val DataAuthors = Value("data-authors")
-  val DataArticleIds = Value("data-article-ids")
-
-  val DataUpperLeftY =  Value("data-upper-left-y")
-  val DataUpperLeftX = Value("data-upper-left-x")
-  val DataLowerRightY = Value("data-lower-right-y")
-  val DataLowerRightX = Value("data-lower-right-x")
-  val DataFocalX = Value("data-focal-x")
-  val DataFocalY = Value("data-focal-y")
-
-  val XMLNsAttribute = Value("xmlns")
-
-  val Href = Value("href")
-  val Title = Value("title")
-  val Align = Value("align")
-  val Valign = Value("valign")
-  val Target = Value("target")
-  val Rel = Value("rel")
-
-
-  def all: Set[String] = Attributes.values.map(_.toString)
-
-  def valueOf(s: String): Option[Attributes.Value] = {
-    Attributes.values.find(_.toString == s)
-  }
 }
 

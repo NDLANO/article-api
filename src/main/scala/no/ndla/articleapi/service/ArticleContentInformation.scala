@@ -12,11 +12,10 @@ package no.ndla.articleapi.service
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.articleapi.ArticleApiProperties.resourceHtmlEmbedTag
 import no.ndla.articleapi.integration.ConverterModule.stringToJsoupDocument
-import no.ndla.articleapi.model.api.ArticleV2
 import no.ndla.articleapi.model.domain.{Article, HtmlFaultRapport}
 import no.ndla.articleapi.repository.ArticleRepository
-import no.ndla.articleapi.service.converters.Attributes
-import no.ndla.articleapi.service.converters.ResourceType._
+import no.ndla.validation.Attributes
+import no.ndla.validation.ResourceType._
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Element
 

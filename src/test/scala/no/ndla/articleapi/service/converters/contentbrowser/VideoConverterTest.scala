@@ -9,12 +9,11 @@
 
 package no.ndla.articleapi.service.converters.contentbrowser
 
-import no.ndla.articleapi.{TestData, TestEnvironment, UnitSuite}
 import no.ndla.articleapi.ArticleApiProperties.{NDLABrightcoveAccountId, NDLABrightcovePlayerId, resourceHtmlEmbedTag}
-import no.ndla.articleapi.model.domain.{Content, ImportStatus}
-import no.ndla.articleapi.service.converters.ResourceType
+import no.ndla.articleapi.model.domain.ImportStatus
+import no.ndla.articleapi.{TestData, TestEnvironment, UnitSuite}
+import no.ndla.validation.ResourceType
 import org.mockito.Mockito._
-import org.mockito.Matchers._
 
 import scala.util.Success
 
