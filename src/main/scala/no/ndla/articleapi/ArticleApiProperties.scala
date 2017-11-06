@@ -66,8 +66,8 @@ object ArticleApiProperties extends LazyLogging {
   val supportedContentTypes = Set("fagstoff", "oppgave", "veiledning", "aktualitet", "emneartikkel", nodeTypeBegrep, nodeTypeVideo, nodeTypeH5P)
 
   val creatorTypes = List("opphavsmann", "fotograf", "kunstner", "redaksjonelt", "forfatter", "manusforfatter", "innleser", "oversetter", "regissør", "illustratør", "medforfatter", "komponist")
-  val processorTypes = List("bearbeider", "forlag", "distributør", "leverandør")
-  val rightsholderTypes = List("rettighetshaver", "tilrettelegger", "redaksjonelt", "språklig", "ide", "sammenstiller", "korrektur")
+  val processorTypes= List("bearbeider", "tilrettelegger", "redaksjonelt", "språklig", "ide", "sammenstiller", "korrektur")
+  val rightsholderTypes =  List("rettighetshaver", "forlag", "distributør", "leverandør")
 
 
   // When converting a content node, the converter may run several times over the content to make sure
