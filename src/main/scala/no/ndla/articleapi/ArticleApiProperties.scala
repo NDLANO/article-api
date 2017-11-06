@@ -65,6 +65,10 @@ object ArticleApiProperties extends LazyLogging {
   val nodeTypeH5P: String = "h5p_content"
   val supportedContentTypes = Set("fagstoff", "oppgave", "veiledning", "aktualitet", "emneartikkel", nodeTypeBegrep, nodeTypeVideo, nodeTypeH5P)
 
+  val creatorTypes = List("opphavsmann", "fotograf", "kunstner", "redaksjonelt", "forfatter", "manusforfatter", "innleser", "oversetter", "regissør", "illustratør", "medforfatter", "komponist")
+  val processorTypes = List("bearbeider", "forlag", "distributør", "leverandør")
+  val rightsholderTypes = List("rettighetshaver", "tilrettelegger", "redaksjonelt", "språklig", "ide", "sammenstiller", "korrektur")
+
 
   // When converting a content node, the converter may run several times over the content to make sure
   // everything is converted. This value defines a maximum number of times the converter runs on a node

@@ -8,4 +8,6 @@
 
 package no.ndla.articleapi.model.domain
 
-case class Copyright(license: String, origin: String, authors: Seq[Author])
+import java.util.Date
+
+case class Copyright(license: String, origin: String, creators: Seq[Author], processors: Seq[Author], rightsholders: Seq[Author], validFrom: Option[Date], validTo: Option[Date])
