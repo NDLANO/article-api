@@ -78,7 +78,7 @@ trait ExtractConvertStoreContent {
 
     private def deleteArticleByExternalId(externalId: String) = {
       articleRepository.getIdFromExternalId(externalId).map(articleId => {
-        logger.info(s"Deleting previously imported article (id=$articleId, external id=$externalId) from database because the article could not be re-imported")
+        logger.info(s"Deleting article (id=$articleId, external id=$externalId) from database because the article could not be imported")
         articleRepository.delete(articleId)
         articleIndexService.deleteDocument(articleId)
       })
@@ -86,7 +86,7 @@ trait ExtractConvertStoreContent {
 
     private def deleteConceptByExternalId(externalId: String) = {
       conceptRepository.getIdFromExternalId(externalId).map(conceptId => {
-        logger.info(s"Deleting previously imported concept(id=$conceptId, external id=$externalId) from database because the concept could not be re-imported")
+        logger.info(s"Deleting concept (id=$conceptId, external id=$externalId) from database because the concept could not be imported")
         conceptRepository.delete(conceptId)
         conceptIndexService.deleteDocument(conceptId)
       })
