@@ -96,6 +96,12 @@ trait ReadService {
 
     def getContentByExternalId(externalId: String): Option[Content] =
       articleRepository.withExternalId(externalId) orElse conceptRepository.withExternalId(externalId)
+
+    def getArticleIdByExternalId(externalId: String): Option[Long] =
+      articleRepository.getIdFromExternalId(externalId)
+
+    def getConceptIdByExternalId(externalId: String): Option[Long] =
+      conceptRepository.getIdFromExternalId(externalId)
   }
 
 }

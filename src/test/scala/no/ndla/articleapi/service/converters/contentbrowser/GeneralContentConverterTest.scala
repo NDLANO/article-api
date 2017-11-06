@@ -16,6 +16,8 @@ import no.ndla.articleapi.ArticleApiProperties.resourceHtmlEmbedTag
 import no.ndla.articleapi.model.api.NotFoundException
 import no.ndla.articleapi.model.domain._
 import org.mockito.Mockito._
+import org.mockito.invocation.InvocationOnMock
+import org.mockito.Matchers._
 
 import scala.util.{Failure, Success, Try}
 
@@ -33,6 +35,12 @@ class GeneralContentConverterTest extends UnitSuite with TestEnvironment {
 
   val generalContentConverter = new GeneralContentConverter {
     override val typeName: String = "test"
+  }
+
+  override def beforeEach = {
+    when(extractConvertStoreContent.getMainNodeId(any[String])).thenAnswer((invocation: InvocationOnMock) =>
+      Some(invocation.getArgumentAt(0, classOf[String]))
+    )
   }
 
   test("That GeneralContentConverter returns the contents according to language") {
@@ -59,7 +67,8 @@ class GeneralContentConverterTest extends UnitSuite with TestEnvironment {
     val expectedResult = s"<details><summary>Tittel</summary>${sampleFagstoff1.content}</details>"
 
     when(extractService.getNodeGeneralContent(nodeId)).thenReturn(Seq(sampleFagstoff1, sampleFagstoff2))
-    when(readService.getContentByExternalId(nodeId)).thenReturn(Some(sampleArticle))
+    when(readService.getArticleIdByExternalId(nodeId)).thenReturn(sampleArticle.id)
+    when(readService.getConceptIdByExternalId(nodeId)).thenReturn(None)
     val Success((result, requiredLibraries, status)) = generalContentConverter.convert(content, ImportStatus.empty)
 
     result should equal (expectedResult)
@@ -74,7 +83,8 @@ class GeneralContentConverterTest extends UnitSuite with TestEnvironment {
     val expectedResult = s""" <$resourceHtmlEmbedTag data-content-id="1" data-link-text="Tittel" data-resource="content-link" />"""
 
     when(extractService.getNodeGeneralContent(nodeId)).thenReturn(Seq(sampleFagstoff1, sampleFagstoff2))
-    when(readService.getContentByExternalId(nodeId)).thenReturn(Some(sampleArticle))
+    when(readService.getArticleIdByExternalId(nodeId)).thenReturn(sampleArticle.id)
+    when(readService.getConceptIdByExternalId(nodeId)).thenReturn(None)
     val Success((result, requiredLibraries, status)) = generalContentConverter.convert(content, ImportStatus.empty)
 
     result should equal (expectedResult)
@@ -88,7 +98,8 @@ class GeneralContentConverterTest extends UnitSuite with TestEnvironment {
     val expectedResult = s""" <$resourceHtmlEmbedTag data-content-id="1" data-link-text="Tittel" data-resource="content-link" />"""
 
     when(extractService.getNodeGeneralContent(nodeId)).thenReturn(Seq(sampleFagstoff1, sampleFagstoff2))
-    when(readService.getContentByExternalId(nodeId)).thenReturn(Some(sampleArticle))
+    when(readService.getArticleIdByExternalId(nodeId)).thenReturn(sampleArticle.id)
+    when(readService.getConceptIdByExternalId(nodeId)).thenReturn(None)
     val Success((result, requiredLibraries, status)) = generalContentConverter.convert(content, ImportStatus.empty)
 
     result should equal (expectedResult)
@@ -102,7 +113,8 @@ class GeneralContentConverterTest extends UnitSuite with TestEnvironment {
     val expectedResult = s""" <$resourceHtmlEmbedTag data-content-id="1" data-link-text="Tittel" data-resource="content-link" />"""
 
     when(extractService.getNodeGeneralContent(nodeId)).thenReturn(Seq(sampleFagstoff1, sampleFagstoff2))
-    when(readService.getContentByExternalId(nodeId)).thenReturn(Some(sampleArticle))
+    when(readService.getArticleIdByExternalId(nodeId)).thenReturn(sampleArticle.id)
+    when(readService.getConceptIdByExternalId(nodeId)).thenReturn(None)
 
     val Success((result, requiredLibraries, status)) = generalContentConverter.convert(content, ImportStatus.empty)
 
@@ -118,10 +130,10 @@ class GeneralContentConverterTest extends UnitSuite with TestEnvironment {
     val expectedResult = s""" <$resourceHtmlEmbedTag data-content-id="1111" data-link-text="Tittel" data-resource="content-link" />"""
 
     when(extractService.getNodeGeneralContent(nodeId)).thenReturn(Seq(sampleFagstoff1, sampleFagstoff2))
-    when(readService.getContentByExternalId(nodeId)).thenReturn(None)
+    when(readService.getArticleIdByExternalId(nodeId)).thenReturn(None)
+    when(readService.getConceptIdByExternalId(nodeId)).thenReturn(None)
     when(extractConvertStoreContent.processNode(nodeId, ImportStatus(Seq(), Set(nodeId2)))).thenReturn(Try((TestData.sampleArticleWithByNcSa.copy(id=Some(newNodeid)), ImportStatus(Seq(), Set(nodeId2, nodeId)))))
 
-    val languageContent = sampleContent.copy(content="<div>sample content</div>")
     val Success((result, _, status)) = generalContentConverter.convert(content, ImportStatus(Seq.empty, Set(nodeId2)))
 
     result should equal(expectedResult)
@@ -134,7 +146,8 @@ class GeneralContentConverterTest extends UnitSuite with TestEnvironment {
     val expectedResult = s""" <a href="http://ndla.no/node/$nodeId" title="">Tittel</a>"""
 
     when(extractService.getNodeGeneralContent(nodeId)).thenReturn(Seq(sampleFagstoff1, sampleFagstoff2))
-    when(readService.getContentByExternalId(nodeId)).thenReturn(None)
+    when(readService.getArticleIdByExternalId(nodeId)).thenReturn(None)
+    when(readService.getConceptIdByExternalId(nodeId)).thenReturn(None)
     when(extractConvertStoreContent.processNode(nodeId, ImportStatus(Seq(), Set(nodeId2)))).thenReturn(Failure(NotFoundException("Node was not found")))
 
     generalContentConverter.convert(content, ImportStatus(Seq.empty, Set(nodeId2))).isFailure should be (true)
