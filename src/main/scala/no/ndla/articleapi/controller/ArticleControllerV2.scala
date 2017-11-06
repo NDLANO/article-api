@@ -16,16 +16,17 @@ import no.ndla.articleapi.model.api._
 import no.ndla.articleapi.model.domain.{ArticleType, Language, Sort}
 import no.ndla.articleapi.service.search.ArticleSearchService
 import no.ndla.articleapi.service.{ConverterService, ReadService, WriteService}
+import no.ndla.articleapi.validation.ContentValidator
 import no.ndla.mapping
 import no.ndla.mapping.LicenseDefinition
 import org.json4s.{DefaultFormats, Formats}
 import org.scalatra.swagger.{ResponseMessage, Swagger, SwaggerSupport}
-import org.scalatra.{Created, NotFound, Ok}
+import org.scalatra.{Created, NoContent, NotFound, Ok}
 
-import scala.util.{Failure, Success}
+import scala.util.{Failure, Success, Try}
 
 trait ArticleControllerV2 {
-  this: ReadService with WriteService with ArticleSearchService with ConverterService with Role =>
+  this: ReadService with WriteService with ArticleSearchService with ConverterService with Role with ContentValidator =>
   val articleControllerV2: ArticleControllerV2
 
   class ArticleControllerV2(implicit val swagger: Swagger) extends NdlaController with SwaggerSupport {
@@ -143,6 +144,29 @@ trait ArticleControllerV2 {
         )
         responseMessages response500
         authorizations "oauth2")
+
+    val validateNewArticle =
+      (apiOperation[Nothing]("updateArticle")
+        summary "Validate creating a new article"
+        notes "Validate creating a new article"
+        parameters(
+        headerParam[Option[String]]("X-Correlation-ID").description("User supplied correlation-id"),
+        bodyParam[NewArticleV2]
+      )
+        authorizations "oauth2"
+        responseMessages(response400, response500))
+
+    val validateUpdateArticle =
+      (apiOperation[Nothing]("updateArticle")
+        summary "Validate updating an article"
+        notes "Validate updating an article"
+        parameters(
+        headerParam[Option[String]]("X-Correlation-ID").description("User supplied correlation-id"),
+        pathParam[Long]("article_id").description("Id of the article that is to be validated against"),
+        bodyParam[UpdatedArticleV2]
+      )
+        authorizations "oauth2"
+        responseMessages(response400, response500))
 
     get("/tags/?", operation(getTags)) {
       val defaultSize = 20
@@ -264,6 +288,20 @@ trait ArticleControllerV2 {
       val updatedArticle = extract[UpdatedArticleV2](request.body)
       writeService.updateArticleV2(articleId, updatedArticle) match {
         case Success(article) => Ok(body=article)
+        case Failure(exception) => errorHandler(exception)
+      }
+    }
+
+    put("/validate", operation(validateNewArticle)) {
+      writeService.validateAndConvertNewArticle(extract[NewArticleV2](request.body)) match {
+        case Success(_) => NoContent()
+        case Failure(exception) => errorHandler(exception)
+      }
+    }
+
+    put("/validate/:article_id", operation(validateUpdateArticle)) {
+      writeService.validateAndConvertUpdatedArticle(long("article_id"), extract[UpdatedArticleV2](request.body)) match {
+        case Success(_) => NoContent()
         case Failure(exception) => errorHandler(exception)
       }
     }

@@ -9,13 +9,14 @@
 package no.ndla.articleapi.controller
 
 import no.ndla.articleapi.model.api._
-import no.ndla.articleapi.model.domain.{ArticleType, Language, SearchResult, Sort}
+import no.ndla.articleapi.model.domain._
 import no.ndla.articleapi.{ArticleSwagger, TestData, TestEnvironment, UnitSuite}
 import org.scalatra.test.scalatest.ScalatraFunSuite
 import org.mockito.Mockito._
 import org.mockito.Matchers._
 import no.ndla.mapping.License.getLicenses
-import org.json4s.native.Serialization.read
+import org.json4s.native.Serialization.{read, write}
+import scalikejdbc.DBSession
 
 import scala.util.Success
 
@@ -73,7 +74,7 @@ class ArticleControllerV2Test extends UnitSuite with TestEnvironment with Scalat
 
   test("POST / should return 201 on created") {
     when(writeService.newArticleV2(any[NewArticleV2])).thenReturn(Success(TestData.sampleArticleV2))
-    post("/test/", TestData.requestNewArticleV2Body, headers = Map("Authorization" -> authHeaderWithWriteRole)) {
+    post("/test/", write(TestData.newArticleV2Body), headers = Map("Authorization" -> authHeaderWithWriteRole)) {
       status should equal(201)
     }
   }
@@ -164,6 +165,36 @@ class ArticleControllerV2Test extends UnitSuite with TestEnvironment with Scalat
     get("/test/", "ids" -> "1,2,3,4", "page-size" -> "10", "language" -> "nb") {
       status should equal (200)
       verify(articleSearchService, times(1)).all(List(1, 2, 3, 4), Language.DefaultLanguage, None, 1, 4, Sort.ByTitleAsc, ArticleType.all)
+    }
+  }
+
+  test("PUT /validate should return 400 if the article is invalid") {
+    put("/test/validate", body=invalidArticle, headers = Map("Authorization" -> authHeaderWithWriteRole)) {
+      status should equal (400)
+      verify(articleRepository, times(0)).insert(any[Article])(any[DBSession])
+    }
+  }
+
+  test("PUT /validate should return 204 if the article is valid") {
+    when(writeService.validateAndConvertNewArticle(any[NewArticleV2])).thenReturn(Success(TestData.sampleArticleWithByNcSa))
+    put("/test/validate", body=write(TestData.newArticleV2)) {
+      status should equal (204)
+      verify(articleRepository, times(0)).insert(any[Article])(any[DBSession])
+    }
+  }
+
+  test("PUT /validate/:id should return 400 if the article is invalid") {
+    put("/test/validate/1", body=invalidArticle, headers = Map("Authorization" -> authHeaderWithWriteRole)) {
+      status should equal (400)
+      verify(articleRepository, times(0)).insert(any[Article])(any[DBSession])
+    }
+  }
+
+  test("PUT /validate/:id should return 204 if the article is valid") {
+    when(writeService.validateAndConvertUpdatedArticle(any[Long], any[UpdatedArticleV2])).thenReturn(Success(TestData.sampleArticleWithByNcSa))
+    put("/test/validate/1", body=write(TestData.updatedArticleV2)) {
+      status should equal (204)
+      verify(articleRepository, times(0)).insert(any[Article])(any[DBSession])
     }
   }
 }
