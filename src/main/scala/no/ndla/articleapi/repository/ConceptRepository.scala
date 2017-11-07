@@ -36,6 +36,15 @@ trait ConceptRepository {
       concept.copy(id=Some(conceptId))
     }
 
+    def insertWithoutContent(externalId: String)(implicit session: DBSession = AutoSession): Long = {
+      val startRevision = 1
+
+      val conceptId: Long = sql"insert into ${Concept.table} (external_id) values (${externalId})".updateAndReturnGeneratedKey().apply
+
+      logger.info(s"Inserted empty concept $externalId: $conceptId")
+      conceptId
+    }
+
     def updateWithExternalId(concept: Concept, externalId: String)(implicit session: DBSession = AutoSession): Try[Concept] = {
       val dataObject = new PGobject()
       dataObject.setType("jsonb")
@@ -55,8 +64,14 @@ trait ConceptRepository {
     def withExternalId(externalId: String): Option[Concept] =
       conceptWhere(sqls"co.external_id=$externalId")
 
+    def getIdFromExternalId(externalId: String)(implicit session: DBSession = AutoSession): Option[Long] =
+      sql"select id from ${Concept.table} where external_id=${externalId}".map(rs => rs.long("id")).single.apply()
+
     def exists(externalId: String): Boolean =
-      conceptWhere(sqls"co.external_id=$externalId").isDefined
+      getIdFromExternalId(externalId).isDefined
+
+    def delete(id: Long)(implicit session: DBSession = AutoSession) =
+      sql"delete from ${Concept.table} where id = $id".update().apply
 
     override def minMaxId(implicit session: DBSession = AutoSession): (Long, Long) = {
       sql"select coalesce(MIN(id),0) as mi, coalesce(MAX(id),0) as ma from ${Concept.table}".map(rs => {

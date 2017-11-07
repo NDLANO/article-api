@@ -66,7 +66,7 @@ trait ArticleRepository {
 
       val articleId: Long = sql"insert into ${Article.table} (external_id, external_subject_id, document) values (${externalId}, ARRAY[${externalSubjectId}]::text[], ${dataObject})".updateAndReturnGeneratedKey().apply
 
-      logger.info(s"Inserted node $externalId: $articleId")
+      logger.info(s"Inserted article $externalId: $articleId")
       article.copy(id=Some(articleId))
     }
 
@@ -88,6 +88,15 @@ trait ArticleRepository {
           Failure(new OptimisticLockException(message))
         }
       }
+    }
+
+    def insertWithoutContent(externalId: String, externalSubjectId: Seq[String])(implicit session: DBSession = AutoSession): Long = {
+      val startRevision = 1
+
+      val articleId: Long = sql"insert into ${Article.table} (external_id, external_subject_id) values (${externalId}, ARRAY[${externalSubjectId}]::text[])".updateAndReturnGeneratedKey().apply
+
+      logger.info(s"Inserted empty article $externalId: $articleId")
+      articleId
     }
 
     def updateWithExternalIdOverrideManualChanges(article: Article, externalId: String)(implicit session: DBSession = AutoSession): Try[Article] = {
@@ -117,7 +126,7 @@ trait ArticleRepository {
       articleWhere(sqls"ar.external_id=$externalId")
 
     def exists(externalId: String): Boolean =
-      articleWhere(sqls"ar.external_id=$externalId").isDefined
+      getIdFromExternalId(externalId).isDefined
 
     def getIdFromExternalId(externalId: String)(implicit session: DBSession = AutoSession): Option[Long] = {
       sql"select id from ${Article.table} where external_id=${externalId}"

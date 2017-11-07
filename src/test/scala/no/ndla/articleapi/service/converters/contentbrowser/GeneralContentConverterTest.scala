@@ -119,13 +119,13 @@ class GeneralContentConverterTest extends UnitSuite with TestEnvironment {
 
     when(extractService.getNodeGeneralContent(nodeId)).thenReturn(Seq(sampleFagstoff1, sampleFagstoff2))
     when(readService.getContentByExternalId(nodeId)).thenReturn(None)
-    when(extractConvertStoreContent.processNode(nodeId, ImportStatus(Seq(), Seq(nodeId2)))).thenReturn(Try((TestData.sampleArticleWithByNcSa.copy(id=Some(newNodeid)), ImportStatus(Seq(), Seq(nodeId2, nodeId)))))
+    when(extractConvertStoreContent.processNode(nodeId, ImportStatus(Seq(), Set(nodeId2)))).thenReturn(Try((TestData.sampleArticleWithByNcSa.copy(id=Some(newNodeid)), ImportStatus(Seq(), Set(nodeId2, nodeId)))))
 
     val languageContent = sampleContent.copy(content="<div>sample content</div>")
-    val Success((result, _, status)) = generalContentConverter.convert(content, ImportStatus(Seq.empty, Seq(nodeId2)))
+    val Success((result, _, status)) = generalContentConverter.convert(content, ImportStatus(Seq.empty, Set(nodeId2)))
 
     result should equal(expectedResult)
-    status should equal (ImportStatus(List(), List(nodeId2, nodeId)))
+    status should equal (ImportStatus(List(), Set(nodeId2, nodeId)))
   }
 
   test("That GeneralContentConverter returns a Failure if node could not be imported") {
@@ -135,8 +135,43 @@ class GeneralContentConverterTest extends UnitSuite with TestEnvironment {
 
     when(extractService.getNodeGeneralContent(nodeId)).thenReturn(Seq(sampleFagstoff1, sampleFagstoff2))
     when(readService.getContentByExternalId(nodeId)).thenReturn(None)
-    when(extractConvertStoreContent.processNode(nodeId, ImportStatus(Seq(), Seq(nodeId2)))).thenReturn(Failure(NotFoundException("Node was not found")))
+    when(extractConvertStoreContent.processNode(nodeId, ImportStatus(Seq(), Set(nodeId2)))).thenReturn(Failure(NotFoundException("Node was not found")))
 
-    generalContentConverter.convert(content, ImportStatus(Seq.empty, Seq(nodeId2))).isFailure should be (true)
+    generalContentConverter.convert(content, ImportStatus(Seq.empty, Set(nodeId2))).isFailure should be (true)
   }
+
+  test("That GeneralContentConverter inserts the content in language before languageless") {
+    val contentString = s"[contentbrowser ==nid=$nodeId==imagecache=Fullbredde==width===alt=$altText==link===node_link=1==link_type=link_to_content==lightbox_size===remove_fields[76661]=1==remove_fields[76663]=1==remove_fields[76664]=1==remove_fields[76666]=1==insertion=collapsed_body==link_title_text===link_text=Tittel==text_align===css_class=contentbrowser contentbrowser]"
+    val content = ContentBrowser(contentString, "nb")
+    val fagStoffWithNoLang = sampleFagstoff2.copy(language = Language.NoLanguage)
+    val expectedResult = s"<details><summary>Tittel</summary>${sampleFagstoff1.content}</details>"
+
+    when(extractService.getNodeGeneralContent(nodeId)).thenReturn(Seq(sampleFagstoff1, fagStoffWithNoLang))
+    when(readService.getContentByExternalId(nodeId)).thenReturn(Some(sampleArticle))
+    val Success((result, requiredLibraries, status)) = generalContentConverter.convert(content, ImportStatus.empty)
+
+    result should equal (expectedResult)
+    status.messages.isEmpty should equal (true)
+    requiredLibraries.isEmpty should equal (true)
+  }
+
+  test("That GeneralContentConverter inserts the content languageless if language not found") {
+    val contentString = s"[contentbrowser ==nid=$nodeId==imagecache=Fullbredde==width===alt=$altText==link===node_link=1==link_type=link_to_content==lightbox_size===remove_fields[76661]=1==remove_fields[76663]=1==remove_fields[76664]=1==remove_fields[76666]=1==insertion=collapsed_body==link_title_text===link_text=Tittel==text_align===css_class=contentbrowser contentbrowser]"
+    val content = ContentBrowser(contentString, "nb")
+    val fagStoffWithWrongLang1 = sampleFagstoff2.copy(language = "en")
+    val fagStoffWithWrongLang2 = sampleFagstoff2.copy(language = "nn")
+    val fagStoffWithWrongLang3 = sampleFagstoff2.copy(language = "fr")
+    val fagStoffWithWrongLang4 = sampleFagstoff2.copy(language = "de")
+    val fagStoffWithNoLang = sampleFagstoff1.copy(language = Language.NoLanguage, content = "languageNeutral")
+    val expectedResult = s"<details><summary>Tittel</summary>${fagStoffWithNoLang.content}</details>"
+
+    when(extractService.getNodeGeneralContent(nodeId)).thenReturn(Seq(fagStoffWithWrongLang1, fagStoffWithNoLang, fagStoffWithWrongLang2, fagStoffWithWrongLang3, fagStoffWithWrongLang4))
+    when(readService.getContentByExternalId(nodeId)).thenReturn(Some(sampleArticle))
+    val Success((result, requiredLibraries, status)) = generalContentConverter.convert(content, ImportStatus.empty)
+
+    result should equal (expectedResult)
+    status.messages.isEmpty should equal (true)
+    requiredLibraries.isEmpty should equal (true)
+  }
+
 }

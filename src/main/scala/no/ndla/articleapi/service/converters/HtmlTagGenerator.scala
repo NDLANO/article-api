@@ -53,7 +53,7 @@ trait HtmlTagGenerator {
       buildEmbedContent(dataAttributes)
     }
 
-    def buildLinkEmbedContent(contentId: String, linkText: String): String = {
+    def buildContentLinkEmbedContent(contentId: String, linkText: String): String = {
       val dataAttributes = Map(
         Attributes.DataResource -> ResourceType.ContentLink.toString,
         Attributes.DataContentId -> contentId,
@@ -162,9 +162,16 @@ trait HtmlTagGenerator {
       buildEmbedContent(attrs)
     }
 
+    def buildRelatedContent(articleIds: Set[Long]): String = {
+      val attrs = Map(
+        Attributes.DataResource -> ResourceType.RelatedContent.toString,
+        Attributes.DataArticleIds -> articleIds.map(_.toString).mkString(",")
+      )
+      buildEmbedContent(attrs)
+    }
+
     private def buildAttributesString(figureDataAttributeMap: Map[Attributes.Value, String]): String =
       figureDataAttributeMap.toList.sortBy(_._1.toString).map { case (key, value) => s"""$key="${value.trim}"""" }.mkString(" ")
-
 
   }
 
@@ -186,6 +193,7 @@ object ResourceType extends Enumeration {
   val Kahoot = Value("kahoot")
   val KhanAcademy = Value("khan-academy")
   val FootNote = Value("footnote")
+  val RelatedContent = Value("related-content")
 
   def all: Set[String] = ResourceType.values.map(_.toString)
 
@@ -217,6 +225,7 @@ object Attributes extends Enumeration {
   val DataEdition = Value("data-edition")
   val DataPublisher = Value("data-publisher")
   val DataAuthors = Value("data-authors")
+  val DataArticleIds = Value("data-article-ids")
 
   val DataUpperLeftY =  Value("data-upper-left-y")
   val DataUpperLeftX = Value("data-upper-left-x")

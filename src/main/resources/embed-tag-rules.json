@@ -143,6 +143,12 @@
         "data-publisher",
         "data-authors"
       ]
+    },
+    "related-content": {
+      "required": [
+        "data-resource",
+        "data-article-ids"
+      ]
     }
 
   }

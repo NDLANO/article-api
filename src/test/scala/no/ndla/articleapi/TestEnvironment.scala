@@ -49,6 +49,7 @@ trait TestEnvironment
     with ContentBrowserConverter
     with BiblioConverterModule
     with VisualElementConverter
+    with RelatedContentConverter
     with AmazonClient
     with AttachmentStorageService
     with ArticleContentInformation
@@ -92,7 +93,7 @@ trait TestEnvironment
 
   lazy val articleConverter = ConverterPipeLine(
     mainConverters = List(contentBrowserConverter),
-    postProcessorConverters = List(SimpleTagConverter, TableConverter, MathMLConverter, htmlCleaner, VisualElementConverter)
+    postProcessorConverters = List(SimpleTagConverter, TableConverter, MathMLConverter, RelatedContentConverter, htmlCleaner, VisualElementConverter)
   )
   lazy val conceptConverter = ConverterPipeLine(
     mainConverters = List(contentBrowserConverter),

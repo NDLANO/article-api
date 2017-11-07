@@ -10,7 +10,7 @@ import scala.util.Success
 
 class HTMLCleanerTest extends UnitSuite with TestEnvironment {
   val nodeId = "1234"
-  val defaultImportStatus = ImportStatus(Seq(), Seq())
+  val defaultImportStatus = ImportStatus.empty
 
   val defaultLanguageIngress = LanguageIngress("Jeg er en ingress", None)
   val defaultLanguageIngressWithHtml = LanguageIngress("<p>Jeg er en ingress</p>", None)
@@ -336,13 +336,13 @@ class HTMLCleanerTest extends UnitSuite with TestEnvironment {
     val content =
       s"""<section>
          |<$resourceHtmlEmbedTag data-size="fullbredde" data-url="http://image-api/images/5452" data-align="" data-resource="image" data-alt="Mobiltelefon sender SMS">
-         |<strong>Medievanene er i endring.</strong>
+         |<p><strong>Medievanene er i endring.</strong></p>
          |<h2>Mediehverdagen</h2>
          |</section>""".stripMargin.replace("\n", "")
     val expectedContentResult =
       s"""<section>
          |<$resourceHtmlEmbedTag data-size="fullbredde" data-url="http://image-api/images/5452" data-align="" data-resource="image" data-alt="Mobiltelefon sender SMS">
-         |<strong>Medievanene er i endring.</strong>
+         |<p><strong>Medievanene er i endring.</strong></p>
          |<h2>Mediehverdagen</h2>
          |</section>""".stripMargin.replace("\n", "")
 
@@ -357,17 +357,17 @@ class HTMLCleanerTest extends UnitSuite with TestEnvironment {
 
   }
 
-  test("That HTMLCleaner removes all tags in ingress from seperate table") {
+  test("That HTMLCleaner removes all tags in ingress from separate table") {
     val content =
       s"""<section>
          |<$resourceHtmlEmbedTag data-size="fullbredde" data-url="http://image-api/images/5452" data-align="" data-resource="image" data-alt="Mobiltelefon sender SMS">
-         |<strong>Medievanene er i endring.</strong>
+         |<p><strong>Medievanene er i endring.</strong></p>
          |<h2>Mediehverdagen</h2>
          |</section>""".stripMargin.replace("\n", "")
     val expectedContentResult =
       s"""<section>
          |<$resourceHtmlEmbedTag data-size="fullbredde" data-url="http://image-api/images/5452" data-align="" data-resource="image" data-alt="Mobiltelefon sender SMS">
-         |<strong>Medievanene er i endring.</strong>
+         |<p><strong>Medievanene er i endring.</strong></p>
          |<h2>Mediehverdagen</h2>
          |</section>""".stripMargin.replace("\n", "")
 
@@ -712,6 +712,14 @@ class HTMLCleanerTest extends UnitSuite with TestEnvironment {
     val originalContent2 = """<section><h2>hi</h2><h3>sup</h3></section>"""
     val Success((result2, _)) = htmlCleaner.convert(TestData.sampleContent.copy(content = originalContent2), defaultImportStatus)
     result2.content should equal(originalContent2)
+  }
+
+  test("Strongs should be moved into p tags") {
+    val originalContent = """<section><p>Hey</p><strong>Mister</strong></section>"""
+    val expectedContent = """<section><p>Hey</p><p><strong>Mister</strong></p></section>"""
+
+    val Success((result, _)) = htmlCleaner.convert(TestData.sampleContent.copy(content = originalContent), defaultImportStatus)
+    result.content should equal(expectedContent)
   }
 
 }
