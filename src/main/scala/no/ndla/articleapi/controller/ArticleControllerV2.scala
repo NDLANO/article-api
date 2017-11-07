@@ -43,95 +43,6 @@ trait ArticleControllerV2 {
     val response404 = ResponseMessage(404, "Not found", Some("Error"))
     val response500 = ResponseMessage(500, "Unknown error", Some("Error"))
 
-    val getAllArticles =
-      (apiOperation[List[SearchResultV2]]("getAllArticles")
-        summary "Show all articles"
-        notes "Shows all articles. You can search it too."
-        parameters(
-          headerParam[Option[String]]("X-Correlation-ID").description("User supplied correlation-id. May be omitted."),
-          queryParam[Option[String]]("articleTypes").description("Return only articles of specific type(s). To provide multiple types, separate by comma (,)."),
-          queryParam[Option[String]]("query").description("Return only articles with content matching the specified query."),
-          queryParam[Option[String]]("ids").description("Return only articles that have one of the provided ids. To provide multiple ids, separate by comma (,)."),
-          queryParam[Option[String]]("language").description("Only return results on the given language. Default is nb"),
-          queryParam[Option[String]]("license").description("Return only articles with provided license."),
-          queryParam[Option[Int]]("page").description("The page number of the search hits to display."),
-          queryParam[Option[Int]]("page-size").description("The number of search hits to display for each page."),
-          queryParam[Option[String]]("sort").description(
-            """The sorting used on results.
-             Default is by -relevance (desc) when querying.
-             When browsing, the default is title (asc).
-             The following are supported: relevance, -relevance, title, -title, lastUpdated, -lastUpdated, id, -id""".stripMargin)
-        )
-        authorizations "oauth2"
-        responseMessages(response500))
-
-    val getAllArticlesPost =
-      (apiOperation[List[SearchResultV2]]("getAllArticlesPost")
-        summary "Show all articles"
-        notes "Shows all articles. You can search it too."
-        parameters(
-        headerParam[Option[String]]("X-Correlation-ID").description("User supplied correlation-id"),
-        queryParam[Option[String]]("language").description("Only return results on the given language. Default is nb"),
-        bodyParam[ArticleSearchParams]
-      )
-        authorizations "oauth2"
-        responseMessages(response400, response500))
-
-    val getArticleById =
-      (apiOperation[List[ArticleV2]]("getArticleById")
-        summary "Show article with a specified Id"
-        notes "Shows the article for the specified id."
-        parameters(
-          headerParam[Option[String]]("X-Correlation-ID").description("User supplied correlation-id. May be omitted."),
-          pathParam[Long]("article_id").description("Id of the article that is to be returned"),
-          queryParam[Option[String]]("language").description("Only return results on the given language. Default is nb")
-        )
-        authorizations "oauth2"
-        responseMessages(response404, response500))
-
-    val getInternalIdByExternalId =
-      (apiOperation[ArticleIdV2]("getInternalIdByExternalId")
-        summary "Get internal id of article for a specified ndla_node_id"
-        notes "Get internal id of article for a specified ndla_node_id"
-        parameters(
-          headerParam[Option[String]]("X-Correlation-ID").description("User supplied correlation-id. May be omitted."),
-          pathParam[Long]("ndla_node_id").description("Id of old NDLA node")
-        )
-        authorizations "oauth2"
-        responseMessages(response404, response500))
-
-    val getLicenses =
-      (apiOperation[List[License]]("getLicenses")
-        summary "Show all valid licenses"
-        notes "Shows all valid licenses"
-        parameters(
-        headerParam[Option[String]]("X-Correlation-ID").description("User supplied correlation-id. May be omitted."),
-        queryParam[Option[String]]("filter").description("A filter on the license keys. May be omitted"))
-        responseMessages(response403, response500)
-        authorizations "oauth2")
-
-    val newArticle =
-      (apiOperation[ArticleV2]("newArticle")
-        summary "Create a new article"
-        notes "Creates a new article"
-        parameters(
-          headerParam[Option[String]]("X-Correlation-ID").description("User supplied correlation-id"),
-          bodyParam[NewArticleV2]
-        )
-        authorizations "oauth2"
-        responseMessages(response400, response403, response500))
-
-    val updateArticle =
-      (apiOperation[ArticleV2]("updateArticle")
-        summary "Update an existing article"
-        notes "Update an existing article"
-        parameters(
-          headerParam[Option[String]]("X-Correlation-ID").description("User supplied correlation-id"),
-          pathParam[Long]("article_id").description("Id of the article that is to be updated"),
-          bodyParam[UpdatedArticleV2]
-        )
-        authorizations "oauth2"
-        responseMessages(response400, response403, response404, response500))
 
     val getTags =
       (apiOperation[ArticleTag]("getTags")
@@ -144,29 +55,6 @@ trait ArticleControllerV2 {
         )
         responseMessages response500
         authorizations "oauth2")
-
-    val validateNewArticle =
-      (apiOperation[Nothing]("updateArticle")
-        summary "Validate creating a new article"
-        notes "Validate creating a new article"
-        parameters(
-        headerParam[Option[String]]("X-Correlation-ID").description("User supplied correlation-id"),
-        bodyParam[NewArticleV2]
-      )
-        authorizations "oauth2"
-        responseMessages(response400, response500))
-
-    val validateUpdateArticle =
-      (apiOperation[Nothing]("updateArticle")
-        summary "Validate updating an article"
-        notes "Validate updating an article"
-        parameters(
-        headerParam[Option[String]]("X-Correlation-ID").description("User supplied correlation-id"),
-        pathParam[Long]("article_id").description("Id of the article that is to be validated against"),
-        bodyParam[UpdatedArticleV2]
-      )
-        authorizations "oauth2"
-        responseMessages(response400, response500))
 
     get("/tags/?", operation(getTags)) {
       val defaultSize = 20
@@ -217,6 +105,28 @@ trait ArticleControllerV2 {
       )
     }
 
+    val getAllArticles =
+      (apiOperation[List[SearchResultV2]]("getAllArticles")
+        summary "Show all articles"
+        notes "Shows all articles. You can search it too."
+        parameters(
+        headerParam[Option[String]]("X-Correlation-ID").description("User supplied correlation-id. May be omitted."),
+        queryParam[Option[String]]("articleTypes").description("Return only articles of specific type(s). To provide multiple types, separate by comma (,)."),
+        queryParam[Option[String]]("query").description("Return only articles with content matching the specified query."),
+        queryParam[Option[String]]("ids").description("Return only articles that have one of the provided ids. To provide multiple ids, separate by comma (,)."),
+        queryParam[Option[String]]("language").description("Only return results on the given language. Default is nb"),
+        queryParam[Option[String]]("license").description("Return only articles with provided license."),
+        queryParam[Option[Int]]("page").description("The page number of the search hits to display."),
+        queryParam[Option[Int]]("page-size").description("The number of search hits to display for each page."),
+        queryParam[Option[String]]("sort").description(
+          """The sorting used on results.
+             Default is by -relevance (desc) when querying.
+             When browsing, the default is title (asc).
+             The following are supported: relevance, -relevance, title, -title, lastUpdated, -lastUpdated, id, -id""".stripMargin)
+      )
+        authorizations "oauth2"
+        responseMessages(response500))
+
     get("/", operation(getAllArticles)) {
       val query = paramOrNone("query")
       val sort = Sort.valueOf(paramOrDefault("sort", ""))
@@ -229,6 +139,18 @@ trait ArticleControllerV2 {
 
       search(query, sort, language, license, page, pageSize, idList, articleTypesFilter)
     }
+
+    val getAllArticlesPost =
+      (apiOperation[List[SearchResultV2]]("getAllArticlesPost")
+        summary "Show all articles"
+        notes "Shows all articles. You can search it too."
+        parameters(
+        headerParam[Option[String]]("X-Correlation-ID").description("User supplied correlation-id"),
+        queryParam[Option[String]]("language").description("Only return results on the given language. Default is nb"),
+        bodyParam[ArticleSearchParams]
+      )
+        authorizations "oauth2"
+        responseMessages(response400, response500))
 
     post("/search/", operation(getAllArticlesPost)) {
       val searchParams = extract[ArticleSearchParams](request.body)
@@ -245,6 +167,18 @@ trait ArticleControllerV2 {
       search(query, sort, language, license, page, pageSize, idList, articleTypesFilter)
     }
 
+    val getArticleById =
+      (apiOperation[List[ArticleV2]]("getArticleById")
+        summary "Show article with a specified Id"
+        notes "Shows the article for the specified id."
+        parameters(
+        headerParam[Option[String]]("X-Correlation-ID").description("User supplied correlation-id. May be omitted."),
+        pathParam[Long]("article_id").description("Id of the article that is to be returned"),
+        queryParam[Option[String]]("language").description("Only return results on the given language. Default is nb")
+      )
+        authorizations "oauth2"
+        responseMessages(response404, response500))
+
     get("/:article_id", operation(getArticleById)) {
       val articleId = long("article_id")
       val language = paramOrDefault("language", Language.AllLanguages)
@@ -255,6 +189,17 @@ trait ArticleControllerV2 {
       }
     }
 
+    val getInternalIdByExternalId =
+      (apiOperation[ArticleIdV2]("getInternalIdByExternalId")
+        summary "Get internal id of article for a specified ndla_node_id"
+        notes "Get internal id of article for a specified ndla_node_id"
+        parameters(
+        headerParam[Option[String]]("X-Correlation-ID").description("User supplied correlation-id. May be omitted."),
+        pathParam[Long]("ndla_node_id").description("Id of old NDLA node")
+      )
+        authorizations "oauth2"
+        responseMessages(response404, response500))
+
     get("/external_id/:ndla_node_id", operation(getInternalIdByExternalId)) {
       val externalId = long("ndla_node_id")
       readService.getInternalIdByExternalId(externalId) match {
@@ -262,6 +207,16 @@ trait ArticleControllerV2 {
         case None => NotFound(body = Error(Error.NOT_FOUND, s"No article with id $externalId"))
       }
     }
+
+    val getLicenses =
+      (apiOperation[List[License]]("getLicenses")
+        summary "Show all valid licenses"
+        notes "Shows all valid licenses"
+        parameters(
+        headerParam[Option[String]]("X-Correlation-ID").description("User supplied correlation-id. May be omitted."),
+        queryParam[Option[String]]("filter").description("A filter on the license keys. May be omitted"))
+        responseMessages(response403, response500)
+        authorizations "oauth2")
 
     get("/licenses", operation(getLicenses)) {
       val licenses: Seq[LicenseDefinition] = paramOrNone("filter") match {
@@ -272,6 +227,17 @@ trait ArticleControllerV2 {
       licenses.map(x => License(x.license, Option(x.description), x.url))
     }
 
+    val newArticle =
+      (apiOperation[ArticleV2]("newArticle")
+        summary "Create a new article"
+        notes "Creates a new article"
+        parameters(
+        headerParam[Option[String]]("X-Correlation-ID").description("User supplied correlation-id"),
+        bodyParam[NewArticleV2]
+      )
+        authorizations "oauth2"
+        responseMessages(response400, response403, response500))
+
     post("/", operation(newArticle)) {
       authRole.assertHasRole(RoleWithWriteAccess)
       val newArticle = extract[NewArticleV2](request.body)
@@ -280,6 +246,18 @@ trait ArticleControllerV2 {
         case Failure(exception) => errorHandler(exception)
       }
     }
+
+    val updateArticle =
+      (apiOperation[ArticleV2]("updateArticle")
+        summary "Update an existing article"
+        notes "Update an existing article"
+        parameters(
+        headerParam[Option[String]]("X-Correlation-ID").description("User supplied correlation-id"),
+        pathParam[Long]("article_id").description("Id of the article that is to be updated"),
+        bodyParam[UpdatedArticleV2]
+      )
+        authorizations "oauth2"
+        responseMessages(response400, response403, response404, response500))
 
     patch("/:article_id", operation(updateArticle)) {
       authRole.assertHasRole(RoleWithWriteAccess)
@@ -292,12 +270,35 @@ trait ArticleControllerV2 {
       }
     }
 
+    val validateNewArticle =
+      (apiOperation[Unit]("updateArticle")
+        summary "Validate creating a new article"
+        notes "Validate creating a new article"
+        parameters(
+        headerParam[Option[String]]("X-Correlation-ID").description("User supplied correlation-id"),
+        bodyParam[NewArticleV2]
+      )
+        authorizations "oauth2"
+        responseMessages(response400, response500))
+
     put("/validate", operation(validateNewArticle)) {
       writeService.validateAndConvertNewArticle(extract[NewArticleV2](request.body)) match {
         case Success(_) => NoContent()
         case Failure(exception) => errorHandler(exception)
       }
     }
+
+    val validateUpdateArticle =
+      (apiOperation[Unit]("updateArticle")
+        summary "Validate updating an article"
+        notes "Validate updating an article"
+        parameters(
+        headerParam[Option[String]]("X-Correlation-ID").description("User supplied correlation-id"),
+        pathParam[Long]("article_id").description("Id of the article that is to be validated against"),
+        bodyParam[UpdatedArticleV2]
+      )
+        authorizations "oauth2"
+        responseMessages(response400, response500))
 
     put("/validate/:article_id", operation(validateUpdateArticle)) {
       writeService.validateAndConvertUpdatedArticle(long("article_id"), extract[UpdatedArticleV2](request.body)) match {
