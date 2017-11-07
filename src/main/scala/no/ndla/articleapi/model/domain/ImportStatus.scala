@@ -9,21 +9,22 @@
 
 package no.ndla.articleapi.model.domain
 
-case class ImportStatus(messages: Seq[String], visitedNodes: Seq[String] = Seq(), articleId: Option[Long] = None) {
+case class ImportStatus(messages: Seq[String], visitedNodes: Set[String] = Set(), articleId: Option[Long] = None, importRelatedArticles: Boolean = true) {
   def ++(importStatus: ImportStatus): ImportStatus =
-    ImportStatus(messages ++ importStatus.messages, visitedNodes ++ importStatus.visitedNodes, importStatus.articleId)
+    ImportStatus(messages ++ importStatus.messages, visitedNodes ++ importStatus.visitedNodes, importStatus.articleId, importStatus.importRelatedArticles)
   def addMessage(message: String): ImportStatus = this.copy(messages = this.messages :+ message)
   def addMessages(messages: Seq[String]): ImportStatus = this.copy(messages = this.messages ++ messages)
-  def addVisitedNode(nodeId: String): ImportStatus = this.copy(visitedNodes = this.visitedNodes :+ nodeId)
+  def addVisitedNode(nodeID: String): ImportStatus = this.copy(visitedNodes = this.visitedNodes + nodeID)
+  def addVisitedNodes(nodeIDs: Set[String]): ImportStatus = this.copy(visitedNodes = this.visitedNodes ++ nodeIDs)
   def setArticleId(id: Long): ImportStatus = this.copy(articleId = Some(id))
 }
 
 object ImportStatus {
-  def empty = ImportStatus(Seq.empty, Seq.empty, None)
-  def apply(message: String, visitedNodes: Seq[String]): ImportStatus = ImportStatus(Seq(message), visitedNodes, None)
+  def empty = ImportStatus(Seq.empty, Set.empty, None, true)
+  def apply(message: String, visitedNodes: Set[String]): ImportStatus = ImportStatus(Seq(message), visitedNodes, None)
   def apply(importStatuses: Seq[ImportStatus]): ImportStatus = {
     val (messages, visitedNodes, articleIds) = importStatuses.map(x => (x.messages, x.visitedNodes, x.articleId)).unzip3
-    ImportStatus(messages.flatten.distinct, visitedNodes.flatten.distinct, articleIds.lastOption.flatten)
+    ImportStatus(messages.flatten.distinct, visitedNodes.flatten.toSet, articleIds.lastOption.flatten)
   }
 
 }

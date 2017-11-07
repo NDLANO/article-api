@@ -23,9 +23,9 @@ trait GeneralContentConverterModule {
   abstract class GeneralContentConverter extends ContentBrowserConverterModule with LazyLogging {
     override def convert(contentBrowser: ContentBrowser, importStatus: ImportStatus): Try[(String, Seq[RequiredLibrary], ImportStatus)] = {
       val externalId = contentBrowser.get("nid")
-      val contents = extractService.getNodeGeneralContent(externalId)
+      val contents = extractService.getNodeGeneralContent(externalId).sortBy(c => c.language)
 
-      contents.find(_.language == contentBrowser.language) match {
+      contents.reverse.find(c => c.language == contentBrowser.language | c.language == Language.NoLanguage) match {
         case Some(content) =>
           insertContent(content.content, contentBrowser, importStatus) map {
             case (finalContent, status) =>
@@ -56,7 +56,7 @@ trait GeneralContentConverterModule {
     def insertLink(contentBrowser: ContentBrowser, importStatus: ImportStatus): Try[(String, ImportStatus)] = {
       getContentId(contentBrowser.get("nid"), importStatus) match {
         case Success((article: Article, is)) =>
-          val embedContent = HtmlTagGenerator.buildLinkEmbedContent(article.id.get.toString, contentBrowser.get("link_text"))
+          val embedContent = HtmlTagGenerator.buildContentLinkEmbedContent(article.id.get.toString, contentBrowser.get("link_text"))
           Success(s" $embedContent", is)
 
         case Success((concept: Concept, is)) =>

@@ -88,10 +88,10 @@ trait ConverterService {
     }
 
     def toDomainArticle(nodeToConvert: NodeToConvert, importStatus: ImportStatus): Try[(Content, ImportStatus)] = {
-      val updatedVisitedNodes = importStatus.visitedNodes ++ nodeToConvert.contents.map(_.nid)
+      val nodeIdsToImport = nodeToConvert.contents.map(_.nid).toSet
 
-      convert(nodeToConvert, maxConvertionRounds, importStatus.copy(visitedNodes = updatedVisitedNodes.distinct))
-        .flatMap { case (content, status) => postProcess(content, status) } match {
+      convert(nodeToConvert, maxConvertionRounds, importStatus.addVisitedNodes(nodeIdsToImport))
+          .flatMap { case (content, status) => postProcess(content, status) } match {
         case Failure(f) => Failure(f)
         case Success((convertedContent, converterStatus)) if convertedContent.nodeType == nodeTypeBegrep =>
           Success((toDomainConcept(convertedContent), converterStatus))

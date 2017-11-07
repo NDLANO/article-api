@@ -46,7 +46,7 @@ class InternControllerTest extends UnitSuite with TestEnvironment with ScalatraF
     post(s"/import/$nodeId", "forceUpdate" -> "false") {
       status should equal(200)
       val convertedBody = read[ImportStatus](body)
-      convertedBody should equal(ImportStatus(s"Successfully imported node $nodeId: $newNodeId", Seq()))
+      convertedBody should equal(ImportStatus(s"Successfully imported node $nodeId: $newNodeId", Set[String]()))
     }
   }
 

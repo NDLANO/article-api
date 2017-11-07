@@ -23,14 +23,12 @@ object MathMLConverter extends ConverterModule {
   def convert(content: LanguageContent, importStatus: ImportStatus): Try[(LanguageContent, ImportStatus)] = {
     val element = stringToJsoupDocument(content.content)
     addMathMlAttributes(element)
-    replaceNbsp(element)
 
-    Success(content.copy(content=jsoupDocumentToString(element)), importStatus)
+    Success(content.copy(content = jsoupDocumentToString(element)), importStatus)
   }
 
   def addMathMlAttributes(el: Element) = {
     el.select("math").asScala.foreach(e => e.attr(s"$XMLNsAttribute", "http://www.w3.org/1998/Math/MathML"))
   }
 
-  def replaceNbsp(el: Element) = el.html(el.html().replace(NBSP, " "))
 }

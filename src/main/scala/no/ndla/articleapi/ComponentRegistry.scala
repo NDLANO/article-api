@@ -62,6 +62,7 @@ object ComponentRegistry
     with WriteService
     with ContentValidator
     with HTMLCleaner
+    with RelatedContentConverter
     with HtmlTagGenerator
     with Clock
     with Role
@@ -114,7 +115,7 @@ object ComponentRegistry
 
   override lazy val articleConverter = ConverterPipeLine(
     mainConverters = List(contentBrowserConverter),
-    postProcessorConverters = List(SimpleTagConverter, TableConverter, MathMLConverter, htmlCleaner, VisualElementConverter)
+    postProcessorConverters = List(RelatedContentConverter, SimpleTagConverter, TableConverter, MathMLConverter, htmlCleaner, VisualElementConverter)
   )
   override lazy val conceptConverter = ConverterPipeLine(
     mainConverters = List(contentBrowserConverter),
