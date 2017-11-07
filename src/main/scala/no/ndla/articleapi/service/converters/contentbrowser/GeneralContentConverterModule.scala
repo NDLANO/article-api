@@ -73,7 +73,7 @@ trait GeneralContentConverterModule {
 
       (readService.getArticleIdByExternalId(mainNodeId), readService.getConceptIdByExternalId(mainNodeId)) match {
         case (None, None) =>
-          logger.info(s"article with id $mainNodeId does not exist. importing it?")
+          logger.info(s"Article with node id $mainNodeId does not exist. Importing it!")
           extractConvertStoreContent.processNode(mainNodeId, importStatus) match {
             case Success((c: Article, is)) => Success(c.id, None, is)
             case Success((c: Concept, is)) => Success(None, c.id, is)
