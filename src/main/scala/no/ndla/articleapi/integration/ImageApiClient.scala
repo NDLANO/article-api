@@ -44,7 +44,7 @@ trait ImageApiClient {
     }
 
     def isHealthy: Boolean = {
-      Try(Http(ImageApiHealthEndpoint).execute()) match {
+      Try(Http(ImageApiHealthEndpoint).timeout(1000,15000).execute()) match {
         case Success(resp) => resp.isSuccess
         case _ => false
       }
