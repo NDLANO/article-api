@@ -92,7 +92,7 @@ trait ExtractConvertStoreContent {
       })
     }
 
-    private def getMainNodeId(externalId: String): Option[String] = {
+    def getMainNodeId(externalId: String): Option[String] = {
       extract(externalId) map { case (_, mainNodeId) => mainNodeId } toOption
     }
 
