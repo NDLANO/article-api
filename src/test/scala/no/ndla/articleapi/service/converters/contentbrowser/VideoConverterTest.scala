@@ -9,7 +9,8 @@
 
 package no.ndla.articleapi.service.converters.contentbrowser
 
-import no.ndla.articleapi.ArticleApiProperties.{NDLABrightcoveAccountId, NDLABrightcovePlayerId, resourceHtmlEmbedTag}
+import no.ndla.articleapi.ArticleApiProperties.{NDLABrightcoveAccountId, NDLABrightcovePlayerId}
+import no.ndla.validation.EmbedTagRules.ResourceHtmlEmbedTag
 import no.ndla.articleapi.model.domain.ImportStatus
 import no.ndla.articleapi.{TestData, TestEnvironment, UnitSuite}
 import no.ndla.validation.ResourceType
@@ -27,7 +28,7 @@ class VideoConverterTest extends UnitSuite with TestEnvironment {
 
   test("That VideoConverter converts a ContentBrowser to html code") {
     val content = ContentBrowser(contentString, "nb")
-    val expectedResult = s"""<$resourceHtmlEmbedTag data-account="$NDLABrightcoveAccountId" data-caption="" data-player="$NDLABrightcovePlayerId" data-resource="brightcove" data-videoid="ref:${content.get("nid")}" />"""
+    val expectedResult = s"""<$ResourceHtmlEmbedTag data-account="$NDLABrightcoveAccountId" data-caption="" data-player="$NDLABrightcovePlayerId" data-resource="brightcove" data-videoid="ref:${content.get("nid")}" />"""
     val Success((result, requiredLibraries, _)) = VideoConverter.convert(content, ImportStatus.empty)
 
     result should equal(expectedResult)
@@ -36,7 +37,7 @@ class VideoConverterTest extends UnitSuite with TestEnvironment {
 
   test("Captions are added as video metadata") {
     val content = ContentBrowser(contentStringWithCaptions, "nb")
-    val expectedResult = s"""<$resourceHtmlEmbedTag data-account="$NDLABrightcoveAccountId" data-caption="$caption" data-player="$NDLABrightcovePlayerId" data-resource="brightcove" data-videoid="ref:${content.get("nid")}" />"""
+    val expectedResult = s"""<$ResourceHtmlEmbedTag data-account="$NDLABrightcoveAccountId" data-caption="$caption" data-player="$NDLABrightcovePlayerId" data-resource="brightcove" data-videoid="ref:${content.get("nid")}" />"""
     val Success((result, requiredLibraries, _)) = VideoConverter.convert(content, ImportStatus.empty)
 
     result should equal(expectedResult)
@@ -45,7 +46,7 @@ class VideoConverterTest extends UnitSuite with TestEnvironment {
 
   test("the contentbrowser should be converted to a link if insertion method is link") {
     val content = ContentBrowser(contentStringWithInsertionLink, "nb")
-    val expectedResult = s"""<$resourceHtmlEmbedTag data-content-id="1" data-link-text="$caption" data-resource="${ResourceType.ContentLink}" />"""
+    val expectedResult = s"""<$ResourceHtmlEmbedTag data-content-id="1" data-link-text="$caption" data-resource="${ResourceType.ContentLink}" />"""
 
     when(extractConvertStoreContent.processNode(nodeId, ImportStatus.empty)).thenReturn(Success(TestData.sampleArticleWithByNcSa, ImportStatus.empty))
 

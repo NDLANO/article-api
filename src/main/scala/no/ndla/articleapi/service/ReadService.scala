@@ -8,7 +8,8 @@
 
 package no.ndla.articleapi.service
 
-import no.ndla.articleapi.ArticleApiProperties.{externalApiUrls, resourceHtmlEmbedTag}
+import no.ndla.articleapi.ArticleApiProperties.externalApiUrls
+import no.ndla.validation.EmbedTagRules.ResourceHtmlEmbedTag
 import no.ndla.articleapi.caching.MemoizeAutoRenew
 import no.ndla.articleapi.integration.ConverterModule.{jsoupDocumentToString, stringToJsoupDocument}
 import no.ndla.articleapi.model.api
@@ -62,7 +63,7 @@ trait ReadService {
     private[service] def addUrlOnResource(content: String): String = {
       val doc = stringToJsoupDocument(content)
 
-      val embedTags = doc.select(s"$resourceHtmlEmbedTag").asScala.toList
+      val embedTags = doc.select(s"$ResourceHtmlEmbedTag").asScala.toList
       embedTags.foreach(addUrlOnEmbedTag)
       jsoupDocumentToString(doc)
     }

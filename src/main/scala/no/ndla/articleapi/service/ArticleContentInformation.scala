@@ -10,7 +10,7 @@
 package no.ndla.articleapi.service
 
 import com.typesafe.scalalogging.LazyLogging
-import no.ndla.articleapi.ArticleApiProperties.resourceHtmlEmbedTag
+import no.ndla.validation.EmbedTagRules.ResourceHtmlEmbedTag
 import no.ndla.articleapi.integration.ConverterModule.stringToJsoupDocument
 import no.ndla.articleapi.model.domain.{Article, HtmlFaultRapport}
 import no.ndla.articleapi.repository.ArticleRepository
@@ -61,7 +61,7 @@ trait ArticleContentInformation {
         val externalId = articleRepository.getExternalIdFromId(articleInfo.id.get).getOrElse("unknown ID")
         val urls = articleInfo.content.flatMap(content => {
           val resourceTypes = Seq(ExternalContent, Kahoot, Prezi, Commoncraft, NdlaFilmIundervisning, NRKContent).mkString("|")
-          val elements = Jsoup.parseBodyFragment(content.content).select(s"""$resourceHtmlEmbedTag[${Attributes.DataResource}~=($resourceTypes)]""")
+          val elements = Jsoup.parseBodyFragment(content.content).select(s"""$ResourceHtmlEmbedTag[${Attributes.DataResource}~=($resourceTypes)]""")
           elements.asScala.toList.map(el => el.attr("data-url"))
         })
 

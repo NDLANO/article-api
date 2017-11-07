@@ -1,7 +1,7 @@
 package no.ndla.articleapi.service.converters
 
 import com.typesafe.scalalogging.LazyLogging
-import no.ndla.articleapi.ArticleApiProperties._
+import no.ndla.validation.EmbedTagRules.ResourceHtmlEmbedTag
 import no.ndla.articleapi.integration.ConverterModule.{jsoupDocumentToString, stringToJsoupDocument}
 import no.ndla.articleapi.integration.{ConverterModule, ImageApiClient, LanguageContent, LanguageIngress}
 import no.ndla.articleapi.model.domain.ImportStatus
@@ -75,7 +75,7 @@ trait HTMLCleaner {
       val embedTypeString = embedsThatShouldNotBeInPTags.map(t => s"[${Attributes.DataResource}=$t]").mkString(",")
 
       element.select("p").asScala.foreach(pTag => {
-        pTag.select(s"${resourceHtmlEmbedTag}${embedTypeString}").asScala.toList.foreach(el => {
+        pTag.select(s"${ResourceHtmlEmbedTag}${embedTypeString}").asScala.toList.foreach(el => {
           pTag.before(el.outerHtml())
           el.remove()
         })
@@ -92,7 +92,7 @@ trait HTMLCleaner {
       if (firstSectionChildren.size != 1 || firstSectionChildren.asScala.head.children.size > 2)
         return
 
-      firstSectionChildren.select(resourceHtmlEmbedTag).asScala.headOption match {
+      firstSectionChildren.select(ResourceHtmlEmbedTag).asScala.headOption match {
         case Some(e) =>
           sections(1).prepend(e.outerHtml())
           e.remove()
@@ -165,7 +165,7 @@ trait HTMLCleaner {
     }
 
     private def htmlTagIsEmpty(el: Element) = {
-      el.select(resourceHtmlEmbedTag).isEmpty && el.select("math").isEmpty && !el.hasText
+      el.select(ResourceHtmlEmbedTag).isEmpty && el.select("math").isEmpty && !el.hasText
     }
 
     private def removeEmptyTags(element: Element): Element = {

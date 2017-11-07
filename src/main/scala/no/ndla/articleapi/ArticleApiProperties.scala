@@ -77,8 +77,6 @@ object ArticleApiProperties extends LazyLogging {
     ResourceType.Audio.toString -> s"$Domain/audio-api/v1/audio"
   )
 
-  val resourceHtmlEmbedTag = "embed"
-
   val NDLABrightcoveAccountId = prop("NDLA_BRIGHTCOVE_ACCOUNT_ID")
   val NDLABrightcovePlayerId = prop("NDLA_BRIGHTCOVE_PLAYER_ID")
   val EnableJoubelH5POembed = booleanProp("ENABLE_JOUBEL_H5P_OEMBED")

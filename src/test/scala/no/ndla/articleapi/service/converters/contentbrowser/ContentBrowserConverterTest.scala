@@ -12,6 +12,7 @@ package no.ndla.articleapi.service.converters.contentbrowser
 import no.ndla.articleapi.ArticleApiProperties._
 import no.ndla.articleapi.{TestData, TestEnvironment, UnitSuite}
 import no.ndla.articleapi.integration.{ImageCopyright, ImageLicense, ImageMetaInformation, ImageTag}
+import no.ndla.validation.EmbedTagRules.ResourceHtmlEmbedTag
 import no.ndla.articleapi.model.domain._
 import org.mockito.Mockito._
 
@@ -24,7 +25,7 @@ class ContentBrowserConverterTest extends UnitSuite with TestEnvironment {
   val sampleContent =  TestData.sampleContent.copy(content=s"<article>$sampleContentString</article>")
 
   test("contentbrowser strings of unsupported causes a Failure to be returned") {
-    val expectedResult = s"""<article><$resourceHtmlEmbedTag data-message="Unsupported content (unsupported type): $nodeId" data-resource="error" /></article>"""
+    val expectedResult = s"""<article><$ResourceHtmlEmbedTag data-message="Unsupported content (unsupported type): $nodeId" data-resource="error" /></article>"""
 
     when(extractService.getNodeType(nodeId)).thenReturn(Some("unsupported type"))
     contentBrowserConverter.convert(sampleContent, ImportStatus.empty).isFailure should be (true)
@@ -34,7 +35,7 @@ class ContentBrowserConverterTest extends UnitSuite with TestEnvironment {
     val (validNodeId, joubelH5PIdId) = ValidH5PNodeIds.head
     val sampleContentString = s"[contentbrowser ==nid=$validNodeId==imagecache=Fullbredde==width===alt=$sampleAlt==link===node_link=1==link_type=link_to_content==lightbox_size===remove_fields[76661]=1==remove_fields[76663]=1==remove_fields[76664]=1==remove_fields[76666]=1==insertion=inline==link_title_text= ==link_text= ==text_align===css_class=contentbrowser contentbrowser]"
     val initialContent = sampleContent.copy(content=s"<article>$sampleContentString</article>")
-    val expectedResult = s"""<article><$resourceHtmlEmbedTag data-resource="h5p" data-url="${JoubelH5PConverter.JoubelH5PBaseUrl}/$joubelH5PIdId"></article>"""
+    val expectedResult = s"""<article><$ResourceHtmlEmbedTag data-resource="h5p" data-url="${JoubelH5PConverter.JoubelH5PBaseUrl}/$joubelH5PIdId"></article>"""
 
     when(extractService.getNodeType(validNodeId)).thenReturn(Some("h5p_content"))
     val Success((result, _)) = contentBrowserConverter.convert(initialContent, ImportStatus.empty)
@@ -49,7 +50,7 @@ class ContentBrowserConverterTest extends UnitSuite with TestEnvironment {
     val imageMeta = ImageMetaInformation(newId, List(), List(), imageUrl, 256, "", ImageCopyright(ImageLicense("", "", Some("")), "", List()), ImageTag(List(), None))
     val expectedResult =
       s"""|<article>
-          |<$resourceHtmlEmbedTag data-align="" data-alt="$alt" data-caption="" data-resource="image" data-resource_id="1" data-size="fullbredde">
+          |<$ResourceHtmlEmbedTag data-align="" data-alt="$alt" data-caption="" data-resource="image" data-resource_id="1" data-size="fullbredde">
           |</article>""".stripMargin.replace("\n", "")
 
     when(extractService.getNodeType(nodeId)).thenReturn(Some("image"))
@@ -113,7 +114,7 @@ class ContentBrowserConverterTest extends UnitSuite with TestEnvironment {
   }
 
   test("That Content-browser strings of type video are converted into HTML img tags") {
-    val expectedResult = s"""<article><$resourceHtmlEmbedTag data-account="$NDLABrightcoveAccountId" data-caption="" data-player="$NDLABrightcovePlayerId" data-resource="brightcove" data-videoid="ref:$nodeId"></article>"""
+    val expectedResult = s"""<article><$ResourceHtmlEmbedTag data-account="$NDLABrightcoveAccountId" data-caption="" data-player="$NDLABrightcovePlayerId" data-resource="brightcove" data-videoid="ref:$nodeId"></article>"""
     when(extractService.getNodeType(nodeId)).thenReturn(Some("video"))
     val Success((result, _)) = contentBrowserConverter.convert(sampleContent, ImportStatus.empty)
     val strippedResult = " +".r.replaceAllIn(result.content.replace("\n", ""), " ")
@@ -125,7 +126,7 @@ class ContentBrowserConverterTest extends UnitSuite with TestEnvironment {
   test("That content-browser strings of type biblio are converted into content") {
     val initialContent = sampleContent.copy(content=s"""<article>$sampleContentString</a><h1>CONTENT</h1>more content</article>""")
     val biblio = BiblioMeta(Biblio("title", "book", "2009", "1", "me"), Seq(BiblioAuthor("first last", "last", "first")))
-    val expectedResult = s"""<article><$resourceHtmlEmbedTag data-authors="${biblio.authors.head.name}" data-edition="${biblio.biblio.edition}" data-publisher="${biblio.biblio.publisher}" data-resource="footnote" data-title="${biblio.biblio.title}" data-type="${biblio.biblio.bibType}" data-year="${biblio.biblio.year}"><h1>CONTENT</h1>more content</article>"""
+    val expectedResult = s"""<article><$ResourceHtmlEmbedTag data-authors="${biblio.authors.head.name}" data-edition="${biblio.biblio.edition}" data-publisher="${biblio.biblio.publisher}" data-resource="footnote" data-title="${biblio.biblio.title}" data-type="${biblio.biblio.bibType}" data-year="${biblio.biblio.year}"><h1>CONTENT</h1>more content</article>"""
 
     when(extractService.getNodeType(nodeId)).thenReturn(Some("biblio"))
     when(extractService.getBiblioMeta(nodeId)).thenReturn(Some(biblio))

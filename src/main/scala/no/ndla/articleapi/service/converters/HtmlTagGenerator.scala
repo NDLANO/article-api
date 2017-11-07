@@ -8,14 +8,14 @@
 
 package no.ndla.articleapi.service.converters
 
-import no.ndla.articleapi.ArticleApiProperties._
 import no.ndla.validation.{Attributes, ResourceType}
+import no.ndla.validation.EmbedTagRules.ResourceHtmlEmbedTag
 
 trait HtmlTagGenerator {
 
   object HtmlTagGenerator {
     def buildEmbedContent(dataAttributes: Map[Attributes.Value, String]): String = {
-      s"<$resourceHtmlEmbedTag ${buildAttributesString(dataAttributes)} />"
+      s"<$ResourceHtmlEmbedTag ${buildAttributesString(dataAttributes)} />"
     }
 
     def buildErrorContent(message: String): String =

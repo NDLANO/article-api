@@ -188,7 +188,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
   }
 
   test("That empty html tags are removed") {
-    val contentNodeBokmal = sampleLanguageContent.copy(content=s"""<section> <div></div><p><div></div></p><$ResourceHtmlEmbedTag ></$resourceHtmlEmbedTag></section>""")
+    val contentNodeBokmal = sampleLanguageContent.copy(content=s"""<section> <div></div><p><div></div></p><$ResourceHtmlEmbedTag ></$ResourceHtmlEmbedTag></section>""")
     val node = sampleNode.copy(contents=List(contentNodeBokmal))
     val expectedResult = s"""<section><$ResourceHtmlEmbedTag></section>"""
 
