@@ -14,6 +14,7 @@ import java.util.Map.Entry
 import com.google.gson.{JsonElement, JsonObject}
 import com.typesafe.scalalogging.LazyLogging
 import io.searchbox.core.{SearchResult => JestSearchResult}
+import no.ndla.articleapi.ArticleApiProperties
 import no.ndla.articleapi.ArticleApiProperties.{maxConvertionRounds, nodeTypeBegrep}
 import no.ndla.articleapi.auth.User
 import no.ndla.articleapi.integration.ConverterModule.{jsoupDocumentToString, stringToJsoupDocument}
@@ -54,10 +55,10 @@ trait ConverterService {
 
     def hitAsArticleSummaryV2(hit: JsonObject, language: String): ArticleSummaryV2 = {
       val titles = getEntrySetSeq(hit, "title").map(entr => ArticleTitle(entr.getValue.getAsString, entr.getKey))
-      val introductions = getEntrySetSeq(hit, "introduction").map(entr => ArticleIntroduction (entr.getValue.getAsString, entr.getKey))
+      val introductions = getEntrySetSeq(hit, "introduction").map(entr => ArticleIntroduction(entr.getValue.getAsString, entr.getKey))
       val visualElements = getEntrySetSeq(hit, "visualElement").map(entr => VisualElement(entr.getValue.getAsString, entr.getKey))
 
-      val supportedLanguages =  getSupportedLanguages(Seq(titles, visualElements, introductions))
+      val supportedLanguages = getSupportedLanguages(Seq(titles, visualElements, introductions))
 
       val title = findByLanguageOrBestEffort(titles, language).map(converterService.toApiArticleTitle).getOrElse(api.ArticleTitle("", DefaultLanguage))
       val visualElement = findByLanguageOrBestEffort(visualElements, language).map(converterService.toApiVisualElement)
@@ -102,7 +103,7 @@ trait ConverterService {
       if (maxRoundsLeft == 0) {
         val message = "Maximum number of converter rounds reached; Some content might not be converted"
         logger.warn(message)
-        return Success((nodeToConvert, importStatus.copy(messages=importStatus.messages :+ message)))
+        return Success((nodeToConvert, importStatus.copy(messages = importStatus.messages :+ message)))
       }
 
       val (updatedContent, updatedStatus) = executeConverterModules(nodeToConvert, importStatus) match {
@@ -165,7 +166,11 @@ trait ConverterService {
     private def toDomainCopyright(license: String, authors: Seq[Author]): Copyright = {
       val origin = authors.find(author => author.`type`.toLowerCase == "opphavsmann").map(_.name).getOrElse("")
       val authorsExcludingOrigin = authors.filterNot(x => x.name != origin && x.`type` == "opphavsmann")
-      Copyright(license, origin, authorsExcludingOrigin)
+      val creators = authorsExcludingOrigin.filter(a => ArticleApiProperties.creatorTypes.contains(a.`type`.toLowerCase))
+      // Filters out processor authors with type `redaksjonelt` during import process since `redaksjonelt` exists both in processors and creators.
+      val processors = authorsExcludingOrigin.filter(a => ArticleApiProperties.processorTypes.contains(a.`type`.toLowerCase)).filterNot(a => a.`type` == "redaksjonelt")
+      val rightsholders = authorsExcludingOrigin.filter(a => ArticleApiProperties.rightsholderTypes.contains(a.`type`.toLowerCase))
+      Copyright(license, origin, creators, processors, rightsholders, None, None)
     }
 
     def toDomainArticle(newArticle: api.NewArticleV2): Article = {
@@ -176,20 +181,20 @@ trait ConverterService {
       )
 
       Article(
-        id=None,
-        revision=None,
-        title=domainTitle,
-        content=domainContent,
-        copyright=toDomainCopyright(newArticle.copyright),
-        tags=toDomainTagV2(newArticle.tags, newArticle.language),
-        requiredLibraries=newArticle.requiredLibraries.getOrElse(Seq()).map(toDomainRequiredLibraries),
-        visualElement=toDomainVisualElementV2(newArticle.visualElement, newArticle.language),
-        introduction=toDomainIntroductionV2(newArticle.introduction, newArticle.language),
-        metaDescription=toDomainMetaDescriptionV2(newArticle.metaDescription, newArticle.language),
-        metaImageId=newArticle.metaImageId,
-        created=clock.now(),
-        updated=clock.now(),
-        updatedBy=authUser.id(),
+        id = None,
+        revision = None,
+        title = domainTitle,
+        content = domainContent,
+        copyright = toDomainCopyright(newArticle.copyright),
+        tags = toDomainTagV2(newArticle.tags, newArticle.language),
+        requiredLibraries = newArticle.requiredLibraries.getOrElse(Seq()).map(toDomainRequiredLibraries),
+        visualElement = toDomainVisualElementV2(newArticle.visualElement, newArticle.language),
+        introduction = toDomainIntroductionV2(newArticle.introduction, newArticle.language),
+        metaDescription = toDomainMetaDescriptionV2(newArticle.metaDescription, newArticle.language),
+        metaImageId = newArticle.metaImageId,
+        created = clock.now(),
+        updated = clock.now(),
+        updatedBy = authUser.id(),
         newArticle.articleType
       )
     }
@@ -242,7 +247,7 @@ trait ConverterService {
       ArticleMetaDescription(meta.metaDescription, meta.language)
     }
 
-    def toDomainMetaDescriptionV2(meta: Option[String], language: String): Seq[ArticleMetaDescription]= {
+    def toDomainMetaDescriptionV2(meta: Option[String], language: String): Seq[ArticleMetaDescription] = {
       if (meta.isEmpty) {
         Seq.empty[ArticleMetaDescription]
       } else {
@@ -250,8 +255,15 @@ trait ConverterService {
       }
     }
 
-   def toDomainCopyright(copyright: api.Copyright): Copyright = {
-      Copyright(copyright.license.license, copyright.origin, copyright.authors.map(toDomainAuthor))
+    def toDomainCopyright(copyright: api.Copyright): Copyright = {
+      Copyright(
+        copyright.license.license,
+        copyright.origin,
+        copyright.creators.map(toDomainAuthor),
+        copyright.processors.map(toDomainAuthor),
+        copyright.rightsholders.map(toDomainAuthor),
+        copyright.validFrom,
+        copyright.validTo)
     }
 
     def toDomainAuthor(author: api.Author): Author = {
@@ -328,7 +340,11 @@ trait ConverterService {
       api.Copyright(
         toApiLicense(copyright.license),
         copyright.origin,
-        copyright.authors.map(toApiAuthor)
+        copyright.creators.map(toApiAuthor),
+        copyright.processors.map(toApiAuthor),
+        copyright.rightsholders.map(toApiAuthor),
+        copyright.validFrom,
+        copyright.validTo
       )
     }
 
@@ -359,7 +375,7 @@ trait ConverterService {
       api.ArticleIntroduction(intro.introduction, intro.language)
     }
 
-    def toApiArticleMetaDescription(metaDescription: ArticleMetaDescription): api.ArticleMetaDescription= {
+    def toApiArticleMetaDescription(metaDescription: ArticleMetaDescription): api.ArticleMetaDescription = {
       api.ArticleMetaDescription(metaDescription.content, metaDescription.language)
     }
 
@@ -382,7 +398,8 @@ trait ConverterService {
 
     def toApiConceptTitle(title: ConceptTitle): api.ConceptTitle = api.ConceptTitle(title.title, title.language)
 
-    def toApiConceptContent(title: ConceptContent): api.ConceptContent= api.ConceptContent(title.content, title.language)
+    def toApiConceptContent(title: ConceptContent): api.ConceptContent = api.ConceptContent(title.content, title.language)
 
   }
+
 }

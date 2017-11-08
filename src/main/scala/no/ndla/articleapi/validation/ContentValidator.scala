@@ -116,7 +116,7 @@ trait ContentValidator {
 
     private def validateCopyright(copyright: Copyright): Seq[ValidationMessage] = {
       val licenseMessage = validateLicense(copyright.license)
-      val contributorsMessages = copyright.authors.flatMap(validateAuthor)
+      val contributorsMessages = copyright.creators.flatMap(validateAuthor) ++ copyright.processors.flatMap(validateAuthor) ++ copyright.rightsholders.flatMap(validateAuthor)
       val originMessage = NoHtmlValidator.validate("copyright.origin", copyright.origin)
 
       licenseMessage ++ contributorsMessages ++ originMessage

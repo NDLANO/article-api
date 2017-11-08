@@ -30,7 +30,7 @@ trait SearchConverterService {
         tags = SearchableLanguageList(ai.tags.map(tag => LanguageValue(tag.language, tag.tags))),
         lastUpdated = ai.updated,
         license = ai.copyright.license,
-        authors = ai.copyright.authors.map(_.name),
+        authors = ai.copyright.creators.map(_.name) ++ ai.copyright.processors.map(_.name) ++ ai.copyright.rightsholders.map(_.name),
         articleType = ai.articleType
       )
     }
