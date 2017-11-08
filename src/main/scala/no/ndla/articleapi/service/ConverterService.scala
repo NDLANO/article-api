@@ -317,7 +317,7 @@ trait ConverterService {
 
     def toApiMetaImage(metaImageId: Option[String]): Option[String] = {
       metaImageId match {
-        case Some(imageId) => Some(s"${externalApiUrls("image")}/$imageId")
+        case Some(imageId) => Some(s"${externalApiUrls("raw-image")}/$imageId")
         case None => None
       }
     }

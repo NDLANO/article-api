@@ -10,7 +10,7 @@ package no.ndla.articleapi
 
 import no.ndla.articleapi.integration._
 import no.ndla.articleapi.model.domain._
-import no.ndla.articleapi.ArticleApiProperties.resourceHtmlEmbedTag
+import no.ndla.articleapi.ArticleApiProperties._
 import no.ndla.articleapi.model.api
 import no.ndla.articleapi.model.api.License
 import org.joda.time.{DateTime, DateTimeZone}
@@ -84,7 +84,7 @@ object TestData {
     api.ArticleTag(Seq(), "nb"),
     Seq(),
     None,
-    None,
+    Some(s"${externalApiUrls("raw-image")}/11"),
     None,
     api.ArticleMetaDescription("meta description", "nb"),
     today,
@@ -159,7 +159,7 @@ object TestData {
     Seq(),
     Seq(),
     Seq(ArticleMetaDescription("meta description", "nb")),
-    None,
+    Some("11"),
     today,
     today,
     "ndalId54321",
