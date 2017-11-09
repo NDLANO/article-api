@@ -62,8 +62,8 @@ trait MigrationApiClient {
     def getBiblioMeta(nodeId: String): Try[MigrationContentBiblioMeta] =
       get[MigrationContentBiblioMeta](ContentBiblioMetaEndpoint, nodeId)
 
-    def getSubjectForNode(nodeId: String): Try[Seq[MigrationSubjectMeta]] =
-      get[Seq[MigrationSubjectMeta]](ContentSubjectMetaEndpoint, nodeId).map(_.distinct)
+    def getSubjectForNode(nodeId: String): Try[Set[MigrationSubjectMeta]] =
+      get[Seq[MigrationSubjectMeta]](ContentSubjectMetaEndpoint, nodeId).map(_.toSet)
 
   }
 

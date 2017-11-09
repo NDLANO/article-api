@@ -10,26 +10,32 @@ package no.ndla.articleapi.service
 
 import no.ndla.articleapi.auth.User
 import no.ndla.articleapi.model.api
-import no.ndla.articleapi.model.api.{ArticleContentV2, ArticleV2, NotFoundException, UpdatedArticleV2}
+import no.ndla.articleapi.model.api.{ArticleV2, NotFoundException, UpdatedArticleV2}
 import no.ndla.articleapi.model.domain._
-import no.ndla.articleapi.repository.ArticleRepository
+import no.ndla.articleapi.repository.{ArticleRepository, ConceptRepository}
 import no.ndla.articleapi.service.search.ArticleIndexService
 import no.ndla.articleapi.validation.ContentValidator
 
 import scala.util.{Failure, Success, Try}
 
 trait WriteService {
-  this: ArticleRepository with ConverterService with ContentValidator with ArticleIndexService with Clock with User with ReadService =>
+  this: ArticleRepository
+    with ConceptRepository
+    with ConverterService
+    with ContentValidator
+    with ArticleIndexService
+    with Clock
+    with User
+    with ReadService =>
   val writeService: WriteService
 
   class WriteService {
     def newArticleV2(newArticle: api.NewArticleV2): Try[ArticleV2] = {
       validateAndConvertNewArticle(newArticle) match {
-        case Success(domainArticle) => {
-          val article = articleRepository.insert(domainArticle)
+        case Success(domainArticle) =>
+          val article = articleRepository.newArticle(domainArticle)
           articleIndexService.indexDocument(article)
           Success(converterService.toApiArticleV2(article, newArticle.language).get)
-        }
         case Failure(exception) => Failure(exception)
       }
     }
@@ -76,11 +82,28 @@ trait WriteService {
     def updateArticleV2(articleId: Long, updatedApiArticle: api.UpdatedArticleV2): Try[api.ArticleV2] = {
       val article = for {
         toUpdate <- validateAndConvertUpdatedArticle(articleId, updatedApiArticle)
-        domainArticle <- articleRepository.update(toUpdate)
+        domainArticle <- articleRepository.updateArticle(toUpdate)
         _ <- articleIndexService.indexDocument(domainArticle)
       } yield domainArticle
 
       article.map(a => converterService.toApiArticleV2(readService.addUrlsOnEmbedResources(a), updatedApiArticle.language).get)
+    }
+
+    def allocateArticleId(externalId: Option[String], externalSubjectIds: Set[String] = Set.empty): Long = {
+      val repo = articleRepository
+      externalId match {
+        case None => repo.allocateArticleId
+        case Some(nid) => repo.getIdFromExternalId(nid)
+          .getOrElse(repo.allocateArticleIdWithExternal(nid, externalSubjectIds))
+      }
+    }
+
+    def allocateConceptId(externalId: Option[String], externalSubjectIds: Set[String] = Set.empty): Long = {
+      val repo = conceptRepository
+      externalId match {
+        case None => repo.allocateConceptId
+        case Some(nid) => repo.getIdFromExternalId(nid).getOrElse(repo.allocateConceptIdWithExternal(nid))
+      }
     }
 
   }

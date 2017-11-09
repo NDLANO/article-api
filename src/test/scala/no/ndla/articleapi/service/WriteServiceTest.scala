@@ -42,18 +42,18 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     when(contentValidator.validateArticle(any[Article], any[Boolean])).thenAnswer((invocation: InvocationOnMock) =>
       Success(invocation.getArgumentAt(0, classOf[Article]))
     )
-    when(articleRepository.update(any[Article])(any[DBSession])).thenAnswer((invocation: InvocationOnMock) => {
+    when(articleRepository.updateArticle(any[Article])(any[DBSession])).thenAnswer((invocation: InvocationOnMock) => {
       val arg = invocation.getArgumentAt(0, classOf[Article])
       Try(arg.copy(revision = Some(arg.revision.get + 1)))
     })
   }
 
   test("newArticleV2 should insert a given articleV2") {
-    when(articleRepository.insert(any[Article])(any[DBSession])).thenReturn(article)
+    when(articleRepository.newArticle(any[Article])(any[DBSession])).thenReturn(article)
     when(articleRepository.getExternalIdFromId(any[Long])(any[DBSession])).thenReturn(None)
 
     service.newArticleV2(TestData.newArticleV2).get.id.toString should equal(article.id.get.toString)
-    verify(articleRepository, times(1)).insert(any[Article])
+    verify(articleRepository, times(1)).newArticle(any[Article])
     verify(articleIndexService, times(1)).indexDocument(any[Article])
   }
 
@@ -155,6 +155,50 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       updated = today)
 
     service.updateArticleV2(articleId, updatedApiArticle).get should equal(converterService.toApiArticleV2(expectedArticle, "en").get)
+  }
+
+  test("allocateArticleId should reuse existing id if external id already exists") {
+    val id = 1122: Long
+    when(articleRepository.getIdFromExternalId(any[String])(any[DBSession])).thenReturn(Some(id))
+    service.allocateArticleId(Some("123123123"), Set.empty) should equal(id)
+  }
+
+  test("allocateArticleId should allocate new id if no external id is supplied or first time use of external id") {
+    val id = 1122: Long
+    val external = "12312313"
+    when(articleRepository.getIdFromExternalId(any[String])(any[DBSession])).thenReturn(None)
+    when(articleRepository.allocateArticleIdWithExternal(any[String], any[Set[String]])(any[DBSession])).thenReturn(id)
+    service.allocateArticleId(Some(external), Set.empty) should equal(id)
+    verify(articleRepository, times(0)).allocateArticleId()
+    verify(articleRepository, times(1)).allocateArticleIdWithExternal(external, Set.empty)
+
+    reset(articleRepository)
+    when(articleRepository.allocateArticleId()(any[DBSession])).thenReturn(id)
+    service.allocateArticleId(None, Set.empty) should equal(id)
+    verify(articleRepository, times(1)).allocateArticleId()
+    verify(articleRepository, times(0)).allocateArticleIdWithExternal(external, Set.empty)
+  }
+
+  test("allocateConceptId should reuse existing id if external id already exists") {
+    val id = 1122: Long
+    when(conceptRepository.getIdFromExternalId(any[String])(any[DBSession])).thenReturn(Some(id))
+    service.allocateConceptId(Some("123123123"), Set.empty) should equal(id)
+  }
+
+  test("allocateConceptId should allocate new id if no external id is supplied or first time use of external id") {
+    val id = 1122: Long
+    val external = "12312313"
+    when(conceptRepository.getIdFromExternalId(any[String])(any[DBSession])).thenReturn(None)
+    when(conceptRepository.allocateConceptIdWithExternal(any[String])(any[DBSession])).thenReturn(id)
+    service.allocateConceptId(Some(external), Set.empty) should equal(id)
+    verify(conceptRepository, times(0)).allocateConceptId()
+    verify(conceptRepository, times(1)).allocateConceptIdWithExternal(external)
+
+    reset(conceptRepository)
+    when(conceptRepository.allocateConceptId()(any[DBSession])).thenReturn(id)
+    service.allocateConceptId(None, Set.empty) should equal(id)
+    verify(conceptRepository, times(1)).allocateConceptId()
+    verify(conceptRepository, times(0)).allocateConceptIdWithExternal(external)
   }
 
 }
