@@ -54,11 +54,12 @@ trait HtmlTagGenerator {
       buildEmbedContent(dataAttributes)
     }
 
-    def buildContentLinkEmbedContent(contentId: Long, linkText: String): String = {
+    def buildContentLinkEmbedContent(contentId: Long, linkText: String, linkContext: String): String = {
       val dataAttributes = Map(
         Attributes.DataResource -> ResourceType.ContentLink.toString,
         Attributes.DataContentId -> s"$contentId",
-        Attributes.DataLinkText -> linkText)
+        Attributes.DataLinkText -> linkText,
+        Attributes.DataOpenIn -> linkContext)
       buildEmbedContent(dataAttributes)
     }
 

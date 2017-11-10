@@ -68,9 +68,9 @@ The embed tag contains a set of attributes which define what content should be i
 Optional attribute groups are defined in the validatin library [here](https://github.com/NDLANO/validation/blob/master/src/main/resources/embed-tag-rules.json).
 Every attribute in an attribute group must be specified. Otherwise validation will fail.
 The following attribute groups exists:
+* `data-open-in`: Can only be used for content embed-tags
 * `data-upper-left-x`, `data-upper-left-y`, `data-lower-right-x`, `data-lower-right-y`: Can only be used for image embed-tags
 * `data-focal-x`, `data-focal-y`: Can only be used for image embed-tags
-
 
 ### Other tags with extra attributes
 The following tags may contain extra attributes which conveys information about how they should be displayed

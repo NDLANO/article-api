@@ -24,11 +24,11 @@ trait VideoConverterModule {
     override val typeName: String = "video"
 
     override def convert(content: ContentBrowser, importStatus: ImportStatus): Try[(String, Seq[RequiredLibrary], ImportStatus)] = {
-      val (linkText, nodeId) = (content.get("link_text"), content.get("nid"))
+      val (linkText, nodeId, linkContext) = (content.get("link_text"), content.get("nid"), content.get("open_in"))
 
       val (embedVideo, requiredLibraries) = content.get("insertion") match {
         case "link" =>
-          toVideoLink(linkText, nodeId) match {
+          toVideoLink(linkText, nodeId, linkContext) match {
             case Success(link) => (link, Seq.empty)
             case Failure(e) => return Failure(e)
           }
@@ -39,9 +39,9 @@ trait VideoConverterModule {
       Success(embedVideo, requiredLibraries, importStatus)
     }
 
-    private def toVideoLink(linkText: String, nodeId: String): Try[String] = {
+    private def toVideoLink(linkText: String, nodeId: String, linkContext: String): Try[String] = {
       extractConvertStoreContent.processNode(nodeId, ImportStatus.empty) match {
-        case Success((content, _)) => Success(HtmlTagGenerator.buildContentLinkEmbedContent(content.id.get, linkText))
+        case Success((content, _)) => Success(HtmlTagGenerator.buildContentLinkEmbedContent(content.id.get, linkText, linkContext))
         case Failure(ex) => Failure(ex)
       }
     }
