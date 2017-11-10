@@ -170,7 +170,7 @@ trait ConverterService {
       // Filters out processor authors with type `redaksjonelt` during import process since `redaksjonelt` exists both in processors and creators.
       val processors = authorsExcludingOrigin.filter(a => ArticleApiProperties.processorTypes.contains(a.`type`.toLowerCase)).filterNot(a => a.`type` == "redaksjonelt")
       val rightsholders = authorsExcludingOrigin.filter(a => ArticleApiProperties.rightsholderTypes.contains(a.`type`.toLowerCase))
-      Copyright(license, origin, creators, processors, rightsholders, None, None)
+      Copyright(license, origin, creators, processors, rightsholders, None, None, None)
     }
 
     def toDomainArticle(newArticle: api.NewArticleV2): Article = {
@@ -262,6 +262,7 @@ trait ConverterService {
         copyright.creators.map(toDomainAuthor),
         copyright.processors.map(toDomainAuthor),
         copyright.rightsholders.map(toDomainAuthor),
+        copyright.agreement,
         copyright.validFrom,
         copyright.validTo)
     }
@@ -343,6 +344,7 @@ trait ConverterService {
         copyright.creators.map(toApiAuthor),
         copyright.processors.map(toApiAuthor),
         copyright.rightsholders.map(toApiAuthor),
+        copyright.agreement,
         copyright.validFrom,
         copyright.validTo
       )

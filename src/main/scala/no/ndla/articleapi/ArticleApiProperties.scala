@@ -65,9 +65,16 @@ object ArticleApiProperties extends LazyLogging {
   val nodeTypeH5P: String = "h5p_content"
   val supportedContentTypes = Set("fagstoff", "oppgave", "veiledning", "aktualitet", "emneartikkel", nodeTypeBegrep, nodeTypeVideo, nodeTypeH5P)
 
-  val creatorTypes = List("opphavsmann", "fotograf", "kunstner", "redaksjonelt", "forfatter", "manusforfatter", "innleser", "oversetter", "regissør", "illustratør", "medforfatter", "komponist")
-  val processorTypes= List("bearbeider", "tilrettelegger", "redaksjonelt", "språklig", "ide", "sammenstiller", "korrektur")
-  val rightsholderTypes =  List("rettighetshaver", "forlag", "distributør", "leverandør")
+  val oldCreatorTypes = List("opphavsmann", "fotograf", "kunstner", "redaksjonelt", "forfatter", "manusforfatter", "innleser", "oversetter", "regissør", "illustratør", "medforfatter", "komponist")
+  val creatorTypes = List("originator", "photographer", "artist", "editorial", "writer", "scriptwriter", "reader", "translator", "director", "illustrator", "cowriter", "composer")
+
+  val oldProcessorTypes = List("bearbeider", "tilrettelegger", "redaksjonelt", "språklig", "ide", "sammenstiller", "korrektur")
+  val processorTypes = List("processor", "facilitator", "editorial", "linguistic", "idea", "compiler", "correction")
+
+  val oldRightsholderTypes = List("rettighetshaver", "forlag", "distributør", "leverandør")
+  val rightsholderTypes = List("rightsholder", "publisher", "distributor", "supplier")
+  val allowedAuthors = creatorTypes ++ processorTypes ++ rightsholderTypes
+  final val allowedAuthorsStr = "originator,photographer,artist,editorial,writer,scriptwriter,reader,translator,director,illustrator,cowriter,composer,processor,facilitator,editorial,linguistic,idea,compiler,correction,rightsholder,publisher,distributor,supplier"
 
 
   // When converting a content node, the converter may run several times over the content to make sure

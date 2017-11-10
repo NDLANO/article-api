@@ -16,9 +16,9 @@ import no.ndla.articleapi.model.api.License
 import org.joda.time.{DateTime, DateTimeZone}
 
 object TestData {
-  private val publicDomainCopyright= Copyright("publicdomain", "", List(), List(), List(), None, None)
-  private val byNcSaCopyright = Copyright("by-nc-sa", "Gotham City", List(Author("Forfatter", "DC Comics")), List(), List(), None, None)
-  private val copyrighted = Copyright("copyrighted", "New York", List(Author("Forfatter", "Clark Kent")), List(), List(), None, None)
+  private val publicDomainCopyright= Copyright("publicdomain", "", List(), List(), List(), None, None, None)
+  private val byNcSaCopyright = Copyright("by-nc-sa", "Gotham City", List(Author("Forfatter", "DC Comics")), List(), List(), None, None, None)
+  private val copyrighted = Copyright("copyrighted", "New York", List(Author("Forfatter", "Clark Kent")), List(), List(), None, None, None)
   private val today = new DateTime().toDate
 
   private val embedUrl = "http://www.example.org"
@@ -31,7 +31,7 @@ object TestData {
     revision=1,
     title=api.ArticleTitle("title", "nb"),
     content=api.ArticleContentV2("this is content", "nb"),
-    copyright = api.Copyright(api.License("licence", None, None), "origin", Seq(api.Author("developer", "Per")), List(), List(), None, None),
+    copyright = api.Copyright(api.License("licence", None, None), "origin", Seq(api.Author("developer", "Per")), List(), List(), None, None, None),
     tags = api.ArticleTag(Seq("tag"), "nb"),
     requiredLibraries = Seq(api.RequiredLibrary("JS", "JavaScript", "url")),
     visualElement = None,
@@ -79,7 +79,7 @@ object TestData {
     2,
     api.ArticleTitle("title", "nb"),
     api.ArticleContentV2("content", "nb"),
-    api.Copyright(api.License("by", Some("Creative Commons Attribution 2.0 Generic"), Some("https://creativecommons.org/licenses/by/2.0/")), "", List(), List(), List(), None, None),
+    api.Copyright(api.License("by", Some("Creative Commons Attribution 2.0 Generic"), Some("https://creativecommons.org/licenses/by/2.0/")), "", List(), List(), List(), None, None, None),
     api.ArticleTag(Seq(), "nb"),
     Seq(),
     None,
@@ -151,7 +151,7 @@ object TestData {
     Option(2),
     Seq(ArticleTitle("title", "nb")),
     Seq(ArticleContent("content", "nb")),
-    Copyright("by", "", Seq(), Seq(), Seq(), None, None),
+    Copyright("by", "", Seq(), Seq(), Seq(), None, None, None),
     Seq(),
     Seq(),
     Seq(),
@@ -169,7 +169,7 @@ object TestData {
     None,
     Seq(ArticleTitle("test", "en")),
     Seq(ArticleContent("<article><div>test</div></article>", "en")),
-    Copyright("publicdomain", "", Seq(), Seq(), Seq(), None, None),
+    Copyright("publicdomain", "", Seq(), Seq(), Seq(), None, None, None),
     Seq(),
     Seq(),
     Seq(),
@@ -190,7 +190,7 @@ object TestData {
     None,
     None,
     None,
-    api.Copyright(api.License("publicdomain", None, None), "", Seq(), Seq(), Seq(), None, None),
+    api.Copyright(api.License("publicdomain", None, None), "", Seq(), Seq(), Seq(), None, None, None),
     None,
     "standard",
     "en"
@@ -209,7 +209,7 @@ object TestData {
       |<ol><li><h3>Det er ikke lov å gjøre dette.</h3></li><li>Dette er helt ok</li></ol>
       |<ol><li><h4>Det er ikke lov å gjøre dette.</h4></li><li>Dette er helt ok</li></ol>
     """.stripMargin, "en")),
-    Copyright("publicdomain", "", Seq(), Seq(), Seq(), None, None),
+    Copyright("publicdomain", "", Seq(), Seq(), Seq(), None, None, None),
     Seq(),
     Seq(),
     Seq(),
@@ -233,7 +233,7 @@ object TestData {
         |<ol><li><h3>Det er ikke lov å gjøre dette.</h3></li><li>Dette er helt ok</li></ol>
         |<ol><li><h4>Det er ikke lov å gjøre dette.</h4></li><li>Dette er helt ok</li></ol>
       """.stripMargin, "en"),
-    api.Copyright(api.License("publicdomain", None, None), "", Seq(), Seq(), Seq(), None, None),
+    api.Copyright(api.License("publicdomain", None, None), "", Seq(), Seq(), Seq(), None, None, None),
     api.ArticleTag(Seq.empty, "en"),
     Seq.empty,
     None,
@@ -267,7 +267,7 @@ object TestData {
     Some(1),
     Seq(ConceptTitle("Tittel for begrep", "nb")),
     Seq(ConceptContent("Innhold for begrep", "nb")),
-    Some(Copyright("publicdomain", "", Seq(), Seq(), Seq(), None, None)),
+    Some(Copyright("publicdomain", "", Seq(), Seq(), Seq(), None, None, None)),
     DateTime.now().minusDays(4).toDate,
     DateTime.now().minusDays(2).toDate
   )
@@ -276,7 +276,7 @@ object TestData {
     1,
     api.ConceptTitle("Tittel for begrep", "nb"),
     api.ConceptContent("Innhold for begrep", "nb"),
-    Some(api.Copyright(api.License("publicdomain", None, None), "", Seq(), Seq(), Seq(), None, None)),
+    Some(api.Copyright(api.License("publicdomain", None, None), "", Seq(), Seq(), Seq(), None, None, None)),
     DateTime.now().minusDays(4).toDate,
     DateTime.now().minusDays(2).toDate,
     Set("nb")

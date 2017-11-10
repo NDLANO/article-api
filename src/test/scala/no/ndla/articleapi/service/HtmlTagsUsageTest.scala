@@ -17,7 +17,7 @@ import no.ndla.articleapi.TestData
 
 class HtmlTagsUsageTest extends UnitSuite with TestEnvironment {
   val embedUrl = "http://hello.yes.this.is.dog"
-  val copyright = Copyright("publicdomain", "", List(), List(), List(), None, None)
+  val copyright = Copyright("publicdomain", "", List(), List(), List(), None, None, None)
 
   val article1 = TestData.sampleArticleWithPublicDomain.copy(id=Option(1), content=Seq(ArticleContent("<section><div>test</div></section>", "en")))
   val article2 = TestData.sampleArticleWithPublicDomain.copy(id=Option(2), content=Seq(ArticleContent("<article><div>test</div><p>paragraph</p></article>", "en")))
