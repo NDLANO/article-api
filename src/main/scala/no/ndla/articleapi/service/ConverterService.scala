@@ -291,7 +291,7 @@ trait ConverterService {
       val introduction = findByLanguageOrBestEffort(article.introduction, language).map(toApiArticleIntroduction)
       val visualElement = findByLanguageOrBestEffort(article.visualElement, language).map(toApiVisualElement)
       val articleContent = findByLanguageOrBestEffort(article.content, language).map(toApiArticleContentV2).getOrElse(api.ArticleContentV2("", DefaultLanguage))
-      val metaImage = toApiMetaImage(article.metaImageId)
+      val metaImage = article.metaImageId.map(toApiMetaImage)
 
 
       Some(api.ArticleV2(
@@ -315,11 +315,8 @@ trait ConverterService {
       ))
     }
 
-    def toApiMetaImage(metaImageId: Option[String]): Option[String] = {
-      metaImageId match {
-        case Some(imageId) => Some(s"${externalApiUrls("raw-image")}/$imageId")
-        case None => None
-      }
+    def toApiMetaImage(metaImageId: String): String = {
+      s"${externalApiUrls("raw-image")}/$metaImageId"
     }
     def toApiArticleTitle(title: ArticleTitle): api.ArticleTitle = {
       api.ArticleTitle(title.title, title.language)
