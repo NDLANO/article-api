@@ -10,7 +10,7 @@
 package no.ndla.articleapi.service.converters.contentbrowser
 
 import no.ndla.articleapi.{TestEnvironment, UnitSuite}
-import no.ndla.articleapi.ArticleApiProperties.resourceHtmlEmbedTag
+import no.ndla.validation.EmbedTagRules.ResourceHtmlEmbedTag
 import no.ndla.articleapi.model.domain.ImportStatus
 import org.mockito.Mockito._
 
@@ -24,7 +24,7 @@ class AudioConverterTest extends UnitSuite with TestEnvironment {
 
   test("That AudioConverter returns a embed resource string if the audio was imported") {
     val audioId: Long = 123
-    val expectedResult = s"""<$resourceHtmlEmbedTag data-resource="audio" data-resource_id="123" />"""
+    val expectedResult = s"""<$ResourceHtmlEmbedTag data-resource="audio" data-resource_id="123" />"""
 
     when(audioApiClient.getOrImportAudio(nodeId)).thenReturn(Success(audioId))
 

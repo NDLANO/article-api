@@ -36,12 +36,14 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     when(articleRepository.withId(articleId)).thenReturn(Option(article))
     when(articleIndexService.indexDocument(any[Article])).thenAnswer((invocation: InvocationOnMock) => Try(invocation.getArgumentAt(0, article.getClass)))
     when(readService.addUrlsOnEmbedResources(any[Article])).thenAnswer((invocation: InvocationOnMock) => invocation.getArgumentAt(0, article.getClass))
-    when(contentValidator.validateArticle(any[Article], any[Boolean])).thenReturn(Success(article))
     when(articleRepository.getExternalIdFromId(any[Long])(any[DBSession])).thenReturn(Option("1234"))
     when(authUser.id()).thenReturn("ndalId54321")
     when(clock.now()).thenReturn(today)
+    when(contentValidator.validateArticle(any[Article], any[Boolean])).thenAnswer((invocation: InvocationOnMock) =>
+      Success(invocation.getArgumentAt(0, classOf[Article]))
+    )
     when(articleRepository.update(any[Article])(any[DBSession])).thenAnswer((invocation: InvocationOnMock) => {
-      val arg = invocation.getArgumentAt(0, article.getClass)
+      val arg = invocation.getArgumentAt(0, classOf[Article])
       Try(arg.copy(revision = Some(arg.revision.get + 1)))
     })
   }
@@ -49,7 +51,6 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
   test("newArticleV2 should insert a given articleV2") {
     when(articleRepository.insert(any[Article])(any[DBSession])).thenReturn(article)
     when(articleRepository.getExternalIdFromId(any[Long])(any[DBSession])).thenReturn(None)
-    when(contentValidator.validateArticle(any[Article], any[Boolean])).thenReturn(Success(article))
 
     service.newArticleV2(TestData.newArticleV2).get.id.toString should equal(article.id.get.toString)
     verify(articleRepository, times(1)).insert(any[Article])

@@ -10,7 +10,7 @@
 package no.ndla.articleapi.service.converters.contentbrowser
 
 import no.ndla.articleapi.{TestEnvironment, UnitSuite}
-import no.ndla.articleapi.ArticleApiProperties.resourceHtmlEmbedTag
+import no.ndla.validation.EmbedTagRules.ResourceHtmlEmbedTag
 import no.ndla.articleapi.model.domain.ImportStatus
 
 import scala.util.Success
@@ -22,7 +22,7 @@ class H5PConverterTest extends UnitSuite with TestEnvironment {
   val content = ContentBrowser(contentString, "nb")
 
   test("That contentbrowser strings of type 'h5p_content' returns an iframe") {
-    val expectedResult = s"""<$resourceHtmlEmbedTag data-resource="h5p" data-url="//ndla.no/h5p/embed/1234" />"""
+    val expectedResult = s"""<$ResourceHtmlEmbedTag data-resource="h5p" data-url="//ndla.no/h5p/embed/1234" />"""
     val Success((result, requiredLibraries, errors)) = H5PConverter.convert(content, ImportStatus.empty)
 
     result should equal(expectedResult)

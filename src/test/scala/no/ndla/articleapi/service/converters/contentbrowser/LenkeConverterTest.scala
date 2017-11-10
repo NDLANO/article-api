@@ -10,10 +10,10 @@
 package no.ndla.articleapi.service.converters.contentbrowser
 
 import no.ndla.articleapi.{TestEnvironment, UnitSuite}
-import no.ndla.articleapi.ArticleApiProperties.resourceHtmlEmbedTag
 import no.ndla.articleapi.integration.MigrationEmbedMeta
 import no.ndla.articleapi.model.domain.ImportStatus
-import no.ndla.articleapi.service.converters.ResourceType
+import no.ndla.validation.ResourceType
+import no.ndla.validation.EmbedTagRules.ResourceHtmlEmbedTag
 import org.mockito.Mockito._
 
 import scala.util.Success
@@ -27,7 +27,7 @@ class LenkeConverterTest extends UnitSuite with TestEnvironment {
   val nrkScriptUrl = "https://www.nrk.no/serum/latest/js/video_embed.js"
   val nrkEmbedScript = s"""<div class="nrk-video" data-nrk-id="$nrkVideoId"></div><script src="$nrkScriptUrl"></script>"""
   val nrkLinkUrl = "http://nrk.no/skole/klippdetalj?topic=urn%3Ax-mediadb%3A18745"
-  val linkEmbedCode = s"""<$resourceHtmlEmbedTag data-resource="external" data-url="$linkUrl" />"""
+  val linkEmbedCode = s"""<$ResourceHtmlEmbedTag data-resource="external" data-url="$linkUrl" />"""
 
   override def beforeEach = {
     when(extractService.getNodeEmbedMeta(nodeId)).thenReturn(Success(MigrationEmbedMeta(Some(linkUrl), None)))
@@ -97,7 +97,7 @@ class LenkeConverterTest extends UnitSuite with TestEnvironment {
     val insertion = "inline"
     val contentString = s"[contentbrowser ==nid=$nodeId==imagecache=Fullbredde==width===alt=$altText==link===node_link=1==link_type=link_to_content==lightbox_size===remove_fields[76661]=1==remove_fields[76663]=1==remove_fields[76664]=1==remove_fields[76666]=1==insertion=$insertion==link_title_text= ==link_text= ==text_align===css_class=contentbrowser contentbrowser]"
     val content = ContentBrowser(contentString, "nb")
-    val expectedResult = s"""<$resourceHtmlEmbedTag data-nrk-video-id="$nrkVideoId" data-resource="nrk" data-url="$nrkLinkUrl" />"""
+    val expectedResult = s"""<$ResourceHtmlEmbedTag data-nrk-video-id="$nrkVideoId" data-resource="nrk" data-url="$nrkLinkUrl" />"""
 
     when(extractService.getNodeEmbedMeta(nodeId)).thenReturn(Success(MigrationEmbedMeta(Some(nrkLinkUrl), Some(nrkEmbedScript))))
     val Success((result, requiredLibraries, errors)) = LenkeConverter.convert(content, ImportStatus.empty)
@@ -116,7 +116,7 @@ class LenkeConverterTest extends UnitSuite with TestEnvironment {
     val insertion = "inline"
     val contentString = s"[contentbrowser ==nid=$nodeId==imagecache=Fullbredde==width===alt=$altText==link===node_link=1==link_type=link_to_content==lightbox_size===remove_fields[76661]=1==remove_fields[76663]=1==remove_fields[76664]=1==remove_fields[76666]=1==insertion=$insertion==link_title_text= ==link_text= ==text_align===css_class=contentbrowser contentbrowser]"
     val content = ContentBrowser(contentString, "nb")
-    val expectedResult = s"""<$resourceHtmlEmbedTag data-height="451" data-resource="${ResourceType.Prezi}" data-url="$preziSrc" data-width="620" />"""
+    val expectedResult = s"""<$ResourceHtmlEmbedTag data-height="451" data-resource="${ResourceType.Prezi}" data-url="$preziSrc" data-width="620" />"""
 
     when(extractService.getNodeEmbedMeta(nodeId)).thenReturn(Success(MigrationEmbedMeta(Some(preziUrl), Some(preziEmbedCode))))
     val Success((result, _, errors)) = LenkeConverter.convert(content, ImportStatus.empty)
@@ -133,7 +133,7 @@ class LenkeConverterTest extends UnitSuite with TestEnvironment {
     val insertion = "inline"
     val contentString = s"[contentbrowser ==nid=$nodeId==imagecache=Fullbredde==width===alt=$altText==link===node_link=1==link_type=link_to_content==lightbox_size===remove_fields[76661]=1==remove_fields[76663]=1==remove_fields[76664]=1==remove_fields[76666]=1==insertion=$insertion==link_title_text= ==link_text= ==text_align===css_class=contentbrowser contentbrowser]"
     val content = ContentBrowser(contentString, "nb")
-    val expectedResult = s"""<$resourceHtmlEmbedTag data-height="451" data-resource="${ResourceType.Commoncraft}" data-url="$CcraftSrc" data-width="620" />"""
+    val expectedResult = s"""<$ResourceHtmlEmbedTag data-height="451" data-resource="${ResourceType.Commoncraft}" data-url="$CcraftSrc" data-width="620" />"""
 
     when(extractService.getNodeEmbedMeta(nodeId)).thenReturn(Success(MigrationEmbedMeta(Some(CcraftUrl), Some(CcraftEmbedCode))))
     val Success((result, _, errors)) = LenkeConverter.convert(content, ImportStatus.empty)
@@ -150,7 +150,7 @@ class LenkeConverterTest extends UnitSuite with TestEnvironment {
     val insertion = "inline"
     val contentString = s"[contentbrowser ==nid=$nodeId==imagecache=Fullbredde==width===alt=$altText==link===node_link=1==link_type=link_to_content==lightbox_size===remove_fields[76661]=1==remove_fields[76663]=1==remove_fields[76664]=1==remove_fields[76666]=1==insertion=$insertion==link_title_text= ==link_text= ==text_align===css_class=contentbrowser contentbrowser]"
     val content = ContentBrowser(contentString, "nb")
-    val expectedResult = s"""<$resourceHtmlEmbedTag data-height="337px" data-resource="${ResourceType.NdlaFilmIundervisning}" data-url="$NdlaFilmSrc" data-width="632px" />"""
+    val expectedResult = s"""<$ResourceHtmlEmbedTag data-height="337px" data-resource="${ResourceType.NdlaFilmIundervisning}" data-url="$NdlaFilmSrc" data-width="632px" />"""
 
     when(extractService.getNodeEmbedMeta(nodeId)).thenReturn(Success(MigrationEmbedMeta(Some(NdlaFilmUrl), Some(NdlaFilmEmbedCode))))
     val Success((result, _, errors)) = LenkeConverter.convert(content, ImportStatus.empty)
@@ -167,7 +167,7 @@ class LenkeConverterTest extends UnitSuite with TestEnvironment {
     val insertion = "inline"
     val contentString = s"[contentbrowser ==nid=$nodeId==imagecache=Fullbredde==width===alt=$altText==link===node_link=1==link_type=link_to_content==lightbox_size===remove_fields[76661]=1==remove_fields[76663]=1==remove_fields[76664]=1==remove_fields[76666]=1==insertion=$insertion==link_title_text= ==link_text= ==text_align===css_class=contentbrowser contentbrowser]"
     val content = ContentBrowser(contentString, "nb")
-    val expectedResult = s"""<$resourceHtmlEmbedTag data-height="350px" data-resource="${ResourceType.Kahoot}" data-url="$KahootSrc" data-width="620px" />"""
+    val expectedResult = s"""<$ResourceHtmlEmbedTag data-height="350px" data-resource="${ResourceType.Kahoot}" data-url="$KahootSrc" data-width="620px" />"""
 
     when(extractService.getNodeEmbedMeta(nodeId)).thenReturn(Success(MigrationEmbedMeta(Some(KahootUrl), Some(KahootEmbedCode))))
     val Success((result, _, errors)) = LenkeConverter.convert(content, ImportStatus.empty)

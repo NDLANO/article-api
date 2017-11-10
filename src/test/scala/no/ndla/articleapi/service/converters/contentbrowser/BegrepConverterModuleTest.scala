@@ -2,8 +2,9 @@ package no.ndla.articleapi.service.converters.contentbrowser
 
 import no.ndla.articleapi.model.domain.ImportStatus
 import no.ndla.articleapi.{TestData, TestEnvironment, UnitSuite}
-import no.ndla.articleapi.ArticleApiProperties.resourceHtmlEmbedTag
-import no.ndla.articleapi.model.api.{ImportException, ValidationException}
+import no.ndla.validation.EmbedTagRules.ResourceHtmlEmbedTag
+import no.ndla.articleapi.model.api.ImportException
+import no.ndla.validation.ValidationException
 import org.mockito.Mockito._
 
 import scala.util.{Failure, Success}
@@ -17,7 +18,7 @@ class BegrepConverterModuleTest extends UnitSuite with TestEnvironment {
   test("begrep should be imported and inserted as an embed tag in the article") {
     when(extractConvertStoreContent.processNode(nodeId, ImportStatus.empty)).thenReturn(Success((TestData.sampleConcept, ImportStatus.empty)))
 
-    val expectedResult = s"""<$resourceHtmlEmbedTag data-content-id="1" data-link-text="$linkText" data-resource="concept" />"""
+    val expectedResult = s"""<$ResourceHtmlEmbedTag data-content-id="1" data-link-text="$linkText" data-resource="concept" />"""
     val Success((result, requiredLibs, _)) = BegrepConverter.convert(content, ImportStatus.empty)
 
     requiredLibs.isEmpty should be (true)

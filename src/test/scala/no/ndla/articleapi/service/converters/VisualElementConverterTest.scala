@@ -1,6 +1,6 @@
 package no.ndla.articleapi.service.converters
 
-import no.ndla.articleapi.ArticleApiProperties.resourceHtmlEmbedTag
+import no.ndla.validation.EmbedTagRules.ResourceHtmlEmbedTag
 import no.ndla.articleapi.model.domain.ImportStatus
 import no.ndla.articleapi.{TestData, TestEnvironment, UnitSuite}
 import org.mockito.Mockito._
@@ -12,7 +12,7 @@ class VisualElementConverterTest extends UnitSuite with TestEnvironment {
   val sampleArticle = TestData.sampleContent.copy(visualElement=Some(nodeId))
 
   test("visual element of type image should be converted to embed tag") {
-    val expectedResult = s"""<$resourceHtmlEmbedTag data-align="" data-alt="" data-caption="" data-resource="image" data-resource_id="1" data-size="" />"""
+    val expectedResult = s"""<$ResourceHtmlEmbedTag data-align="" data-alt="" data-caption="" data-resource="image" data-resource_id="1" data-size="" />"""
 
     when(extractService.getNodeType(nodeId)).thenReturn(Some("image"))
     when(imageApiClient.importImage(nodeId)).thenReturn(Some(TestData.sampleImageMetaInformation))
@@ -29,7 +29,7 @@ class VisualElementConverterTest extends UnitSuite with TestEnvironment {
   }
 
   test("visual element of type audio should be converted to embed tag") {
-    val expectedResult = s"""<$resourceHtmlEmbedTag data-resource="audio" data-resource_id="1" />"""
+    val expectedResult = s"""<$ResourceHtmlEmbedTag data-resource="audio" data-resource_id="1" />"""
 
     when(extractService.getNodeType(nodeId)).thenReturn(Some("audio"))
     when(audioApiClient.getOrImportAudio(nodeId)).thenReturn(Success(1: Long))
@@ -46,7 +46,7 @@ class VisualElementConverterTest extends UnitSuite with TestEnvironment {
   }
 
   test("visual element of type video should be converted to embed tag") {
-    val expectedResult = s"""<$resourceHtmlEmbedTag data-account="some-account-id" data-caption="" data-player="some-player-id" data-resource="brightcove" data-videoid="ref:1234" />"""
+    val expectedResult = s"""<$ResourceHtmlEmbedTag data-account="some-account-id" data-caption="" data-player="some-player-id" data-resource="brightcove" data-videoid="ref:1234" />"""
 
     when(extractService.getNodeType(nodeId)).thenReturn(Some("video"))
     val Success((res, _)) = VisualElementConverter.convert(sampleArticle, ImportStatus.empty)
@@ -55,7 +55,7 @@ class VisualElementConverterTest extends UnitSuite with TestEnvironment {
   }
 
   test("visual element of type h5p should be converted to embed tag") {
-    val expectedResult = s"""<$resourceHtmlEmbedTag data-resource="h5p" data-url="//ndla.no/h5p/embed/1234" />"""
+    val expectedResult = s"""<$ResourceHtmlEmbedTag data-resource="h5p" data-url="//ndla.no/h5p/embed/1234" />"""
 
     when(extractService.getNodeType(nodeId)).thenReturn(Some("h5p_content"))
     val Success((res, _)) = VisualElementConverter.convert(sampleArticle, ImportStatus.empty)

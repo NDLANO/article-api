@@ -12,7 +12,7 @@ package no.ndla.articleapi.service
 import org.mockito.Mockito._
 import no.ndla.articleapi.model.domain._
 import no.ndla.articleapi.{TestEnvironment, UnitSuite}
-import no.ndla.articleapi.ArticleApiProperties.resourceHtmlEmbedTag
+import no.ndla.validation.EmbedTagRules.ResourceHtmlEmbedTag
 import no.ndla.articleapi.TestData
 
 class HtmlTagsUsageTest extends UnitSuite with TestEnvironment {
@@ -22,7 +22,7 @@ class HtmlTagsUsageTest extends UnitSuite with TestEnvironment {
   val article1 = TestData.sampleArticleWithPublicDomain.copy(id=Option(1), content=Seq(ArticleContent("<section><div>test</div></section>", "en")))
   val article2 = TestData.sampleArticleWithPublicDomain.copy(id=Option(2), content=Seq(ArticleContent("<article><div>test</div><p>paragraph</p></article>", "en")))
   val article3 = TestData.sampleArticleWithPublicDomain.copy(id=Option(3), content=Seq(ArticleContent("<article><img></img></article>", "en")))
-  val article4 = TestData.sampleArticleWithPublicDomain.copy(id=Option(4), content=Seq(ArticleContent(s"""<article><$resourceHtmlEmbedTag data-resource="external" data-url="$embedUrl"" /></article>""", "en")))
+  val article4 = TestData.sampleArticleWithPublicDomain.copy(id=Option(4), content=Seq(ArticleContent(s"""<article><$ResourceHtmlEmbedTag data-resource="external" data-url="$embedUrl"" /></article>""", "en")))
 
 
   test("That getHtmlTagsMap counts html elements correctly") {

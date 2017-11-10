@@ -10,9 +10,9 @@ package no.ndla.articleapi.service.converters
 import no.ndla.articleapi.integration.MigrationRelatedContent
 import no.ndla.articleapi.model.domain.ImportStatus
 import no.ndla.articleapi.{TestData, TestEnvironment, UnitSuite}
-import no.ndla.articleapi.ArticleApiProperties.resourceHtmlEmbedTag
-import Attributes._
-import ResourceType._
+import no.ndla.validation.EmbedTagRules.ResourceHtmlEmbedTag
+import no.ndla.validation.Attributes._
+import no.ndla.validation.ResourceType._
 import no.ndla.articleapi.model.api.ImportException
 import org.mockito.Mockito._
 import org.mockito.Matchers._
@@ -36,7 +36,7 @@ class RelatedContentConverterTest extends UnitSuite with TestEnvironment {
       .processNode(any[String], any[ImportStatus], any[Boolean])).thenReturn(Success((TestData.sampleArticleWithByNcSa.copy(id=Some(1)), ImportStatus.empty)))
       .thenReturn(Success((TestData.sampleArticleWithByNcSa.copy(id=Some(2)), ImportStatus.empty)))
 
-    val expectedContent = origContent + s"""<section><$resourceHtmlEmbedTag $DataArticleIds="1,2" $DataResource="$RelatedContent"></section>"""
+    val expectedContent = origContent + s"""<section><$ResourceHtmlEmbedTag $DataArticleIds="1,2" $DataResource="$RelatedContent"></section>"""
 
     val Success((result, _)) = RelatedContentConverter.convert(languageContent.copy(content=origContent), ImportStatus.empty)
     result.content should equal (expectedContent)
@@ -64,7 +64,7 @@ class RelatedContentConverterTest extends UnitSuite with TestEnvironment {
     when(extractService.getNodeType("5678")).thenReturn(Some("link"))
     when(extractConvertStoreContent.processNode(any[String], any[ImportStatus], any[Boolean])).thenReturn(Success((TestData.sampleArticleWithByNcSa.copy(id=Some(1)), ImportStatus.empty)))
 
-    val expectedContent = origContent + s"""<section><$resourceHtmlEmbedTag $DataArticleIds="1" $DataResource="$RelatedContent"></section>"""
+    val expectedContent = origContent + s"""<section><$ResourceHtmlEmbedTag $DataArticleIds="1" $DataResource="$RelatedContent"></section>"""
 
     val Success((result, _)) = RelatedContentConverter.convert(languageContent.copy(content=origContent), ImportStatus.empty)
     result.content should equal (expectedContent)
