@@ -14,7 +14,7 @@ import java.util.Map.Entry
 import com.google.gson.{JsonElement, JsonObject}
 import com.typesafe.scalalogging.LazyLogging
 import io.searchbox.core.{SearchResult => JestSearchResult}
-import no.ndla.articleapi.ArticleApiProperties.{maxConvertionRounds, nodeTypeBegrep}
+import no.ndla.articleapi.ArticleApiProperties._
 import no.ndla.articleapi.auth.User
 import no.ndla.articleapi.integration.ConverterModule.{jsoupDocumentToString, stringToJsoupDocument}
 import no.ndla.articleapi.integration.ImageApiClient
@@ -291,6 +291,7 @@ trait ConverterService {
       val introduction = findByLanguageOrBestEffort(article.introduction, language).map(toApiArticleIntroduction)
       val visualElement = findByLanguageOrBestEffort(article.visualElement, language).map(toApiVisualElement)
       val articleContent = findByLanguageOrBestEffort(article.content, language).map(toApiArticleContentV2).getOrElse(api.ArticleContentV2("", DefaultLanguage))
+      val metaImage = article.metaImageId.map(toApiMetaImage)
 
 
       Some(api.ArticleV2(
@@ -303,6 +304,7 @@ trait ConverterService {
         tags,
         article.requiredLibraries.map(toApiRequiredLibrary),
         visualElement,
+        metaImage,
         introduction,
         meta,
         article.created,
@@ -313,6 +315,9 @@ trait ConverterService {
       ))
     }
 
+    def toApiMetaImage(metaImageId: String): String = {
+      s"${externalApiUrls("raw-image")}/$metaImageId"
+    }
     def toApiArticleTitle(title: ArticleTitle): api.ArticleTitle = {
       api.ArticleTitle(title.title, title.language)
     }

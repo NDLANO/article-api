@@ -24,6 +24,7 @@ case class ArticleV2(@(ApiModelProperty@field)(description = "The unique id of t
                      @(ApiModelProperty@field)(description = "Searchable tags for the article") tags: ArticleTag,
                      @(ApiModelProperty@field)(description = "Required libraries in order to render the article") requiredLibraries: Seq[RequiredLibrary],
                      @(ApiModelProperty@field)(description = "A visual element article") visualElement: Option[VisualElement],
+                     @(ApiModelProperty@field)(description = "A meta image for the article") metaImage: Option[String],
                      @(ApiModelProperty@field)(description = "An introduction for the article") introduction: Option[ArticleIntroduction],
                      @(ApiModelProperty@field)(description = "Meta description for the article") metaDescription: ArticleMetaDescription,
                      @(ApiModelProperty@field)(description = "When the article was created") created: Date,
