@@ -60,7 +60,8 @@ trait HtmlTagGenerator {
         Attributes.DataContentId -> s"$contentId",
         Attributes.DataLinkText -> linkText)
 
-      val dataAttributes = if(linkContext.isDefined) attributes.updated(Attributes.DataOpenIn, linkContext.toString) else attributes
+      val dataAttributes = linkContext.map(c => attributes.updated(Attributes.DataOpenIn, c))
+        .getOrElse(attributes)
 
       buildEmbedContent(dataAttributes)
     }
