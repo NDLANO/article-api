@@ -78,9 +78,9 @@ class GeneralContentConverterTest extends UnitSuite with TestEnvironment {
 
 
   test("That GeneralContentConverter inserts the content if insertion mode is 'link'") {
-    val contentString = s"[contentbrowser ==nid=$nodeId==imagecache=Fullbredde==width===alt=$altText==link===node_link=1==link_type=link_to_content==lightbox_size===remove_fields[76661]=1==remove_fields[76663]=1==remove_fields[76664]=1==remove_fields[76666]=1==insertion=link==link_title_text===link_text=Tittel==open_in=current-context==text_align===css_class=contentbrowser contentbrowser]"
+    val contentString = s"[contentbrowser ==nid=$nodeId==imagecache=Fullbredde==width===alt=$altText==link===node_link=1==link_type=link_to_content==lightbox_size===remove_fields[76661]=1==remove_fields[76663]=1==remove_fields[76664]=1==remove_fields[76666]=1==insertion=link==link_title_text===link_text=Tittel==text_align===css_class=contentbrowser contentbrowser]"
     val content = ContentBrowser(contentString, "nb")
-    val expectedResult = s""" <$ResourceHtmlEmbedTag data-content-id="1" data-link-text="Tittel" data-open-in="current-context" data-resource="content-link" />"""
+    val expectedResult = s""" <$ResourceHtmlEmbedTag data-content-id="1" data-link-text="Tittel" data-resource="content-link" />"""
 
     when(extractService.getNodeGeneralContent(nodeId)).thenReturn(Seq(sampleFagstoff1, sampleFagstoff2))
     when(readService.getArticleIdByExternalId(nodeId)).thenReturn(sampleArticle.id)
@@ -95,7 +95,7 @@ class GeneralContentConverterTest extends UnitSuite with TestEnvironment {
   test("That GeneralContentConverter inserts the content if insertion mode is 'lightbox_large'") {
     val contentString = s"[contentbrowser ==nid=$nodeId==imagecache=Fullbredde==width===alt=$altText==link===node_link=1==link_type=link_to_content==lightbox_size===remove_fields[76661]=1==remove_fields[76663]=1==remove_fields[76664]=1==remove_fields[76666]=1==insertion=lightbox_large==link_title_text===link_text=Tittel==text_align===css_class=contentbrowser contentbrowser]"
     val content = ContentBrowser(contentString, "nb")
-    val expectedResult = s""" <$ResourceHtmlEmbedTag data-content-id="1" data-link-text="Tittel" data-open-in="" data-resource="content-link" />"""
+    val expectedResult = s""" <$ResourceHtmlEmbedTag data-content-id="1" data-link-text="Tittel" data-resource="content-link" />"""
 
     when(extractService.getNodeGeneralContent(nodeId)).thenReturn(Seq(sampleFagstoff1, sampleFagstoff2))
     when(readService.getArticleIdByExternalId(nodeId)).thenReturn(sampleArticle.id)
@@ -110,7 +110,7 @@ class GeneralContentConverterTest extends UnitSuite with TestEnvironment {
   test("That GeneralContentConverter defaults to 'link' if the insertion method is unknown") {
     val contentString = s"[contentbrowser ==nid=$nodeId==imagecache=Fullbredde==width===alt=$altText==link===node_link=1==link_type=link_to_content==lightbox_size===remove_fields[76661]=1==remove_fields[76663]=1==remove_fields[76664]=1==remove_fields[76666]=1==insertion=lightbox_large==link_title_text===link_text=Tittel==text_align===css_class=contentbrowser contentbrowser]"
     val content = ContentBrowser(contentString, "nb")
-    val expectedResult = s""" <$ResourceHtmlEmbedTag data-content-id="1" data-link-text="Tittel" data-open-in="" data-resource="content-link" />"""
+    val expectedResult = s""" <$ResourceHtmlEmbedTag data-content-id="1" data-link-text="Tittel" data-resource="content-link" />"""
 
     when(extractService.getNodeGeneralContent(nodeId)).thenReturn(Seq(sampleFagstoff1, sampleFagstoff2))
     when(readService.getArticleIdByExternalId(nodeId)).thenReturn(sampleArticle.id)
@@ -127,7 +127,7 @@ class GeneralContentConverterTest extends UnitSuite with TestEnvironment {
     val newNodeid: Long = 1111
     val contentString = s"[contentbrowser ==nid=$nodeId==imagecache=Fullbredde==width===alt=$altText==link===node_link=1==link_type=link_to_content==lightbox_size===remove_fields[76661]=1==remove_fields[76663]=1==remove_fields[76664]=1==remove_fields[76666]=1==insertion=link==link_title_text===link_text=Tittel==text_align===css_class=contentbrowser contentbrowser]"
     val content = ContentBrowser(contentString, "nb")
-    val expectedResult = s""" <$ResourceHtmlEmbedTag data-content-id="1111" data-link-text="Tittel" data-open-in="" data-resource="content-link" />"""
+    val expectedResult = s""" <$ResourceHtmlEmbedTag data-content-id="1111" data-link-text="Tittel" data-resource="content-link" />"""
 
     when(extractService.getNodeGeneralContent(nodeId)).thenReturn(Seq(sampleFagstoff1, sampleFagstoff2))
     when(readService.getArticleIdByExternalId(nodeId)).thenReturn(None)

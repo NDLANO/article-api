@@ -58,7 +58,7 @@ trait GeneralContentConverterModule {
 
       getContentId(externalId, importStatus) match {
         case Success((Some(articleId), _, is)) =>
-          val embedContent = HtmlTagGenerator.buildContentLinkEmbedContent(articleId, contentBrowser.get("link_text"), contentBrowser.get("open_in"))
+          val embedContent = HtmlTagGenerator.buildContentLinkEmbedContent(articleId, contentBrowser.get("link_text"))
           Success(s" $embedContent", is)
         case Success((_, Some(conceptId), is)) =>
           val embedContent = HtmlTagGenerator.buildConceptEmbedContent(conceptId, contentBrowser.get("link_text"))
