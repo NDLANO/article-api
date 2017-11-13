@@ -10,7 +10,7 @@
 package no.ndla.articleapi.service.converters.contentbrowser
 
 import no.ndla.articleapi.{TestEnvironment, UnitSuite}
-import no.ndla.articleapi.ArticleApiProperties.resourceHtmlEmbedTag
+import no.ndla.validation.EmbedTagRules.ResourceHtmlEmbedTag
 import no.ndla.articleapi.model.domain.ImportStatus
 
 import scala.util.Success
@@ -23,7 +23,7 @@ class JoubelH5PConverterTest extends UnitSuite with TestEnvironment {
   val contentStringWithInvalidNodeId = s"[contentbrowser ==nid=$invalidNodeId==imagecache=Fullbredde==width===alt=$altText==link===node_link=1==link_type=link_to_content==lightbox_size===remove_fields[76661]=1==remove_fields[76663]=1==remove_fields[76664]=1==remove_fields[76666]=1==insertion===link_title_text= ==link_text= ==text_align===css_class=contentbrowser contentbrowser]"
 
   test("Contentbrowser strings of type 'h5p_content' returns a h5p embed-resource") {
-    val expectedResult = s"""<$resourceHtmlEmbedTag data-resource="h5p" data-url="${JoubelH5PConverter.JoubelH5PBaseUrl}/$joubelH5PIdId" />"""
+    val expectedResult = s"""<$ResourceHtmlEmbedTag data-resource="h5p" data-url="${JoubelH5PConverter.JoubelH5PBaseUrl}/$joubelH5PIdId" />"""
     val content = ContentBrowser(contentStringWithValidNodeId, "nb")
     val Success((result, requiredLibraries, errors)) = JoubelH5PConverter.convert(content, ImportStatus.empty)
 
@@ -33,7 +33,7 @@ class JoubelH5PConverterTest extends UnitSuite with TestEnvironment {
   }
 
   test("H5P nodes with an invalid node id returns an error embed-resource") {
-    val expectedResult = s"""<$resourceHtmlEmbedTag data-message="H5P node $invalidNodeId is not yet exported to new H5P service" data-resource="error" />"""
+    val expectedResult = s"""<$ResourceHtmlEmbedTag data-message="H5P node $invalidNodeId is not yet exported to new H5P service" data-resource="error" />"""
     val content = ContentBrowser(contentStringWithInvalidNodeId, "nb")
     val Success((result, requiredLibraries, errors)) = JoubelH5PConverter.convert(content, ImportStatus.empty)
 

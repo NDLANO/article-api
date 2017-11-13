@@ -10,7 +10,7 @@
 package no.ndla.articleapi
 
 import com.typesafe.scalalogging.LazyLogging
-import no.ndla.articleapi.service.converters.ResourceType
+import no.ndla.validation.ResourceType
 import no.ndla.network.secrets.PropertyKeys
 import no.ndla.network.secrets.Secrets.readSecrets
 import no.ndla.network.Domains
@@ -77,8 +77,6 @@ object ArticleApiProperties extends LazyLogging {
     "raw-image" -> s"$Domain/image-api/raw/id",
     ResourceType.Audio.toString -> s"$Domain/audio-api/v1/audio"
   )
-
-  val resourceHtmlEmbedTag = "embed"
 
   val NDLABrightcoveAccountId = prop("NDLA_BRIGHTCOVE_ACCOUNT_ID")
   val NDLABrightcovePlayerId = prop("NDLA_BRIGHTCOVE_PLAYER_ID")

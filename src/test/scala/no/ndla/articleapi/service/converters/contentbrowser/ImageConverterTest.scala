@@ -12,7 +12,7 @@ package no.ndla.articleapi.service.converters.contentbrowser
 import no.ndla.articleapi.model.domain.{Author, ImportStatus}
 import no.ndla.articleapi.integration._
 import no.ndla.articleapi.{TestEnvironment, UnitSuite}
-import no.ndla.articleapi.ArticleApiProperties.resourceHtmlEmbedTag
+import no.ndla.validation.EmbedTagRules.ResourceHtmlEmbedTag
 import org.mockito.Mockito._
 
 import scala.util.Success
@@ -31,7 +31,7 @@ class ImageConverterTest extends UnitSuite with TestEnvironment {
 
   test("That a contentbrowser string of type 'image' returns an HTML img-tag with path to image") {
     val image = ImageMetaInformation("1234", List(ImageTitle("", Some("nb"))), List(ImageAltText("", Some("nb"))), "full.jpg", 1024, "", copyright, ImageTag(List(""), Some("")))
-    val expectedResult = s"""<$resourceHtmlEmbedTag data-align="" data-alt="$altText" data-caption="$caption" data-resource="image" data-resource_id="1234" data-size="fullbredde" />"""
+    val expectedResult = s"""<$ResourceHtmlEmbedTag data-align="" data-alt="$altText" data-caption="$caption" data-resource="image" data-resource_id="1234" data-size="fullbredde" />"""
 
     when(imageApiClient.importImage(nodeId)).thenReturn(Some(image))
 
@@ -43,7 +43,7 @@ class ImageConverterTest extends UnitSuite with TestEnvironment {
 
   test("That the the data-captions attribute is empty if no captions exist") {
     val image = ImageMetaInformation("1234", List(ImageTitle("", Some("nb"))), List(ImageAltText("", Some("nb"))), "full.jpg", 1024, "", copyright, ImageTag(List(""), Some("")))
-    val expectedResult = s"""<$resourceHtmlEmbedTag data-align="" data-alt="$altText" data-caption="" data-resource="image" data-resource_id="1234" data-size="fullbredde" />"""
+    val expectedResult = s"""<$ResourceHtmlEmbedTag data-align="" data-alt="$altText" data-caption="" data-resource="image" data-resource_id="1234" data-size="fullbredde" />"""
 
     when(imageApiClient.importImage(nodeId)).thenReturn(Some(image))
     val Success((result, requiredLibraries, errors)) = ImageConverter.convert(ContentBrowser(contentStringEmptyCaption, "nb"), ImportStatus.empty)
@@ -62,7 +62,7 @@ class ImageConverterTest extends UnitSuite with TestEnvironment {
 
   test("That a the html tag contains an alignment attribute with the correct value") {
     val image = ImageMetaInformation("1234", List(ImageTitle("", Some("nb"))), List(ImageAltText("", Some("nb"))), "full.jpg", 1024, "", copyright, ImageTag(List(""), Some("")))
-    val expectedResult = s"""<$resourceHtmlEmbedTag data-align="right" data-alt="$altText" data-caption="$caption" data-resource="image" data-resource_id="1234" data-size="fullbredde" />"""
+    val expectedResult = s"""<$ResourceHtmlEmbedTag data-align="right" data-alt="$altText" data-caption="$caption" data-resource="image" data-resource_id="1234" data-size="fullbredde" />"""
 
     when(imageApiClient.importImage(nodeId)).thenReturn(Some(image))
     val Success((result, requiredLibraries, errors)) = ImageConverter.convert(ContentBrowser(contentStringWithLeftMargin, "nb"), ImportStatus.empty)

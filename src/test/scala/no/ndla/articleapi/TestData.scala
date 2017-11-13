@@ -11,8 +11,8 @@ package no.ndla.articleapi
 import no.ndla.articleapi.integration._
 import no.ndla.articleapi.model.domain._
 import no.ndla.articleapi.ArticleApiProperties._
+import no.ndla.validation.EmbedTagRules.ResourceHtmlEmbedTag
 import no.ndla.articleapi.model.api
-import no.ndla.articleapi.model.api.License
 import org.joda.time.{DateTime, DateTimeZone}
 
 object TestData {
@@ -95,42 +95,6 @@ object TestData {
   )
 
 
-  val requestNewArticleV2Body = """
-                                  |{
-                                  |  "copyright": {
-                                  |    "license": {
-                                  |      "license": "by-sa",
-                                  |      "description": "something"
-                                  |    },
-                                  |    "origin": "fromSomeWhere",
-                                  |    "authors": [
-                                  |      {
-                                  |        "type": "string",
-                                  |        "name": "Christian P"
-                                  |      }
-                                  |    ]
-                                  |  },
-                                  |  "language": "nb",
-                                  |  "visualElement": "string",
-                                  |  "introduction": "string",
-                                  |  "metaDescription": "string",
-                                  |  "tags": [
-                                  |	    "string"
-                                  |	  ],
-                                  |  "content": "string",
-                                  |  "footNotes": [ "string " ],
-                                  |  "title": "string",
-                                  |  "articleType": "standard",
-                                  |  "metaImageId": "22",
-                                  |  "requiredLibraries": [
-                                  |    {
-                                  |      "mediaType": "string",
-                                  |      "name": "string"
-                                  |    }
-                                  |  ]
-                                  |}
-                                """.stripMargin
-
   val sampleArticleWithPublicDomain = Article(
     Option(1),
     Option(1),
@@ -198,6 +162,35 @@ object TestData {
     "en"
   )
 
+  val newArticleV2Body = api.NewArticleV2(
+    "title",
+    "content",
+    Seq("tag"),
+    Some("introductino"),
+    Some("metadescription"),
+    Some("22"),
+    None,
+    api.Copyright(api.License("by-sa", None, None), "fromSomeWhere", Seq(api.Author("string", "du"))),
+    None,
+    "standard",
+    "nb"
+  )
+
+  val updatedArticleV2 = api.UpdatedArticleV2(
+    1,
+    "nb",
+    Some("updated title"),
+    None,
+    Seq.empty,
+    None,
+    None,
+    None,
+    None,
+    None,
+    Seq.empty,
+    None
+  )
+
   val sampleArticleWithByNcSa = sampleArticleWithPublicDomain.copy(copyright=byNcSaCopyright)
   val sampleArticleWithCopyrighted = sampleArticleWithPublicDomain.copy(copyright=copyrighted )
 
@@ -206,11 +199,11 @@ object TestData {
     Option(2),
     Seq(ArticleTitle("test", "en")),
     Seq(ArticleContent(
-    """<ul><li><h1>Det er ikke lov å gjøre dette.</h1> Tekst utenfor.</li><li>Dette er helt ok</li></ul>
-      |<ul><li><h2>Det er ikke lov å gjøre dette.</h2></li><li>Dette er helt ok</li></ul>
-      |<ol><li><h3>Det er ikke lov å gjøre dette.</h3></li><li>Dette er helt ok</li></ol>
-      |<ol><li><h4>Det er ikke lov å gjøre dette.</h4></li><li>Dette er helt ok</li></ol>
-    """.stripMargin, "en")),
+      """<ul><li><h1>Det er ikke lov å gjøre dette.</h1> Tekst utenfor.</li><li>Dette er helt ok</li></ul>
+        |<ul><li><h2>Det er ikke lov å gjøre dette.</h2></li><li>Dette er helt ok</li></ul>
+        |<ol><li><h3>Det er ikke lov å gjøre dette.</h3></li><li>Dette er helt ok</li></ol>
+        |<ol><li><h4>Det er ikke lov å gjøre dette.</h4></li><li>Dette er helt ok</li></ol>
+      """.stripMargin, "en")),
     Copyright("publicdomain", "", Seq()),
     Seq(),
     Seq(),
@@ -254,7 +247,7 @@ object TestData {
   val sampleContent = LanguageContent(nodeId, nodeId, "sample content", "metadescription", "en", None, "fagstoff", Some("title"), Seq.empty)
   val sampleTranslationContent = sampleContent.copy(tnid=nodeId2)
 
-  val visualElement = VisualElement(s"""<$resourceHtmlEmbedTag  data-align="" data-alt="" data-caption="" data-resource="image" data-resource_id="1" data-size="" />""", "nb")
+  val visualElement = VisualElement(s"""<$ResourceHtmlEmbedTag  data-align="" data-alt="" data-caption="" data-resource="image" data-resource_id="1" data-size="" />""", "nb")
 
   val sampleImageMetaInformation = ImageMetaInformation(
     "1",

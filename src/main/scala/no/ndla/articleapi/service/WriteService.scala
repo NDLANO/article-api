@@ -10,7 +10,7 @@ package no.ndla.articleapi.service
 
 import no.ndla.articleapi.auth.User
 import no.ndla.articleapi.model.api
-import no.ndla.articleapi.model.api.{ArticleContentV2, ArticleV2, NotFoundException}
+import no.ndla.articleapi.model.api.{ArticleContentV2, ArticleV2, NotFoundException, UpdatedArticleV2}
 import no.ndla.articleapi.model.domain._
 import no.ndla.articleapi.repository.ArticleRepository
 import no.ndla.articleapi.service.search.ArticleIndexService
@@ -24,15 +24,18 @@ trait WriteService {
 
   class WriteService {
     def newArticleV2(newArticle: api.NewArticleV2): Try[ArticleV2] = {
-      val domainArticle = converterService.toDomainArticle(newArticle)
-      contentValidator.validateArticle(domainArticle, false) match {
-        case Success(_) => {
+      validateAndConvertNewArticle(newArticle) match {
+        case Success(domainArticle) => {
           val article = articleRepository.insert(domainArticle)
           articleIndexService.indexDocument(article)
           Success(converterService.toApiArticleV2(article, newArticle.language).get)
         }
         case Failure(exception) => Failure(exception)
       }
+    }
+
+    def validateAndConvertNewArticle(newArticle: api.NewArticleV2): Try[Article] = {
+      contentValidator.validateArticle(converterService.toDomainArticle(newArticle), allowUnknownLanguage = false)
     }
 
     private[service] def mergeLanguageFields[A <: LanguageField[String]](existing: Seq[A], updated: Seq[A]): Seq[A] = {
@@ -45,10 +48,10 @@ trait WriteService {
       (toKeep ++ updated).filterNot(_.tags.isEmpty)
     }
 
-    private def _updateArticleV2(articleId: Long, updatedApiArticle: api.UpdatedArticleV2): Try[Article] = {
+    def validateAndConvertUpdatedArticle(articleId: Long, updatedApiArticle: UpdatedArticleV2): Try[Article] = {
       articleRepository.withId(articleId) match {
         case None => Failure(NotFoundException(s"Article with id $articleId does not exist"))
-        case Some(existing) => {
+        case Some(existing) =>
           val lang = updatedApiArticle.language
 
           val toUpdate = existing.copy(
@@ -66,18 +69,19 @@ trait WriteService {
             updatedBy = authUser.id()
           )
 
-          for {
-            _ <- contentValidator.validateArticle(toUpdate, allowUnknownLanguage = true)
-            article <- articleRepository.update(toUpdate)
-            _ <- articleIndexService.indexDocument(article)
-          } yield readService.addUrlsOnEmbedResources(article)
-        }
+          contentValidator.validateArticle(toUpdate, allowUnknownLanguage = true)
       }
     }
 
     def updateArticleV2(articleId: Long, updatedApiArticle: api.UpdatedArticleV2): Try[api.ArticleV2] = {
-      _updateArticleV2(articleId, updatedApiArticle).map(article => converterService.toApiArticleV2(article, updatedApiArticle.language).get)
-    }
-  }
+      val article = for {
+        toUpdate <- validateAndConvertUpdatedArticle(articleId, updatedApiArticle)
+        domainArticle <- articleRepository.update(toUpdate)
+        _ <- articleIndexService.indexDocument(domainArticle)
+      } yield domainArticle
 
+      article.map(a => converterService.toApiArticleV2(readService.addUrlsOnEmbedResources(a), updatedApiArticle.language).get)
+    }
+
+  }
 }

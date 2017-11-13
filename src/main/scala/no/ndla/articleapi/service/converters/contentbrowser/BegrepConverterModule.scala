@@ -10,10 +10,11 @@
 package no.ndla.articleapi.service.converters.contentbrowser
 
 import com.typesafe.scalalogging.LazyLogging
-import no.ndla.articleapi.model.api.{ImportException, ValidationException, ValidationMessage}
+import no.ndla.articleapi.model.api.ImportException
 import no.ndla.articleapi.model.domain.{Article, Concept, ImportStatus, RequiredLibrary}
 import no.ndla.articleapi.service.ExtractConvertStoreContent
 import no.ndla.articleapi.service.converters.HtmlTagGenerator
+import no.ndla.validation.ValidationException
 
 import scala.util.{Failure, Success, Try}
 
