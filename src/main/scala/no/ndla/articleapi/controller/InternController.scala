@@ -37,8 +37,7 @@ trait InternController {
     with IndexService
     with ArticleIndexService
     with ConceptIndexService
-    with ContentValidator
-  =>
+    with ContentValidator =>
   val internController: InternController
 
   class InternController extends NdlaController {
