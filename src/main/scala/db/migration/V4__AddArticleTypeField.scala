@@ -38,11 +38,11 @@ class V4__AddUpdatedColoums extends JdbcMigration {
   }
 
   def countAllArticles(implicit session: DBSession) = {
-    sql"select count(*) from contentdata".map(rs => rs.long("count")).single().apply()
+    sql"select count(*) from contentdata where document is not NULL".map(rs => rs.long("count")).single().apply()
   }
 
   def allArticles(offset: Long)(implicit session: DBSession) = {
-    sql"select id, document from contentdata order by id limit 1000 offset ${offset}".map(rs => V4_DBArticleMetaInformation(rs.long("id"), rs.string("document"))).list.apply()
+    sql"select id, document from contentdata where document is not NULL order by id limit 1000 offset ${offset}".map(rs => V4_DBArticleMetaInformation(rs.long("id"), rs.string("document"))).list.apply()
   }
 
   def convertArticleUpdate(articleMeta: V4_DBArticleMetaInformation) = {
