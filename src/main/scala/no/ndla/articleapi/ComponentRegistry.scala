@@ -57,6 +57,7 @@ object ComponentRegistry
     with NdlaClient
     with TagsService
     with MigrationApiClient
+    with DraftApiClient
     with SearchConverterService
     with ReadService
     with WriteService
@@ -129,6 +130,7 @@ object ComponentRegistry
   lazy val jestClient: NdlaJestClient = JestClientFactory.getClient()
   lazy val audioApiClient = new AudioApiClient
   lazy val imageApiClient = new ImageApiClient
+  lazy val draftApiClient = new DraftApiClient
 
   lazy val clock = new SystemClock
   lazy val authRole = new AuthRole

@@ -58,6 +58,7 @@ object ArticleApiProperties extends LazyLogging {
   val CorrelationIdHeader = "X-Correlation-ID"
   val AudioHost = propOrElse("AUDIO_API_URL", "audio-api.ndla-local")
   val ImageHost = propOrElse("IMAGE_API_URL", "image-api.ndla-local")
+  val DraftHost = propOrElse("DRAFT_API_URL", "draft-api.ndla-local")
   val ApiClientsCacheAgeInMs: Long = 1000 * 60 * 60 // 1 hour caching
 
   val nodeTypeBegrep: String = "begrep"

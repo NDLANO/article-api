@@ -18,7 +18,7 @@ import no.ndla.articleapi.ArticleApiProperties
 import no.ndla.articleapi.ArticleApiProperties.{maxConvertionRounds, nodeTypeBegrep}
 import no.ndla.articleapi.auth.User
 import no.ndla.articleapi.integration.ConverterModule.{jsoupDocumentToString, stringToJsoupDocument}
-import no.ndla.articleapi.integration.ImageApiClient
+import no.ndla.articleapi.integration.{DraftApiClient, ImageApiClient}
 import no.ndla.articleapi.model.api
 import no.ndla.articleapi.model.api.ArticleSummaryV2
 import no.ndla.articleapi.model.domain.Language._
@@ -33,7 +33,7 @@ import scala.collection.JavaConverters._
 import scala.util.{Failure, Success, Try}
 
 trait ConverterService {
-  this: ConverterModules with ExtractConvertStoreContent with ImageApiClient with Clock with ArticleRepository with User =>
+  this: ConverterModules with ExtractConvertStoreContent with ImageApiClient with Clock with ArticleRepository with DraftApiClient with User =>
   val converterService: ConverterService
 
   class ConverterService extends LazyLogging {
@@ -198,6 +198,31 @@ trait ConverterService {
         newArticle.articleType
       )
     }
+
+
+    def withAgreementCopyright(article: Article): Article = {
+      val agreementCopyright = article.copyright.agreement.flatMap(aid =>
+        draftApiClient.getAgreementCopyright(aid).map(toDomainCopyright)
+      ).getOrElse(article.copyright)
+
+      article.copy(copyright = article.copyright.copy(
+        license = agreementCopyright.license,
+        creators = if (agreementCopyright.creators.nonEmpty) agreementCopyright.creators else article.copyright.creators,
+        rightsholders = if (agreementCopyright.rightsholders.nonEmpty) agreementCopyright.rightsholders else article.copyright.rightsholders
+      ))
+    }
+
+    def withAgreementCopyright(article: api.ArticleV2): api.ArticleV2 = {
+      val agreementCopyright = article.copyright.agreement.flatMap(aid => draftApiClient.getAgreementCopyright(aid)).getOrElse(article.copyright)
+
+      article.copy(copyright = article.copyright.copy(
+        license = agreementCopyright.license,
+        creators = if (agreementCopyright.creators.nonEmpty) agreementCopyright.creators else article.copyright.creators,
+        rightsholders = if (agreementCopyright.rightsholders.nonEmpty) agreementCopyright.rightsholders else article.copyright.rightsholders
+      ))
+    }
+
+
 
     def toDomainTitle(articleTitle: api.ArticleTitle): ArticleTitle = {
       ArticleTitle(articleTitle.title, articleTitle.language)
