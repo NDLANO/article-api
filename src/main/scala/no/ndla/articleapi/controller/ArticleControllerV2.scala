@@ -226,7 +226,7 @@ trait ArticleControllerV2 {
       val language = paramOrDefault("language", Language.AllLanguages)
 
       readService.withIdV2(articleId, language) match {
-        case Some(article) => article
+        case Some(article) => converterService.withAgreementCopyright(article)
         case None => NotFound(body = Error(Error.NOT_FOUND, s"No article with id $articleId and language $language found"))
       }
     }
@@ -252,7 +252,7 @@ trait ArticleControllerV2 {
       authRole.assertHasRole(RoleWithWriteAccess)
       val newArticle = extract[NewArticleV2](request.body)
       writeService.newArticleV2(newArticle) match {
-        case Success(article) => Created(body=article)
+        case Success(article) => Created(body=converterService.withAgreementCopyright(article))
         case Failure(exception) => errorHandler(exception)
       }
     }
@@ -263,7 +263,7 @@ trait ArticleControllerV2 {
       val articleId = long("article_id")
       val updatedArticle = extract[UpdatedArticleV2](request.body)
       writeService.updateArticleV2(articleId, updatedArticle) match {
-        case Success(article) => Ok(body=article)
+        case Success(article) => Ok(body=converterService.withAgreementCopyright(article))
         case Failure(exception) => errorHandler(exception)
       }
     }

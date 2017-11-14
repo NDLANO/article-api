@@ -9,29 +9,33 @@
 package no.ndla.articleapi.service.search
 
 import com.typesafe.scalalogging.LazyLogging
-import no.ndla.articleapi.model.api.{ArticleV2 => ApiArticleV2, ArticleContentV2}
+import no.ndla.articleapi.model.api.{ArticleV2 => ApiArticleV2}
 import no.ndla.articleapi.model.domain._
 import no.ndla.articleapi.model.search._
+import no.ndla.articleapi.service.ConverterService
 import no.ndla.network.ApplicationUrl
 import org.jsoup.Jsoup
 
 trait SearchConverterService {
+  this: ConverterService =>
   val searchConverterService: SearchConverterService
 
   class SearchConverterService extends LazyLogging {
 
     def asSearchableArticle(ai: Article): SearchableArticle = {
+      val articleWithAgreement = converterService.withAgreementCopyright(ai)
+
       SearchableArticle(
-        id = ai.id.get,
-        title = SearchableLanguageValues(ai.title.map(title => LanguageValue(title.language, title.title))),
-        visualElement = SearchableLanguageValues(ai.visualElement.map(visual => LanguageValue(visual.language, visual.resource))),
-        introduction = SearchableLanguageValues(ai.introduction.map(intro => LanguageValue(intro.language, intro.introduction))),
-        content = SearchableLanguageValues(ai.content.map(article => LanguageValue(article.language, Jsoup.parseBodyFragment(article.content).text()))),
-        tags = SearchableLanguageList(ai.tags.map(tag => LanguageValue(tag.language, tag.tags))),
-        lastUpdated = ai.updated,
-        license = ai.copyright.license,
-        authors = ai.copyright.creators.map(_.name) ++ ai.copyright.processors.map(_.name) ++ ai.copyright.rightsholders.map(_.name),
-        articleType = ai.articleType
+        id = articleWithAgreement.id.get,
+        title = SearchableLanguageValues(articleWithAgreement.title.map(title => LanguageValue(title.language, title.title))),
+        visualElement = SearchableLanguageValues(articleWithAgreement.visualElement.map(visual => LanguageValue(visual.language, visual.resource))),
+        introduction = SearchableLanguageValues(articleWithAgreement.introduction.map(intro => LanguageValue(intro.language, intro.introduction))),
+        content = SearchableLanguageValues(articleWithAgreement.content.map(article => LanguageValue(article.language, Jsoup.parseBodyFragment(article.content).text()))),
+        tags = SearchableLanguageList(articleWithAgreement.tags.map(tag => LanguageValue(tag.language, tag.tags))),
+        lastUpdated = articleWithAgreement.updated,
+        license = articleWithAgreement.copyright.license,
+        authors = articleWithAgreement.copyright.creators.map(_.name) ++ articleWithAgreement.copyright.processors.map(_.name) ++ articleWithAgreement.copyright.rightsholders.map(_.name),
+        articleType = articleWithAgreement.articleType
       )
     }
 

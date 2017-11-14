@@ -199,7 +199,6 @@ trait ConverterService {
       )
     }
 
-
     def withAgreementCopyright(article: Article): Article = {
       val agreementCopyright = article.copyright.agreement.flatMap(aid =>
         draftApiClient.getAgreementCopyright(aid).map(toDomainCopyright)
@@ -221,8 +220,6 @@ trait ConverterService {
         rightsholders = if (agreementCopyright.rightsholders.nonEmpty) agreementCopyright.rightsholders else article.copyright.rightsholders
       ))
     }
-
-
 
     def toDomainTitle(articleTitle: api.ArticleTitle): ArticleTitle = {
       ArticleTitle(articleTitle.title, articleTitle.language)

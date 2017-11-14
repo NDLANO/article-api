@@ -57,7 +57,6 @@ object ComponentRegistry
     with NdlaClient
     with TagsService
     with MigrationApiClient
-    with DraftApiClient
     with SearchConverterService
     with ReadService
     with WriteService
