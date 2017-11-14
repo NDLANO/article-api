@@ -28,7 +28,7 @@ trait ArticleRepository {
   class ArticleRepository extends LazyLogging with Repository[Article] {
     implicit val formats = org.json4s.DefaultFormats + Article.JSonSerializer
 
-    def insert(article: Article)(implicit session: DBSession = AutoSession): Article = {
+    def newArticle(article: Article)(implicit session: DBSession = AutoSession): Article = {
       val startRevision = 1
       val dataObject = new PGobject()
       dataObject.setType("jsonb")
@@ -40,7 +40,7 @@ trait ArticleRepository {
       article.copy(id=Some(articleId), revision=Some(startRevision))
     }
 
-    def update(article: Article)(implicit session: DBSession = AutoSession): Try[Article] = {
+    def updateArticle(article: Article)(implicit session: DBSession = AutoSession): Try[Article] = {
       val dataObject = new PGobject()
       dataObject.setType("jsonb")
       dataObject.setValue(write(article))
@@ -90,12 +90,20 @@ trait ArticleRepository {
       }
     }
 
-    def insertWithoutContent(externalId: String, externalSubjectId: Seq[String])(implicit session: DBSession = AutoSession): Long = {
-      val startRevision = 1
+    def allocateArticleId()(implicit session: DBSession = AutoSession): Long = {
+      val startRevision = 0
 
-      val articleId: Long = sql"insert into ${Article.table} (external_id, external_subject_id) values (${externalId}, ARRAY[${externalSubjectId}]::text[])".updateAndReturnGeneratedKey().apply
+      val articleId: Long = sql"insert into ${Article.table} (revision) values ($startRevision)".updateAndReturnGeneratedKey().apply
+      logger.info(s"Allocated id for article $articleId")
+      articleId
+    }
 
-      logger.info(s"Inserted empty article $externalId: $articleId")
+    def allocateArticleIdWithExternal(externalId: String, externalSubjectId: Set[String])(implicit session: DBSession = AutoSession): Long = {
+      val startRevision = 0
+
+      val articleId: Long = sql"insert into ${Article.table} (external_id, external_subject_id, revision) values (${externalId}, ARRAY[${externalSubjectId}]::text[], $startRevision)".updateAndReturnGeneratedKey().apply
+
+      logger.info(s"Allocated id for article $articleId (external id $externalId)")
       articleId
     }
 
@@ -115,27 +123,20 @@ trait ArticleRepository {
       }
     }
 
-    def delete(articleId: Long)(implicit session: DBSession = AutoSession) = {
-      sql"delete from ${Article.table} where id = $articleId".update().apply
-    }
+    def delete(articleId: Long)(implicit session: DBSession = AutoSession) = sql"delete from ${Article.table} where id = $articleId".update().apply
 
-    def withId(articleId: Long): Option[Article] =
-      articleWhere(sqls"ar.id=${articleId.toInt}")
+    def withId(articleId: Long): Option[Article] = articleWhere(sqls"ar.id=${articleId.toInt}")
 
-    def withExternalId(externalId: String): Option[Article] =
-      articleWhere(sqls"ar.external_id=$externalId")
+    def withExternalId(externalId: String): Option[Article] = articleWhere(sqls"ar.external_id=$externalId")
 
-    def exists(externalId: String): Boolean =
-      getIdFromExternalId(externalId).isDefined
+    def exists(externalId: String): Boolean = getIdFromExternalId(externalId).isDefined
 
     def getIdFromExternalId(externalId: String)(implicit session: DBSession = AutoSession): Option[Long] = {
-      sql"select id from ${Article.table} where external_id=${externalId}"
-        .map(rs => rs.long("id")).single.apply()
+      sql"select id from ${Article.table} where external_id=${externalId}".map(rs => rs.long("id")).single.apply()
     }
 
     def getExternalIdFromId(id: Long)(implicit session: DBSession = AutoSession): Option[String] = {
-      sql"select external_id from ${Article.table} where id=${id.toInt}"
-        .map(rs => rs.string("external_id")).single.apply()
+      sql"select external_id from ${Article.table} where id=${id.toInt}".map(rs => rs.string("external_id")).single.apply()
     }
 
     def getAllIds(implicit session: DBSession = AutoSession): Seq[ArticleIds] = {
@@ -143,16 +144,16 @@ trait ArticleRepository {
     }
 
     def articleCount(implicit session: DBSession = AutoSession): Long = {
-      sql"select count(*) from ${Article.table}".map(rs => rs.long("count")).single().apply().getOrElse(0)
+      sql"select count(*) from ${Article.table} where document is not NULL".map(rs => rs.long("count")).single().apply().getOrElse(0)
     }
 
     def getArticlesByPage(pageSize: Int, offset: Int)(implicit session: DBSession = AutoSession): Seq[Article] = {
       val ar = Article.syntax("ar")
-      sql"select ${ar.result.*} from ${Article.as(ar)} offset $offset limit $pageSize".map(Article(ar)).list.apply()
+      sql"select ${ar.result.*} from ${Article.as(ar)} where document is not NULL offset $offset limit $pageSize".map(Article(ar)).list.apply()
     }
 
     def allTags(implicit session: DBSession = AutoSession): Seq[ArticleTag] = {
-      val allTags = sql"""select document->>'tags' from ${Article.table}""".map(rs => rs.string(1)).list.apply
+      val allTags = sql"""select document->>'tags' from ${Article.table} where document is not NULL""".map(rs => rs.string(1)).list.apply
 
       allTags.flatMap(tag => parse(tag).extract[List[ArticleTag]]).groupBy(_.language)
         .map { case (language, tags) =>
@@ -169,37 +170,23 @@ trait ArticleRepository {
       }
     }
 
-    def applyToAll(func: (List[Article]) => Unit)(implicit session: DBSession = AutoSession): Unit = {
-      val (minId, maxId) = minMaxId
-      val groupRanges = Seq.range(minId, maxId).grouped(ArticleApiProperties.IndexBulkSize).map(group => (group.head, group.last + 1))
-      val ar = Article.syntax("ar")
-
-      groupRanges.foreach(range => {
-        func(
-          sql"select ${ar.result.*} from ${Article.as(ar)} where ${ar.id} between ${range._1} and ${range._2}".map(Article(ar)).toList.apply
-        )
-      })
-    }
-
     def all(implicit session: DBSession = AutoSession): List[Article] = {
       val ar = Article.syntax("ar")
-      sql"select ${ar.result.*} from ${Article.as(ar)}".map(Article(ar)).list.apply()
+      sql"select ${ar.result.*} from ${Article.as(ar)} where document is not NULL".map(Article(ar)).list.apply()
     }
 
-    def allWithExternalSubjectId(externalSubjectId: String): Seq[Article] =
-      articlesWhere(sqls"$externalSubjectId=ANY(ar.external_subject_id)")
+    def allWithExternalSubjectId(externalSubjectId: String): Seq[Article] = articlesWhere(sqls"$externalSubjectId=ANY(ar.external_subject_id)")
 
-    override def documentsWithIdBetween(min: Long, max: Long): List[Article] =
-      articlesWhere(sqls"ar.id between $min and $max").toList
+    override def documentsWithIdBetween(min: Long, max: Long): List[Article] = articlesWhere(sqls"ar.id between $min and $max").toList
 
     private def articleWhere(whereClause: SQLSyntax)(implicit session: DBSession = ReadOnlyAutoSession): Option[Article] = {
       val ar = Article.syntax("ar")
-      sql"select ${ar.result.*} from ${Article.as(ar)} where $whereClause".map(Article(ar)).single.apply()
+      sql"select ${ar.result.*} from ${Article.as(ar)} where ar.document is not NULL and $whereClause".map(Article(ar)).single.apply()
     }
 
     private def articlesWhere(whereClause: SQLSyntax)(implicit session: DBSession = ReadOnlyAutoSession): Seq[Article] = {
       val ar = Article.syntax("ar")
-      sql"select ${ar.result.*} from ${Article.as(ar)} where $whereClause".map(Article(ar)).list.apply()
+      sql"select ${ar.result.*} from ${Article.as(ar)} where ar.document is not NULL and $whereClause".map(Article(ar)).list.apply()
     }
 
   }

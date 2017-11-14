@@ -48,7 +48,7 @@ lazy val article_api = (project in file(".")).
       "org.apache.logging.log4j" % "log4j-api" % Log4JVersion,
       "org.apache.logging.log4j" % "log4j-core" % Log4JVersion,
       "org.apache.logging.log4j" % "log4j-slf4j-impl" % Log4JVersion,
-      "org.scalikejdbc" %% "scalikejdbc" % "2.5.0",
+      "org.scalikejdbc" %% "scalikejdbc" % "3.1.0",
       "org.postgresql" % "postgresql" % "9.4-1201-jdbc4",
       "mysql" % "mysql-connector-java" % "5.1.36",
       "com.amazonaws" % "aws-java-sdk-s3" % AwsSdkversion,

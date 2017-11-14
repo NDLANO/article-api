@@ -45,7 +45,7 @@ class ExtractConvertStoreContentTest extends UnitSuite with TestEnvironment {
     when(extractService.getNodeGeneralContent(nodeId2)).thenReturn(Seq(NodeGeneralContent(nodeId2, nodeId2, "title", "content", "en")))
     when(articleRepository.getIdFromExternalId(nodeId)).thenReturn(None)
     when(articleRepository.getIdFromExternalId(nodeId2)).thenReturn(None)
-    when(migrationApiClient.getSubjectForNode(nodeId)).thenReturn(Try(Seq(MigrationSubjectMeta("52", "helsearbeider vg2"))))
+    when(migrationApiClient.getSubjectForNode(nodeId)).thenReturn(Try(Set(MigrationSubjectMeta("52", "helsearbeider vg2"))))
 
     when(readService.getArticleIdByExternalId(any[String])).thenReturn(None)
     when(readService.getConceptIdByExternalId(any[String])).thenReturn(None)

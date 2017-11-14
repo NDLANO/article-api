@@ -36,13 +36,21 @@ trait ConceptRepository {
       concept.copy(id=Some(conceptId))
     }
 
-    def insertWithoutContent(externalId: String)(implicit session: DBSession = AutoSession): Long = {
-      val startRevision = 1
+    def allocateConceptId()(implicit session: DBSession = AutoSession): Long = {
+      val startRevision = 0
 
-      val conceptId: Long = sql"insert into ${Concept.table} (external_id) values (${externalId})".updateAndReturnGeneratedKey().apply
+      val articleId: Long = sql"insert into ${Concept.table} (revision) values ($startRevision)".updateAndReturnGeneratedKey().apply
+      logger.info(s"Allocated id for concept $articleId")
+      articleId
+    }
 
-      logger.info(s"Inserted empty concept $externalId: $conceptId")
-      conceptId
+    def allocateConceptIdWithExternal(externalId: String)(implicit session: DBSession = AutoSession): Long = {
+      val startRevision = 0
+
+      val articleId: Long = sql"insert into ${Concept.table} (external_id, revision) values (${externalId}, $startRevision)".updateAndReturnGeneratedKey().apply
+
+      logger.info(s"Allocated id for concept $articleId (external id $externalId)")
+      articleId
     }
 
     def updateWithExternalId(concept: Concept, externalId: String)(implicit session: DBSession = AutoSession): Try[Concept] = {
@@ -87,12 +95,12 @@ trait ConceptRepository {
 
     private def conceptWhere(whereClause: SQLSyntax)(implicit session: DBSession = ReadOnlyAutoSession): Option[Concept] = {
       val co = Concept.syntax("co")
-      sql"select ${co.result.*} from ${Concept.as(co)} where $whereClause".map(Concept(co)).single.apply()
+      sql"select ${co.result.*} from ${Concept.as(co)} where co.document is not NULL and $whereClause".map(Concept(co)).single.apply()
     }
 
     private def conceptsWhere(whereClause: SQLSyntax)(implicit session: DBSession = ReadOnlyAutoSession): List[Concept] = {
       val co = Concept.syntax("co")
-      sql"select ${co.result.*} from ${Concept.as(co)} where $whereClause".map(Concept(co)).list.apply()
+      sql"select ${co.result.*} from ${Concept.as(co)} where co.document is not NULL and $whereClause".map(Concept(co)).list.apply()
     }
 
   }

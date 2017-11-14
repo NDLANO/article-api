@@ -11,6 +11,7 @@ package no.ndla.articleapi.controller
 
 import java.util.concurrent.TimeUnit
 
+import no.ndla.articleapi.model.api.ArticleIdV2
 import no.ndla.articleapi.model.domain.{ImportStatus, Language}
 import no.ndla.articleapi.repository.ArticleRepository
 import no.ndla.articleapi.service._
@@ -24,8 +25,16 @@ import scala.concurrent.duration.Duration
 import scala.util.{Failure, Success}
 
 trait InternController {
-  this: ReadService with ExtractService with ConverterService with ArticleRepository with ArticleContentInformation
-    with ExtractConvertStoreContent with IndexService with ArticleIndexService with ConceptIndexService =>
+  this: ReadService
+    with WriteService
+    with ExtractService
+    with ConverterService
+    with ArticleRepository
+    with ArticleContentInformation
+    with ExtractConvertStoreContent
+    with IndexService
+    with ArticleIndexService
+    with ConceptIndexService =>
   val internController: InternController
 
   class InternController extends NdlaController {
@@ -74,6 +83,18 @@ trait InternController {
         case Some(id) => id
         case None => NotFound()
       }
+    }
+
+    post("/id/article/allocate/?") {
+      val externalId = paramOrNone("external-id")
+      val externalSubjectId = paramAsListOfString("external-subject-id")
+      ArticleIdV2(writeService.allocateArticleId(externalId, externalSubjectId.toSet))
+    }
+
+    post("/id/concept/allocate/?") {
+      val externalId = paramOrNone("external-id")
+      val externalSubjectId = paramAsListOfString("external-subject-id")
+      ArticleIdV2(writeService.allocateConceptId(externalId, externalSubjectId.toSet))
     }
 
     get("/tagsinuse") {
