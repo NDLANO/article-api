@@ -168,33 +168,4 @@ class ArticleControllerV2Test extends UnitSuite with TestEnvironment with Scalat
     }
   }
 
-  test("PUT /validate should return 400 if the article is invalid") {
-    put("/test/validate", body=invalidArticle, headers = Map("Authorization" -> authHeaderWithWriteRole)) {
-      status should equal (400)
-      verify(articleRepository, times(0)).newArticle(any[Article])(any[DBSession])
-    }
-  }
-
-  test("PUT /validate should return 204 if the article is valid") {
-    when(writeService.validateAndConvertNewArticle(any[NewArticleV2])).thenReturn(Success(TestData.sampleArticleWithByNcSa))
-    put("/test/validate", body=write(TestData.newArticleV2)) {
-      status should equal (204)
-      verify(articleRepository, times(0)).newArticle(any[Article])(any[DBSession])
-    }
-  }
-
-  test("PUT /validate/:id should return 400 if the article is invalid") {
-    put("/test/validate/1", body=invalidArticle, headers = Map("Authorization" -> authHeaderWithWriteRole)) {
-      status should equal (400)
-      verify(articleRepository, times(0)).newArticle(any[Article])(any[DBSession])
-    }
-  }
-
-  test("PUT /validate/:id should return 204 if the article is valid") {
-    when(writeService.validateAndConvertUpdatedArticle(any[Long], any[UpdatedArticleV2])).thenReturn(Success(TestData.sampleArticleWithByNcSa))
-    put("/test/validate/1", body=write(TestData.updatedArticleV2)) {
-      status should equal (204)
-      verify(articleRepository, times(0)).newArticle(any[Article])(any[DBSession])
-    }
-  }
 }
