@@ -17,8 +17,8 @@ import org.joda.time.{DateTime, DateTimeZone}
 
 object TestData {
   private val publicDomainCopyright= Copyright("publicdomain", "", List(), List(), List(), None, None, None)
-  private val byNcSaCopyright = Copyright("by-nc-sa", "Gotham City", List(Author("Forfatter", "DC Comics")), List(), List(), None, None, None)
-  private val copyrighted = Copyright("copyrighted", "New York", List(Author("Forfatter", "Clark Kent")), List(), List(), None, None, None)
+  private val byNcSaCopyright = Copyright("by-nc-sa", "Gotham City", List(Author("Writer", "DC Comics")), List(), List(), None, None, None)
+  private val copyrighted = Copyright("copyrighted", "New York", List(Author("Writer", "Clark Kent")), List(), List(), None, None, None)
   private val today = new DateTime().toDate
 
   private val embedUrl = "http://www.example.org"

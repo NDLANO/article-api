@@ -8,6 +8,7 @@
 
 package no.ndla.articleapi.validation
 
+import no.ndla.articleapi.ArticleApiProperties
 import no.ndla.articleapi.ArticleApiProperties.{H5PResizerScriptUrl, NDLABrightcoveVideoScriptUrl, NRKVideoScriptUrl}
 import no.ndla.articleapi.integration.ConverterModule.stringToJsoupDocument
 import no.ndla.articleapi.model.api.{ValidationException, ValidationMessage}
@@ -116,7 +117,10 @@ trait ContentValidator {
 
     private def validateCopyright(copyright: Copyright): Seq[ValidationMessage] = {
       val licenseMessage = validateLicense(copyright.license)
-      val contributorsMessages = copyright.creators.flatMap(validateAuthor) ++ copyright.processors.flatMap(validateAuthor) ++ copyright.rightsholders.flatMap(validateAuthor)
+      val contributorsMessages =
+        copyright.creators.flatMap(a => validateAuthor(a, "copyright.creators")) ++
+        copyright.processors.flatMap(a => validateAuthor(a, "copyright.processors")) ++
+        copyright.rightsholders.flatMap(a => validateAuthor(a, "copyright.rightsholders"))
       val originMessage = NoHtmlValidator.validate("copyright.origin", copyright.origin)
 
       licenseMessage ++ contributorsMessages ++ originMessage
@@ -129,9 +133,18 @@ trait ContentValidator {
       }
     }
 
-    private def validateAuthor(author: Author): Seq[ValidationMessage] = {
-      NoHtmlValidator.validate("author.type", author.`type`).toList ++
-        NoHtmlValidator.validate("author.name", author.name).toList
+    private def validateAuthor(author: Author, fieldPath: String): Seq[ValidationMessage] = {
+      NoHtmlValidator.validate(s"$fieldPath.type", author.`type`).toList ++
+        NoHtmlValidator.validate(s"$fieldPath.name", author.name).toList ++
+        validateAuthorType(s"$fieldPath.type", author.`type`).toList
+    }
+
+    def validateAuthorType(fieldPath: String, `type`: String): Option[ValidationMessage] = {
+      if(ArticleApiProperties.allowedAuthors.contains(`type`.toLowerCase)) {
+        None
+      } else {
+        Some(ValidationMessage(fieldPath, s"Author is of illegal type. Must be one of ${ArticleApiProperties.allowedAuthors.mkString(", ")}"))
+      }
     }
 
     private def validateTags(tags: Seq[ArticleTag], allowUnknownLanguage: Boolean): Seq[ValidationMessage] = {

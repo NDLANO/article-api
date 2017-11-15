@@ -15,7 +15,7 @@ import com.google.gson.{JsonElement, JsonObject}
 import com.typesafe.scalalogging.LazyLogging
 import io.searchbox.core.{SearchResult => JestSearchResult}
 import no.ndla.articleapi.ArticleApiProperties
-import no.ndla.articleapi.ArticleApiProperties.{maxConvertionRounds, nodeTypeBegrep}
+import no.ndla.articleapi.ArticleApiProperties.{maxConvertionRounds, nodeTypeBegrep, creatorTypes, oldCreatorTypes, rightsholderTypes, oldRightsholderTypes, processorTypes, oldProcessorTypes}
 import no.ndla.articleapi.auth.User
 import no.ndla.articleapi.integration.ConverterModule.{jsoupDocumentToString, stringToJsoupDocument}
 import no.ndla.articleapi.integration.{DraftApiClient, ImageApiClient}
@@ -91,7 +91,7 @@ trait ConverterService {
       val nodeIdsToImport = nodeToConvert.contents.map(_.nid).toSet
 
       convert(nodeToConvert, maxConvertionRounds, importStatus.addVisitedNodes(nodeIdsToImport))
-          .flatMap { case (content, status) => postProcess(content, status) } match {
+        .flatMap { case (content, status) => postProcess(content, status) } match {
         case Failure(f) => Failure(f)
         case Success((convertedContent, converterStatus)) if convertedContent.nodeType == nodeTypeBegrep =>
           Success((toDomainConcept(convertedContent), converterStatus))
@@ -163,13 +163,28 @@ trait ConverterService {
       )
     }
 
+    private def toNewAuthorType(author: Author): Author = {
+      val creatorMap = (oldCreatorTypes zip creatorTypes).toMap.withDefaultValue(None)
+      val processorMap = (oldProcessorTypes zip processorTypes).toMap.withDefaultValue(None)
+      val rightsholderMap = (oldRightsholderTypes zip rightsholderTypes).toMap.withDefaultValue(None)
+
+      (creatorMap(author.`type`.toLowerCase), processorMap(author.`type`.toLowerCase), rightsholderMap(author.`type`.toLowerCase)) match {
+        case (t: String, _, _) => Author(t.capitalize, author.name)
+        case (_, t: String, _) => Author(t.capitalize, author.name)
+        case (_, _, t: String) => Author(t.capitalize, author.name)
+        case (_, _, _) => Author(author.`type`, author.name)
+      }
+    }
+
     private def toDomainCopyright(license: String, authors: Seq[Author]): Copyright = {
       val origin = authors.find(author => author.`type`.toLowerCase == "opphavsmann").map(_.name).getOrElse("")
+
+
       val authorsExcludingOrigin = authors.filterNot(x => x.name != origin && x.`type` == "opphavsmann")
-      val creators = authorsExcludingOrigin.filter(a => ArticleApiProperties.creatorTypes.contains(a.`type`.toLowerCase))
-      // Filters out processor authors with type `redaksjonelt` during import process since `redaksjonelt` exists both in processors and creators.
-      val processors = authorsExcludingOrigin.filter(a => ArticleApiProperties.processorTypes.contains(a.`type`.toLowerCase)).filterNot(a => a.`type` == "redaksjonelt")
-      val rightsholders = authorsExcludingOrigin.filter(a => ArticleApiProperties.rightsholderTypes.contains(a.`type`.toLowerCase))
+      val creators = authorsExcludingOrigin.map(toNewAuthorType).filter(a => ArticleApiProperties.creatorTypes.contains(a.`type`.toLowerCase))
+      // Filters out processor authors with type `editorial` during import process since /`editorial` exists both in processors and creators.
+      val processors = authorsExcludingOrigin.map(toNewAuthorType).filter(a => ArticleApiProperties.processorTypes.contains(a.`type`.toLowerCase)).filterNot(a => a.`type`.toLowerCase == "editorial")
+      val rightsholders = authorsExcludingOrigin.map(toNewAuthorType).filter(a => ArticleApiProperties.rightsholderTypes.contains(a.`type`.toLowerCase))
       Copyright(license, origin, creators, processors, rightsholders, None, None, None)
     }
 

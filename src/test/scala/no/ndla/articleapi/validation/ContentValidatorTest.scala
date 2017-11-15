@@ -138,13 +138,27 @@ class ContentValidatorTest extends UnitSuite with TestEnvironment {
   }
 
   test("validateArticle does not throw an exception on an article with plain text in authors field") {
-    val article = TestData.sampleArticleWithByNcSa.copy(copyright=Copyright("by-sa", "", Seq(Author("author", "John Doe")), Seq(), Seq(), None, None, None))
+    val article = TestData.sampleArticleWithByNcSa.copy(copyright=Copyright("by-sa", "", Seq(Author("Writer", "John Doe")), Seq(), Seq(), None, None, None))
     contentValidator.validateArticle(article, false).isSuccess should be(true)
   }
 
   test("validateArticle throws an exception on an article with html in authors field") {
-    val article = TestData.sampleArticleWithByNcSa.copy(copyright=Copyright("by-sa", "", Seq(Author("author", "<h1>john</h1>")), Seq(), Seq(), None, None, None))
+    val article = TestData.sampleArticleWithByNcSa.copy(copyright=Copyright("by-sa", "", Seq(Author("Writer", "<h1>john</h1>")), Seq(), Seq(), None, None, None))
     contentValidator.validateArticle(article, false).isFailure should be(true)
+  }
+
+  test("validateArticle does not throw an exception on an article with correct author type") {
+    val article = TestData.sampleArticleWithByNcSa.copy(copyright=Copyright("by-sa", "", Seq(Author("Writer", "John Doe")), Seq(), Seq(), None, None, None))
+    contentValidator.validateArticle(article, false).isSuccess should be(true)
+  }
+
+  test("validateArticle throws an exception on an article with invalid author type") {
+    val article = TestData.sampleArticleWithByNcSa.copy(copyright=Copyright("by-sa", "", Seq(Author("invalid", "John Doe")), Seq(), Seq(), None, None, None))
+    val result = contentValidator.validateArticle(article, false)
+    result.isSuccess should be(false)
+    result.failed.get.asInstanceOf[ValidationException].errors.length should be (1)
+    result.failed.get.asInstanceOf[ValidationException].errors.head.message should be ("Author is of illegal type. Must be one of originator, photographer, artist, editorial, writer, scriptwriter, reader, translator, director, illustrator, cowriter, composer, processor, facilitator, editorial, linguistic, idea, compiler, correction, rightsholder, publisher, distributor, supplier")
+    result.failed.get.asInstanceOf[ValidationException].errors.head.field should be("copyright.creators.type")
   }
 
   test("validateArticle throws an exception on an article with an invalid article type") {
