@@ -54,23 +54,33 @@ trait GeneralContentConverterModule {
     }
 
     def insertLink(contentBrowser: ContentBrowser, importStatus: ImportStatus): Try[(String, ImportStatus)] = {
-      getContentId(contentBrowser.get("nid"), importStatus) match {
-        case Success((article: Article, is)) =>
-          val embedContent = HtmlTagGenerator.buildContentLinkEmbedContent(article.id.get.toString, contentBrowser.get("link_text"))
-          Success(s" $embedContent", is)
+      val externalId = contentBrowser.get("nid")
 
-        case Success((concept: Concept, is)) =>
-          val embedContent = HtmlTagGenerator.buildConceptEmbedContent(concept.id.get, contentBrowser.get("link_text"))
+      getContentId(externalId, importStatus) match {
+        case Success((Some(articleId), _, is)) =>
+          val embedContent = HtmlTagGenerator.buildContentLinkEmbedContent(articleId, contentBrowser.get("link_text"))
           Success(s" $embedContent", is)
-
+        case Success((_, Some(conceptId), is)) =>
+          val embedContent = HtmlTagGenerator.buildConceptEmbedContent(conceptId, contentBrowser.get("link_text"))
+          Success(s" $embedContent", is)
+        case Success((None, None, _)) => Failure(ImportException(s"Failed to retrieve or import article with external id $externalId"))
         case Failure(e) => Failure(e)
       }
     }
 
-    def getContentId(externalId: String, importStatus: ImportStatus): Try[(Content, ImportStatus)] = {
-      readService.getContentByExternalId(externalId) match {
-        case Some(content) => Success(content, importStatus.addVisitedNode(externalId))
-        case None => extractConvertStoreContent.processNode(externalId, importStatus)
+    private def getContentId(externalId: String, importStatus: ImportStatus): Try[(Option[Long], Option[Long], ImportStatus)] = {
+      val mainNodeId = extractConvertStoreContent.getMainNodeId(externalId).getOrElse(externalId)
+
+      (readService.getArticleIdByExternalId(mainNodeId), readService.getConceptIdByExternalId(mainNodeId)) match {
+        case (None, None) =>
+          logger.info(s"Article with node id $mainNodeId does not exist. Importing it!")
+          extractConvertStoreContent.processNode(mainNodeId, importStatus) match {
+            case Success((c: Article, is)) => Success(c.id, None, is)
+            case Success((c: Concept, is)) => Success(None, c.id, is)
+            case Failure(ex) => Failure(ex)
+          }
+        case (Some(articleId), _) => Success(Some(articleId), None, importStatus)
+        case (None, Some(conceptid)) => Success(None, Some(conceptid), importStatus)
       }
     }
 

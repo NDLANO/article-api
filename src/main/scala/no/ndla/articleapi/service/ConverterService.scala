@@ -14,8 +14,7 @@ import java.util.Map.Entry
 import com.google.gson.{JsonElement, JsonObject}
 import com.typesafe.scalalogging.LazyLogging
 import io.searchbox.core.{SearchResult => JestSearchResult}
-import no.ndla.articleapi.ArticleApiProperties
-import no.ndla.articleapi.ArticleApiProperties.{maxConvertionRounds, nodeTypeBegrep, creatorTypes, oldCreatorTypes, rightsholderTypes, oldRightsholderTypes, processorTypes, oldProcessorTypes}
+import no.ndla.articleapi.ArticleApiProperties._
 import no.ndla.articleapi.auth.User
 import no.ndla.articleapi.integration.ConverterModule.{jsoupDocumentToString, stringToJsoupDocument}
 import no.ndla.articleapi.integration.{DraftApiClient, ImageApiClient}
@@ -24,9 +23,9 @@ import no.ndla.articleapi.model.api.ArticleSummaryV2
 import no.ndla.articleapi.model.domain.Language._
 import no.ndla.articleapi.model.domain._
 import no.ndla.articleapi.repository.ArticleRepository
-import no.ndla.articleapi.service.converters.{Attributes, HTMLCleaner, ResourceType}
 import no.ndla.mapping.License.getLicense
 import no.ndla.network.ApplicationUrl
+import no.ndla.validation.{HtmlRules, EmbedTagRules, ResourceType, Attributes}
 
 import scala.annotation.tailrec
 import scala.collection.JavaConverters._
@@ -181,10 +180,10 @@ trait ConverterService {
 
 
       val authorsExcludingOrigin = authors.filterNot(x => x.name != origin && x.`type` == "opphavsmann")
-      val creators = authorsExcludingOrigin.map(toNewAuthorType).filter(a => ArticleApiProperties.creatorTypes.contains(a.`type`.toLowerCase))
+      val creators = authorsExcludingOrigin.map(toNewAuthorType).filter(a => creatorTypes.contains(a.`type`.toLowerCase))
       // Filters out processor authors with type `editorial` during import process since /`editorial` exists both in processors and creators.
-      val processors = authorsExcludingOrigin.map(toNewAuthorType).filter(a => ArticleApiProperties.processorTypes.contains(a.`type`.toLowerCase)).filterNot(a => a.`type`.toLowerCase == "editorial")
-      val rightsholders = authorsExcludingOrigin.map(toNewAuthorType).filter(a => ArticleApiProperties.rightsholderTypes.contains(a.`type`.toLowerCase))
+      val processors = authorsExcludingOrigin.map(toNewAuthorType).filter(a => processorTypes.contains(a.`type`.toLowerCase)).filterNot(a => a.`type`.toLowerCase == "editorial")
+      val rightsholders = authorsExcludingOrigin.map(toNewAuthorType).filter(a => rightsholderTypes.contains(a.`type`.toLowerCase))
       Copyright(license, origin, creators, processors, rightsholders, None, None, None)
     }
 
@@ -320,8 +319,8 @@ trait ConverterService {
       val document = stringToJsoupDocument(html)
       document.select("embed").asScala.map(el => {
         ResourceType.valueOf(el.attr(Attributes.DataResource.toString))
-          .map(EmbedTag.attributesForResourceType)
-          .map(knownAttributes => HTMLCleaner.removeIllegalAttributes(el, knownAttributes.all.map(_.toString)))
+          .map(EmbedTagRules.attributesForResourceType)
+          .map(knownAttributes => HtmlRules.removeIllegalAttributes(el, knownAttributes.all.map(_.toString)))
       })
 
       jsoupDocumentToString(document)
@@ -341,6 +340,7 @@ trait ConverterService {
       val introduction = findByLanguageOrBestEffort(article.introduction, language).map(toApiArticleIntroduction)
       val visualElement = findByLanguageOrBestEffort(article.visualElement, language).map(toApiVisualElement)
       val articleContent = findByLanguageOrBestEffort(article.content, language).map(toApiArticleContentV2).getOrElse(api.ArticleContentV2("", DefaultLanguage))
+      val metaImage = article.metaImageId.map(toApiMetaImage)
 
 
       Some(api.ArticleV2(
@@ -353,6 +353,7 @@ trait ConverterService {
         tags,
         article.requiredLibraries.map(toApiRequiredLibrary),
         visualElement,
+        metaImage,
         introduction,
         meta,
         article.created,
@@ -363,6 +364,9 @@ trait ConverterService {
       ))
     }
 
+    def toApiMetaImage(metaImageId: String): String = {
+      s"${externalApiUrls("raw-image")}/$metaImageId"
+    }
     def toApiArticleTitle(title: ArticleTitle): api.ArticleTitle = {
       api.ArticleTitle(title.title, title.language)
     }

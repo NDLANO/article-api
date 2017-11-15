@@ -9,9 +9,9 @@
 package no.ndla.articleapi.validation
 
 import no.ndla.articleapi.ArticleApiProperties.H5PResizerScriptUrl
-import no.ndla.articleapi.model.api.ValidationException
 import no.ndla.articleapi.model.domain._
 import no.ndla.articleapi.{TestData, TestEnvironment, UnitSuite}
+import no.ndla.validation.ValidationException
 
 class ContentValidatorTest extends UnitSuite with TestEnvironment {
   override val contentValidator = new ContentValidator(allowEmptyLanguageField = false)

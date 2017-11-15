@@ -9,7 +9,8 @@
 package no.ndla.articleapi.service.converters
 
 import no.ndla.articleapi.{TestEnvironment, UnitSuite}
-import no.ndla.articleapi.ArticleApiProperties.resourceHtmlEmbedTag
+import no.ndla.validation.EmbedTagRules.ResourceHtmlEmbedTag
+import no.ndla.validation.{Attributes, ResourceType}
 
 class HtmlTagGeneratorTest extends UnitSuite with TestEnvironment {
     val sampleDataAttributes = Map(
@@ -18,11 +19,25 @@ class HtmlTagGeneratorTest extends UnitSuite with TestEnvironment {
       Attributes.DataCaption -> "Sample image"
     )
 
+    val sampleContentLink = Map(
+      Attributes.DataResource -> ResourceType.ContentLink.toString,
+      Attributes.DataContentId -> "2",
+      Attributes.DataLinkText -> "http://localhost/2",
+      Attributes.DataOpenIn -> "new-context"
+    )
+
   test("A correctly formatted figure tag is returned") {
     val figureString: String = HtmlTagGenerator.buildEmbedContent(sampleDataAttributes)
-    val expected = s"""<$resourceHtmlEmbedTag data-caption="Sample image" data-resource="image" data-url="http://localhost/1" />"""
+    val expected = s"""<$ResourceHtmlEmbedTag data-caption="Sample image" data-resource="image" data-url="http://localhost/1" />"""
 
     figureString should equal(expected)
+  }
+
+  test("Correctly formatted content-link embed") {
+    val contentLinkString: String = HtmlTagGenerator.buildEmbedContent(sampleContentLink)
+    val expected = s"""<$ResourceHtmlEmbedTag data-content-id="2" data-link-text="http://localhost/2" data-open-in="new-context" data-resource="content-link" />"""
+
+    contentLinkString should equal(expected)
   }
 
 }

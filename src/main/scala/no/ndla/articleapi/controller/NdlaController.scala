@@ -13,7 +13,7 @@ import javax.servlet.http.HttpServletRequest
 
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.articleapi.ArticleApiProperties.{CorrelationIdHeader, CorrelationIdKey}
-import no.ndla.articleapi.model.api.{AccessDeniedException, Error, ImportException, ImportExceptions, NotFoundException, OptimisticLockException, ResultWindowTooLargeException, ValidationError, ValidationException, ValidationMessage}
+import no.ndla.articleapi.model.api.{AccessDeniedException, Error, ImportException, ImportExceptions, NotFoundException, OptimisticLockException, ResultWindowTooLargeException, ValidationError}
 import no.ndla.articleapi.model.domain.ImportError
 import no.ndla.network.{ApplicationUrl, AuthUser, CorrelationID}
 import no.ndla.articleapi.model.domain.emptySomeToNone
@@ -25,6 +25,9 @@ import org.scalatra.json.NativeJsonSupport
 import org.scalatra.{BadRequest, InternalServerError, NotFound, ScalatraServlet}
 import org.json4s.native.Serialization.read
 import java.lang.Math.{max, min}
+
+import no.ndla.validation.{ValidationException, ValidationMessage}
+
 import scala.util.{Failure, Success, Try}
 
 abstract class NdlaController extends ScalatraServlet with NativeJsonSupport with LazyLogging {

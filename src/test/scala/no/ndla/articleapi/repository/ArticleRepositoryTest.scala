@@ -21,13 +21,13 @@ class ArticleRepositoryTest extends IntegrationSuite with TestEnvironment {
   }
 
   test("updating several times updates revision number") {
-    val first = repository.insert(sampleArticle)
+    val first = repository.newArticle(sampleArticle)
     first.id.isDefined should be (true)
 
-    val second = repository.update(first.copy(title = Seq(ArticleTitle("first change", "en"))))
+    val second = repository.updateArticle(first.copy(title = Seq(ArticleTitle("first change", "en"))))
     second.isSuccess should be (true)
 
-    val third = repository.update(second.get.copy(title = Seq(ArticleTitle("second change", "en"))))
+    val third = repository.updateArticle(second.get.copy(title = Seq(ArticleTitle("second change", "en"))))
     third.isSuccess should be (true)
 
     first.revision should equal (Some(1))
@@ -38,13 +38,13 @@ class ArticleRepositoryTest extends IntegrationSuite with TestEnvironment {
   }
 
   test("Updating with an outdated revision number returns a Failure") {
-    val first = repository.insert(sampleArticle)
+    val first = repository.newArticle(sampleArticle)
     first.id.isDefined should be (true)
 
-    val oldRevision = repository.update(first.copy(revision=Some(0), title = Seq(ArticleTitle("first change", "en"))))
+    val oldRevision = repository.updateArticle(first.copy(revision=Some(0), title = Seq(ArticleTitle("first change", "en"))))
     oldRevision.isFailure should be (true)
 
-    val tooNewRevision = repository.update(first.copy(revision=Some(99), title = Seq(ArticleTitle("first change", "en"))))
+    val tooNewRevision = repository.updateArticle(first.copy(revision=Some(99), title = Seq(ArticleTitle("first change", "en"))))
     tooNewRevision.isFailure should be (true)
 
     repository.delete(first.id.get)
@@ -71,7 +71,7 @@ class ArticleRepositoryTest extends IntegrationSuite with TestEnvironment {
     val externalId = "123"
     val article = repository.insertWithExternalIds(sampleArticle, externalId, Seq("52"))
 
-    repository.update(sampleArticle.copy(id=article.id))
+    repository.updateArticle(sampleArticle.copy(id=article.id))
     val result = repository.updateWithExternalId(sampleArticle.copy(id=article.id), externalId)
     result.isFailure should be (true)
 

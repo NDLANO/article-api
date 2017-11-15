@@ -92,7 +92,7 @@ trait ExtractConvertStoreContent {
       })
     }
 
-    private def getMainNodeId(externalId: String): Option[String] = {
+    def getMainNodeId(externalId: String): Option[String] = {
       extract(externalId) map { case (_, mainNodeId) => mainNodeId } toOption
     }
 
@@ -120,7 +120,7 @@ trait ExtractConvertStoreContent {
         case true if !forceUpdateArticle => articleRepository.updateWithExternalId(article, mainNodeNid)
         case true if forceUpdateArticle => articleRepository.updateWithExternalIdOverrideManualChanges(article, mainNodeNid)
         case false =>
-          Try(articleRepository.insertWithExternalIds(article, mainNodeNid, getSubjectIds(mainNodeNid)))
+          Try(articleRepository.insertWithExternalIds(article, mainNodeNid, getSubjectIds(mainNodeNid).toSeq))
       }
     }
 
@@ -138,9 +138,9 @@ trait ExtractConvertStoreContent {
       }
     }
 
-    private def getSubjectIds(nodeId: String): Seq[String] =
+    private def getSubjectIds(nodeId: String): Set[String] =
       migrationApiClient.getSubjectForNode(nodeId) match {
-        case Failure(ex) => Seq()
+        case Failure(ex) => Set()
         case Success(subjectMetas) => subjectMetas.map(_.nid)
       }
 
@@ -153,14 +153,14 @@ trait ExtractConvertStoreContent {
 
     private def generateNewArticleIdIfExternalIdDoesNotExist(nodeId: String): Option[Long] = {
       articleRepository.getIdFromExternalId(nodeId) match {
-        case None => Try(articleRepository.insertWithoutContent(nodeId, getSubjectIds(nodeId))).toOption
+        case None => Try(articleRepository.allocateArticleIdWithExternal(nodeId, getSubjectIds(nodeId))).toOption
         case Some(_) => None
       }
     }
 
     private def generateNewConceptIdIfExternalIdDoesNotExist(externalId: String): Option[Long] = {
       conceptRepository.getIdFromExternalId(externalId) match {
-        case None => Try(conceptRepository.insertWithoutContent(externalId)).toOption
+        case None => Try(conceptRepository.allocateConceptIdWithExternal(externalId)).toOption
         case Some(_) => None
       }
     }

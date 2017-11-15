@@ -18,7 +18,7 @@ import org.json4s.native.Serialization.{read, write}
 import org.postgresql.util.PGobject
 import scalikejdbc.{DB, DBSession, _}
 
-class V7__CopyrightFormatUpdated extends JdbcMigration {
+class V8__CopyrightFormatUpdated extends JdbcMigration {
 
   implicit val formats = org.json4s.DefaultFormats + FieldSerializer[V7_Article](ignore("id") orElse ignore("revision"))
 
@@ -57,37 +57,37 @@ class V7__CopyrightFormatUpdated extends JdbcMigration {
     }).list.apply()
   }
 
-  def toNewAuthorType(author: V6_Author): V7_Author = {
+  def toNewAuthorType(author: V6_Author): V8_Author = {
     val creatorMap = (oldCreatorTypes zip creatorTypes).toMap.withDefaultValue(None)
     val processorMap = (oldProcessorTypes zip processorTypes).toMap.withDefaultValue(None)
     val rightsholderMap = (oldRightsholderTypes zip rightsholderTypes).toMap.withDefaultValue(None)
 
     (creatorMap(author.`type`.toLowerCase), processorMap(author.`type`.toLowerCase), rightsholderMap(author.`type`.toLowerCase)) match {
-      case (t: String, None, None) => V7_Author(t.capitalize, author.name)
-      case (None, t: String, None) => V7_Author(t.capitalize, author.name)
-      case (None, None, t: String) => V7_Author(t.capitalize, author.name)
-      case (_, _, _) => V7_Author(author.`type`, author.name)
+      case (t: String, None, None) => V8_Author(t.capitalize, author.name)
+      case (None, t: String, None) => V8_Author(t.capitalize, author.name)
+      case (None, None, t: String) => V8_Author(t.capitalize, author.name)
+      case (_, _, _) => V8_Author(author.`type`, author.name)
     }
   }
 
   def convertArticleUpdate(id: Long, revision: Int, document: String): V7_Article = {
     val articlev6 = read[V6_Article](document)
-    val articlev7 = read[V7_Article](document)
+    val articlev8 = read[V7_Article](document)
 
     // If entry contains V7 features -> Don't update.
-    if(articlev7.copyright.creators.nonEmpty ||
-      articlev7.copyright.processors.nonEmpty ||
-      articlev7.copyright.rightsholders.nonEmpty ||
-      articlev7.copyright.validFrom.nonEmpty ||
-      articlev7.copyright.validTo.nonEmpty) {
+    if(articlev8.copyright.creators.nonEmpty ||
+      articlev8.copyright.processors.nonEmpty ||
+      articlev8.copyright.rightsholders.nonEmpty ||
+      articlev8.copyright.validFrom.nonEmpty ||
+      articlev8.copyright.validTo.nonEmpty) {
 
-      articlev7.copy(id = None, revision = Some(revision))
+      articlev8.copy(id = None, revision = Some(revision))
     } else {
       val creators = articlev6.copyright.authors.filter(a => oldCreatorTypes.contains(a.`type`.toLowerCase)).map(toNewAuthorType)
       // Filters out processor authors with old type `redaksjonelt` during import process since `redaksjonelt` exists both in processors and creators.
       val processors = articlev6.copyright.authors.filter(a => oldProcessorTypes.contains(a.`type`.toLowerCase)).filterNot(a => a.`type`.toLowerCase == "redaksjonelt").map(toNewAuthorType)
       val rightsholders = articlev6.copyright.authors.filter(a => oldRightsholderTypes.contains(a.`type`.toLowerCase)).map(toNewAuthorType)
-      articlev7.copy(
+      articlev8.copy(
         id = Some(id),
         revision = Some(revision),
         copyright = V7_Copyright(articlev6.copyright.license, articlev6.copyright.origin, creators, processors, rightsholders, None, None, None)
@@ -106,27 +106,27 @@ class V7__CopyrightFormatUpdated extends JdbcMigration {
 
 }
 
-case class V7_ArticleTitle(title: String, language: Option[String])
-case class V7_ArticleContent(content: String, footNotes: Option[Map[String, V7_FootNoteItem]], language: Option[String])
-case class V7_ArticleTag(tags: Seq[String], language: Option[String])
-case class V7_VisualElement(resource: String, language: Option[String])
-case class V7_ArticleIntroduction(introduction: String, language: Option[String])
-case class V7_ArticleMetaDescription(content: String, language: Option[String])
-case class V7_RequiredLibrary(mediaType: String, name: String, url: String)
-case class V7_Author(`type`: String, name: String)
-case class V7_FootNoteItem(title: String, `type`: String, year: String, edition: String, publisher: String, authors: Seq[String])
+case class V8_ArticleTitle(title: String, language: Option[String])
+case class V8_ArticleContent(content: String, footNotes: Option[Map[String, V8_FootNoteItem]], language: Option[String])
+case class V8_ArticleTag(tags: Seq[String], language: Option[String])
+case class V8_VisualElement(resource: String, language: Option[String])
+case class V8_ArticleIntroduction(introduction: String, language: Option[String])
+case class V8_ArticleMetaDescription(content: String, language: Option[String])
+case class V8_RequiredLibrary(mediaType: String, name: String, url: String)
+case class V8_Author(`type`: String, name: String)
+case class V8_FootNoteItem(title: String, `type`: String, year: String, edition: String, publisher: String, authors: Seq[String])
 
-case class V7_Copyright(license: String, origin: String, creators: Seq[V7_Author], processors: Seq[V7_Author], rightsholders: Seq[V7_Author], agreement: Option[Long], validFrom: Option[Date], validTo: Option[Date])
+case class V7_Copyright(license: String, origin: String, creators: Seq[V8_Author], processors: Seq[V8_Author], rightsholders: Seq[V8_Author], agreement: Option[Long], validFrom: Option[Date], validTo: Option[Date])
 case class V7_Article(id: Option[Long],
                       revision: Option[Int],
-                      title: Seq[V7_ArticleTitle],
-                      content: Seq[V7_ArticleContent],
+                      title: Seq[V8_ArticleTitle],
+                      content: Seq[V8_ArticleContent],
                       copyright: V7_Copyright,
-                      tags: Seq[V7_ArticleTag],
-                      requiredLibraries: Seq[V7_RequiredLibrary],
-                      visualElement: Seq[V7_VisualElement],
-                      introduction: Seq[V7_ArticleIntroduction],
-                      metaDescription: Seq[V7_ArticleMetaDescription],
+                      tags: Seq[V8_ArticleTag],
+                      requiredLibraries: Seq[V8_RequiredLibrary],
+                      visualElement: Seq[V8_VisualElement],
+                      introduction: Seq[V8_ArticleIntroduction],
+                      metaDescription: Seq[V8_ArticleMetaDescription],
                       metaImageId: Option[String],
                       created: Date,
                       updated: Date,

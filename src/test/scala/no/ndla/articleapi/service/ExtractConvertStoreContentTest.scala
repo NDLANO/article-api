@@ -13,11 +13,14 @@ import java.util.Date
 
 import io.searchbox.client.JestResult
 import no.ndla.articleapi.integration.{LanguageIngress, MigrationSubjectMeta}
-import no.ndla.articleapi.model.api.{OptimisticLockException, ValidationError, ValidationException, ValidationMessage}
+import no.ndla.articleapi.model.api.OptimisticLockException
 import no.ndla.articleapi.model.domain._
 import no.ndla.articleapi.{TestData, TestEnvironment, UnitSuite}
+import no.ndla.validation.{ValidationException, ValidationMessage}
 import org.mockito.Matchers._
 import org.mockito.Mockito._
+import org.mockito.invocation.InvocationOnMock
+import org.mockito.stubbing.Answer
 import scalikejdbc.DBSession
 
 import scala.util.{Failure, Success, Try}
@@ -42,14 +45,20 @@ class ExtractConvertStoreContentTest extends UnitSuite with TestEnvironment {
     when(extractService.getNodeGeneralContent(nodeId2)).thenReturn(Seq(NodeGeneralContent(nodeId2, nodeId2, "title", "content", "en")))
     when(articleRepository.getIdFromExternalId(nodeId)).thenReturn(None)
     when(articleRepository.getIdFromExternalId(nodeId2)).thenReturn(None)
-    when(migrationApiClient.getSubjectForNode(nodeId)).thenReturn(Try(Seq(MigrationSubjectMeta("52", "helsearbeider vg2"))))
+    when(migrationApiClient.getSubjectForNode(nodeId)).thenReturn(Try(Set(MigrationSubjectMeta("52", "helsearbeider vg2"))))
 
-    when(readService.getContentByExternalId(any[String])).thenReturn(None)
+    when(readService.getArticleIdByExternalId(any[String])).thenReturn(None)
+    when(readService.getConceptIdByExternalId(any[String])).thenReturn(None)
+
     when(importValidator.validate(any[Article], any[Boolean])).thenReturn(Success(TestData.sampleArticleWithByNcSa))
     when(articleRepository.exists(sampleNode.contents.head.nid)).thenReturn(false)
     when(articleRepository.insertWithExternalIds(any[Article], any[String], any[Seq[String]])(any[DBSession])).thenReturn(TestData.sampleArticleWithPublicDomain)
     when(extractConvertStoreContent.processNode("9876")).thenReturn(Try(TestData.sampleArticleWithPublicDomain, ImportStatus.empty))
     when(articleIndexService.indexDocument(any[Article])).thenReturn(Success(mock[Article]))
+
+    when(extractConvertStoreContent.getMainNodeId(any[String])).thenAnswer((invocation: InvocationOnMock) =>
+      Some(invocation.getArgumentAt(0, classOf[String]))
+   )
   }
 
   test("That ETL extracts, translates and loads a node correctly") {

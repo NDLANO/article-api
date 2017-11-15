@@ -10,6 +10,7 @@ package no.ndla.articleapi.model.api
 
 import java.util.Date
 
+import no.ndla.validation.ValidationMessage
 import org.scalatra.swagger.annotations._
 import org.scalatra.swagger.runtime.annotations.ApiModelProperty
 

@@ -11,10 +11,10 @@ package no.ndla.articleapi.validation
 import no.ndla.articleapi.ArticleApiProperties
 import no.ndla.articleapi.ArticleApiProperties.{H5PResizerScriptUrl, NDLABrightcoveVideoScriptUrl, NRKVideoScriptUrl}
 import no.ndla.articleapi.integration.ConverterModule.stringToJsoupDocument
-import no.ndla.articleapi.model.api.{ValidationException, ValidationMessage}
 import no.ndla.articleapi.model.domain._
 import no.ndla.mapping.ISO639.get6391CodeFor6392CodeMappings
 import no.ndla.mapping.License.getLicense
+import no.ndla.validation.{TextValidator, ValidationException, ValidationMessage}
 
 import scala.collection.JavaConverters._
 import scala.util.{Failure, Success, Try}

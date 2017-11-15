@@ -10,7 +10,7 @@
 package no.ndla.articleapi
 
 import com.typesafe.scalalogging.LazyLogging
-import no.ndla.articleapi.service.converters.ResourceType
+import no.ndla.validation.ResourceType
 import no.ndla.network.secrets.PropertyKeys
 import no.ndla.network.secrets.Secrets.readSecrets
 import no.ndla.network.Domains
@@ -56,9 +56,9 @@ object ArticleApiProperties extends LazyLogging {
 
   val CorrelationIdKey = "correlationID"
   val CorrelationIdHeader = "X-Correlation-ID"
-  val AudioHost = propOrElse("AUDIO_API_URL", "audio-api.ndla-local")
-  val ImageHost = propOrElse("IMAGE_API_URL", "image-api.ndla-local")
-  val DraftHost = propOrElse("DRAFT_API_URL", "draft-api.ndla-local")
+  val AudioHost = propOrElse("AUDIO_API_HOST", "audio-api.ndla-local")
+  val ImageHost = propOrElse("IMAGE_API_HOST", "image-api.ndla-local")
+  val DraftHost = propOrElse("DRAFT_API_HOST", "draft-api.ndla-local")
   val ApiClientsCacheAgeInMs: Long = 1000 * 60 * 60 // 1 hour caching
 
   val nodeTypeBegrep: String = "begrep"
@@ -86,10 +86,9 @@ object ArticleApiProperties extends LazyLogging {
 
   val externalApiUrls = Map(
     ResourceType.Image.toString -> s"$Domain/image-api/v2/images",
+    "raw-image" -> s"$Domain/image-api/raw/id",
     ResourceType.Audio.toString -> s"$Domain/audio-api/v1/audio"
   )
-
-  val resourceHtmlEmbedTag = "embed"
 
   val NDLABrightcoveAccountId = prop("NDLA_BRIGHTCOVE_ACCOUNT_ID")
   val NDLABrightcovePlayerId = prop("NDLA_BRIGHTCOVE_PLAYER_ID")
