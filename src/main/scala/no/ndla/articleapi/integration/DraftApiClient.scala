@@ -22,7 +22,6 @@ trait DraftApiClient {
   val draftApiClient: DraftApiClient
 
   class DraftApiClient {
-    private val draftApiInternEndpointURL = s"http://${ArticleApiProperties.DraftHost}/intern"
     private val draftApiGetAgreementEndpoint = s"http://${ArticleApiProperties.DraftHost}/draft-api/v1/agreements/:agreement_id"
     private val draftApiHealthEndpoint = s"http://${ArticleApiProperties.DraftHost}/health"
 

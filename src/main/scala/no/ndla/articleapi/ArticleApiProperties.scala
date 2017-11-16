@@ -75,8 +75,6 @@ object ArticleApiProperties extends LazyLogging {
   val oldRightsholderTypes = List("rettighetshaver", "forlag", "distributør", "leverandør")
   val rightsholderTypes = List("rightsholder", "publisher", "distributor", "supplier")
   val allowedAuthors = creatorTypes ++ processorTypes ++ rightsholderTypes
-  final val allowedAuthorsStr = "originator,photographer,artist,editorial,writer,scriptwriter,reader,translator,director,illustrator,cowriter,composer,processor,facilitator,editorial,linguistic,idea,compiler,correction,rightsholder,publisher,distributor,supplier"
-
 
   // When converting a content node, the converter may run several times over the content to make sure
   // everything is converted. This value defines a maximum number of times the converter runs on a node
