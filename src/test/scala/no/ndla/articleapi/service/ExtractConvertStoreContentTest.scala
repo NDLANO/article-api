@@ -52,6 +52,7 @@ class ExtractConvertStoreContentTest extends UnitSuite with TestEnvironment {
 
     when(importValidator.validate(any[Article], any[Boolean])).thenReturn(Success(TestData.sampleArticleWithByNcSa))
     when(articleRepository.exists(sampleNode.contents.head.nid)).thenReturn(false)
+    when(articleRepository.withExternalId(any[String])).thenReturn(None)
     when(articleRepository.insertWithExternalIds(any[Article], any[String], any[Seq[String]])(any[DBSession])).thenReturn(TestData.sampleArticleWithPublicDomain)
     when(extractConvertStoreContent.processNode("9876")).thenReturn(Try(TestData.sampleArticleWithPublicDomain, ImportStatus.empty))
     when(articleIndexService.indexDocument(any[Article])).thenReturn(Success(mock[Article]))
@@ -150,6 +151,7 @@ class ExtractConvertStoreContentTest extends UnitSuite with TestEnvironment {
     reset(articleRepository)
     when(extractConvertStoreContent.processNode(nodeId2, status.addVisitedNode(nodeId))).thenReturn(Try((sampleArticle, ImportStatus(Seq(), Set(nodeId, nodeId2)))))
     when(articleRepository.exists(nodeId)).thenReturn(true)
+    when(articleRepository.withExternalId(nodeId)).thenReturn(Some(sampleArticle))
     when(articleRepository.updateWithExternalId(any[Article], any[String])(any[DBSession])).thenReturn(Success(sampleArticle))
     when(articleRepository.getIdFromExternalId(nodeId)).thenReturn(Some(1: Long))
 
