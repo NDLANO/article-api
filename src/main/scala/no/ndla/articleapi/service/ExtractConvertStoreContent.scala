@@ -57,7 +57,7 @@ trait ExtractConvertStoreContent {
 
       val importedArticle = for {
         (convertedContent, updatedImportStatus) <- converterService.toDomainArticle(node, importStatus)
-        _ <- importValidator.validate(convertedContent, allowUnknownLanguage=true)
+        _ <- importValidator.validate(convertedContent, allowUnknownLanguage = true)
         content <- store(convertedContent, mainNodeId, forceUpdateArticles)
         _ <- indexContent(content)
       } yield (content, updatedImportStatus.addMessage(s"Successfully imported node $externalId: ${content.id.get}").setArticleId(content.id.get))
@@ -116,11 +116,14 @@ trait ExtractConvertStoreContent {
     }
 
     private def storeArticle(article: Article, mainNodeNid: String, forceUpdateArticle: Boolean): Try[Content] = {
-      articleRepository.exists(mainNodeNid) match {
+      articleRepository.withExternalId(mainNodeNid).isDefined match {
         case true if !forceUpdateArticle => articleRepository.updateWithExternalId(article, mainNodeNid)
         case true if forceUpdateArticle => articleRepository.updateWithExternalIdOverrideManualChanges(article, mainNodeNid)
         case false =>
-          Try(articleRepository.insertWithExternalIds(article, mainNodeNid, getSubjectIds(mainNodeNid).toSeq))
+          articleRepository.exists(mainNodeNid) match {
+            case true => articleRepository.updateWithExternalIdOverrideManualChanges(article, mainNodeNid)
+            case false => Try(articleRepository.insertWithExternalIds(article, mainNodeNid, getSubjectIds(mainNodeNid).toSeq))
+          }
       }
     }
 
@@ -166,4 +169,5 @@ trait ExtractConvertStoreContent {
     }
 
   }
+
 }
