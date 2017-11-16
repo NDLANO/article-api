@@ -12,6 +12,7 @@ import no.ndla.articleapi.ArticleApiProperties.H5PResizerScriptUrl
 import no.ndla.articleapi.model.domain._
 import no.ndla.articleapi.{TestData, TestEnvironment, UnitSuite}
 import no.ndla.validation.ValidationException
+import org.mockito.Mockito._
 
 class ContentValidatorTest extends UnitSuite with TestEnvironment {
   override val contentValidator = new ContentValidator(allowEmptyLanguageField = false)
@@ -184,6 +185,19 @@ class ContentValidatorTest extends UnitSuite with TestEnvironment {
   test("Validation should not fail with language=unknown if allowUnknownLanguage is set") {
     val article = TestData.sampleArticleWithByNcSa.copy(title = Seq(ArticleTitle("tittele", "unknown")))
     contentValidator.validateArticle(article, true).isSuccess should be (true)
+  }
+
+  test("Validation should succeed if agreement exists") {
+    when(draftApiClient.agreementExists(10)).thenReturn(true)
+    val article = TestData.sampleArticleWithByNcSa.copy(copyright=TestData.sampleArticleWithByNcSa.copyright.copy(agreementId = Some(10)))
+    contentValidator.validate(article).isSuccess should be (true)
+  }
+
+  test("Validation should fail if agreement doesnt exist") {
+    when(draftApiClient.agreementExists(10)).thenReturn(false)
+    val article = TestData.sampleArticleWithByNcSa.copy(copyright=TestData.sampleArticleWithByNcSa.copyright.copy(agreementId = Some(10)))
+    contentValidator.validate(article)
+    contentValidator.validate(article).isSuccess should be (false)
   }
 
 }
