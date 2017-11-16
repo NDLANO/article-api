@@ -214,7 +214,7 @@ trait ConverterService {
     }
 
     def withAgreementCopyright(article: Article): Article = {
-      val agreementCopyright = article.copyright.agreement.flatMap(aid =>
+      val agreementCopyright = article.copyright.agreementId.flatMap(aid =>
         draftApiClient.getAgreementCopyright(aid).map(toDomainCopyright)
       ).getOrElse(article.copyright)
 
@@ -226,7 +226,7 @@ trait ConverterService {
     }
 
     def withAgreementCopyright(article: api.ArticleV2): api.ArticleV2 = {
-      val agreementCopyright = article.copyright.agreement.flatMap(aid => draftApiClient.getAgreementCopyright(aid)).getOrElse(article.copyright)
+      val agreementCopyright = article.copyright.agreementId.flatMap(aid => draftApiClient.getAgreementCopyright(aid)).getOrElse(article.copyright)
 
       article.copy(copyright = article.copyright.copy(
         license = agreementCopyright.license,
@@ -298,7 +298,7 @@ trait ConverterService {
         copyright.creators.map(toDomainAuthor),
         copyright.processors.map(toDomainAuthor),
         copyright.rightsholders.map(toDomainAuthor),
-        copyright.agreement,
+        copyright.agreementId,
         copyright.validFrom,
         copyright.validTo)
     }
@@ -385,7 +385,7 @@ trait ConverterService {
         copyright.creators.map(toApiAuthor),
         copyright.processors.map(toApiAuthor),
         copyright.rightsholders.map(toApiAuthor),
-        copyright.agreement,
+        copyright.agreementId,
         copyright.validFrom,
         copyright.validTo
       )
