@@ -220,11 +220,15 @@ trait ArticleControllerV2 {
         authorizations "oauth2")
 
     get("/licenses", operation(getLicenses)) {
-      val licenses: Seq[LicenseDefinition] = (paramOrNone("filter"), paramOrNone("filterNot")) match {
-        case (None, None) => mapping.License.getLicenses
-        case (Some(filter), None) => mapping.License.getLicenses.filter(_.license.contains(filter))
-        case (None, Some(filterNot)) => mapping.License.getLicenses.filterNot(_.license.contains(filterNot))
-        case (Some(filter), Some(filterNot)) => mapping.License.getLicenses.filter(_.license.contains(filter)).filterNot(_.license.contains(filterNot))
+      val filterNot = paramOrNone("filterNot")
+      val filter = paramOrNone("filter")
+
+      val licenses: Seq[LicenseDefinition] = mapping.License.getLicenses.filter {
+        case license: LicenseDefinition if filter.isDefined => license.license.contains(filter.get)
+        case _ => true
+      } filterNot {
+        case license: LicenseDefinition if filterNot.isDefined => license.license.contains(filterNot.get)
+        case _ => false
       }
 
       licenses.map(x => License(x.license, Option(x.description), x.url))
