@@ -26,6 +26,7 @@ trait DraftApiClient {
     private val draftApiGetAgreementEndpoint = s"http://${ArticleApiProperties.DraftHost}/draft-api/v1/agreements/:agreement_id"
     private val draftApiHealthEndpoint = s"http://${ArticleApiProperties.DraftHost}/health"
 
+    def agreementExists(agreementId: Long): Boolean = getAgreementCopyright(agreementId).nonEmpty
 
     def getAgreementCopyright(agreementId: Long): Option[api.Copyright] = {
       implicit val formats = org.json4s.DefaultFormats

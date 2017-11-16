@@ -11,6 +11,7 @@ package no.ndla.articleapi.validation
 import no.ndla.articleapi.ArticleApiProperties
 import no.ndla.articleapi.ArticleApiProperties.{H5PResizerScriptUrl, NDLABrightcoveVideoScriptUrl, NRKVideoScriptUrl}
 import no.ndla.articleapi.integration.ConverterModule.stringToJsoupDocument
+import no.ndla.articleapi.integration.DraftApiClient
 import no.ndla.articleapi.model.domain._
 import no.ndla.mapping.ISO639.get6391CodeFor6392CodeMappings
 import no.ndla.mapping.License.getLicense
@@ -20,6 +21,7 @@ import scala.collection.JavaConverters._
 import scala.util.{Failure, Success, Try}
 
 trait ContentValidator {
+  this: DraftApiClient =>
   val contentValidator: ContentValidator
   val importValidator: ContentValidator
 
@@ -122,8 +124,20 @@ trait ContentValidator {
         copyright.processors.flatMap(a => validateAuthor(a, "copyright.processors")) ++
         copyright.rightsholders.flatMap(a => validateAuthor(a, "copyright.rightsholders"))
       val originMessage = NoHtmlValidator.validate("copyright.origin", copyright.origin)
+      val agreementMessage = validateAgreement(copyright)
 
-      licenseMessage ++ contributorsMessages ++ originMessage
+      licenseMessage ++ contributorsMessages ++ originMessage ++ agreementMessage
+    }
+
+    def validateAgreement(copyright: Copyright): Seq[ValidationMessage] = {
+      copyright.agreementId match {
+        case Some(id) =>
+          draftApiClient.agreementExists(id) match {
+            case false => Seq (ValidationMessage ("copyright.agreement", s"Agreement with id $id does not exist") )
+            case _ => Seq()
+          }
+        case _ => Seq()
+      }
     }
 
     private def validateLicense(license: String): Seq[ValidationMessage] = {
