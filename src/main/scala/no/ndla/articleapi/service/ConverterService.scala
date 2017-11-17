@@ -220,8 +220,10 @@ trait ConverterService {
 
       article.copy(copyright = article.copyright.copy(
         license = agreementCopyright.license,
-        creators = if (agreementCopyright.creators.nonEmpty) agreementCopyright.creators else article.copyright.creators,
-        rightsholders = if (agreementCopyright.rightsholders.nonEmpty) agreementCopyright.rightsholders else article.copyright.rightsholders
+        creators = agreementCopyright.creators,
+        rightsholders = agreementCopyright.rightsholders,
+        validFrom = agreementCopyright.validFrom,
+        validTo = agreementCopyright.validTo
       ))
     }
 
@@ -230,8 +232,10 @@ trait ConverterService {
 
       article.copy(copyright = article.copyright.copy(
         license = agreementCopyright.license,
-        creators = if (agreementCopyright.creators.nonEmpty) agreementCopyright.creators else article.copyright.creators,
-        rightsholders = if (agreementCopyright.rightsholders.nonEmpty) agreementCopyright.rightsholders else article.copyright.rightsholders
+        creators = agreementCopyright.creators,
+        rightsholders = agreementCopyright.rightsholders,
+        validFrom = agreementCopyright.validFrom,
+        validTo = agreementCopyright.validTo
       ))
     }
 
