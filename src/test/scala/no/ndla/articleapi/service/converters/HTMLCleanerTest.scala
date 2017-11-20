@@ -284,6 +284,51 @@ class HTMLCleanerTest extends UnitSuite with TestEnvironment {
     result.content should equal(expectedContentResult)
   }
 
+  test("spans with lang attribute is kept as <span> tags") {
+    val content =
+      s"""<section>
+          |<span xml:lang="nb" lang="nb">HyperText Markup Language</span>
+          |</section>""".stripMargin.replace("\n", "")
+    val expectedContentResult=
+      s"""<section>
+          |<span lang="nb">HyperText Markup Language</span>
+          |</section>""".stripMargin.replace("\n", "")
+
+    val Success((result, _)) = htmlCleaner.convert(TestData.sampleContent.copy(content = content), defaultImportStatus)
+
+    result.content should equal(expectedContentResult)
+  }
+
+  test("spans with xml:lang attribute is kept as <span> tags and lang tag is inserted") {
+    val content =
+      s"""<section>
+          |<span xml:lang="nb">HyperText Markup Language</span>
+          |</section>""".stripMargin.replace("\n", "")
+    val expectedContentResult=
+      s"""<section>
+          |<span lang="nb">HyperText Markup Language</span>
+          |</section>""".stripMargin.replace("\n", "")
+
+    val Success((result, _)) = htmlCleaner.convert(TestData.sampleContent.copy(content = content), defaultImportStatus)
+
+    result.content should equal(expectedContentResult)
+  }
+
+  test("spans with with no attributes is unwrapped") {
+    val content =
+      s"""<section>
+          |<span>HyperText Markup Language</span>
+          |</section>""".stripMargin.replace("\n", "")
+    val expectedContentResult=
+      s"""<section>
+          |<p>HyperText Markup Language</p>
+          |</section>""".stripMargin.replace("\n", "")
+
+    val Success((result, _)) = htmlCleaner.convert(TestData.sampleContent.copy(content = content), defaultImportStatus)
+
+    result.content should equal(expectedContentResult)
+  }
+
   test("standalone text and <em> tags in a section should be wrapped in <p> tags") {
     val origContent =
       """<section>
