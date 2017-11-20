@@ -11,6 +11,8 @@ package no.ndla.articleapi.controller
 
 import java.util.concurrent.TimeUnit
 
+import no.ndla.articleapi.ArticleApiProperties.RoleWithWriteAccess
+import no.ndla.articleapi.auth.{Role, User}
 import no.ndla.articleapi.model.api.ArticleIdV2
 import no.ndla.articleapi.model.domain.{ImportStatus, Language}
 import no.ndla.articleapi.repository.ArticleRepository
@@ -34,7 +36,9 @@ trait InternController {
     with ExtractConvertStoreContent
     with IndexService
     with ArticleIndexService
-    with ConceptIndexService =>
+    with ConceptIndexService
+    with User
+    with Role =>
   val internController: InternController
 
   class InternController extends NdlaController {
@@ -64,6 +68,9 @@ trait InternController {
     }
 
     post("/import/:external_id") {
+      authUser.assertHasId()
+      authRole.assertHasRole(RoleWithWriteAccess)
+
       val externalId = params("external_id")
       val forceUpdateArticle = booleanOrDefault("forceUpdate", false)
 
@@ -86,12 +93,15 @@ trait InternController {
     }
 
     post("/id/article/allocate/?") {
+      authRole.assertHasRole(RoleWithWriteAccess)
+
       val externalId = paramOrNone("external-id")
       val externalSubjectId = paramAsListOfString("external-subject-id")
       ArticleIdV2(writeService.allocateArticleId(externalId, externalSubjectId.toSet))
     }
 
     post("/id/concept/allocate/?") {
+      authRole.assertHasRole(RoleWithWriteAccess)
       val externalId = paramOrNone("external-id")
       val externalSubjectId = paramAsListOfString("external-subject-id")
       ArticleIdV2(writeService.allocateConceptId(externalId, externalSubjectId.toSet))

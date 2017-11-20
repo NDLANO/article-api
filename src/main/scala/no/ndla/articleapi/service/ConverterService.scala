@@ -144,7 +144,7 @@ trait ConverterService {
         None,
         nodeToConvert.created,
         nodeToConvert.updated,
-        "content-import-client",
+        authUser.userOrClientid(),
         nodeToConvert.articleType.toString
       )
     }
@@ -189,7 +189,7 @@ trait ConverterService {
         metaImageId=newArticle.metaImageId,
         created=clock.now(),
         updated=clock.now(),
-        updatedBy=authUser.id(),
+        updatedBy=authUser.userOrClientid(),
         newArticle.articleType
       )
     }

@@ -37,7 +37,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     when(articleIndexService.indexDocument(any[Article])).thenAnswer((invocation: InvocationOnMock) => Try(invocation.getArgumentAt(0, article.getClass)))
     when(readService.addUrlsOnEmbedResources(any[Article])).thenAnswer((invocation: InvocationOnMock) => invocation.getArgumentAt(0, article.getClass))
     when(articleRepository.getExternalIdFromId(any[Long])(any[DBSession])).thenReturn(Option("1234"))
-    when(authUser.id()).thenReturn("ndalId54321")
+    when(authUser.userOrClientid()).thenReturn("ndalId54321")
     when(clock.now()).thenReturn(today)
     when(contentValidator.validateArticle(any[Article], any[Boolean])).thenAnswer((invocation: InvocationOnMock) =>
       Success(invocation.getArgumentAt(0, classOf[Article]))
