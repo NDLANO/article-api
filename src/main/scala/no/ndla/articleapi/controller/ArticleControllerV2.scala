@@ -226,7 +226,7 @@ trait ArticleControllerV2 {
       val licenses: Seq[LicenseDefinition] = mapping.License.getLicenses.filter {
         case license: LicenseDefinition if filter.isDefined => license.license.contains(filter.get)
         case _ => true
-      } filterNot {
+      }.filterNot {
         case license: LicenseDefinition if filterNot.isDefined => license.license.contains(filterNot.get)
         case _ => false
       }
