@@ -29,13 +29,13 @@ trait AudioApiClient {
 
     def getAudioFromExternalId(externalId: String): Try[Long] = {
       val request = Http(AudioMetaFromExternalIdEndpoint.replace(":external_id", externalId))
-      ndlaClient.fetch[AudioApiMetaInformation](request).map(_.id)
+      ndlaClient.fetchWithForwardedAuth[AudioApiMetaInformation](request).map(_.id)
     }
 
     def importAudio(externalId: String): Try[Long] = {
       val second = 1000
       val request = Http(ImportAudioEndpoint.replace(":external_id", externalId)).timeout(20 * second, 20 * second).postForm
-      ndlaClient.fetch[AudioApiMetaInformation](request).map(_.id)
+      ndlaClient.fetchWithForwardedAuth[AudioApiMetaInformation](request).map(_.id)
     }
 
     def isHealthy: Boolean = {

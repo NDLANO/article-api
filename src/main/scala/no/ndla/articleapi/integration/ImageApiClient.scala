@@ -27,13 +27,13 @@ trait ImageApiClient {
 
     def getMetaByExternId(externId: String): Option[ImageMetaInformation] = {
       val request: HttpRequest = Http(s"$imageApiGetByExternalIdURL".replace(":external_id", externId))
-      ndlaClient.fetch[ImageMetaInformation](request).toOption
+      ndlaClient.fetchWithForwardedAuth[ImageMetaInformation](request).toOption
     }
 
     def importImage(externId: String): Option[ImageMetaInformation] = {
       val second = 1000
       val request: HttpRequest = Http(s"$imageApiImportImageURL".replace(":external_id", externId)).timeout(20 * second, 20 * second).postForm
-      ndlaClient.fetch[ImageMetaInformation](request).toOption
+      ndlaClient.fetchWithForwardedAuth[ImageMetaInformation](request).toOption
     }
 
     def importOrGetMetaByExternId(externId: String): Option[ImageMetaInformation] = {
