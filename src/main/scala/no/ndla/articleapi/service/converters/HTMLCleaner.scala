@@ -21,6 +21,7 @@ trait HTMLCleaner {
       val element = stringToJsoupDocument(content.content)
       val illegalTags = unwrapIllegalTags(element).map(x => s"Illegal tag(s) removed: $x").distinct
       convertLists(element)
+      handleSpans(element)
       val illegalAttributes = removeAttributes(element).map(x => s"Illegal attribute(s) removed: $x").distinct
 
       moveEmbedsOutOfPTags(element)
@@ -198,6 +199,18 @@ trait HTMLCleaner {
         paragraph.select("strong").asScala
       else
         Seq(el)
+    }
+
+    private def handleSpans(element: Element) {
+      element.select("span").asScala.foreach(spanTag => {
+        val langAttribute = spanTag.attr("xml:lang")
+        if (langAttribute.isEmpty) {
+          spanTag.unwrap()
+        } else {
+          spanTag.attr("lang", langAttribute)
+          spanTag.removeAttr("xml:lang")
+        }
+      })
     }
 
     private def getIngressText(el: Element): Option[Seq[Element]] = {
