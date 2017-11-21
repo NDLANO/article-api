@@ -21,6 +21,7 @@ trait HTMLCleaner {
       val element = stringToJsoupDocument(content.content)
       val illegalTags = unwrapIllegalTags(element).map(x => s"Illegal tag(s) removed: $x").distinct
       convertLists(element)
+      convertCentering(element)
       val illegalAttributes = removeAttributes(element).map(x => s"Illegal attribute(s) removed: $x").distinct
 
       moveEmbedsOutOfPTags(element)
@@ -44,6 +45,14 @@ trait HTMLCleaner {
 
       Success((content.copy(content = jsoupDocumentToString(finalCleanedDocument), metaDescription = metaDescription, ingress = ingress),
         importStatus.addMessages(illegalTags ++ illegalAttributes)))
+    }
+
+    def convertCentering(el: Element) = {
+      el.select("p").asScala.map(p => {
+        if(p.attr("style").replaceAll("\\s", "").contains("text-align:center")) {
+          p.attr("data-align", "center")
+        }
+      })
     }
 
     private def convertH3sToH2s(element: Element) {
