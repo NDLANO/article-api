@@ -158,7 +158,7 @@ class ContentValidatorTest extends UnitSuite with TestEnvironment {
     val result = contentValidator.validateArticle(article, false)
     result.isSuccess should be(false)
     result.failed.get.asInstanceOf[ValidationException].errors.length should be (1)
-    result.failed.get.asInstanceOf[ValidationException].errors.head.message should be ("Author is of illegal type. Must be one of originator, photographer, artist, editorial, writer, scriptwriter, reader, translator, director, illustrator, cowriter, composer, processor, facilitator, editorial, linguistic, idea, compiler, correction, rightsholder, publisher, distributor, supplier")
+    result.failed.get.asInstanceOf[ValidationException].errors.head.message should be ("Author is of illegal type. Must be one of originator, photographer, artist, editorial, writer, scriptwriter, reader, translator, director, illustrator, cowriter, composer")
     result.failed.get.asInstanceOf[ValidationException].errors.head.field should be("copyright.creators.type")
   }
 

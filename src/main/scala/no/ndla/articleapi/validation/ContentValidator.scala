@@ -120,9 +120,9 @@ trait ContentValidator {
     private def validateCopyright(copyright: Copyright): Seq[ValidationMessage] = {
       val licenseMessage = validateLicense(copyright.license)
       val contributorsMessages =
-        copyright.creators.flatMap(a => validateAuthor(a, "copyright.creators")) ++
-        copyright.processors.flatMap(a => validateAuthor(a, "copyright.processors")) ++
-        copyright.rightsholders.flatMap(a => validateAuthor(a, "copyright.rightsholders"))
+        copyright.creators.flatMap(a => validateAuthor(a, "copyright.creators", ArticleApiProperties.creatorTypes)) ++
+        copyright.processors.flatMap(a => validateAuthor(a, "copyright.processors", ArticleApiProperties.processorTypes)) ++
+        copyright.rightsholders.flatMap(a => validateAuthor(a, "copyright.rightsholders", ArticleApiProperties.rightsholderTypes))
       val originMessage = NoHtmlValidator.validate("copyright.origin", copyright.origin)
       val agreementMessage = validateAgreement(copyright)
 
@@ -147,17 +147,17 @@ trait ContentValidator {
       }
     }
 
-    private def validateAuthor(author: Author, fieldPath: String): Seq[ValidationMessage] = {
+    private def validateAuthor(author: Author, fieldPath: String, allowedTypes: Seq[String]): Seq[ValidationMessage] = {
       NoHtmlValidator.validate(s"$fieldPath.type", author.`type`).toList ++
         NoHtmlValidator.validate(s"$fieldPath.name", author.name).toList ++
-        validateAuthorType(s"$fieldPath.type", author.`type`).toList
+        validateAuthorType(s"$fieldPath.type", author.`type`, allowedTypes).toList
     }
 
-    def validateAuthorType(fieldPath: String, `type`: String): Option[ValidationMessage] = {
-      if(ArticleApiProperties.allowedAuthors.contains(`type`.toLowerCase)) {
+    def validateAuthorType(fieldPath: String, `type`: String, allowedTypes: Seq[String]): Option[ValidationMessage] = {
+      if(allowedTypes.contains(`type`.toLowerCase)) {
         None
       } else {
-        Some(ValidationMessage(fieldPath, s"Author is of illegal type. Must be one of ${ArticleApiProperties.allowedAuthors.mkString(", ")}"))
+        Some(ValidationMessage(fieldPath, s"Author is of illegal type. Must be one of ${allowedTypes.mkString(", ")}"))
       }
     }
 
