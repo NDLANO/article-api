@@ -23,7 +23,6 @@ trait DraftApiClient {
 
   class DraftApiClient {
     private val draftApiGetAgreementEndpoint = s"http://${ArticleApiProperties.DraftHost}/draft-api/v1/agreements/:agreement_id"
-    private val draftApiHealthEndpoint = s"http://${ArticleApiProperties.DraftHost}/health"
 
     def agreementExists(agreementId: Long): Boolean = getAgreementCopyright(agreementId).nonEmpty
 
@@ -33,13 +32,6 @@ trait DraftApiClient {
       ndlaClient.fetch[Agreement](request).toOption match {
         case Some(a) => Some(a.copyright)
         case _ => None
-      }
-    }
-
-    def isHealthy: Boolean = {
-      Try(Http(draftApiHealthEndpoint).execute()) match {
-        case Success(resp) => resp.isSuccess
-        case _ => false
       }
     }
   }
