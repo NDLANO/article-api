@@ -121,7 +121,6 @@ trait ConverterService {
     private def postProcess(nodeToConvert: NodeToConvert, importStatus: ImportStatus): Try[(NodeToConvert, ImportStatus)] =
       executePostprocessorModules(nodeToConvert, importStatus)
 
-
     private[service] def toDomainArticle(nodeToConvert: NodeToConvert): Article = {
       val requiredLibraries = nodeToConvert.contents.flatMap(_.requiredLibraries).distinct
       val ingresses = nodeToConvert.contents.flatMap(content => content.asArticleIntroduction)
@@ -227,16 +226,15 @@ trait ConverterService {
       ))
     }
 
-    def withAgreementCopyright(article: api.ArticleV2): api.ArticleV2 = {
-      val agreementCopyright = article.copyright.agreementId.flatMap(aid => draftApiClient.getAgreementCopyright(aid)).getOrElse(article.copyright)
-
-      article.copy(copyright = article.copyright.copy(
+    def withAgreementCopyright(copyright: api.Copyright): api.Copyright = {
+      val agreementCopyright = copyright.agreementId.flatMap(aid => draftApiClient.getAgreementCopyright(aid)).getOrElse(copyright)
+      copyright.copy(
         license = agreementCopyright.license,
         creators = agreementCopyright.creators,
         rightsholders = agreementCopyright.rightsholders,
         validFrom = agreementCopyright.validFrom,
         validTo = agreementCopyright.validTo
-      ))
+      )
     }
 
     def toDomainTitle(articleTitle: api.ArticleTitle): ArticleTitle = {
@@ -353,7 +351,7 @@ trait ConverterService {
         article.revision.get,
         title,
         articleContent,
-        toApiCopyright(article.copyright),
+        withAgreementCopyright(toApiCopyright(article.copyright)),
         tags,
         article.requiredLibraries.map(toApiRequiredLibrary),
         visualElement,
