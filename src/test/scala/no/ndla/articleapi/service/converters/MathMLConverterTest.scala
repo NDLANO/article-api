@@ -25,10 +25,19 @@ class MathMLConverterTest extends UnitSuite with TestEnvironment {
   test("an xmlns attribute should be added to MathML math tags") {
     val originalContent = """<math><mi>P</mi></math><math></math>"""
     val expectedContent = """<math xmlns="http://www.w3.org/1998/Math/MathML"><mi>P</mi></math><math xmlns="http://www.w3.org/1998/Math/MathML"></math>"""
-    val content = TestData.sampleContent.copy(content=originalContent)
+    val content = TestData.sampleContent.copy(content = originalContent)
     val Success((result, _)) = MathMLConverter.convert(content, defaultImportStatus)
 
-    result.content should equal (expectedContent)
+    result.content should equal(expectedContent)
+  }
+
+  test("that p-tag parents of math with center aligment gets converted to data-align") {
+    val originalContent = """<p style="text-align:center"><span><math xmlns="http://www.w3.org/1998/Math/MathML"></math></span></p>"""
+    val expectedContent = """<p style="text-align:center" data-align="center"><span><math xmlns="http://www.w3.org/1998/Math/MathML"></math></span></p>"""
+    val content = TestData.sampleContent.copy(content = originalContent)
+    val Success((result, _)) = MathMLConverter.convert(content, defaultImportStatus)
+
+    result.content should equal(expectedContent)
   }
 
 }
