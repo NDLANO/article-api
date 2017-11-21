@@ -214,14 +214,21 @@ trait ArticleControllerV2 {
         notes "Shows all valid licenses"
         parameters(
         headerParam[Option[String]]("X-Correlation-ID").description("User supplied correlation-id. May be omitted."),
-        queryParam[Option[String]]("filter").description("A filter on the license keys. May be omitted"))
-        responseMessages(response403, response500)
+        queryParam[Option[String]]("filter").description("A filter to include a specific license key. May be omitted"),
+        queryParam[Option[String]]("filterNot").description("A filter to remove a specific license key. May be omitted"))
+    responseMessages(response403, response500)
         authorizations "oauth2")
 
     get("/licenses", operation(getLicenses)) {
-      val licenses: Seq[LicenseDefinition] = paramOrNone("filter") match {
-        case None => mapping.License.getLicenses
-        case Some(filter) => mapping.License.getLicenses.filter(_.license.contains(filter))
+      val filterNot = paramOrNone("filterNot")
+      val filter = paramOrNone("filter")
+
+      val licenses: Seq[LicenseDefinition] = mapping.License.getLicenses.filter {
+        case license: LicenseDefinition if filter.isDefined => license.license.contains(filter.get)
+        case _ => true
+      }.filterNot {
+        case license: LicenseDefinition if filterNot.isDefined => license.license.contains(filterNot.get)
+        case _ => false
       }
 
       licenses.map(x => License(x.license, Option(x.description), x.url))
