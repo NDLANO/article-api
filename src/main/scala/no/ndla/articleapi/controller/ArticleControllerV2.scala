@@ -10,7 +10,6 @@
 package no.ndla.articleapi.controller
 
 import no.ndla.articleapi.ArticleApiProperties
-import no.ndla.articleapi.ArticleApiProperties.RoleWithWriteAccess
 import no.ndla.articleapi.auth.Role
 import no.ndla.articleapi.model.api._
 import no.ndla.articleapi.model.domain.{ArticleType, Language, Sort}
@@ -246,7 +245,7 @@ trait ArticleControllerV2 {
         responseMessages(response400, response403, response500))
 
     post("/", operation(newArticle)) {
-      authRole.assertHasRole(RoleWithWriteAccess)
+      authRole.assertHasWritePermission()
       val newArticle = extract[NewArticleV2](request.body)
       writeService.newArticleV2(newArticle) match {
         case Success(article) => Created(body=article)
@@ -267,7 +266,7 @@ trait ArticleControllerV2 {
         responseMessages(response400, response403, response404, response500))
 
     patch("/:article_id", operation(updateArticle)) {
-      authRole.assertHasRole(RoleWithWriteAccess)
+      authRole.assertHasWritePermission()
 
       val articleId = long("article_id")
       val updatedArticle = extract[UpdatedArticleV2](request.body)

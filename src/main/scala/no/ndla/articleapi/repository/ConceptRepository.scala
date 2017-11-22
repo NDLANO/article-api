@@ -66,6 +66,30 @@ trait ConceptRepository {
       }
     }
 
+    def insert(concept: Concept)(implicit session: DBSession = AutoSession): Concept = {
+      val dataObject = new PGobject()
+      dataObject.setType("jsonb")
+      dataObject.setValue(write(concept))
+
+      val conceptId: Long = sql"insert into ${Concept.table} (document) values (${dataObject})".updateAndReturnGeneratedKey.apply
+
+      logger.info(s"Inserted new concept: $conceptId")
+      concept.copy(id=Some(conceptId))
+    }
+
+    def update(concept: Concept, id: Long)(implicit session: DBSession = AutoSession): Try[Concept] = {
+      val dataObject = new PGobject()
+      dataObject.setType("jsonb")
+      dataObject.setValue(write(concept))
+
+      Try(sql"update ${Concept.table} set document=${dataObject} where id=${id}".updateAndReturnGeneratedKey.apply) match {
+        case Success(id) => Success(concept.copy(id=Some(id)))
+        case Failure(ex) =>
+          logger.warn(s"Failed to update concept with id $id: ${ex.getMessage}")
+          Failure(ex)
+      }
+    }
+
     def withId(id: Long): Option[Concept] =
       conceptWhere(sqls"co.id=${id.toInt}")
 

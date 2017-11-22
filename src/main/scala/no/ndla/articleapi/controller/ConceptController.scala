@@ -9,16 +9,19 @@
 package no.ndla.articleapi.controller
 
 import no.ndla.articleapi.ArticleApiProperties
-import no.ndla.articleapi.model.api.{ConceptSearchParams, ConceptSearchResult, Error}
+import no.ndla.articleapi.auth.Role
+import no.ndla.articleapi.model.api.{Concept, ConceptSearchParams, ConceptSearchResult, Error, NewConcept, UpdatedConcept}
 import no.ndla.articleapi.model.domain.{Language, Sort}
-import no.ndla.articleapi.service.ReadService
+import no.ndla.articleapi.service.{ReadService, WriteService}
 import no.ndla.articleapi.service.search.ConceptSearchService
 import org.json4s.{DefaultFormats, Formats}
 import org.scalatra.NotFound
 import org.scalatra.swagger.{ResponseMessage, Swagger, SwaggerSupport}
 
+import scala.util.{Failure, Success}
+
 trait ConceptController {
-  this: ReadService with ConceptSearchService =>
+  this: ReadService with WriteService with ConceptSearchService with Role =>
   val conceptController: ConceptController
 
   class ConceptController(implicit val swagger: Swagger) extends NdlaController with SwaggerSupport {
@@ -129,6 +132,48 @@ trait ConceptController {
       readService.conceptWithId(conceptId, language) match {
         case Some(concept) => concept
         case None => NotFound(body = Error(Error.NOT_FOUND, s"No concept with id $conceptId found"))
+      }
+    }
+
+    val newConcept =
+      (apiOperation[Concept]("newConceptById")
+        summary "Create new concept"
+        notes "Create new concept"
+        parameters(
+        headerParam[Option[String]]("X-Correlation-ID").description("User supplied correlation-id. May be omitted."),
+        headerParam[Option[String]]("app-key").description("Your app-key. May be omitted to access api anonymously, but rate limiting applies on anonymous access."),
+        queryParam[String]("externalId").description("The external node id of this concept"),
+        bodyParam[NewConcept]
+      )
+        authorizations "oauth2"
+        responseMessages(response404, response500))
+
+    post("/", operation(newConcept)) {
+      authRole.assertHasWritePermission()
+      writeService.newConcept(extract[NewConcept](request.body)) match {
+        case Success(c) => c
+        case Failure(ex) => errorHandler(ex)
+      }
+    }
+
+    val updateConcept =
+      (apiOperation[Concept]("updateConceptById")
+        summary "Update a concept"
+        notes "Update a concept"
+        parameters(
+        headerParam[Option[String]]("X-Correlation-ID").description("User supplied correlation-id. May be omitted."),
+        headerParam[Option[String]]("app-key").description("Your app-key. May be omitted to access api anonymously, but rate limiting applies on anonymous access."),
+        queryParam[String]("externalId").description("The external node id of this concept"),
+        bodyParam[NewConcept]
+      )
+        authorizations "oauth2"
+        responseMessages(response404, response500))
+
+    patch("/:id", operation(updateConcept)) {
+      authRole.assertHasWritePermission()
+      writeService.updateConcept(long("id"), extract[UpdatedConcept](request.body)) match {
+        case Success(c) => c
+        case Failure(ex) => errorHandler(ex)
       }
     }
 

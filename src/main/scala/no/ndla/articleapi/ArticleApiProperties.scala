@@ -19,7 +19,6 @@ import scala.util.Properties._
 import scala.util.{Failure, Success}
 
 object ArticleApiProperties extends LazyLogging {
-  val RoleWithWriteAccess = "articles:write"
   val SecretsFile = "article-api.secrets"
 
   val ApplicationPort = propOrElse("APPLICATION_PORT", "80").toInt
