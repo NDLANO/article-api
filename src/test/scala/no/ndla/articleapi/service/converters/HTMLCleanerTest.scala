@@ -383,6 +383,13 @@ class HTMLCleanerTest extends UnitSuite with TestEnvironment {
     result.metaDescription should equal("Look at this image image caption")
   }
 
+  test("HTML characters are escaped in meta description") {
+    val content = TestData.sampleContent.copy(content = "", metaDescription ="""Hei dette er et mindre enn tegn <> nice""")
+    val Success((result, _)) = htmlCleaner.convert(content, defaultImportStatus)
+
+    result.metaDescription should equal("Hei dette er et mindre enn tegn &lt;&gt; nice")
+  }
+
   test("an embed-image as the first element inside p tags are moved out of p tag") {
     val image1 = s"""<$ResourceHtmlEmbedTag data-resource="image" data-url="http://some.url.org/img.jpg">"""
     val content = TestData.sampleContent.copy(content =s"""<section><p>${image1}sample text</p></section>""")
