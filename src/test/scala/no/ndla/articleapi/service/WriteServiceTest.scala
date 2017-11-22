@@ -11,6 +11,7 @@ package no.ndla.articleapi.service
 import no.ndla.articleapi.model.api
 import no.ndla.articleapi.model.domain._
 import no.ndla.articleapi.{TestData, TestEnvironment, UnitSuite}
+import no.ndla.validation.ValidationException
 import org.joda.time.DateTime
 import org.mockito.Matchers._
 import org.mockito.Mockito
@@ -18,7 +19,7 @@ import org.mockito.Mockito._
 import org.mockito.invocation.InvocationOnMock
 import scalikejdbc.DBSession
 
-import scala.util.{Success, Try}
+import scala.util.{Failure, Success, Try}
 
 class WriteServiceTest extends UnitSuite with TestEnvironment {
   override val converterService = new ConverterService
@@ -146,6 +147,58 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     service.allocateConceptId(None, Set.empty) should equal(id)
     verify(conceptRepository, times(1)).allocateConceptId()
     verify(conceptRepository, times(0)).allocateConceptIdWithExternal(external)
+  }
+
+  test("newConcept should return Success if everything went well") {
+    when(importValidator.validate(any[Concept], any[Boolean]))
+      .thenAnswer((invocation: InvocationOnMock) => Try(invocation.getArgumentAt(0, classOf[Concept])))
+    when(conceptRepository.insert(any[Concept])(any[DBSession]))
+      .thenAnswer((invocation: InvocationOnMock) => invocation.getArgumentAt(0, classOf[Concept]).copy(id=Some(1)))
+    when(conceptIndexService.indexDocument(any[Concept]))
+      .thenAnswer((invocation: InvocationOnMock) => Try(invocation.getArgumentAt(0, classOf[Concept])))
+
+    val res = service.newConcept(TestData.sampleNewConcept)
+    res.isSuccess should be (true)
+    verify(importValidator, times(1)).validate(any[Concept], any[Boolean])
+    verify(conceptRepository, times(1)).insert(any[Concept])(any[DBSession])
+    verify(conceptIndexService, times(1)).indexDocument(any[Concept])
+  }
+
+  test("newConcept should return Failure if validate fails") {
+    when(importValidator.validate(any[Concept], any[Boolean])).thenReturn(Failure(new ValidationException("fail", Seq.empty)))
+
+    val res = service.newConcept(TestData.sampleNewConcept)
+    res.isFailure should be (true)
+    verify(importValidator, times(1)).validate(any[Concept], any[Boolean])
+    verify(conceptRepository, times(0)).insert(any[Concept])(any[DBSession])
+    verify(conceptIndexService, times(0)).indexDocument(any[Concept])
+  }
+
+  test("updateConcept should return Success if everything went well") {
+    when(conceptRepository.withId(any[Long])).thenReturn(Some(TestData.sampleConcept))
+    when(importValidator.validate(any[Concept], any[Boolean]))
+      .thenAnswer((invocation: InvocationOnMock) => Try(invocation.getArgumentAt(0, classOf[Concept])))
+    when(conceptRepository.update(any[Concept], any[Long])(any[DBSession]))
+      .thenAnswer((invocation: InvocationOnMock) => Try(invocation.getArgumentAt(0, classOf[Concept])))
+    when(conceptIndexService.indexDocument(any[Concept]))
+      .thenAnswer((invocation: InvocationOnMock) => Try(invocation.getArgumentAt(0, classOf[Concept])))
+
+    val res = service.updateConcept(1, TestData.sampleUpdateConcept)
+    res.isSuccess should be (true)
+    verify(importValidator, times(1)).validate(any[Concept], any[Boolean])
+    verify(conceptRepository, times(1)).update(any[Concept], any[Long])(any[DBSession])
+    verify(conceptIndexService, times(1)).indexDocument(any[Concept])
+  }
+
+  test("updateConcept should return Failure if validate fails") {
+    when(conceptRepository.withId(any[Long])).thenReturn(Some(TestData.sampleConcept))
+    when(importValidator.validate(any[Concept], any[Boolean])).thenReturn(Failure(new ValidationException("fail", Seq.empty)))
+
+    val res = service.updateConcept(1, TestData.sampleUpdateConcept)
+    res.isFailure should be (true)
+    verify(importValidator, times(1)).validate(any[Concept], any[Boolean])
+    verify(conceptRepository, times(0)).insert(any[Concept])(any[DBSession])
+    verify(conceptIndexService, times(0)).indexDocument(any[Concept])
   }
 
 }
