@@ -47,14 +47,13 @@ trait VideoConverterModule {
     }
 
     def toInlineVideo(linkText: String, nodeId: String): String = {
-      val embedVideoMeta = HtmlTagGenerator.buildBrightCoveEmbedContent(
-        caption=linkText,
-        videoId=s"ref:$nodeId",
-        account=s"$NDLABrightcoveAccountId",
-        player=s"$NDLABrightcovePlayerId")
-
-      embedVideoMeta
+      HtmlTagGenerator.buildBrightCoveEmbedContent(
+        caption = linkText,
+        videoId = s"ref:$nodeId",
+        account = s"$NDLABrightcoveAccountId",
+        player = s"$NDLABrightcovePlayerId")
     }
 
   }
+
 }
