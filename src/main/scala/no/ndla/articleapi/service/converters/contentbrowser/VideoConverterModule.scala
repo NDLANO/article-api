@@ -26,17 +26,17 @@ trait VideoConverterModule {
     override def convert(content: ContentBrowser, importStatus: ImportStatus): Try[(String, Seq[RequiredLibrary], ImportStatus)] = {
       val (linkText, nodeId) = (content.get("link_text"), content.get("nid"))
 
-      val (embedVideo, requiredLibraries) = content.get("insertion") match {
+      val embedVideo = content.get("insertion") match {
         case "link" =>
           toVideoLink(linkText, nodeId) match {
-            case Success(link) => (link, Seq.empty)
+            case Success(link) => link
             case Failure(e) => return Failure(e)
           }
         case _ => toInlineVideo(linkText, nodeId)
       }
 
       logger.info(s"Added video with nid ${content.get("nid")}")
-      Success(embedVideo, requiredLibraries, importStatus)
+      Success(embedVideo, Seq.empty, importStatus)
     }
 
     private def toVideoLink(linkText: String, nodeId: String): Try[String] = {
@@ -46,15 +46,14 @@ trait VideoConverterModule {
       }
     }
 
-    def toInlineVideo(linkText: String, nodeId: String): (String, Seq[RequiredLibrary]) = {
-      val requiredLibrary = RequiredLibrary("text/javascript", "Brightcove video", NDLABrightcoveVideoScriptUrl)
+    def toInlineVideo(linkText: String, nodeId: String): String = {
       val embedVideoMeta = HtmlTagGenerator.buildBrightCoveEmbedContent(
         caption=linkText,
         videoId=s"ref:$nodeId",
         account=s"$NDLABrightcoveAccountId",
         player=s"$NDLABrightcovePlayerId")
 
-      (embedVideoMeta, Seq(requiredLibrary))
+      embedVideoMeta
     }
 
   }
