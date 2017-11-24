@@ -51,7 +51,7 @@ class VisualElementConverterTest extends UnitSuite with TestEnvironment {
     when(extractService.getNodeType(nodeId)).thenReturn(Some("video"))
     val Success((res, _)) = VisualElementConverter.convert(sampleArticle, ImportStatus.empty)
     res.visualElement should equal (Some(expectedResult))
-    res.requiredLibraries.size should be (1)
+    res.requiredLibraries.size should be (0)
   }
 
   test("visual element of type h5p should be converted to embed tag") {
