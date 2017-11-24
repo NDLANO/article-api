@@ -19,7 +19,11 @@ case class ContentBrowser(textContainingContentBrowser: String, language: String
     case _ => ("", "")
   }
 
-  private val contentBrowserWithoutBrackets = contentBrowser.replace("[", "").replace("]", "")
+  private val contentBrowserWithoutBrackets = IsContentBrowserField match {
+    case true => contentBrowser.substring(1, contentBrowser.length - 1)
+    case false => contentBrowser
+  }
+
   // Extract every key-value pair and build a map
   private val KeyVal = contentBrowserWithoutBrackets.split("==").map(x => x.stripPrefix("=").split("="))
   private val FieldMap = KeyVal.map(el => el(0) -> (if (el.length > 1) el(1) else "")).toMap
