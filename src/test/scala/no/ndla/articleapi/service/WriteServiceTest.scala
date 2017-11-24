@@ -165,6 +165,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
   }
 
   test("newConcept should return Failure if validate fails") {
+    reset(importValidator, conceptRepository, conceptIndexService)
     when(importValidator.validate(any[Concept], any[Boolean])).thenReturn(Failure(new ValidationException("fail", Seq.empty)))
 
     val res = service.newConcept(TestData.sampleNewConcept)
@@ -175,6 +176,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
   }
 
   test("updateConcept should return Success if everything went well") {
+    reset(importValidator, conceptRepository, conceptIndexService)
     when(conceptRepository.withId(any[Long])).thenReturn(Some(TestData.sampleConcept))
     when(importValidator.validate(any[Concept], any[Boolean]))
       .thenAnswer((invocation: InvocationOnMock) => Try(invocation.getArgumentAt(0, classOf[Concept])))
@@ -191,6 +193,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
   }
 
   test("updateConcept should return Failure if validate fails") {
+    reset(importValidator, conceptRepository, conceptIndexService)
     when(conceptRepository.withId(any[Long])).thenReturn(Some(TestData.sampleConcept))
     when(importValidator.validate(any[Concept], any[Boolean])).thenReturn(Failure(new ValidationException("fail", Seq.empty)))
 
