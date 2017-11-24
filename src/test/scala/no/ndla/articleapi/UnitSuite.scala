@@ -32,6 +32,7 @@ abstract class UnitSuite extends FunSuite with Matchers with OptionValues with I
   setEnv("NDLA_BRIGHTCOVE_ACCOUNT_ID", "some-account-id")
   setEnv("NDLA_BRIGHTCOVE_PLAYER_ID", "some-player-id")
   setEnv("SEARCH_INDEX_NAME", "article-integration-test-index")
+  setEnv("CONCEPT_SEARCH_INDEX_NAME", "concept-integration-test-index")
 
   def setEnv(key: String, value: String) = env.put(key, value)
 
