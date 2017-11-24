@@ -4,7 +4,7 @@ import no.ndla.articleapi.{TestData, TestEnvironment, UnitSuite}
 import no.ndla.articleapi.integration.LanguageIngress
 import no.ndla.validation.EmbedTagRules.ResourceHtmlEmbedTag
 import no.ndla.articleapi.model.domain.ImportStatus
-import no.ndla.validation.Attributes
+import no.ndla.validation.TagAttributes
 
 import scala.util.Success
 
@@ -606,7 +606,7 @@ class HTMLCleanerTest extends UnitSuite with TestEnvironment {
         |</section>""".stripMargin.replace("\n", "")
     val expectedContent =
       s"""<section>
-         |<ol ${Attributes.DataType}="letters">
+         |<ol ${TagAttributes.DataType}="letters">
          |<li>Definer makt</li>
          |</ol>
          |</section>""".stripMargin.replace("\n", "")

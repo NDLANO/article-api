@@ -5,7 +5,7 @@ import no.ndla.validation.EmbedTagRules.ResourceHtmlEmbedTag
 import no.ndla.articleapi.integration.ConverterModule.{jsoupDocumentToString, stringToJsoupDocument}
 import no.ndla.articleapi.integration.{ConverterModule, ImageApiClient, LanguageContent, LanguageIngress}
 import no.ndla.articleapi.model.domain.ImportStatus
-import no.ndla.validation.{Attributes, HtmlRules, ResourceType}
+import no.ndla.validation.{TagAttributes, HtmlTagRules, ResourceType}
 import org.jsoup.Jsoup
 import org.jsoup.nodes.{Element, Node, TextNode}
 
@@ -74,7 +74,7 @@ trait HTMLCleaner {
         ResourceType.Image
       )
 
-      val embedTypeString = embedsThatShouldNotBeInPTags.map(t => s"[${Attributes.DataResource}=$t]").mkString(",")
+      val embedTypeString = embedsThatShouldNotBeInPTags.map(t => s"[${TagAttributes.DataResource}=$t]").mkString(",")
 
       element.select("p").asScala.foreach(pTag => {
         pTag.select(s"${ResourceHtmlEmbedTag}${embedTypeString}").asScala.toList.foreach(el => {
@@ -126,7 +126,7 @@ trait HTMLCleaner {
 
     private def unwrapIllegalTags(el: Element): Seq[String] = {
       el.children().select("*").asScala.toList
-        .filter(htmlTag => !HtmlRules.isTagValid(htmlTag.tagName))
+        .filter(htmlTag => !HtmlTagRules.isTagValid(htmlTag.tagName))
         .map(illegalHtmlTag => {
           val tagName = illegalHtmlTag.tagName
           illegalHtmlTag.unwrap()
@@ -146,7 +146,7 @@ trait HTMLCleaner {
 
     private def removeAttributes(el: Element): Seq[String] = {
       el.select("*").asScala.toList.flatMap(tag =>
-        HtmlRules.removeIllegalAttributes(tag, HtmlRules.legalAttributesForTag(tag.tagName))
+        HtmlTagRules.removeIllegalAttributes(tag, HtmlTagRules.legalAttributesForTag(tag.tagName))
       )
     }
 
@@ -364,7 +364,7 @@ trait HTMLCleaner {
       element.select("ol").asScala.foreach(x => {
         val styling = x.attr("style").split(";")
         if (styling.contains("list-style-type: lower-alpha")) {
-          x.attr(Attributes.DataType.toString, "letters")
+          x.attr(TagAttributes.DataType.toString, "letters")
         }
       })
     }
