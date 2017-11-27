@@ -141,8 +141,8 @@ trait HTMLCleaner {
         val caption = el.attr("data-caption")
         el.replaceWith(new TextNode(caption, ""))
       }
-      val text = Jsoup.parseBodyFragment(extractElement(element)).text()
-      Jsoup.parseBodyFragment(text).body().html().replace("&nbsp;", " ").trim
+      val extracted = extractElement(element)
+      new TextNode(extracted, "").toString.replace("&nbsp;", " ").trim
     }
 
     private def removeAttributes(el: Element): Seq[String] = {
