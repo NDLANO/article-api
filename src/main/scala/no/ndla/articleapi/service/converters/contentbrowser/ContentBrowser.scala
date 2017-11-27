@@ -18,8 +18,14 @@ case class ContentBrowser(textContainingContentBrowser: String, language: String
     case Pattern(contentBrowserString, contentBrowserStringData) => (contentBrowserString, contentBrowserStringData)
     case _ => ("", "")
   }
+
+  private val contentBrowserWithoutBrackets = IsContentBrowserField match {
+    case true => contentBrowser.substring(1, contentBrowser.length - 1)
+    case false => contentBrowser
+  }
+
   // Extract every key-value pair and build a map
-  private val KeyVal = contentBrowserData.split("==").map(x => x.stripPrefix("=").split("="))
+  private val KeyVal = contentBrowserWithoutBrackets.split("==").map(x => x.stripPrefix("=").split("="))
   private val FieldMap = KeyVal.map(el => el(0) -> (if (el.length > 1) el(1) else "")).toMap
 
   lazy val IsContentBrowserField: Boolean = textContainingContentBrowser.matches(Pattern.toString)
