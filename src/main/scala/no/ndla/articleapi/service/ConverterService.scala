@@ -162,10 +162,22 @@ trait ConverterService {
       )
     }
 
+    private def mapOldToNewLicenseKey(license: String): String = {
+      val licenses = Map(
+        "nolaw" -> "cc0",
+        "noc" -> "pd",
+        "publicdomain" -> "",
+        "gnu" -> "",
+        "nlod" -> ""
+      )
+
+      licenses.getOrElse(license, license)
+    }
+
     private def toDomainCopyright(license: String, authors: Seq[Author]): Copyright = {
       val origin = authors.find(author => author.`type`.toLowerCase == "opphavsmann").map(_.name).getOrElse("")
       val authorsExcludingOrigin = authors.filterNot(x => x.name != origin && x.`type` == "opphavsmann")
-      Copyright(license, origin, authorsExcludingOrigin)
+      Copyright(mapOldToNewLicenseKey(license), origin, authorsExcludingOrigin)
     }
 
     def toDomainArticle(newArticle: api.NewArticleV2): Article = {
