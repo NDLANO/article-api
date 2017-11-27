@@ -19,11 +19,11 @@ import no.ndla.articleapi.auth.User
 import no.ndla.articleapi.integration.ConverterModule.{jsoupDocumentToString, stringToJsoupDocument}
 import no.ndla.articleapi.integration.ImageApiClient
 import no.ndla.articleapi.model.api
-import no.ndla.articleapi.model.api.ArticleSummaryV2
+import no.ndla.articleapi.model.api.{ImportException, ArticleSummaryV2}
 import no.ndla.articleapi.model.domain.Language._
 import no.ndla.articleapi.model.domain._
 import no.ndla.articleapi.repository.ArticleRepository
-import no.ndla.mapping.License.getLicense
+import no.ndla.mapping.License.{getLicense, getLicenses}
 import no.ndla.network.ApplicationUrl
 import no.ndla.validation.{HtmlRules, EmbedTagRules, ResourceType, Attributes}
 
@@ -163,14 +163,10 @@ trait ConverterService {
     }
 
     private def mapOldToNewLicenseKey(license: String): String = {
-      val licenses = Map(
-        "nolaw" -> "cc0",
-        "noc" -> "pd",
-        "publicdomain" -> "",
-        "gnu" -> "",
-        "nlod" -> ""
-      )
-
+      val licenses = Map("nolaw" -> "cc0", "noc" -> "pd")
+      if (!getLicense(license).isDefined) {
+        throw new ImportException(s"License $license is not supported.")
+      }
       licenses.getOrElse(license, license)
     }
 
