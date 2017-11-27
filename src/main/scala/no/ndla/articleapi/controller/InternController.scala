@@ -44,6 +44,7 @@ trait InternController {
   class InternController extends NdlaController {
 
     protected implicit override val jsonFormats: Formats = DefaultFormats
+    private val RoleDraftWrite = "drafts:write"
 
     post("/index") {
       val indexResults = for {
@@ -93,7 +94,7 @@ trait InternController {
     }
 
     post("/id/article/allocate/?") {
-      authRole.assertHasRole(RoleWithWriteAccess)
+      authRole.assertHasRole(RoleDraftWrite)
 
       val externalId = paramOrNone("external-id")
       val externalSubjectId = paramAsListOfString("external-subject-id")
@@ -101,7 +102,7 @@ trait InternController {
     }
 
     post("/id/concept/allocate/?") {
-      authRole.assertHasRole(RoleWithWriteAccess)
+      authRole.assertHasRole(RoleDraftWrite)
       val externalId = paramOrNone("external-id")
       val externalSubjectId = paramAsListOfString("external-subject-id")
       ArticleIdV2(writeService.allocateConceptId(externalId, externalSubjectId.toSet))
