@@ -14,19 +14,15 @@ import javax.servlet.http.HttpServletRequest
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.articleapi.ArticleApiProperties.{CorrelationIdHeader, CorrelationIdKey}
 import no.ndla.articleapi.model.api.{AccessDeniedException, Error, ImportException, ImportExceptions, NotFoundException, OptimisticLockException, ResultWindowTooLargeException, ValidationError}
-import no.ndla.articleapi.model.domain.ImportError
+import no.ndla.articleapi.model.domain.{ImportError, emptySomeToNone}
 import no.ndla.network.{ApplicationUrl, AuthUser, CorrelationID}
-import no.ndla.articleapi.model.domain.emptySomeToNone
+import no.ndla.validation.{ValidationException, ValidationMessage}
 import org.apache.logging.log4j.ThreadContext
 import org.elasticsearch.index.IndexNotFoundException
-import org.json4s.{DefaultFormats, Formats}
-import org.scalatra._
-import org.scalatra.json.NativeJsonSupport
-import org.scalatra.{BadRequest, InternalServerError, NotFound, ScalatraServlet}
 import org.json4s.native.Serialization.read
-import java.lang.Math.{max, min}
-
-import no.ndla.validation.{ValidationException, ValidationMessage}
+import org.json4s.{DefaultFormats, Formats}
+import org.scalatra.json.NativeJsonSupport
+import org.scalatra.{BadRequest, InternalServerError, NotFound, ScalatraServlet, _}
 
 import scala.util.{Failure, Success, Try}
 

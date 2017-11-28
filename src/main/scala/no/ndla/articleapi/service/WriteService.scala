@@ -89,6 +89,14 @@ trait WriteService {
       article.map(a => converterService.toApiArticleV2(readService.addUrlsOnEmbedResources(a), updatedApiArticle.language).get)
     }
 
+    def updateArticle(article: Article): Try[Article] = {
+      for {
+        _ <- contentValidator.validateArticle(article, allowUnknownLanguage = true)
+        domainArticle <- articleRepository.updateArticleFromDraftApi(article)
+        _ <- articleIndexService.indexDocument(domainArticle)
+      } yield domainArticle
+    }
+
     def allocateArticleId(externalId: Option[String], externalSubjectIds: Set[String] = Set.empty): Long = {
       val repo = articleRepository
       externalId match {
