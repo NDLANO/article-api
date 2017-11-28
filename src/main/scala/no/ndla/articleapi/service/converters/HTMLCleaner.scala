@@ -6,6 +6,7 @@ import no.ndla.articleapi.integration.ConverterModule.{jsoupDocumentToString, st
 import no.ndla.articleapi.integration.{ConverterModule, ImageApiClient, LanguageContent, LanguageIngress}
 import no.ndla.articleapi.model.domain.ImportStatus
 import no.ndla.validation.{Attributes, HtmlRules, ResourceType}
+import org.jsoup.Jsoup
 import org.jsoup.nodes.{Element, Node, TextNode}
 
 import scala.annotation.tailrec
@@ -27,6 +28,7 @@ trait HTMLCleaner {
       removeComments(element)
       removeNbsp(element)
       wrapStandaloneTextInPTag(element)
+      replaceNestedSections(element)
       // Jsoup doesn't support removing elements while iterating the dom-tree.
       // Thus executes the routine 3 times in order to be sure to remove all tags
       (1 to 3).foreach(_ => removeEmptyTags(element))
@@ -139,7 +141,7 @@ trait HTMLCleaner {
         val caption = el.attr("data-caption")
         el.replaceWith(new TextNode(caption, ""))
       }
-      extractElement(element).replace(NBSP, " ").trim
+      Jsoup.parseBodyFragment(extractElement(element)).body().html().replace("&nbsp;", " ").trim
     }
 
     private def removeAttributes(el: Element): Seq[String] = {
@@ -353,6 +355,15 @@ trait HTMLCleaner {
           x.attr(Attributes.DataType.toString, "letters")
         }
       })
+    }
+
+    private def replaceNestedSections(element: Element) = {
+      element.select("section").asScala.foreach(sec => {
+        if (sec.parents().asScala.exists(p => p.tagName() == "section")) {
+          sec.tagName("div")
+        }
+      })
+
     }
 
   }
