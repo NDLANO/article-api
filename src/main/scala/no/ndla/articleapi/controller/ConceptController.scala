@@ -41,7 +41,6 @@ trait ConceptController {
         notes "Shows all concepts. You can search it too."
         parameters(
           headerParam[Option[String]]("X-Correlation-ID").description("User supplied correlation-id. May be omitted."),
-          headerParam[Option[String]]("app-key").description("Your app-key. May be omitted to access api anonymously, but rate limiting applies on anonymous access."),
           queryParam[Option[String]]("query").description("Return only concepts with content matching the specified query."),
           queryParam[Option[String]]("ids").description("Return only concepts that have one of the provided ids. To provide multiple ids, separate by comma (,)."),
           queryParam[Option[String]]("language").description("The ISO 639-1 language code describing language used in query-params."),
@@ -62,7 +61,6 @@ trait ConceptController {
         notes "Shows the concept for the specified id."
         parameters(
           headerParam[Option[String]]("X-Correlation-ID").description("User supplied correlation-id. May be omitted."),
-          headerParam[Option[String]]("app-key").description("Your app-key. May be omitted to access api anonymously, but rate limiting applies on anonymous access."),
           pathParam[Long]("concept_id").description("Id of the concept that is to be returned")
         )
         authorizations "oauth2"
@@ -74,7 +72,6 @@ trait ConceptController {
         notes "Shows all concepts. You can search it too."
         parameters(
           headerParam[Option[String]]("X-Correlation-ID").description("User supplied correlation-id"),
-          headerParam[Option[String]]("app-key").description("Your app-key"),
           bodyParam[ConceptSearchParams]
         )
         authorizations "oauth2"
@@ -141,7 +138,6 @@ trait ConceptController {
         notes "Create new concept"
         parameters(
         headerParam[Option[String]]("X-Correlation-ID").description("User supplied correlation-id. May be omitted."),
-        headerParam[Option[String]]("app-key").description("Your app-key. May be omitted to access api anonymously, but rate limiting applies on anonymous access."),
         queryParam[String]("externalId").description("The external node id of this concept"),
         bodyParam[NewConcept]
       )
@@ -162,7 +158,6 @@ trait ConceptController {
         notes "Update a concept"
         parameters(
         headerParam[Option[String]]("X-Correlation-ID").description("User supplied correlation-id. May be omitted."),
-        headerParam[Option[String]]("app-key").description("Your app-key. May be omitted to access api anonymously, but rate limiting applies on anonymous access."),
         queryParam[String]("externalId").description("The external node id of this concept"),
         bodyParam[NewConcept]
       )
