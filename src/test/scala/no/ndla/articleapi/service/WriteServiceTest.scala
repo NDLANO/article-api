@@ -130,7 +130,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
   test("allocateConceptId should reuse existing id if external id already exists") {
     val id = 1122: Long
     when(conceptRepository.getIdFromExternalId(any[String])(any[DBSession])).thenReturn(Some(id))
-    service.allocateConceptId(Some("123123123"), Set.empty) should equal(id)
+    service.allocateConceptId(Some("123123123")) should equal(id)
   }
 
   test("allocateConceptId should allocate new id if no external id is supplied or first time use of external id") {
@@ -138,13 +138,13 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     val external = "12312313"
     when(conceptRepository.getIdFromExternalId(any[String])(any[DBSession])).thenReturn(None)
     when(conceptRepository.allocateConceptIdWithExternal(any[String])(any[DBSession])).thenReturn(id)
-    service.allocateConceptId(Some(external), Set.empty) should equal(id)
+    service.allocateConceptId(Some(external)) should equal(id)
     verify(conceptRepository, times(0)).allocateConceptId()
     verify(conceptRepository, times(1)).allocateConceptIdWithExternal(external)
 
     reset(conceptRepository)
     when(conceptRepository.allocateConceptId()(any[DBSession])).thenReturn(id)
-    service.allocateConceptId(None, Set.empty) should equal(id)
+    service.allocateConceptId(None) should equal(id)
     verify(conceptRepository, times(1)).allocateConceptId()
     verify(conceptRepository, times(0)).allocateConceptIdWithExternal(external)
   }

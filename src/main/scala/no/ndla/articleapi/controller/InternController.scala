@@ -98,8 +98,7 @@ trait InternController {
 
     post("/id/concept/allocate/?") {
       val externalId = paramOrNone("external-id")
-      val externalSubjectId = paramAsListOfString("external-subject-id")
-      ArticleIdV2(writeService.allocateConceptId(externalId, externalSubjectId.toSet))
+      ArticleIdV2(writeService.allocateConceptId(externalId))
     }
 
     get("/tagsinuse") {

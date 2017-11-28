@@ -80,7 +80,7 @@ trait WriteService {
       }
     }
 
-    def allocateConceptId(externalId: Option[String], externalSubjectIds: Set[String] = Set.empty): Long = {
+    def allocateConceptId(externalId: Option[String]): Long = {
       val repo = conceptRepository
       externalId match {
         case None => repo.allocateConceptId
