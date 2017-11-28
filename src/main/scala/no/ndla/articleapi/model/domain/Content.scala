@@ -66,8 +66,7 @@ object Article extends SQLSyntaxSupport[Article] {
   }
 
   val JSonSerializer = FieldSerializer[Article](
-    ignore("id") orElse
-    ignore("revision")
+    ignore("id")
   )
 }
 

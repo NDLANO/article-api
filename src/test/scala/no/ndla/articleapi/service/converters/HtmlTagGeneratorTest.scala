@@ -10,20 +10,20 @@ package no.ndla.articleapi.service.converters
 
 import no.ndla.articleapi.{TestEnvironment, UnitSuite}
 import no.ndla.validation.EmbedTagRules.ResourceHtmlEmbedTag
-import no.ndla.validation.{Attributes, ResourceType}
+import no.ndla.validation.{TagAttributes, ResourceType}
 
 class HtmlTagGeneratorTest extends UnitSuite with TestEnvironment {
     val sampleDataAttributes = Map(
-      Attributes.DataResource -> ResourceType.Image.toString,
-      Attributes.DataUrl -> "http://localhost/1",
-      Attributes.DataCaption -> "Sample image"
+      TagAttributes.DataResource -> ResourceType.Image.toString,
+      TagAttributes.DataUrl -> "http://localhost/1",
+      TagAttributes.DataCaption -> "Sample image"
     )
 
     val sampleContentLink = Map(
-      Attributes.DataResource -> ResourceType.ContentLink.toString,
-      Attributes.DataContentId -> "2",
-      Attributes.DataLinkText -> "http://localhost/2",
-      Attributes.DataOpenIn -> "new-context"
+      TagAttributes.DataResource -> ResourceType.ContentLink.toString,
+      TagAttributes.DataContentId -> "2",
+      TagAttributes.DataLinkText -> "http://localhost/2",
+      TagAttributes.DataOpenIn -> "new-context"
     )
 
   test("A correctly formatted figure tag is returned") {
