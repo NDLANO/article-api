@@ -166,7 +166,7 @@ trait ConverterService {
       val licenses = Map("nolaw" -> "cc0", "noc" -> "pd")
       val newLicense = licenses.getOrElse(license, license)
 
-      if (!getLicense(newLicense).isDefined) {
+      if (getLicense(newLicense).isEmpty) {
         throw new ImportException(s"License $license is not supported.")
       }
       newLicense
