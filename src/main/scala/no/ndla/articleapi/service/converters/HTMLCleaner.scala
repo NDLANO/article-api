@@ -29,6 +29,7 @@ trait HTMLCleaner {
       removeComments(element)
       removeNbsp(element)
       wrapStandaloneTextInPTag(element)
+      replaceNestedSections(element)
       // Jsoup doesn't support removing elements while iterating the dom-tree.
       // Thus executes the routine 3 times in order to be sure to remove all tags
       (1 to 3).foreach(_ => removeEmptyTags(element))
@@ -367,6 +368,15 @@ trait HTMLCleaner {
           x.attr(TagAttributes.DataType.toString, "letters")
         }
       })
+    }
+
+    private def replaceNestedSections(element: Element) = {
+      element.select("section").asScala.foreach(sec => {
+        if (sec.parents().asScala.exists(p => p.tagName() == "section")) {
+          sec.tagName("div")
+        }
+      })
+
     }
 
   }

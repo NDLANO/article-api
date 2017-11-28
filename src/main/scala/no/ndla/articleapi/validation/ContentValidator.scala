@@ -72,8 +72,9 @@ trait ContentValidator {
     }
 
     private def validateArticleContent(content: ArticleContent, allowUnknownLanguage: Boolean): Seq[ValidationMessage] = {
-      HtmlValidator.validate("content.content", content.content).toList ++
-        rootElementContainsOnlySectionBlocks("content.content", content.content) ++
+      val field = s"content.${content.language}"
+      HtmlValidator.validate(field, content.content).toList ++
+        rootElementContainsOnlySectionBlocks(field, content.content) ++
         validateLanguage("content.language", content.language, allowUnknownLanguage)
     }
 
@@ -90,27 +91,32 @@ trait ContentValidator {
     }
 
     private def validateConceptContent(content: ConceptContent, allowUnknownLanguage: Boolean): Seq[ValidationMessage] = {
-      NoHtmlValidator.validate("content.content", content.content).toList ++
+      val field = s"content.${content.language}"
+      NoHtmlValidator.validate(field, content.content).toList ++
         validateLanguage("content.language", content.language, allowUnknownLanguage)
     }
 
     private def validateVisualElement(content: VisualElement, allowUnknownLanguage: Boolean): Seq[ValidationMessage] = {
-      HtmlValidator.validate("visualElement.content", content.resource).toList ++
+      val field = s"visualElement.${content.language}"
+      HtmlValidator.validate(field, content.resource).toList ++
         validateLanguage("visualElement.language", content.language, allowUnknownLanguage)
     }
 
     private def validateIntroduction(content: ArticleIntroduction, allowUnknownLanguage: Boolean): Seq[ValidationMessage] = {
-      NoHtmlValidator.validate("introduction.introduction", content.introduction).toList ++
+      val field = s"introduction.${content.language}"
+      NoHtmlValidator.validate(field, content.introduction).toList ++
         validateLanguage("introduction.language", content.language, allowUnknownLanguage)
     }
 
     private def validateMetaDescription(content: ArticleMetaDescription, allowUnknownLanguage: Boolean): Seq[ValidationMessage] = {
-      NoHtmlValidator.validate("metaDescription.metaDescription", content.content).toList ++
+      val field = s"metaDescription.${content.language}"
+      NoHtmlValidator.validate(field, content.content).toList ++
         validateLanguage("metaDescription.language", content.language, allowUnknownLanguage)
     }
 
     private def validateTitle(content: LanguageField[String], allowUnknownLanguage: Boolean): Seq[ValidationMessage] = {
-      NoHtmlValidator.validate("title.title", content.value).toList ++
+      val field = s"title.${content.language}"
+      NoHtmlValidator.validate(field, content.value).toList ++
         validateLanguage("title.language", content.language, allowUnknownLanguage)
     }
 

@@ -49,11 +49,11 @@ class V6__AddLanguageToAll extends JdbcMigration {
   }
 
   def countAllArticles(implicit session: DBSession) = {
-    sql"select count(*) from contentdata".map(rs => rs.long("count")).single().apply()
+    sql"select count(*) from contentdata where document is not NULL".map(rs => rs.long("count")).single().apply()
   }
 
   def allArticles(offset: Long)(implicit session: DBSession): Seq[V6_Article] = {
-    sql"select id, revision, document from contentdata order by id limit 1000 offset ${offset}".map(rs => {
+    sql"select id, revision, document from contentdata where document is not NULL order by id limit 1000 offset ${offset}".map(rs => {
       val meta = read[V6_Article](rs.string("document"))
       meta.copy(
         id = Some(rs.long("id")),
