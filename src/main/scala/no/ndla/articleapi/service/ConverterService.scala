@@ -164,10 +164,12 @@ trait ConverterService {
 
     private def mapOldToNewLicenseKey(license: String): String = {
       val licenses = Map("nolaw" -> "cc0", "noc" -> "pd")
-      if (!getLicense(license).isDefined) {
+      val newLicense = licenses.getOrElse(license, license)
+
+      if (!getLicense(newLicense).isDefined) {
         throw new ImportException(s"License $license is not supported.")
       }
-      licenses.getOrElse(license, license)
+      newLicense
     }
 
     private def toDomainCopyright(license: String, authors: Seq[Author]): Copyright = {
