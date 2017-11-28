@@ -34,7 +34,7 @@ lazy val article_api = (project in file(".")).
     libraryDependencies ++= Seq(
       "ndla" %% "network" % "0.24",
       "ndla" %% "mapping" % "0.6",
-      "ndla" %% "validation" % "0.3",
+      "ndla" %% "validation" % "0.7",
       "joda-time" % "joda-time" % "2.8.2",
       "org.scalatra" %% "scalatra" % Scalatraversion,
       "org.eclipse.jetty" % "jetty-webapp" % Jettyversion % "container;compile",
@@ -80,7 +80,7 @@ assemblyMergeStrategy in assembly := {
     oldStrategy(x)
 }
 
-// Don't run Integration tests in default run on Travis as there is no elasticsearch localhost:9200 there yet. 
+// Don't run Integration tests in default run on Travis as there is no elasticsearch localhost:9200 there yet.
 // NB this line will unfortunalty override runs on your local commandline so that
 // sbt "test-only -- -n no.ndla.tag.IntegrationTest"
 // will not run unless this line gets commented out or you remove the tag over the test class
