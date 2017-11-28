@@ -12,7 +12,7 @@ package no.ndla.articleapi.controller
 import java.util.concurrent.TimeUnit
 
 import no.ndla.articleapi.model.api.{ArticleIdV2, UpdatedConcept}
-import no.ndla.articleapi.model.domain.Language
+import no.ndla.articleapi.model.domain.{Concept, Language}
 import no.ndla.articleapi.repository.ArticleRepository
 import no.ndla.articleapi.service._
 import no.ndla.articleapi.service.search.{ArticleIndexService, ConceptIndexService, IndexService}
@@ -99,7 +99,7 @@ trait InternController {
 
     post("/concept/:id") {
       val id = long("id")
-      val concept = extract[UpdatedConcept](request.body)
+      val concept = extract[Concept](request.body)
 
       writeService.updateConcept(id, concept) match {
         case Success(c) => c

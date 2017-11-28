@@ -89,6 +89,19 @@ trait WriteService {
       } yield converterService.toApiConcept(persistedConcept, newConcept.language)
     }
 
+    def updateConcept(id: Long, updateConcept: Concept): Try[api.Concept] = {
+      val lang = updateConcept.title.headOption.map(_.language)
+      conceptRepository.withId(id) match {
+        case None => Failure(NotFoundException(s"Concept with id $id does not exist"))
+        case Some(_) =>
+          for {
+            _ <- importValidator.validate(updateConcept)
+            persistedConcept <- conceptRepository.update(updateConcept, id)
+            _ <- conceptIndexService.indexDocument(updateConcept)
+          } yield converterService.toApiConcept(persistedConcept, lang.getOrElse(Language.AllLanguages))
+      }
+    }
+
     def updateConcept(id: Long, updateConcept: api.UpdatedConcept): Try[api.Concept] = {
       conceptRepository.withId(id) match {
         case None => Failure(NotFoundException(s"Concept with id $id does not exist"))
