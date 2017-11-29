@@ -12,6 +12,7 @@ import java.util.Date
 
 import no.ndla.articleapi.integration._
 import no.ndla.articleapi.model.api
+import no.ndla.articleapi.model.api.ImportException
 import no.ndla.articleapi.model.domain._
 import no.ndla.articleapi.service.converters.TableConverter
 import no.ndla.validation.{Attributes, ResourceType}
@@ -378,5 +379,20 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     val Success((content: Article, _)) = result
 
     content.content.head.content should equal (expectedResult)
+  }
+
+  test("That mapOldToNewLicenseKey throws on invalid license") {
+    assertThrows[ImportException] {
+      service.mapOldToNewLicenseKey("publicdomain")
+    }
+  }
+
+  test("That mapOldToNewLicenseKey converts correctly") {
+    service.mapOldToNewLicenseKey("nolaw") should be("cc0")
+    service.mapOldToNewLicenseKey("noc") should be("pd")
+  }
+
+  test("That mapOldToNewLicenseKey does not convert an license that should not be converted") {
+    service.mapOldToNewLicenseKey("by-sa") should be("by-sa")
   }
 }
