@@ -11,7 +11,7 @@ import no.ndla.articleapi.integration.MigrationRelatedContent
 import no.ndla.articleapi.model.domain.ImportStatus
 import no.ndla.articleapi.{TestData, TestEnvironment, UnitSuite}
 import no.ndla.validation.EmbedTagRules.ResourceHtmlEmbedTag
-import no.ndla.validation.Attributes._
+import no.ndla.validation.TagAttributes._
 import no.ndla.validation.ResourceType._
 import no.ndla.articleapi.model.api.ImportException
 import org.mockito.Mockito._

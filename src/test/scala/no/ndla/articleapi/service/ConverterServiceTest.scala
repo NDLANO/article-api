@@ -14,7 +14,7 @@ import no.ndla.articleapi.integration._
 import no.ndla.articleapi.model.api
 import no.ndla.articleapi.model.domain._
 import no.ndla.articleapi.service.converters.TableConverter
-import no.ndla.validation.{Attributes, ResourceType}
+import no.ndla.validation.{TagAttributes, ResourceType}
 import no.ndla.validation.EmbedTagRules.ResourceHtmlEmbedTag
 import no.ndla.articleapi.{TestData, TestEnvironment, UnitSuite}
 import org.joda.time.{DateTime, DateTimeZone}
@@ -321,10 +321,10 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
   }
 
   test("toDomainArticleShould should remove unneeded attributes on embed-tags") {
-    val content = s"""<h1>hello</h1><embed ${Attributes.DataResource}="${ResourceType.Image}" ${Attributes.DataUrl}="http://some-url" data-random="hehe" />"""
-    val expectedContent = s"""<h1>hello</h1><embed ${Attributes.DataResource}="${ResourceType.Image}">"""
-    val visualElement = s"""<embed ${Attributes.DataResource}="${ResourceType.Image}" ${Attributes.DataUrl}="http://some-url" data-random="hehe" />"""
-    val expectedVisualElement = s"""<embed ${Attributes.DataResource}="${ResourceType.Image}">"""
+    val content = s"""<h1>hello</h1><embed ${TagAttributes.DataResource}="${ResourceType.Image}" ${TagAttributes.DataUrl}="http://some-url" data-random="hehe" />"""
+    val expectedContent = s"""<h1>hello</h1><embed ${TagAttributes.DataResource}="${ResourceType.Image}">"""
+    val visualElement = s"""<embed ${TagAttributes.DataResource}="${ResourceType.Image}" ${TagAttributes.DataUrl}="http://some-url" data-random="hehe" />"""
+    val expectedVisualElement = s"""<embed ${TagAttributes.DataResource}="${ResourceType.Image}">"""
     val apiArticle = TestData.newArticleV2.copy(content=content, visualElement=Some(visualElement))
 
     val result = service.toDomainArticle(apiArticle)
