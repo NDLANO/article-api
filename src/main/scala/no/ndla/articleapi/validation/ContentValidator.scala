@@ -8,8 +8,10 @@
 
 package no.ndla.articleapi.validation
 
+import no.ndla.articleapi.ArticleApiProperties
 import no.ndla.articleapi.ArticleApiProperties.{H5PResizerScriptUrl, NDLABrightcoveVideoScriptUrl, NRKVideoScriptUrl}
 import no.ndla.articleapi.integration.ConverterModule.stringToJsoupDocument
+import no.ndla.articleapi.integration.DraftApiClient
 import no.ndla.articleapi.model.domain._
 import no.ndla.mapping.ISO639.get6391CodeFor6392CodeMappings
 import no.ndla.mapping.License.getLicense
@@ -19,6 +21,7 @@ import scala.collection.JavaConverters._
 import scala.util.{Failure, Success, Try}
 
 trait ContentValidator {
+  this: DraftApiClient =>
   val contentValidator: ContentValidator
   val importValidator: ContentValidator
 
@@ -122,10 +125,25 @@ trait ContentValidator {
 
     private def validateCopyright(copyright: Copyright): Seq[ValidationMessage] = {
       val licenseMessage = validateLicense(copyright.license)
-      val contributorsMessages = copyright.authors.flatMap(validateAuthor)
+      val contributorsMessages =
+        copyright.creators.flatMap(a => validateAuthor(a, "copyright.creators", ArticleApiProperties.creatorTypes)) ++
+        copyright.processors.flatMap(a => validateAuthor(a, "copyright.processors", ArticleApiProperties.processorTypes)) ++
+        copyright.rightsholders.flatMap(a => validateAuthor(a, "copyright.rightsholders", ArticleApiProperties.rightsholderTypes))
       val originMessage = NoHtmlValidator.validate("copyright.origin", copyright.origin)
+      val agreementMessage = validateAgreement(copyright)
 
-      licenseMessage ++ contributorsMessages ++ originMessage
+      licenseMessage ++ contributorsMessages ++ originMessage ++ agreementMessage
+    }
+
+    def validateAgreement(copyright: Copyright): Seq[ValidationMessage] = {
+      copyright.agreementId match {
+        case Some(id) =>
+          draftApiClient.agreementExists(id) match {
+            case false => Seq (ValidationMessage ("copyright.agreement", s"Agreement with id $id does not exist") )
+            case _ => Seq()
+          }
+        case _ => Seq()
+      }
     }
 
     private def validateLicense(license: String): Seq[ValidationMessage] = {
@@ -135,9 +153,18 @@ trait ContentValidator {
       }
     }
 
-    private def validateAuthor(author: Author): Seq[ValidationMessage] = {
-      NoHtmlValidator.validate("author.type", author.`type`).toList ++
-        NoHtmlValidator.validate("author.name", author.name).toList
+    private def validateAuthor(author: Author, fieldPath: String, allowedTypes: Seq[String]): Seq[ValidationMessage] = {
+      NoHtmlValidator.validate(s"$fieldPath.type", author.`type`).toList ++
+        NoHtmlValidator.validate(s"$fieldPath.name", author.name).toList ++
+        validateAuthorType(s"$fieldPath.type", author.`type`, allowedTypes).toList
+    }
+
+    def validateAuthorType(fieldPath: String, `type`: String, allowedTypes: Seq[String]): Option[ValidationMessage] = {
+      if(allowedTypes.contains(`type`.toLowerCase)) {
+        None
+      } else {
+        Some(ValidationMessage(fieldPath, s"Author is of illegal type. Must be one of ${allowedTypes.mkString(", ")}"))
+      }
     }
 
     private def validateTags(tags: Seq[ArticleTag], allowUnknownLanguage: Boolean): Seq[ValidationMessage] = {

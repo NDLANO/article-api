@@ -435,6 +435,13 @@ class HTMLCleanerTest extends UnitSuite with TestEnvironment {
     result.metaDescription should equal("Hei dette er et mindre enn tegn &lt;&gt; nice")
   }
 
+  test("HTML characters are escaped in meta description even if they are in html tags") {
+    val content = TestData.sampleContent.copy(content = "", metaDescription ="""Hei dette er et mindre enn tegn &lt;start&gt; nice""")
+    val Success((result, _)) = htmlCleaner.convert(content, defaultImportStatus)
+
+    result.metaDescription should equal("Hei dette er et mindre enn tegn &lt;start&gt; nice")
+  }
+
   test("an embed-image as the first element inside p tags are moved out of p tag") {
     val image1 = s"""<$ResourceHtmlEmbedTag data-resource="image" data-url="http://some.url.org/img.jpg">"""
     val content = TestData.sampleContent.copy(content =s"""<section><p>${image1}sample text</p></section>""")
@@ -752,6 +759,14 @@ class HTMLCleanerTest extends UnitSuite with TestEnvironment {
   test("Nested section tags should be converted to divs") {
     val originalContent = """<section><p>Hey Mister man</p><section><p>We dont need no mister</p></section><p>Yes</p></section>"""
     val expectedContent = """<section><p>Hey Mister man</p><div><p>We dont need no mister</p></div><p>Yes</p></section>"""
+
+    val Success((result, _)) = htmlCleaner.convert(TestData.sampleContent.copy(content = originalContent), defaultImportStatus)
+    result.content should equal(expectedContent)
+  }
+
+  test("Comments in style tag should be removed") {
+    val originalContent = """<section><p>Text here</p><style><!-- This is a weird thing to do --></style></section>"""
+    val expectedContent = """<section><p>Text here</p></section>"""
 
     val Success((result, _)) = htmlCleaner.convert(TestData.sampleContent.copy(content = originalContent), defaultImportStatus)
     result.content should equal(expectedContent)

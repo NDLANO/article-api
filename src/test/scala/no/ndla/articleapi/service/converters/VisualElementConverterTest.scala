@@ -69,4 +69,36 @@ class VisualElementConverterTest extends UnitSuite with TestEnvironment {
     importStatus should equal (ImportStatus.empty)
   }
 
+  test("If image visual element exists in content, it should be removed") {
+    val visId = "6789"
+    when(extractService.getNodeType(visId)).thenReturn(Some("image"))
+    when(imageApiClient.importImage(visId)).thenReturn(Some(TestData.sampleImageMetaInformation.copy(id=visId)))
+
+    val Success((result, _)) = VisualElementConverter.convert(sampleArticle.copy(content=s"""<$ResourceHtmlEmbedTag data-align="" data-alt="" data-caption="" data-resource="image" data-resource_id="$visId" data-size="" />${sampleArticle.content}""", visualElement=Some(visId)), ImportStatus.empty)
+    result.content should equal (sampleArticle.content)
+  }
+
+  test("If video visual element exists in content, it should be removed") {
+    val visId = "6789"
+    when(extractService.getNodeType(visId)).thenReturn(Some("video"))
+    val Success((result, _)) = VisualElementConverter.convert(sampleArticle.copy(content=s"""<$ResourceHtmlEmbedTag data-account="some-account-id" data-caption="" data-player="some-player-id" data-resource="brightcove" data-videoid="ref:$visId" />${sampleArticle.content}""", visualElement=Some(visId)), ImportStatus.empty)
+    result.content should equal (sampleArticle.content)
+  }
+
+  test("If h5p visual element exists in content, it should be removed") {
+    val visId = "6789"
+    when(extractService.getNodeType(visId)).thenReturn(Some("h5p_content"))
+    val Success((result, _)) = VisualElementConverter.convert(sampleArticle.copy(content=s"""<$ResourceHtmlEmbedTag data-resource="h5p" data-url="//ndla.no/h5p/embed/$visId" />${sampleArticle.content}""", visualElement=Some(visId)), ImportStatus.empty)
+    result.content should equal (sampleArticle.content)
+  }
+
+  test("If audio visual element exists in content, it should be removed") {
+    val visId = "6789"
+    when(extractService.getNodeType(visId)).thenReturn(Some("audio"))
+    when(audioApiClient.getOrImportAudio(visId)).thenReturn(Success(visId.toLong: Long))
+
+    val Success((result, _)) = VisualElementConverter.convert(sampleArticle.copy(content=s"""<$ResourceHtmlEmbedTag data-resource="audio" data-resource_id="$visId" />${sampleArticle.content}""", visualElement=Some(visId)), ImportStatus.empty)
+    result.content should equal (sampleArticle.content)
+  }
+
 }
