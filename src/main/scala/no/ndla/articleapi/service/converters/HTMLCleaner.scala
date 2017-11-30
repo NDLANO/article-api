@@ -157,7 +157,7 @@ trait HTMLCleaner {
       while (i < node.childNodes().size()) {
         val child = node.childNode(i)
 
-        child.nodeName() == "#comment" match {
+        child.nodeName() == "#comment" || child.nodeName() == "#data" match {
           case true => child.remove()
           case false => {
             i += 1
