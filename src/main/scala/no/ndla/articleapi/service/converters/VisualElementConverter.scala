@@ -14,7 +14,6 @@ import no.ndla.articleapi.model.api.ImportException
 import no.ndla.articleapi.model.domain.{ImportStatus, RequiredLibrary}
 import no.ndla.articleapi.service.ExtractService
 import no.ndla.articleapi.service.converters.contentbrowser.{AudioConverterModule, H5PConverterModule, ImageConverterModule, VideoConverterModule}
-import no.ndla.validation.Attributes
 
 import scala.collection.JavaConverters._
 import scala.util.{Failure, Success, Try}
