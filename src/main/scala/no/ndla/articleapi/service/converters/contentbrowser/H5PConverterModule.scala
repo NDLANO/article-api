@@ -15,7 +15,7 @@ import no.ndla.articleapi.service.ExtractService
 import no.ndla.articleapi.service.converters.HtmlTagGenerator
 import no.ndla.articleapi.ArticleApiProperties.H5PResizerScriptUrl
 
-import scala.util.{Success, Try}
+import scala.util.{Failure, Success, Try}
 
 trait H5PConverterModule {
   this: ExtractService with HtmlTagGenerator =>
@@ -27,11 +27,15 @@ trait H5PConverterModule {
       val nodeId = content.get("nid")
 
       logger.info(s"Converting h5p_content with nid $nodeId")
-      val (replacement, requiredLibrary) = toH5PEmbed(nodeId)
-      Success(replacement, Seq(requiredLibrary), importStatus)
+      toH5PEmbed(nodeId) match {
+        case Success((replacement, requiredLibrary)) =>
+          Success(replacement, Seq(requiredLibrary), importStatus)
+        case Failure(ex) =>
+          Failure(ex)
+      }
     }
 
-    def toH5PEmbed(nodeId: String): (String, RequiredLibrary) = {
+    def toH5PEmbed(nodeId: String): Try[(String, RequiredLibrary)] = {
       val requiredLibrary = RequiredLibrary("text/javascript", "H5P-Resizer", H5PResizerScriptUrl)
       val replacement = HtmlTagGenerator.buildH5PEmbedContent(s"//ndla.no/h5p/embed/$nodeId")
       (replacement, requiredLibrary)
