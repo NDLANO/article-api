@@ -67,15 +67,13 @@ trait VisualElementConverter {
     private def toImage(nodeId: String): Option[(String, Seq[RequiredLibrary])] =
       ImageConverter.toImageEmbed(nodeId, "", "", "", "").map(imageEmbed => (imageEmbed, Seq.empty)).toOption
 
-    private def toH5P(nodeId: String): Option[(String, Seq[RequiredLibrary])] = {
-      val (embed, requiredLib) = H5PConverter.toH5PEmbed(nodeId)
-      Some(embed, Seq(requiredLib))
-    }
+    private def toH5P(nodeId: String): Option[(String, Seq[RequiredLibrary])] =
+      H5PConverter.toH5PEmbed(nodeId).map(h5pEmbed => (h5pEmbed, Seq.empty)).toOption
 
     private def toVideo(nodeId: String): Option[(String, Seq[RequiredLibrary])] = Some((VideoConverter.toInlineVideo("", nodeId), Seq.empty))
 
     private def toAudio(nodeId: String): Option[(String, Seq[RequiredLibrary])] =
-      AudioConverter.toAudio(nodeId).map(audioMebed => (audioMebed, Seq.empty)).toOption
+      AudioConverter.toAudio(nodeId).map(audioEmbed => (audioEmbed, Seq.empty)).toOption
 
   }
 }
