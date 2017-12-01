@@ -238,11 +238,12 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
   test("JoubelH5PConverter is used when ENABLE_JOUBEL_H5P_OEMBED is true") {
     val h5pNodeId = "160303"
     val contentStringWithValidNodeId = s"[contentbrowser ==nid=$h5pNodeId==imagecache=Fullbredde==width===alt=$sampleAlt==link===node_link=1==link_type=link_to_content==lightbox_size===remove_fields[76661]=1==remove_fields[76663]=1==remove_fields[76664]=1==remove_fields[76666]=1==insertion===link_title_text= ==link_text= ==text_align===css_class=contentbrowser contentbrowser]"
-    val expectedResult = s"""<section><$ResourceHtmlEmbedTag data-resource="h5p" data-url="${JoubelH5PConverter.JoubelH5PBaseUrl}/1"></section>"""
+    val expectedResult = s"""<section><$ResourceHtmlEmbedTag data-resource="external" data-url="https://oembedurlhere.com"></section>"""
 
     val contentNodeBokmal = sampleLanguageContent.copy(content=contentStringWithValidNodeId)
     val node = sampleNode.copy(contents=List(contentNodeBokmal))
 
+    when(h5pApiClient.getViewFromOldId(h5pNodeId)).thenReturn(Some("https://oembedurlhere.com"))
     when(extractService.getNodeType(h5pNodeId)).thenReturn(Some("h5p_content"))
 
     val Success((result: Article, status)) = service.toDomainArticle(node, ImportStatus.empty)
@@ -376,13 +377,14 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
 
   test("Leaf node converter should create an article from a pure h5p node") {
     val sampleLanguageContent = TestData.sampleContent.copy(content="<div><h1>hi</h1></div>", nodeType="h5p_content")
-    val expectedResult = s"""<section><$ResourceHtmlEmbedTag data-resource="h5p" data-url="//ndla.no/h5p/embed/1234">${sampleLanguageContent.content}</section>"""
+    val expectedResult = s"""<section><$ResourceHtmlEmbedTag data-resource="external" data-url="//ndla.no/h5p/embed/1234">${sampleLanguageContent.content}</section>"""
     val node = sampleNode.copy(contents=Seq(sampleLanguageContent), nodeType="h5p_content", contentType="oppgave")
+    when(h5pApiClient.getViewFromOldId("1234")).thenReturn(Some(s"//ndla.no/h5p/embed/1234"))
 
     val Success((result: Article, _)) = service.toDomainArticle(node, ImportStatus.empty)
 
     result.content.head.content should equal (expectedResult)
-    result.requiredLibraries.size should equal (1)
+    result.requiredLibraries.size should equal (0)
   }
 
   test("nbsp in MathML tags should be converted to space") {

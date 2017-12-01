@@ -28,7 +28,7 @@ trait ContentBrowserConverter {
   class ContentBrowserConverter extends ConverterModule with LazyLogging {
     private val contentBrowserModules = Map[String, ContentBrowserConverterModule](
       ImageConverter.typeName -> ImageConverter,
-      if (EnableJoubelH5POembed) JoubelH5PConverter.typeName -> JoubelH5PConverter else H5PConverter.typeName -> H5PConverter,
+      H5PConverter.typeName -> H5PConverter,
       LenkeConverter.typeName -> LenkeConverter,
       OppgaveConverter.typeName -> OppgaveConverter,
       FagstoffConverter.typeName -> FagstoffConverter,

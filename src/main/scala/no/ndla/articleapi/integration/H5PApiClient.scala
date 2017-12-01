@@ -20,11 +20,11 @@ trait H5PApiClient {
   class H5PApiClient {
     private val h5pApiClientGetNodeEndpoint = s"https://${ArticleApiProperties.H5PHost}/node/%1s/view"
 
-    def getOembedFromOldId(nodeId: String): Option[String] = {
+    def getViewFromOldId(nodeId: String): Option[String] = {
       implicit val formats = org.json4s.DefaultFormats
       val request: HttpRequest = Http(h5pApiClientGetNodeEndpoint.format(nodeId))
       ndlaClient.fetch[h5pNode](request).toOption match {
-        case Some(h5p) => Some(h5p.oembed)
+        case Some(h5p) => Some(h5p.view)
         case None => None
       }
     }

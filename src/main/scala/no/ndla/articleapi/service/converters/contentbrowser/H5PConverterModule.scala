@@ -38,10 +38,9 @@ trait H5PConverterModule {
     }
 
     def toH5PEmbed(nodeId: String): Try[String] = {
-      val requiredLibrary = RequiredLibrary("text/javascript", "H5P-Resizer", H5PResizerScriptUrl) //TODO: most likely remove this
-      h5pApiClient.getOembedFromOldId(nodeId) match {
+      h5pApiClient.getViewFromOldId(nodeId) match {
         case Some(url) =>
-          val replacement = HtmlTagGenerator.buildH5PEmbedContent(url)
+          val replacement = HtmlTagGenerator.buildExternalInlineEmbedContent(url)
           Success(replacement)
         case None => Failure(ImportException(message = "Failed to import H5P"))
       }
