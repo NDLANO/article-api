@@ -15,7 +15,6 @@ import org.jsoup.nodes.Element
 import scala.annotation.tailrec
 import no.ndla.articleapi.integration.{ConverterModule, LanguageContent}
 import no.ndla.articleapi.model.domain.ImportStatus
-import no.ndla.articleapi.ArticleApiProperties.EnableJoubelH5POembed
 import no.ndla.articleapi.integration.ConverterModule.{jsoupDocumentToString, stringToJsoupDocument}
 import no.ndla.articleapi.model.api.ImportException
 

@@ -52,7 +52,6 @@ trait ContentBrowserConverterModules
   with H5PApiClient
   with LenkeConverterModule
   with H5PConverterModule
-  with JoubelH5PConverterModule
   with OppgaveConverterModule
   with FagstoffConverterModule
   with NonExistentNodeConverterModule
