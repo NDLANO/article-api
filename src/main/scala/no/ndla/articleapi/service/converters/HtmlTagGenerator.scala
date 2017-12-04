@@ -151,6 +151,16 @@ trait HtmlTagGenerator {
       buildEmbedContent(dataAttributes)
     }
 
+    def buildVgNoInlineContent(url: String, width: String, height: String) = {
+      val dataAttributes = Map(
+        TagAttributes.DataResource -> ResourceType.VgNo.toString,
+        TagAttributes.DataUrl -> url,
+        TagAttributes.DataWidth -> width,
+        TagAttributes.DataHeight -> height
+      )
+      buildEmbedContent(dataAttributes)
+    }
+
     def buildDetailsSummaryContent(linkText: String, content: String) = {
       s"<details><summary>$linkText</summary>$content</details>"
     }
