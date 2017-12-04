@@ -42,7 +42,7 @@ trait H5PConverterModule {
         case Some(url) =>
           val replacement = HtmlTagGenerator.buildExternalInlineEmbedContent(url)
           Success(replacement)
-        case None => Failure(ImportException(message = "Failed to import H5P"))
+        case None => Failure(ImportException(message = s"Failed to import H5P with id $nodeId: Not yet exported to new H5P service"))
       }
     }
   }
