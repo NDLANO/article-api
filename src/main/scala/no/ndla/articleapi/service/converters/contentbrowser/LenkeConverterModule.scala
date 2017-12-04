@@ -15,6 +15,7 @@ import no.ndla.articleapi.model.api.ImportException
 import no.ndla.articleapi.model.domain.{ImportStatus, RequiredLibrary}
 import no.ndla.articleapi.service.ExtractService
 import no.ndla.articleapi.service.converters.HtmlTagGenerator
+import no.ndla.validation.ResourceType
 import org.jsoup.Jsoup
 
 import scala.util.{Failure, Success, Try}
@@ -79,15 +80,15 @@ trait LenkeConverterModule {
 
       val (embedTag, requiredLibs) = url.host.getOrElse("") match {
         case NRKUrlPattern(_) => getNrkEmbedTag(embedCode, url)
-        case PreziUrlPattern(_) => getPreziEmbedTag(embedCode)
-        case CommonCraftUrlPattern(_) => getCommoncraftEmbedTag(embedCode)
-        case NdlaFilmIundervisningUrlPattern(_) => getNdlaFilmundervisningEmbedTag(embedCode)
-        case KahootUrlPattern(_) => getKahootEmbedTag(embedCode)
+        case PreziUrlPattern(_) => getRegularEmbedTag(embedCode, ResourceType.Prezi)
+        case CommonCraftUrlPattern(_) => getRegularEmbedTag(embedCode, ResourceType.Commoncraft)
+        case NdlaFilmIundervisningUrlPattern(_) => getRegularEmbedTag(embedCode, ResourceType.NdlaFilmIundervisning)
+        case KahootUrlPattern(_) => getRegularEmbedTag(embedCode, ResourceType.Kahoot)
         case vimeoProUrlPattern(_) => getVimeoProEmbedTag(embedCode)
-        case khanAcademyUrlPattern(_) => getKhanAcademyEmbedTag(embedCode)
-        case tv2SkoleUrlPattern(_) => getTv2SkoleEmbedTag(embedCode)
-        case vgNoUrlPattern(_) => getVgNoEmbedTag(embedCode)
-        case scribdUrlPattern(_) => getScribdEmbedTag(embedCode)
+        case khanAcademyUrlPattern(_) => getRegularEmbedTag(embedCode, ResourceType.KhanAcademy)
+        case tv2SkoleUrlPattern(_) => getRegularEmbedTag(embedCode, ResourceType.Tv2Skole)
+        case vgNoUrlPattern(_) => getRegularEmbedTag(embedCode, ResourceType.VgNo)
+        case scribdUrlPattern(_) => getRegularEmbedTag(embedCode, ResourceType.Scribd)
         case _ => (HtmlTagGenerator.buildExternalInlineEmbedContent(url), None)
       }
       (embedTag, requiredLibs, message :: Nil)
@@ -101,33 +102,11 @@ trait LenkeConverterModule {
       (HtmlTagGenerator.buildNRKInlineVideoContent(videoId, url), Some(requiredLibrary))
     }
 
-    def getPreziEmbedTag(embedCode: String): (String, Option[RequiredLibrary]) = {
+    def getRegularEmbedTag(embedCode: String, resourceType: ResourceType.Value): (String, Option[RequiredLibrary]) = {
       val doc = Jsoup.parseBodyFragment(embedCode).select("iframe").first()
       val (src, width, height) = (doc.attr("src"), doc.attr("width"), doc.attr("height"))
 
-      (HtmlTagGenerator.buildPreziInlineContent(src, width, height), None)
-    }
-
-    def getCommoncraftEmbedTag(embedCode: String): (String, Option[RequiredLibrary]) = {
-      val doc = Jsoup.parseBodyFragment(embedCode).select("iframe").first()
-      val (src, width, height) = (doc.attr("src"), doc.attr("width"), doc.attr("height"))
-      val httpsSrc = stringToUri(src).withScheme("https")
-
-      (HtmlTagGenerator.buildCommoncraftInlineContent(httpsSrc, width, height), None)
-    }
-
-    def getNdlaFilmundervisningEmbedTag(embedCode: String): (String, Option[RequiredLibrary]) = {
-      val doc = Jsoup.parseBodyFragment(embedCode).select("iframe").first()
-      val (src, width, height) = (doc.attr("src"), doc.attr("width"), doc.attr("height"))
-
-      (HtmlTagGenerator.buildNdlaFilmIundervisningInlineContent(src, width, height), None)
-    }
-
-    def getKahootEmbedTag(embedCode: String): (String, Option[RequiredLibrary]) = {
-      val doc = Jsoup.parseBodyFragment(embedCode).select("iframe").first()
-      val (src, width, height) = (doc.attr("src"), doc.attr("width"), doc.attr("height"))
-
-      (HtmlTagGenerator.buildKahootInlineContent(src, width, height), None)
+      (HtmlTagGenerator.buildRegularInlineContent(src, width, height, resourceType), None)
     }
 
     def getVimeoProEmbedTag(embedCode: String): (String, Option[RequiredLibrary]) = {
@@ -135,34 +114,6 @@ trait LenkeConverterModule {
       val src = doc.attr("src")
 
       (HtmlTagGenerator.buildExternalInlineEmbedContent(src), None)
-    }
-
-    def getKhanAcademyEmbedTag(embedCode: String): (String, Option[RequiredLibrary]) = {
-      val doc = Jsoup.parseBodyFragment(embedCode).select("iframe").first()
-      val (src, width, height) = (doc.attr("src"), doc.attr("width"), doc.attr("height"))
-
-      (HtmlTagGenerator.buildKhanAcademyInlineContent(src, width, height), None)
-    }
-
-    def getTv2SkoleEmbedTag(embedCode: String): (String, Option[RequiredLibrary]) = {
-      val doc = Jsoup.parseBodyFragment(embedCode).select("iframe").first()
-      val (src, width, height) = (doc.attr("src"), doc.attr("width"), doc.attr("height"))
-
-      (HtmlTagGenerator.buildTv2SkoleInlineContent(src, width, height), None)
-    }
-
-    def getVgNoEmbedTag(embedCode: String): (String, Option[RequiredLibrary]) = {
-      val doc = Jsoup.parseBodyFragment(embedCode).select("iframe").first()
-      val (src, width, height) = (doc.attr("src"), doc.attr("width"), doc.attr("height"))
-
-      (HtmlTagGenerator.buildVgNoInlineContent(src, width, height), None)
-    }
-
-    def getScribdEmbedTag(embedCode: String): (String, Option[RequiredLibrary]) = {
-      val doc = Jsoup.parseBodyFragment(embedCode).select("iframe").first()
-      val (src, width, height) = (doc.attr("src"), doc.attr("width"), doc.attr("height"))
-
-      (HtmlTagGenerator.buildScribdInlineContent(src, width, height), None)
     }
 
     private def insertDetailSummary(url: String, embedCode: String, cont: ContentBrowser): (String, Option[RequiredLibrary], Seq[String]) = {

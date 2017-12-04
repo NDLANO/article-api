@@ -91,79 +91,9 @@ trait HtmlTagGenerator {
       buildEmbedContent(dataAttributes)
     }
 
-    def buildPreziInlineContent(url: String, width: String, height: String) = {
+    def buildRegularInlineContent(url: String, width: String, height: String, resourceType: ResourceType.Value) = {
       val dataAttributes = Map(
-        TagAttributes.DataResource -> ResourceType.Prezi.toString,
-        TagAttributes.DataUrl -> url,
-        TagAttributes.DataWidth -> width,
-        TagAttributes.DataHeight -> height
-      )
-      buildEmbedContent(dataAttributes)
-    }
-
-    def buildCommoncraftInlineContent(url: String, width: String, height: String) = {
-      val dataAttributes = Map(
-        TagAttributes.DataResource -> ResourceType.Commoncraft.toString,
-        TagAttributes.DataUrl -> url,
-        TagAttributes.DataWidth -> width,
-        TagAttributes.DataHeight -> height
-      )
-      buildEmbedContent(dataAttributes)
-    }
-
-    def buildNdlaFilmIundervisningInlineContent(url: String, width: String, height: String) = {
-      val dataAttributes = Map(
-        TagAttributes.DataResource -> ResourceType.NdlaFilmIundervisning.toString,
-        TagAttributes.DataUrl -> url,
-        TagAttributes.DataWidth -> width,
-        TagAttributes.DataHeight -> height
-      )
-      buildEmbedContent(dataAttributes)
-    }
-
-    def buildKahootInlineContent(url: String, width: String, height: String) = {
-      val dataAttributes = Map(
-        TagAttributes.DataResource -> ResourceType.Kahoot.toString,
-        TagAttributes.DataUrl -> url,
-        TagAttributes.DataWidth -> width,
-        TagAttributes.DataHeight -> height
-      )
-      buildEmbedContent(dataAttributes)
-    }
-
-    def buildKhanAcademyInlineContent(url: String, width: String, height: String) = {
-      val dataAttributes = Map(
-        TagAttributes.DataResource -> ResourceType.KhanAcademy.toString,
-        TagAttributes.DataUrl -> url,
-        TagAttributes.DataWidth -> width,
-        TagAttributes.DataHeight -> height
-      )
-      buildEmbedContent(dataAttributes)
-    }
-
-    def buildTv2SkoleInlineContent(url: String, width: String, height: String) = {
-      val dataAttributes = Map(
-        TagAttributes.DataResource -> ResourceType.Tv2Skole.toString,
-        TagAttributes.DataUrl -> url,
-        TagAttributes.DataWidth -> width,
-        TagAttributes.DataHeight -> height
-      )
-      buildEmbedContent(dataAttributes)
-    }
-
-    def buildVgNoInlineContent(url: String, width: String, height: String) = {
-      val dataAttributes = Map(
-        TagAttributes.DataResource -> ResourceType.VgNo.toString,
-        TagAttributes.DataUrl -> url,
-        TagAttributes.DataWidth -> width,
-        TagAttributes.DataHeight -> height
-      )
-      buildEmbedContent(dataAttributes)
-    }
-
-    def buildScribdInlineContent(url: String, width: String, height: String) = {
-      val dataAttributes = Map(
-        TagAttributes.DataResource -> ResourceType.Scribd.toString,
+        TagAttributes.DataResource -> resourceType.toString,
         TagAttributes.DataUrl -> url,
         TagAttributes.DataWidth -> width,
         TagAttributes.DataHeight -> height
