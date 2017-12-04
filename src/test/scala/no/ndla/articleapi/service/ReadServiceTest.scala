@@ -12,7 +12,7 @@ import no.ndla.articleapi.ArticleApiProperties.externalApiUrls
 import no.ndla.validation.EmbedTagRules.ResourceHtmlEmbedTag
 import no.ndla.articleapi.model.api
 import no.ndla.articleapi.model.domain.{ArticleContent, ArticleTag, VisualElement}
-import no.ndla.validation.{Attributes, ResourceType}
+import no.ndla.validation.{TagAttributes, ResourceType}
 import no.ndla.articleapi.{TestData, TestEnvironment, UnitSuite}
 import org.mockito.Mockito._
 import org.mockito.Matchers._
@@ -21,11 +21,11 @@ import scalikejdbc.DBSession
 class ReadServiceTest extends UnitSuite with TestEnvironment {
 
   val externalImageApiUrl = externalApiUrls("image")
-  val resourceIdAttr = s"${Attributes.DataResource_Id}"
-  val resourceAttr = s"${Attributes.DataResource}"
+  val resourceIdAttr = s"${TagAttributes.DataResource_Id}"
+  val resourceAttr = s"${TagAttributes.DataResource}"
   val imageType = s"${ResourceType.Image}"
   val h5pType = s"${ResourceType.H5P}"
-  val urlAttr = s"${Attributes.DataUrl}"
+  val urlAttr = s"${TagAttributes.DataUrl}"
   val content1 = s"""<$ResourceHtmlEmbedTag $resourceIdAttr="123" $resourceAttr="$imageType"><$ResourceHtmlEmbedTag $resourceIdAttr=1234 $resourceAttr="$imageType">"""
   val content2 = s"""<$ResourceHtmlEmbedTag $resourceIdAttr="321" $resourceAttr="$imageType"><$ResourceHtmlEmbedTag $resourceIdAttr=4321 $resourceAttr="$imageType">"""
   val articleContent1 = ArticleContent(content1, "unknown")
