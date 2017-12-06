@@ -43,6 +43,7 @@ trait TestEnvironment
     with MigrationApiClient
     with ExtractService
     with ConverterModules
+    with DraftApiClient
     with ConverterService
     with LeafNodeConverter
     with ContentBrowserConverterModules
@@ -115,6 +116,7 @@ trait TestEnvironment
   val jestClient = mock[NdlaJestClient]
   val audioApiClient = mock[AudioApiClient]
   val imageApiClient = mock[ImageApiClient]
+  val draftApiClient = mock[DraftApiClient]
 
   val clock = mock[SystemClock]
   val authUser = mock[AuthUser]

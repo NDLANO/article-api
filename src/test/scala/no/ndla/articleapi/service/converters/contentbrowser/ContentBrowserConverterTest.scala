@@ -120,7 +120,7 @@ class ContentBrowserConverterTest extends UnitSuite with TestEnvironment {
     val strippedResult = " +".r.replaceAllIn(result.content.replace("\n", ""), " ")
 
     strippedResult should equal (expectedResult)
-    result.requiredLibraries.size should equal (1)
+    result.requiredLibraries.size should equal (0)
   }
 
   test("That content-browser strings of type biblio are converted into content") {

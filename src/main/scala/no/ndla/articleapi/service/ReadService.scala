@@ -16,7 +16,7 @@ import no.ndla.articleapi.model.api
 import no.ndla.articleapi.model.domain._
 import no.ndla.articleapi.model.domain.Language._
 import no.ndla.articleapi.repository.{ArticleRepository, ConceptRepository}
-import no.ndla.validation.Attributes
+import no.ndla.validation.TagAttributes
 import org.jsoup.nodes.Element
 import scala.math.max
 import scala.collection.JavaConverters._
@@ -69,12 +69,12 @@ trait ReadService {
     }
 
     private def addUrlOnEmbedTag(embedTag: Element) = {
-      val resourceIdAttrName = Attributes.DataResource_Id.toString
+      val resourceIdAttrName = TagAttributes.DataResource_Id.toString
       embedTag.hasAttr(resourceIdAttrName) match {
         case false =>
         case true => {
-          val (resourceType, id) = (embedTag.attr(s"${Attributes.DataResource}"), embedTag.attr(resourceIdAttrName))
-          embedTag.attr(s"${Attributes.DataUrl}", s"${externalApiUrls(resourceType)}/$id")
+          val (resourceType, id) = (embedTag.attr(s"${TagAttributes.DataResource}"), embedTag.attr(resourceIdAttrName))
+          embedTag.attr(s"${TagAttributes.DataUrl}", s"${externalApiUrls(resourceType)}/$id")
         }
       }
     }

@@ -14,10 +14,12 @@ import java.util.concurrent.TimeUnit
 import no.ndla.articleapi.ArticleApiProperties.RoleWithWriteAccess
 import no.ndla.articleapi.auth.{Role, User}
 import no.ndla.articleapi.model.api.ArticleIdV2
-import no.ndla.articleapi.model.domain.{ImportStatus, Language}
+import no.ndla.articleapi.model.domain.{Article, Language}
 import no.ndla.articleapi.repository.ArticleRepository
 import no.ndla.articleapi.service._
 import no.ndla.articleapi.service.search.{ArticleIndexService, ConceptIndexService, IndexService}
+import no.ndla.articleapi.validation.ContentValidator
+import no.ndla.validation.ValidationException
 import org.json4s.{DefaultFormats, Formats}
 import org.scalatra.{InternalServerError, NotFound, Ok}
 
@@ -38,7 +40,8 @@ trait InternController {
     with ArticleIndexService
     with ConceptIndexService
     with User
-    with Role =>
+    with Role
+    with ContentValidator =>
   val internController: InternController
 
   class InternController extends NdlaController {
@@ -127,6 +130,24 @@ trait InternController {
       val lang = paramOrDefault("language", Language.AllLanguages)
 
       readService.getArticlesByPage(pageNo, pageSize, lang)
+    }
+
+    post("/validate/article") {
+      val article = extract[Article](request.body)
+      contentValidator.validateArticle(article, allowUnknownLanguage = true) match {
+        case Success(_) => article
+        case Failure(ex: ValidationException) => ex.errors
+        case Failure(ex) => errorHandler(ex)
+      }
+    }
+
+    post("/article/:id") {
+      val article = extract[Article](request.body)
+      val id = long("id")
+      writeService.updateArticle(article.copy(id=Some(id))) match {
+        case Success(a) => a
+        case Failure(ex) => errorHandler(ex)
+      }
     }
 
   }

@@ -39,7 +39,7 @@ trait AudioApiClient {
     }
 
     def isHealthy: Boolean = {
-      Try(Http(AudioHealthEndpoint).execute()) match {
+      Try(Http(AudioHealthEndpoint).timeout(1000,20000).execute()) match {
         case Success(resp) => resp.isSuccess
         case _ => false
       }

@@ -28,9 +28,9 @@ class ConceptSearchServiceTest extends UnitSuite with TestEnvironment {
   override val converterService = new ConverterService
   override val searchConverterService = new SearchConverterService
 
-  val byNcSa = Copyright("by-nc-sa", "Gotham City", List(Author("Forfatter", "DC Comics")))
-  val publicDomain = Copyright("publicdomain", "Metropolis", List(Author("Forfatter", "Bruce Wayne")))
-  val copyrighted = Copyright("copyrighted", "New York", List(Author("Forfatter", "Clark Kent")))
+  val byNcSa = Copyright("by-nc-sa", "Gotham City", List(Author("Forfatter", "DC Comics")), List(), List(), None, None, None)
+  val publicDomain = Copyright("publicdomain", "Metropolis", List(Author("Forfatter", "Bruce Wayne")), List(), List(), None, None, None)
+  val copyrighted = Copyright("copyrighted", "New York", List(Author("Forfatter", "Clark Kent")), List(), List(), None, None, None)
 
   val today = DateTime.now()
 
@@ -72,7 +72,7 @@ class ConceptSearchServiceTest extends UnitSuite with TestEnvironment {
     content = List(ConceptContent("<p>Bilde av <em>Baldurs</em> som har  mareritt.", "nb")))
 
   override def beforeAll = {
-    conceptIndexService.createIndexWithName(ArticleApiProperties.ArticleSearchIndex)
+    conceptIndexService.createIndexWithName(ArticleApiProperties.ConceptSearchIndex)
 
     conceptIndexService.indexDocument(concept1)
     conceptIndexService.indexDocument(concept2)
@@ -88,7 +88,7 @@ class ConceptSearchServiceTest extends UnitSuite with TestEnvironment {
   }
 
   override def afterAll() = {
-    conceptIndexService.deleteIndex(Some(ArticleApiProperties.ArticleSearchIndex))
+    conceptIndexService.deleteIndex(Some(ArticleApiProperties.ConceptSearchIndex))
   }
 
   test("That getStartAtAndNumResults returns SEARCH_MAX_PAGE_SIZE for value greater than SEARCH_MAX_PAGE_SIZE") {

@@ -8,8 +8,10 @@
 
 package no.ndla.articleapi.validation
 
+import no.ndla.articleapi.ArticleApiProperties
 import no.ndla.articleapi.ArticleApiProperties.{H5PResizerScriptUrl, NDLABrightcoveVideoScriptUrl, NRKVideoScriptUrl}
 import no.ndla.articleapi.integration.ConverterModule.stringToJsoupDocument
+import no.ndla.articleapi.integration.DraftApiClient
 import no.ndla.articleapi.model.domain._
 import no.ndla.mapping.ISO639.get6391CodeFor6392CodeMappings
 import no.ndla.mapping.License.getLicense
@@ -19,6 +21,7 @@ import scala.collection.JavaConverters._
 import scala.util.{Failure, Success, Try}
 
 trait ContentValidator {
+  this: DraftApiClient =>
   val contentValidator: ContentValidator
   val importValidator: ContentValidator
 
@@ -72,8 +75,9 @@ trait ContentValidator {
     }
 
     private def validateArticleContent(content: ArticleContent, allowUnknownLanguage: Boolean): Seq[ValidationMessage] = {
-      HtmlValidator.validate("content.content", content.content).toList ++
-        rootElementContainsOnlySectionBlocks("content.content", content.content) ++
+      val field = s"content.${content.language}"
+      HtmlValidator.validate(field, content.content).toList ++
+        rootElementContainsOnlySectionBlocks(field, content.content) ++
         validateLanguage("content.language", content.language, allowUnknownLanguage)
     }
 
@@ -90,36 +94,56 @@ trait ContentValidator {
     }
 
     private def validateConceptContent(content: ConceptContent, allowUnknownLanguage: Boolean): Seq[ValidationMessage] = {
-      NoHtmlValidator.validate("content.content", content.content).toList ++
+      val field = s"content.${content.language}"
+      NoHtmlValidator.validate(field, content.content).toList ++
         validateLanguage("content.language", content.language, allowUnknownLanguage)
     }
 
     private def validateVisualElement(content: VisualElement, allowUnknownLanguage: Boolean): Seq[ValidationMessage] = {
-      HtmlValidator.validate("visualElement.content", content.resource).toList ++
+      val field = s"visualElement.${content.language}"
+      HtmlValidator.validate(field, content.resource).toList ++
         validateLanguage("visualElement.language", content.language, allowUnknownLanguage)
     }
 
     private def validateIntroduction(content: ArticleIntroduction, allowUnknownLanguage: Boolean): Seq[ValidationMessage] = {
-      NoHtmlValidator.validate("introduction.introduction", content.introduction).toList ++
+      val field = s"introduction.${content.language}"
+      NoHtmlValidator.validate(field, content.introduction).toList ++
         validateLanguage("introduction.language", content.language, allowUnknownLanguage)
     }
 
     private def validateMetaDescription(content: ArticleMetaDescription, allowUnknownLanguage: Boolean): Seq[ValidationMessage] = {
-      NoHtmlValidator.validate("metaDescription.metaDescription", content.content).toList ++
+      val field = s"metaDescription.${content.language}"
+      NoHtmlValidator.validate(field, content.content).toList ++
         validateLanguage("metaDescription.language", content.language, allowUnknownLanguage)
     }
 
     private def validateTitle(content: LanguageField[String], allowUnknownLanguage: Boolean): Seq[ValidationMessage] = {
-      NoHtmlValidator.validate("title.title", content.value).toList ++
+      val field = s"title.${content.language}"
+      NoHtmlValidator.validate(field, content.value).toList ++
         validateLanguage("title.language", content.language, allowUnknownLanguage)
     }
 
     private def validateCopyright(copyright: Copyright): Seq[ValidationMessage] = {
       val licenseMessage = validateLicense(copyright.license)
-      val contributorsMessages = copyright.authors.flatMap(validateAuthor)
+      val contributorsMessages =
+        copyright.creators.flatMap(a => validateAuthor(a, "copyright.creators", ArticleApiProperties.creatorTypes)) ++
+        copyright.processors.flatMap(a => validateAuthor(a, "copyright.processors", ArticleApiProperties.processorTypes)) ++
+        copyright.rightsholders.flatMap(a => validateAuthor(a, "copyright.rightsholders", ArticleApiProperties.rightsholderTypes))
       val originMessage = NoHtmlValidator.validate("copyright.origin", copyright.origin)
+      val agreementMessage = validateAgreement(copyright)
 
-      licenseMessage ++ contributorsMessages ++ originMessage
+      licenseMessage ++ contributorsMessages ++ originMessage ++ agreementMessage
+    }
+
+    def validateAgreement(copyright: Copyright): Seq[ValidationMessage] = {
+      copyright.agreementId match {
+        case Some(id) =>
+          draftApiClient.agreementExists(id) match {
+            case false => Seq (ValidationMessage ("copyright.agreement", s"Agreement with id $id does not exist") )
+            case _ => Seq()
+          }
+        case _ => Seq()
+      }
     }
 
     private def validateLicense(license: String): Seq[ValidationMessage] = {
@@ -129,9 +153,18 @@ trait ContentValidator {
       }
     }
 
-    private def validateAuthor(author: Author): Seq[ValidationMessage] = {
-      NoHtmlValidator.validate("author.type", author.`type`).toList ++
-        NoHtmlValidator.validate("author.name", author.name).toList
+    private def validateAuthor(author: Author, fieldPath: String, allowedTypes: Seq[String]): Seq[ValidationMessage] = {
+      NoHtmlValidator.validate(s"$fieldPath.type", author.`type`).toList ++
+        NoHtmlValidator.validate(s"$fieldPath.name", author.name).toList ++
+        validateAuthorType(s"$fieldPath.type", author.`type`, allowedTypes).toList
+    }
+
+    def validateAuthorType(fieldPath: String, `type`: String, allowedTypes: Seq[String]): Option[ValidationMessage] = {
+      if(allowedTypes.contains(`type`.toLowerCase)) {
+        None
+      } else {
+        Some(ValidationMessage(fieldPath, s"Author is of illegal type. Must be one of ${allowedTypes.mkString(", ")}"))
+      }
     }
 
     private def validateTags(tags: Seq[ArticleTag], allowUnknownLanguage: Boolean): Seq[ValidationMessage] = {
