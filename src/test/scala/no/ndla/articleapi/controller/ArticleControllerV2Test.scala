@@ -164,36 +164,6 @@ class ArticleControllerV2Test extends UnitSuite with TestEnvironment with Scalat
     }
   }
 
-  test("PUT /validate should return 400 if the article is invalid") {
-    put("/test/validate", body=invalidArticle, headers = Map("Authorization" -> authHeaderWithWriteRole)) {
-      status should equal (400)
-      verify(articleRepository, times(0)).newArticle(any[Article])(any[DBSession])
-    }
-  }
-
-  test("PUT /validate should return 204 if the article is valid") {
-    when(writeService.validateAndConvertNewArticle(any[NewArticleV2])).thenReturn(Success(TestData.sampleArticleWithByNcSa))
-    put("/test/validate", body=write(TestData.newArticleV2)) {
-      status should equal (204)
-      verify(articleRepository, times(0)).newArticle(any[Article])(any[DBSession])
-    }
-  }
-
-  test("PUT /validate/:id should return 400 if the article is invalid") {
-    put("/test/validate/1", body=invalidArticle, headers = Map("Authorization" -> authHeaderWithWriteRole)) {
-      status should equal (400)
-      verify(articleRepository, times(0)).newArticle(any[Article])(any[DBSession])
-    }
-  }
-
-  test("PUT /validate/:id should return 204 if the article is valid") {
-    when(writeService.validateAndConvertUpdatedArticle(any[Long], any[UpdatedArticleV2])).thenReturn(Success(TestData.sampleArticleWithByNcSa))
-    put("/test/validate/1", body=write(TestData.updatedArticleV2)) {
-      status should equal (204)
-      verify(articleRepository, times(0)).newArticle(any[Article])(any[DBSession])
-    }
-  }
-
   // Legacy tests. May be removed when the legacy token format in ndla.network v0.24 is removed
   test("LEGACY - POST / should return 400 on failure to validate request") {
     post("/test/", "{}", headers = Map("Authorization" -> legacyAuthHeaderWithWriteRole)) {
@@ -260,36 +230,6 @@ class ArticleControllerV2Test extends UnitSuite with TestEnvironment with Scalat
     when(writeService.updateArticleV2(any[Long], any[UpdatedArticleV2])).thenReturn(Success(TestData.apiArticleWithHtmlFaultV2))
     patch("/test/123", updateTitleJson, headers = Map("Authorization" -> legacyAuthHeaderWithWriteRole)) {
       status should equal (200)
-    }
-  }
-
-  test("LEGACY - PUT /validate should return 400 if the article is invalid") {
-    put("/test/validate", body=invalidArticle, headers = Map("Authorization" -> legacyAuthHeaderWithWriteRole)) {
-      status should equal (400)
-      verify(articleRepository, times(0)).newArticle(any[Article])(any[DBSession])
-    }
-  }
-
-  test("LEGACY - PUT /validate should return 204 if the article is valid") {
-    when(writeService.validateAndConvertNewArticle(any[NewArticleV2])).thenReturn(Success(TestData.sampleArticleWithByNcSa))
-    put("/test/validate", body=write(TestData.newArticleV2)) {
-      status should equal (204)
-      verify(articleRepository, times(0)).newArticle(any[Article])(any[DBSession])
-    }
-  }
-
-  test("LEGACY - PUT /validate/:id should return 400 if the article is invalid") {
-    put("/test/validate/1", body=invalidArticle, headers = Map("Authorization" -> legacyAuthHeaderWithWriteRole)) {
-      status should equal (400)
-      verify(articleRepository, times(0)).newArticle(any[Article])(any[DBSession])
-    }
-  }
-
-  test("LEGACY - PUT /validate/:id should return 204 if the article is valid") {
-    when(writeService.validateAndConvertUpdatedArticle(any[Long], any[UpdatedArticleV2])).thenReturn(Success(TestData.sampleArticleWithByNcSa))
-    put("/test/validate/1", body=write(TestData.updatedArticleV2)) {
-      status should equal (204)
-      verify(articleRepository, times(0)).newArticle(any[Article])(any[DBSession])
     }
   }
 }
