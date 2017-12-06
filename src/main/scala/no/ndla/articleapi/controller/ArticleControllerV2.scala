@@ -277,42 +277,5 @@ trait ArticleControllerV2 {
       }
     }
 
-    val validateNewArticle =
-      (apiOperation[Unit]("updateArticle")
-        summary "Validate creating a new article"
-        notes "Validate creating a new article"
-        parameters(
-        headerParam[Option[String]]("X-Correlation-ID").description("User supplied correlation-id"),
-        bodyParam[NewArticleV2]
-      )
-        authorizations "oauth2"
-        responseMessages(response400, response500))
-
-    put("/validate", operation(validateNewArticle)) {
-      writeService.validateAndConvertNewArticle(extract[NewArticleV2](request.body)) match {
-        case Success(_) => NoContent()
-        case Failure(exception) => errorHandler(exception)
-      }
-    }
-
-    val validateUpdateArticle =
-      (apiOperation[Unit]("updateArticle")
-        summary "Validate updating an article"
-        notes "Validate updating an article"
-        parameters(
-        headerParam[Option[String]]("X-Correlation-ID").description("User supplied correlation-id"),
-        pathParam[Long]("article_id").description("Id of the article that is to be validated against"),
-        bodyParam[UpdatedArticleV2]
-      )
-        authorizations "oauth2"
-        responseMessages(response400, response500))
-
-    put("/validate/:article_id", operation(validateUpdateArticle)) {
-      writeService.validateAndConvertUpdatedArticle(long("article_id"), extract[UpdatedArticleV2](request.body)) match {
-        case Success(_) => NoContent()
-        case Failure(exception) => errorHandler(exception)
-      }
-    }
-
   }
 }

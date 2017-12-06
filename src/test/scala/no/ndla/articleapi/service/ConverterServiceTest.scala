@@ -15,9 +15,10 @@ import no.ndla.articleapi.model.api
 import no.ndla.articleapi.model.api.ImportException
 import no.ndla.articleapi.model.domain._
 import no.ndla.articleapi.service.converters.TableConverter
-import no.ndla.validation.{Attributes, ResourceType}
+import no.ndla.validation.{TagAttributes, ResourceType}
 import no.ndla.validation.EmbedTagRules.ResourceHtmlEmbedTag
 import no.ndla.articleapi.{TestData, TestEnvironment, UnitSuite}
+import org.joda.time.{DateTime, DateTimeZone}
 import org.mockito.Mockito._
 import scala.util.{Success, Try}
 
@@ -289,11 +290,42 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     service.toApiArticleV2(TestData.sampleDomainArticle, "") should be(None)
   }
 
+  test("toApiArticleV2 converts a domain.Article to an api.ArticleV2 with Agreement Copyright") {
+    when(articleRepository.getExternalIdFromId(TestData.articleId)).thenReturn(Some(TestData.externalId))
+    val from = DateTime.now().minusDays(5).toDate()
+    val to = DateTime.now().plusDays(10).toDate()
+    val agreementCopyright = api.Copyright(
+      api.License("gnu", Some("gpl"), None),
+      "http://tjohei.com/",
+      List(),
+      List(),
+      List(api.Author("Supplier", "Mads LakseService")),
+      None,
+      Some(from),
+      Some(to)
+    )
+    when(draftApiClient.getAgreementCopyright(1)).thenReturn(Some(agreementCopyright))
+
+    val apiArticle = service.toApiArticleV2(TestData.sampleDomainArticle.copy(copyright = TestData.sampleDomainArticle.copyright.copy(
+      processors = List(Author("Idea", "Kaptein Snabelfant")),
+      rightsholders = List(Author("Publisher", "KjeksOgKakerAS")),
+      agreementId = Some(1)
+    )), "nb")
+
+    apiArticle.get.copyright.creators.size should equal(0)
+    apiArticle.get.copyright.processors.head.name should equal("Kaptein Snabelfant")
+    apiArticle.get.copyright.rightsholders.head.name should equal("Mads LakseService")
+    apiArticle.get.copyright.rightsholders.size should equal(1)
+    apiArticle.get.copyright.license.license should equal("gnu")
+    apiArticle.get.copyright.validFrom.get should equal(from)
+    apiArticle.get.copyright.validTo.get should equal(to)
+  }
+
   test("toDomainArticleShould should remove unneeded attributes on embed-tags") {
-    val content = s"""<h1>hello</h1><embed ${Attributes.DataResource}="${ResourceType.Image}" ${Attributes.DataUrl}="http://some-url" data-random="hehe" />"""
-    val expectedContent = s"""<h1>hello</h1><embed ${Attributes.DataResource}="${ResourceType.Image}">"""
-    val visualElement = s"""<embed ${Attributes.DataResource}="${ResourceType.Image}" ${Attributes.DataUrl}="http://some-url" data-random="hehe" />"""
-    val expectedVisualElement = s"""<embed ${Attributes.DataResource}="${ResourceType.Image}">"""
+    val content = s"""<h1>hello</h1><embed ${TagAttributes.DataResource}="${ResourceType.Image}" ${TagAttributes.DataUrl}="http://some-url" data-random="hehe" />"""
+    val expectedContent = s"""<h1>hello</h1><embed ${TagAttributes.DataResource}="${ResourceType.Image}">"""
+    val visualElement = s"""<embed ${TagAttributes.DataResource}="${ResourceType.Image}" ${TagAttributes.DataUrl}="http://some-url" data-random="hehe" />"""
+    val expectedVisualElement = s"""<embed ${TagAttributes.DataResource}="${ResourceType.Image}">"""
     val apiArticle = TestData.newArticleV2.copy(content=content, visualElement=Some(visualElement))
 
     val result = service.toDomainArticle(apiArticle)
@@ -381,18 +413,18 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     content.content.head.content should equal (expectedResult)
   }
 
-  test("That mapOldToNewLicenseKey throws on invalid license") {
+  test("That oldToNewLicenseKey throws on invalid license") {
     assertThrows[ImportException] {
-      service.mapOldToNewLicenseKey("publicdomain")
+      service.oldToNewLicenseKey("publicdomain")
     }
   }
 
-  test("That mapOldToNewLicenseKey converts correctly") {
-    service.mapOldToNewLicenseKey("nolaw") should be("cc0")
-    service.mapOldToNewLicenseKey("noc") should be("pd")
+  test("That oldToNewLicenseKey converts correctly") {
+    service.oldToNewLicenseKey("nolaw") should be("cc0")
+    service.oldToNewLicenseKey("noc") should be("pd")
   }
 
-  test("That mapOldToNewLicenseKey does not convert an license that should not be converted") {
-    service.mapOldToNewLicenseKey("by-sa") should be("by-sa")
+  test("That oldToNewLicenseKey does not convert an license that should not be converted") {
+    service.oldToNewLicenseKey("by-sa") should be("by-sa")
   }
 }

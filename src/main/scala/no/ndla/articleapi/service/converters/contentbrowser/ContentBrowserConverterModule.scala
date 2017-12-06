@@ -48,6 +48,7 @@ trait ContentBrowserConverterModules
   with SearchConverterService
   with ImageConverterModule
   with ImageApiClient
+  with DraftApiClient
   with LenkeConverterModule
   with H5PConverterModule
   with JoubelH5PConverterModule

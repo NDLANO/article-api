@@ -14,6 +14,10 @@ import no.ndla.articleapi.model.domain._
 import no.ndla.articleapi.model.search._
 import no.ndla.articleapi.{TestEnvironment, UnitSuite}
 import no.ndla.articleapi.TestData
+import org.mockito.Mockito._
+import org.mockito.Matchers._
+import org.mockito.Mockito
+import org.mockito.invocation.InvocationOnMock
 
 class ArticleSearchConverterServiceTest extends UnitSuite with TestEnvironment {
 
@@ -40,6 +44,10 @@ class ArticleSearchConverterServiceTest extends UnitSuite with TestEnvironment {
     ArticleTag(Seq("of", "translating"), "de"), ArticleTag(Seq("all", "of"), "es"),
     ArticleTag(Seq("the", "words"), "unknown")
   )
+
+  override def beforeAll() = {
+    when(converterService.withAgreementCopyright(any[Article])).thenAnswer((invocation: InvocationOnMock) => invocation.getArgumentAt(0, sampleArticle.getClass()))
+  }
 
   test("That asSearchableArticle converts titles with correct language") {
     val article = TestData.sampleArticleWithByNcSa.copy(title=titles)
@@ -79,6 +87,13 @@ class ArticleSearchConverterServiceTest extends UnitSuite with TestEnvironment {
     articleSummary.id should equal (article.id.get)
     articleSummary.license should equal (article.copyright.license)
     articleSummary.title should equal (article.title)
+  }
+
+  test("That asSearchableArticle converts titles with license from agreement") {
+    val article = TestData.sampleArticleWithByNcSa.copy(title=titles)
+    when(converterService.withAgreementCopyright(any[Article])).thenReturn(article.copy(copyright = article.copyright.copy(license="gnu")))
+    val searchableArticle = searchConverterService.asSearchableArticle(article)
+    searchableArticle.license should equal("gnu")
   }
 
   private def verifyTitles(searchableArticle: SearchableArticle): Unit = {

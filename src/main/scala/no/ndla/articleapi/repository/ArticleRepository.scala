@@ -58,6 +58,25 @@ trait ArticleRepository {
       }
     }
 
+    def updateArticleFromDraftApi(article: Article)(implicit session: DBSession = AutoSession): Try[Article] = {
+      val dataObject = new PGobject()
+      dataObject.setType("jsonb")
+      dataObject.setValue(write(article))
+
+      Try {
+        sql"update ${Article.table} set document=${dataObject}, revision=${article.revision} where id=${article.id}".update.apply
+      } match {
+        case Success(count) if count == 1 =>
+          logger.info(s"Updated article ${article.id}")
+          Success(article)
+        case Success(_) =>
+          val message = s"Found revision mismatch when attempting to update article ${article.id}"
+          logger.info(message)
+          Failure(new OptimisticLockException)
+        case Failure(ex) => Failure(ex)
+      }
+    }
+
     def insertWithExternalIds(article: Article, externalId: String, externalSubjectId: Seq[String])(implicit session: DBSession = AutoSession): Article = {
       val startRevision = 1
       val dataObject = new PGobject()

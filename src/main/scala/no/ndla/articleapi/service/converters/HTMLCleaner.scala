@@ -5,7 +5,7 @@ import no.ndla.validation.EmbedTagRules.ResourceHtmlEmbedTag
 import no.ndla.articleapi.integration.ConverterModule.{jsoupDocumentToString, stringToJsoupDocument}
 import no.ndla.articleapi.integration.{ConverterModule, ImageApiClient, LanguageContent, LanguageIngress}
 import no.ndla.articleapi.model.domain.ImportStatus
-import no.ndla.validation.{Attributes, HtmlRules, ResourceType}
+import no.ndla.validation.{TagAttributes, HtmlTagRules, ResourceType}
 import org.jsoup.Jsoup
 import org.jsoup.nodes.{Element, Node, TextNode}
 
@@ -22,12 +22,14 @@ trait HTMLCleaner {
       val element = stringToJsoupDocument(content.content)
       val illegalTags = unwrapIllegalTags(element).map(x => s"Illegal tag(s) removed: $x").distinct
       convertLists(element)
+      handleSpans(element)
       val illegalAttributes = removeAttributes(element).map(x => s"Illegal attribute(s) removed: $x").distinct
 
       moveEmbedsOutOfPTags(element)
       removeComments(element)
       removeNbsp(element)
       wrapStandaloneTextInPTag(element)
+      replaceNestedSections(element)
       // Jsoup doesn't support removing elements while iterating the dom-tree.
       // Thus executes the routine 3 times in order to be sure to remove all tags
       (1 to 3).foreach(_ => removeEmptyTags(element))
@@ -73,7 +75,7 @@ trait HTMLCleaner {
         ResourceType.Image
       )
 
-      val embedTypeString = embedsThatShouldNotBeInPTags.map(t => s"[${Attributes.DataResource}=$t]").mkString(",")
+      val embedTypeString = embedsThatShouldNotBeInPTags.map(t => s"[${TagAttributes.DataResource}=$t]").mkString(",")
 
       element.select("p").asScala.foreach(pTag => {
         pTag.select(s"${ResourceHtmlEmbedTag}${embedTypeString}").asScala.toList.foreach(el => {
@@ -125,7 +127,7 @@ trait HTMLCleaner {
 
     private def unwrapIllegalTags(el: Element): Seq[String] = {
       el.children().select("*").asScala.toList
-        .filter(htmlTag => !HtmlRules.isTagValid(htmlTag.tagName))
+        .filter(htmlTag => !HtmlTagRules.isTagValid(htmlTag.tagName))
         .map(illegalHtmlTag => {
           val tagName = illegalHtmlTag.tagName
           illegalHtmlTag.unwrap()
@@ -140,12 +142,13 @@ trait HTMLCleaner {
         val caption = el.attr("data-caption")
         el.replaceWith(new TextNode(caption, ""))
       }
-      Jsoup.parseBodyFragment(extractElement(element)).body().html().replace("&nbsp;", " ").trim
+      val extracted = extractElement(element)
+      new TextNode(extracted, "").toString.replace("&nbsp;", " ").trim
     }
 
     private def removeAttributes(el: Element): Seq[String] = {
       el.select("*").asScala.toList.flatMap(tag =>
-        HtmlRules.removeIllegalAttributes(tag, HtmlRules.legalAttributesForTag(tag.tagName))
+        HtmlTagRules.removeIllegalAttributes(tag, HtmlTagRules.legalAttributesForTag(tag.tagName))
       )
     }
 
@@ -155,7 +158,7 @@ trait HTMLCleaner {
       while (i < node.childNodes().size()) {
         val child = node.childNode(i)
 
-        child.nodeName() == "#comment" match {
+        child.nodeName() == "#comment" || child.nodeName() == "#data" match {
           case true => child.remove()
           case false => {
             i += 1
@@ -199,6 +202,18 @@ trait HTMLCleaner {
         paragraph.select("strong").asScala
       else
         Seq(el)
+    }
+
+    private def handleSpans(element: Element) {
+      element.select("span").asScala.foreach(spanTag => {
+        val langAttribute = spanTag.attr("xml:lang")
+        if (langAttribute.isEmpty) {
+          spanTag.unwrap()
+        } else {
+          spanTag.attr("lang", langAttribute)
+          spanTag.removeAttr("xml:lang")
+        }
+      })
     }
 
     private def getIngressText(el: Element): Option[Seq[Element]] = {
@@ -351,9 +366,18 @@ trait HTMLCleaner {
       element.select("ol").asScala.foreach(x => {
         val styling = x.attr("style").split(";")
         if (styling.contains("list-style-type: lower-alpha")) {
-          x.attr(Attributes.DataType.toString, "letters")
+          x.attr(TagAttributes.DataType.toString, "letters")
         }
       })
+    }
+
+    private def replaceNestedSections(element: Element) = {
+      element.select("section").asScala.foreach(sec => {
+        if (sec.parents().asScala.exists(p => p.tagName() == "section")) {
+          sec.tagName("div")
+        }
+      })
+
     }
 
   }
