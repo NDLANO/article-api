@@ -143,7 +143,7 @@ trait ConverterService {
         None,
         nodeToConvert.created,
         nodeToConvert.updated,
-        "content-import-client",
+        authUser.userOrClientid(),
         nodeToConvert.articleType.toString
       )
     }
@@ -203,20 +203,20 @@ trait ConverterService {
       )
 
       Article(
-        id = None,
-        revision = None,
-        title = domainTitle,
-        content = domainContent,
-        copyright = toDomainCopyright(newArticle.copyright),
-        tags = toDomainTagV2(newArticle.tags, newArticle.language),
-        requiredLibraries = newArticle.requiredLibraries.getOrElse(Seq()).map(toDomainRequiredLibraries),
-        visualElement = toDomainVisualElementV2(newArticle.visualElement, newArticle.language),
-        introduction = toDomainIntroductionV2(newArticle.introduction, newArticle.language),
-        metaDescription = toDomainMetaDescriptionV2(newArticle.metaDescription, newArticle.language),
-        metaImageId = newArticle.metaImageId,
-        created = clock.now(),
-        updated = clock.now(),
-        updatedBy = authUser.id(),
+        id=None,
+        revision=None,
+        title=domainTitle,
+        content=domainContent,
+        copyright=toDomainCopyright(newArticle.copyright),
+        tags=toDomainTagV2(newArticle.tags, newArticle.language),
+        requiredLibraries=newArticle.requiredLibraries.getOrElse(Seq()).map(toDomainRequiredLibraries),
+        visualElement=toDomainVisualElementV2(newArticle.visualElement, newArticle.language),
+        introduction=toDomainIntroductionV2(newArticle.introduction, newArticle.language),
+        metaDescription=toDomainMetaDescriptionV2(newArticle.metaDescription, newArticle.language),
+        metaImageId=newArticle.metaImageId,
+        created=clock.now(),
+        updated=clock.now(),
+        updatedBy=authUser.userOrClientid(),
         newArticle.articleType
       )
     }
