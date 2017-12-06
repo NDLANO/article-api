@@ -19,11 +19,11 @@ import no.ndla.articleapi.auth.User
 import no.ndla.articleapi.integration.ConverterModule.{jsoupDocumentToString, stringToJsoupDocument}
 import no.ndla.articleapi.integration.{DraftApiClient, ImageApiClient}
 import no.ndla.articleapi.model.api
-import no.ndla.articleapi.model.api.ArticleSummaryV2
+import no.ndla.articleapi.model.api.{ImportException, ArticleSummaryV2}
 import no.ndla.articleapi.model.domain.Language._
 import no.ndla.articleapi.model.domain._
 import no.ndla.articleapi.repository.ArticleRepository
-import no.ndla.mapping.License.getLicense
+import no.ndla.mapping.License.{getLicense, getLicenses}
 import no.ndla.network.ApplicationUrl
 import no.ndla.validation.{HtmlTagRules, EmbedTagRules, ResourceType, TagAttributes}
 
@@ -160,6 +160,15 @@ trait ConverterService {
         convertedNode.updated
       )
     }
+    private[service] def oldToNewLicenseKey(license: String): String = {
+      val licenses = Map("nolaw" -> "cc0", "noc" -> "pd")
+      val newLicense = licenses.getOrElse(license, license)
+
+      if (getLicense(newLicense).isEmpty) {
+        throw new ImportException(s"License $license is not supported.")
+      }
+      newLicense
+    }
 
     private def toNewAuthorType(author: Author): Author = {
       val creatorMap = (oldCreatorTypes zip creatorTypes).toMap.withDefaultValue(None)
@@ -183,7 +192,7 @@ trait ConverterService {
       // Filters out processor authors with type `editorial` during import process since /`editorial` exists both in processors and creators.
       val processors = authorsExcludingOrigin.map(toNewAuthorType).filter(a => processorTypes.contains(a.`type`.toLowerCase)).filterNot(a => a.`type`.toLowerCase == "editorial")
       val rightsholders = authorsExcludingOrigin.map(toNewAuthorType).filter(a => rightsholderTypes.contains(a.`type`.toLowerCase))
-      Copyright(license, origin, creators, processors, rightsholders, None, None, None)
+      Copyright(oldToNewLicenseKey(license), origin, creators, processors, rightsholders, None, None, None)
     }
 
     def toDomainArticle(newArticle: api.NewArticleV2): Article = {
