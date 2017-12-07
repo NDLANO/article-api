@@ -11,7 +11,7 @@ package no.ndla.articleapi.controller
 
 import no.ndla.articleapi.ArticleApiProperties
 import no.ndla.articleapi.ArticleApiProperties.RoleWithWriteAccess
-import no.ndla.articleapi.auth.Role
+import no.ndla.articleapi.auth.{Role, User}
 import no.ndla.articleapi.model.api._
 import no.ndla.articleapi.model.domain.{ArticleType, Language, Sort}
 import no.ndla.articleapi.service.search.ArticleSearchService
@@ -26,7 +26,7 @@ import org.scalatra.{Created, NoContent, NotFound, Ok}
 import scala.util.{Failure, Success, Try}
 
 trait ArticleControllerV2 {
-  this: ReadService with WriteService with ArticleSearchService with ConverterService with Role with ContentValidator =>
+  this: ReadService with WriteService with ArticleSearchService with ConverterService with Role with User with ContentValidator =>
   val articleControllerV2: ArticleControllerV2
 
   class ArticleControllerV2(implicit val swagger: Swagger) extends NdlaController with SwaggerSupport {
@@ -246,6 +246,7 @@ trait ArticleControllerV2 {
         responseMessages(response400, response403, response500))
 
     post("/", operation(newArticle)) {
+      authUser.assertHasId()
       authRole.assertHasRole(RoleWithWriteAccess)
       val newArticle = extract[NewArticleV2](request.body)
       writeService.newArticleV2(newArticle) match {
@@ -267,6 +268,7 @@ trait ArticleControllerV2 {
         responseMessages(response400, response403, response404, response500))
 
     patch("/:article_id", operation(updateArticle)) {
+      authUser.assertHasId()
       authRole.assertHasRole(RoleWithWriteAccess)
 
       val articleId = long("article_id")

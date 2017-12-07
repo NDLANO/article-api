@@ -29,6 +29,7 @@ class InternControllerTest extends UnitSuite with TestEnvironment with ScalatraF
   val author = Author("forfatter", "Henrik")
   val sampleNode = NodeToConvert(List(sampleTitle), List(sampleContent), "by-sa", Seq(author), List(ArticleTag(List("tag"), "en")), "fagstoff", "fagstoff", new Date(0), new Date(1), ArticleType.Standard)
   val sampleNode2 = sampleNode.copy(contents = List(sampleTranslationContent))
+  val authHeaderWithWriteRole = "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiIsImtpZCI6Ik9FSTFNVVU0T0RrNU56TTVNekkyTXpaRE9EazFOMFl3UXpkRE1EUXlPRFZDUXpRM1FUSTBNQSJ9.eyJodHRwczovL25kbGEubm8vY2xpZW50X2lkIjoieHh4eXl5IiwiaXNzIjoiaHR0cHM6Ly9uZGxhLmV1LmF1dGgwLmNvbS8iLCJzdWIiOiJ4eHh5eXlAY2xpZW50cyIsImF1ZCI6Im5kbGFfc3lzdGVtIiwiaWF0IjoxNTEwMzA1NzczLCJleHAiOjE1MTAzOTIxNzMsInNjb3BlIjoiYXJ0aWNsZXM6d3JpdGUiLCJndHkiOiJjbGllbnQtY3JlZGVudGlhbHMifQ.kh82qM84FZgoo3odWbHTLWy-N049m7SyQw4gdatDMk43H2nWHA6gjsbJoiBIZ7BcbSfHElEZH0tP94vRy-kjgA3hflhOBbsD73DIxRvnbH1kSXlBnl6ISbgtHnzv1wQ7ShykMAcBsoWQ6J16ixK_p-msW42kcEqK1LanzPy-_qI"
   lazy val controller = new InternController
   addServlet(controller, "/*")
 
@@ -36,7 +37,7 @@ class InternControllerTest extends UnitSuite with TestEnvironment with ScalatraF
 
     when(extractService.getNodeData(nodeId2)).thenReturn(sampleNode2)
 
-    post(s"/import/$nodeId2") {
+    post(s"/import/$nodeId2", headers = Map("Authorization" -> authHeaderWithWriteRole)) {
       status should equal(500)
     }
   }
@@ -46,7 +47,7 @@ class InternControllerTest extends UnitSuite with TestEnvironment with ScalatraF
     val newArticle = TestData.sampleArticleWithByNcSa.copy(id=Some(newNodeId))
     when(extractConvertStoreContent.processNode(nodeId, false)).thenReturn(Try((newArticle, ImportStatus.empty)))
 
-    post(s"/import/$nodeId", "forceUpdate" -> "false") {
+    post(s"/import/$nodeId", params = Map("forceUpdate" -> "false"), headers = Map("Authorization" -> authHeaderWithWriteRole)) {
       status should equal(200)
       val convertedBody = read[ImportStatus](body)
       convertedBody should equal(ImportStatus(s"Successfully imported node $nodeId: $newNodeId", Set[String]()))
@@ -56,7 +57,7 @@ class InternControllerTest extends UnitSuite with TestEnvironment with ScalatraF
   test("That POST /import/:node_id status code is 500 with a message if processNode fails") {
     when(extractConvertStoreContent.processNode(nodeId, false)).thenReturn(Failure(new RuntimeException("processNode failed")))
 
-    post(s"/import/$nodeId", "forceUpdate" -> "false") {
+    post(s"/import/$nodeId", params = Map("forceUpdate" -> "false"), headers = Map("Authorization" -> authHeaderWithWriteRole)) {
       status should equal(500)
     }
   }
