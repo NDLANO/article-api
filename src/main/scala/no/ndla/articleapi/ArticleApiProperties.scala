@@ -89,9 +89,12 @@ object ArticleApiProperties extends LazyLogging {
 
   val NDLABrightcoveAccountId = prop("NDLA_BRIGHTCOVE_ACCOUNT_ID")
   val NDLABrightcovePlayerId = prop("NDLA_BRIGHTCOVE_PLAYER_ID")
-  val EnableJoubelH5POembed = booleanProp("ENABLE_JOUBEL_H5P_OEMBED")
 
   val H5PResizerScriptUrl = "//ndla.no/sites/all/modules/h5p/library/js/h5p-resizer.js"
+  val H5PHost = Map(
+    "prod" -> "h5p.ndla.no"
+  ).getOrElse(Environment, "h5p-test.ndla.no")
+
   val NDLABrightcoveVideoScriptUrl = s"//players.brightcove.net/$NDLABrightcoveAccountId/${NDLABrightcovePlayerId}_default/index.min.js"
   val NRKVideoScriptUrl = Seq("//www.nrk.no/serum/latest/js/video_embed.js", "//nrk.no/serum/latest/js/video_embed.js")
 

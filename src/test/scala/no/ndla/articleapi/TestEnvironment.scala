@@ -117,6 +117,7 @@ trait TestEnvironment
   val audioApiClient = mock[AudioApiClient]
   val imageApiClient = mock[ImageApiClient]
   val draftApiClient = mock[DraftApiClient]
+  val h5pApiClient = mock[H5PApiClient]
 
   val clock = mock[SystemClock]
   val authUser = mock[AuthUser]

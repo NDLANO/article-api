@@ -16,6 +16,7 @@ trait Role {
 
   class AuthRole {
     val RoleWithWriteAccess = "articles:write"
+    val DraftRoleWithWriteAccess = "drafts:write"
 
     def hasRoles(roles: Set[String]): Boolean = roles.map(AuthUser.hasRole).forall(identity)
 
@@ -25,6 +26,7 @@ trait Role {
     }
 
     def assertHasWritePermission(): Unit = assertHasRoles(RoleWithWriteAccess)
+    def assertHasDraftWritePermission(): Unit = assertHasRoles(DraftRoleWithWriteAccess)
   }
 
 }

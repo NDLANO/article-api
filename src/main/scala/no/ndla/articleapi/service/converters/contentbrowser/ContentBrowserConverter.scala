@@ -15,7 +15,6 @@ import org.jsoup.nodes.Element
 import scala.annotation.tailrec
 import no.ndla.articleapi.integration.{ConverterModule, LanguageContent}
 import no.ndla.articleapi.model.domain.ImportStatus
-import no.ndla.articleapi.ArticleApiProperties.EnableJoubelH5POembed
 import no.ndla.articleapi.integration.ConverterModule.{jsoupDocumentToString, stringToJsoupDocument}
 import no.ndla.articleapi.model.api.ImportException
 
@@ -28,7 +27,7 @@ trait ContentBrowserConverter {
   class ContentBrowserConverter extends ConverterModule with LazyLogging {
     private val contentBrowserModules = Map[String, ContentBrowserConverterModule](
       ImageConverter.typeName -> ImageConverter,
-      if (EnableJoubelH5POembed) JoubelH5PConverter.typeName -> JoubelH5PConverter else H5PConverter.typeName -> H5PConverter,
+      H5PConverter.typeName -> H5PConverter,
       LenkeConverter.typeName -> LenkeConverter,
       OppgaveConverter.typeName -> OppgaveConverter,
       FagstoffConverter.typeName -> FagstoffConverter,

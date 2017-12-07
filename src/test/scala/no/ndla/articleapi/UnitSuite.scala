@@ -16,7 +16,6 @@ import org.scalatest.mockito.MockitoSugar
 abstract class UnitSuite extends FunSuite with Matchers with OptionValues with Inside with Inspectors with MockitoSugar with BeforeAndAfterEach with BeforeAndAfterAll {
 
   setEnv("NDLA_ENVIRONMENT", "local")
-  setEnv("ENABLE_JOUBEL_H5P_OEMBED", "true")
 
   setEnv("SEARCH_SERVER", "some-server")
   setEnv("SEARCH_REGION", "some-region")

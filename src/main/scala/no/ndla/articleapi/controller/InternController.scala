@@ -11,6 +11,7 @@ package no.ndla.articleapi.controller
 
 import java.util.concurrent.TimeUnit
 
+import no.ndla.articleapi.auth.{Role, User}
 import no.ndla.articleapi.model.api.{ArticleIdV2, UpdatedConcept}
 import no.ndla.articleapi.model.domain.{Concept, Language}
 import no.ndla.articleapi.model.api.ArticleIdV2
@@ -39,6 +40,8 @@ trait InternController {
     with IndexService
     with ArticleIndexService
     with ConceptIndexService
+    with User
+    with Role
     with ContentValidator =>
   val internController: InternController
 
@@ -69,6 +72,9 @@ trait InternController {
     }
 
     post("/import/:external_id") {
+      authUser.assertHasId()
+      authRole.assertHasWritePermission()
+
       val externalId = params("external_id")
       val forceUpdateArticle = booleanOrDefault("forceUpdate", false)
 
@@ -91,12 +97,15 @@ trait InternController {
     }
 
     post("/id/article/allocate/?") {
+      authRole.assertHasDraftWritePermission()
+
       val externalId = paramOrNone("external-id")
       val externalSubjectId = paramAsListOfString("external-subject-id")
       ArticleIdV2(writeService.allocateArticleId(externalId, externalSubjectId.toSet))
     }
 
     post("/id/concept/allocate/?") {
+      authRole.assertHasDraftWritePermission()
       val externalId = paramOrNone("external-id")
       ArticleIdV2(writeService.allocateConceptId(externalId))
     }
@@ -132,8 +141,10 @@ trait InternController {
     }
 
     post("/article/:id") {
+      authRole.assertHasWritePermission()
       val article = extract[Article](request.body)
       val id = long("id")
+
       writeService.updateArticle(article.copy(id=Some(id))) match {
         case Success(a) => a
         case Failure(ex) => errorHandler(ex)
@@ -141,6 +152,7 @@ trait InternController {
     }
 
     post("/concept/:id") {
+      authRole.assertHasWritePermission()
       val id = long("id")
       val concept = extract[Concept](request.body)
 
