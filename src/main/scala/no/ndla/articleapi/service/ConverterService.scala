@@ -11,7 +11,7 @@ package no.ndla.articleapi.service
 
 import java.util.Map.Entry
 
-import com.google.gson.{JsonElement, JsonObject}
+import com.google.gson._
 import com.typesafe.scalalogging.LazyLogging
 import io.searchbox.core.{SearchResult => JestSearchResult}
 import no.ndla.articleapi.ArticleApiProperties._
@@ -25,11 +25,14 @@ import no.ndla.articleapi.model.domain._
 import no.ndla.articleapi.repository.ArticleRepository
 import no.ndla.mapping.License.{getLicense, getLicenses}
 import no.ndla.network.ApplicationUrl
-import no.ndla.validation.{HtmlTagRules, EmbedTagRules, ResourceType, TagAttributes}
+import no.ndla.validation.{EmbedTagRules, HtmlTagRules, ResourceType, TagAttributes}
 
 import scala.annotation.tailrec
 import scala.collection.JavaConverters._
 import scala.util.{Failure, Success, Try}
+
+import org.json4s._
+import org.json4s.native.JsonMethods._
 
 trait ConverterService {
   this: ConverterModules with ExtractConvertStoreContent with ImageApiClient with Clock with ArticleRepository with DraftApiClient with User =>
@@ -37,16 +40,53 @@ trait ConverterService {
 
   class ConverterService extends LazyLogging {
 
+    def getLanguageFromHitString(jsonString: String): String = {
+      implicit val formats = DefaultFormats
+      val ra = parse(jsonString) \ "hits" \ "hits"
+
+      val hits = ra.asInstanceOf[JArray].arr //TODO: probably sort this too
+
+      hits.map(hit => {
+        val innerHits = hit \ "inner_hits"
+        val sorted = innerHits.children.sortBy(innerHit => {
+          (innerHit \ "hits" \ "max_score").toOption.map(s => {
+            s.extract[Double]
+          }).getOrElse[Double](0)
+        })
+        innerHits
+      }).reverse
+
+      "test"
+    }
+
     def getHitsV2(response: JestSearchResult, language: String): Seq[ArticleSummaryV2] = {
-      var resultList = Seq[ArticleSummaryV2]()
       response.getTotal match {
         case count: Integer if count > 0 => {
-          val resultArray = response.getJsonObject.get("hits").asInstanceOf[JsonObject].get("hits").getAsJsonArray
-          val iterator = resultArray.iterator()
-          while (iterator.hasNext) {
-            resultList = resultList :+ hitAsArticleSummaryV2(iterator.next().asInstanceOf[JsonObject].get("_source").asInstanceOf[JsonObject], language)
-          }
-          resultList
+          val resultArray = response.getJsonObject.getAsJsonObject("hits").getAsJsonArray("hits")
+
+          resultArray.asScala.map(result => {
+            val resultObject = result.asInstanceOf[JsonObject]
+            val jsonSource = resultObject.get("_source").asInstanceOf[JsonObject]
+            val innerHits = resultObject.getAsJsonObject("inner_hits").entrySet().asScala
+
+            val sortedHits = innerHits.toSeq.map(j => j.getValue).sortBy(j => {
+              val hits = j.asInstanceOf[JsonObject].getAsJsonObject("hits")
+              hits.get("max_score") match {
+                case number: JsonPrimitive => number.getAsDouble
+                case _ => 0
+              }
+            }).reverse
+
+            val returnedLanguage = sortedHits.headOption match {
+              case Some(hit) =>
+                val h = hit.asInstanceOf[JsonObject].getAsJsonObject("hits")
+                val x = h.getAsJsonArray("hits").get(0).getAsJsonObject.getAsJsonObject("highlight").entrySet().asScala.headOption
+                x.map(es => es.getKey.split('.').last).getOrElse(language)
+              case _ => language
+            }
+
+            hitAsArticleSummaryV2(jsonSource, returnedLanguage)
+          }).toSeq
         }
         case _ => Seq()
       }
