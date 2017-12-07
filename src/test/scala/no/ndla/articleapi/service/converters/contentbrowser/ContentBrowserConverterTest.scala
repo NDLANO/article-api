@@ -31,19 +31,6 @@ class ContentBrowserConverterTest extends UnitSuite with TestEnvironment {
     contentBrowserConverter.convert(sampleContent, ImportStatus.empty).isFailure should be (true)
   }
 
-  test("That content-browser strings of type h5p_content are converted correctly") {
-    val (validNodeId, joubelH5PIdId) = ValidH5PNodeIds.head
-    val sampleContentString = s"[contentbrowser ==nid=$validNodeId==imagecache=Fullbredde==width===alt=$sampleAlt==link===node_link=1==link_type=link_to_content==lightbox_size===remove_fields[76661]=1==remove_fields[76663]=1==remove_fields[76664]=1==remove_fields[76666]=1==insertion=inline==link_title_text= ==link_text= ==text_align===css_class=contentbrowser contentbrowser]"
-    val initialContent = sampleContent.copy(content=s"<article>$sampleContentString</article>")
-    val expectedResult = s"""<article><$ResourceHtmlEmbedTag data-resource="h5p" data-url="${JoubelH5PConverter.JoubelH5PBaseUrl}/$joubelH5PIdId"></article>"""
-
-    when(extractService.getNodeType(validNodeId)).thenReturn(Some("h5p_content"))
-    val Success((result, _)) = contentBrowserConverter.convert(initialContent, ImportStatus.empty)
-
-    result.content should equal (expectedResult)
-    result.requiredLibraries.size should equal (0)
-  }
-
   test("That Content-browser strings of type image are converted into HTML img tags") {
     val (nodeId, imageUrl, alt) = ("1234", "full.jpeg", "Fotografi")
     val newId = "1"
