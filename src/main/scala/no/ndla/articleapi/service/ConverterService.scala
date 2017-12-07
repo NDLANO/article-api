@@ -40,54 +40,39 @@ trait ConverterService {
 
   class ConverterService extends LazyLogging {
 
-    def getLanguageFromHitString(jsonString: String): String = {
+    def getLanguageFromHit(jsonObject: JValue): Option[String] = {
       implicit val formats = DefaultFormats
-      val ra = parse(jsonString) \ "hits" \ "hits"
 
-      val hits = ra.asInstanceOf[JArray].arr //TODO: probably sort this too
+      val innerHits = jsonObject \ "inner_hits"
 
-      hits.map(hit => {
-        val innerHits = hit \ "inner_hits"
-        val sorted = innerHits.children.sortBy(innerHit => {
-          (innerHit \ "hits" \ "max_score").toOption.map(s => {
-            s.extract[Double]
-          }).getOrElse[Double](0)
-        })
-        innerHits
+      val sortedInnerHits = innerHits.children.sortBy(innerHit => {
+        (innerHit \ "hits" \ "max_score").toOption.map(s => {
+          s.extract[Double]
+        }).getOrElse[Double](0)
       }).reverse
 
-      "test"
+      sortedInnerHits.headOption.flatMap(innerHit => {
+        (innerHit \\ "highlight").extract[Map[String, Any]].keySet.headOption.map(fieldName =>
+          fieldName.split('.').last)
+      })
     }
 
     def getHitsV2(response: JestSearchResult, language: String): Seq[ArticleSummaryV2] = {
       response.getTotal match {
-        case count: Integer if count > 0 => {
-          val resultArray = response.getJsonObject.getAsJsonObject("hits").getAsJsonArray("hits")
+        case count: Integer if count > 0 =>
+          val resultArray = (parse(response.getJsonString) \ "hits" \ "hits").asInstanceOf[JArray].arr
 
-          resultArray.asScala.map(result => {
-            val resultObject = result.asInstanceOf[JsonObject]
-            val jsonSource = resultObject.get("_source").asInstanceOf[JsonObject]
-            val innerHits = resultObject.getAsJsonObject("inner_hits").entrySet().asScala
-
-            val sortedHits = innerHits.toSeq.map(j => j.getValue).sortBy(j => {
-              val hits = j.asInstanceOf[JsonObject].getAsJsonObject("hits")
-              hits.get("max_score") match {
-                case number: JsonPrimitive => number.getAsDouble
-                case _ => 0
-              }
-            }).reverse
-
-            val returnedLanguage = sortedHits.headOption match {
-              case Some(hit) =>
-                val h = hit.asInstanceOf[JsonObject].getAsJsonObject("hits")
-                val x = h.getAsJsonArray("hits").get(0).getAsJsonObject.getAsJsonObject("highlight").entrySet().asScala.headOption
-                x.map(es => es.getKey.split('.').last).getOrElse(language)
+          resultArray.map(result => {
+            val returnedLanguage = getLanguageFromHit(result) match {
+              case Some(lang) => lang
               case _ => language
             }
 
+            val hitString = compact(render(result \ "_source"))
+            val jsonSource = new com.google.gson.JsonParser().parse(hitString).getAsJsonObject
+
             hitAsArticleSummaryV2(jsonSource, returnedLanguage)
-          }).toSeq
-        }
+          })
         case _ => Seq()
       }
     }
