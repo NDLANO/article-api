@@ -91,49 +91,9 @@ trait HtmlTagGenerator {
       buildEmbedContent(dataAttributes)
     }
 
-    def buildPreziInlineContent(url: String, width: String, height: String) = {
+    def buildRegularInlineContent(url: String, width: String, height: String, resourceType: ResourceType.Value) = {
       val dataAttributes = Map(
-        TagAttributes.DataResource -> ResourceType.Prezi.toString,
-        TagAttributes.DataUrl -> url,
-        TagAttributes.DataWidth -> width,
-        TagAttributes.DataHeight -> height
-      )
-      buildEmbedContent(dataAttributes)
-    }
-
-    def buildCommoncraftInlineContent(url: String, width: String, height: String) = {
-      val dataAttributes = Map(
-        TagAttributes.DataResource -> ResourceType.Commoncraft.toString,
-        TagAttributes.DataUrl -> url,
-        TagAttributes.DataWidth -> width,
-        TagAttributes.DataHeight -> height
-      )
-      buildEmbedContent(dataAttributes)
-    }
-
-    def buildNdlaFilmIundervisningInlineContent(url: String, width: String, height: String) = {
-      val dataAttributes = Map(
-        TagAttributes.DataResource -> ResourceType.NdlaFilmIundervisning.toString,
-        TagAttributes.DataUrl -> url,
-        TagAttributes.DataWidth -> width,
-        TagAttributes.DataHeight -> height
-      )
-      buildEmbedContent(dataAttributes)
-    }
-
-    def buildKahootInlineContent(url: String, width: String, height: String) = {
-      val dataAttributes = Map(
-        TagAttributes.DataResource -> ResourceType.Kahoot.toString,
-        TagAttributes.DataUrl -> url,
-        TagAttributes.DataWidth -> width,
-        TagAttributes.DataHeight -> height
-      )
-      buildEmbedContent(dataAttributes)
-    }
-
-    def buildKhanAcademyInlineContent(url: String, width: String, height: String) = {
-      val dataAttributes = Map(
-        TagAttributes.DataResource -> ResourceType.KhanAcademy.toString,
+        TagAttributes.DataResource -> resourceType.toString,
         TagAttributes.DataUrl -> url,
         TagAttributes.DataWidth -> width,
         TagAttributes.DataHeight -> height
