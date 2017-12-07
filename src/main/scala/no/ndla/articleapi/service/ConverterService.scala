@@ -54,7 +54,12 @@ trait ConverterService {
       sortedInnerHits.headOption.flatMap(innerHit => {
         (innerHit \\ "highlight").extract[Map[String, Any]].keySet.headOption.map(fieldName =>
           fieldName.split('.').last)
-      })
+      }) match {
+        case Some(lang) => Some(lang)
+        case _ =>
+          (jsonObject \ "_source" \ "title").extract[Map[String, Any]].keySet.headOption.map(fieldName =>
+            fieldName.split('.').last)
+      }
     }
 
     def getHitsV2(response: JestSearchResult, language: String): Seq[ArticleSummaryV2] = {
@@ -63,15 +68,15 @@ trait ConverterService {
           val resultArray = (parse(response.getJsonString) \ "hits" \ "hits").asInstanceOf[JArray].arr
 
           resultArray.map(result => {
-            val returnedLanguage = getLanguageFromHit(result) match {
-              case Some(lang) => lang
+            val matchedLanguage = language match {
+              case Language.AllLanguages => getLanguageFromHit(result).getOrElse(language)
               case _ => language
             }
 
             val hitString = compact(render(result \ "_source"))
             val jsonSource = new com.google.gson.JsonParser().parse(hitString).getAsJsonObject
 
-            hitAsArticleSummaryV2(jsonSource, returnedLanguage)
+            hitAsArticleSummaryV2(jsonSource, matchedLanguage)
           })
         case _ => Seq()
       }

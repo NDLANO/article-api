@@ -44,6 +44,7 @@ trait SearchService {
     def getSortDefinition(sort: Sort.Value, language: String): FieldSortBuilder = {
       val sortLanguage = language match {
         case domain.Language.NoLanguage => domain.Language.DefaultLanguage
+        case domain.Language.AllLanguages => domain.Language.DefaultLanguage //TODO: find a way to sort by title across languages
         case _ => language
       }
 
