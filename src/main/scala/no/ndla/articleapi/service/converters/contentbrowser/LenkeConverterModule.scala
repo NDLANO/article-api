@@ -74,6 +74,7 @@ trait LenkeConverterModule {
       val KahootUrlPattern = """(.*\.?play.kahoot.it)""".r
       val vimeoProUrlPattern = """(.*\.?vimeopro.com)""".r
       val khanAcademyUrlPattern = """(.*\.?khanacademy.org)""".r
+      val kunnskapsFilmUrlPattern = """(.*\.?kunnskapsfilm.no)""".r
       val tv2SkoleUrlPattern = """(.*\.?tv2skole.no)""".r
       val vgNoUrlPattern = """(.*\.?vg.no)""".r
       val scribdUrlPattern = """(.*\.?scribd.com)""".r
@@ -85,6 +86,7 @@ trait LenkeConverterModule {
         case NdlaFilmIundervisningUrlPattern(_) => getRegularEmbedTag(embedCode, ResourceType.NdlaFilmIundervisning)
         case KahootUrlPattern(_) => getRegularEmbedTag(embedCode, ResourceType.Kahoot)
         case vimeoProUrlPattern(_) => getVimeoProEmbedTag(embedCode)
+        case kunnskapsFilmUrlPattern(_) => getKunnskapsFilmEmbedTag(embedCode)
         case khanAcademyUrlPattern(_) => getRegularEmbedTag(embedCode, ResourceType.KhanAcademy)
         case tv2SkoleUrlPattern(_) => getRegularEmbedTag(embedCode, ResourceType.Tv2Skole)
         case vgNoUrlPattern(_) => getRegularEmbedTag(embedCode, ResourceType.VgNo)
@@ -113,6 +115,14 @@ trait LenkeConverterModule {
       val doc = Jsoup.parseBodyFragment(embedCode).select("iframe").first()
       val src = doc.attr("src")
 
+      (HtmlTagGenerator.buildExternalInlineEmbedContent(src), None)
+    }
+
+    def getKunnskapsFilmEmbedTag(embedCode: String): (String, Option[RequiredLibrary]) = {
+      val doc = Jsoup.parseBodyFragment(embedCode).select("iframe").first()
+      val src = doc.attr("src")
+
+      // Since all sources seem to be vimeo urls, we simply use data-resource=external to let oembed-proxy handle these
       (HtmlTagGenerator.buildExternalInlineEmbedContent(src), None)
     }
 
