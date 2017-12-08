@@ -50,6 +50,7 @@ trait SearchService {
         case _ => language
       }
 
+      // Elasticsearch 'Painless' script for sorting by title if searching for all languages
       val supportedLanguages = Language.languageAnalyzers.map(la => la.lang).mkString("'", "', '", "'")
       val titleSortScript =
         s"""

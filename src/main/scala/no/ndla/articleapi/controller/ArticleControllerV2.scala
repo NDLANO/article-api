@@ -100,7 +100,7 @@ trait ArticleControllerV2 {
         searchResult.totalCount,
         searchResult.page,
         searchResult.pageSize,
-        searchResult.language,
+        if (searchResult.language == "*") "all" else searchResult.language,
         hitResult
       )
     }
