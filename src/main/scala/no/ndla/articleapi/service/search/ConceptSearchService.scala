@@ -112,7 +112,7 @@ trait ConceptSearchService {
       }
 
       jestClient.execute(request.build()) match {
-        case Success(response) => api.ConceptSearchResult(response.getTotal.toLong, page, numResults, getHits(response, searchLanguage))
+        case Success(response) => api.ConceptSearchResult(response.getTotal.toLong, page, numResults, getHits(response, searchLanguage, hitToApiModel))
         case Failure(f) => errorHandler(Failure(f))
       }
     }

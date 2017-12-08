@@ -33,20 +33,20 @@ trait SearchService {
 
     def hitToApiModel(hit: JsonObject, language: String): T
 
-    def getHits(response: SearchResult, language: String): Seq[T] = {
+    def getHits(response: SearchResult, language: String, hitToApi:(JsonObject, String) => T): Seq[T] = {
       response.getTotal match {
         case count: Integer if count > 0 =>
           val resultArray = (parse(response.getJsonString) \ "hits" \ "hits").asInstanceOf[JArray].arr
 
           resultArray.map(result => {
             val matchedLanguage = language match {
-              case "*" => converterService.getLanguageFromHit(result).getOrElse(language)
+              case Language.AllLanguages | "*" => converterService.getLanguageFromHit(result).getOrElse(language)
               case _ => language
             }
 
             val hitString = compact(render(result \ "_source"))
             val jsonSource = new JsonParser().parse(hitString).getAsJsonObject
-            hitToApiModel(jsonSource, matchedLanguage)
+            hitToApi(jsonSource, matchedLanguage)
           })
         case _ => Seq()
       }

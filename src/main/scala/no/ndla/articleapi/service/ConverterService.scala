@@ -64,26 +64,6 @@ trait ConverterService {
       }
     }
 
-    def getHitsV2(response: JestSearchResult, language: String): Seq[ArticleSummaryV2] = {
-      response.getTotal match {
-        case count: Integer if count > 0 =>
-          val resultArray = (parse(response.getJsonString) \ "hits" \ "hits").asInstanceOf[JArray].arr
-
-          resultArray.map(result => {
-            val matchedLanguage = language match {
-              case Language.AllLanguages => getLanguageFromHit(result).getOrElse(language)
-              case _ => language
-            }
-
-            val hitString = compact(render(result \ "_source"))
-            val jsonSource = new com.google.gson.JsonParser().parse(hitString).getAsJsonObject
-
-            hitAsArticleSummaryV2(jsonSource, matchedLanguage)
-          })
-        case _ => Seq()
-      }
-    }
-
     def hitAsArticleSummaryV2(hit: JsonObject, language: String): ArticleSummaryV2 = {
       val titles = getEntrySetSeq(hit, "title").map(entr => ArticleTitle(entr.getValue.getAsString, entr.getKey))
       val introductions = getEntrySetSeq(hit, "introduction").map(entr => ArticleIntroduction(entr.getValue.getAsString, entr.getKey))

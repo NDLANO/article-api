@@ -95,7 +95,7 @@ trait ArticleControllerV2 {
         )
       }
 
-      val hitResult = converterService.getHitsV2(searchResult.response, language)
+      val hitResult = articleSearchService.getHits(searchResult.response, language, converterService.hitAsArticleSummaryV2)
       SearchResultV2(
         searchResult.totalCount,
         searchResult.page,
