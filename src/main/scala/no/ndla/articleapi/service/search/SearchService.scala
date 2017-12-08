@@ -11,19 +11,22 @@ package no.ndla.articleapi.service.search
 
 import java.lang.Math.max
 
-import com.google.gson.JsonObject
+import com.google.gson.{JsonObject, JsonParser}
 import com.typesafe.scalalogging.LazyLogging
 import io.searchbox.core.{Count, SearchResult}
 import no.ndla.articleapi.ArticleApiProperties.{DefaultPageSize, MaxPageSize}
 import no.ndla.articleapi.integration.ElasticClient
 import no.ndla.articleapi.model.domain
 import no.ndla.articleapi.model.domain._
+import no.ndla.articleapi.service.ConverterService
 import org.elasticsearch.script.Script
 import org.elasticsearch.search.sort.ScriptSortBuilder.ScriptSortType
 import org.elasticsearch.search.sort._
+import org.json4s._
+import org.json4s.native.JsonMethods._
 
 trait SearchService {
-  this: ElasticClient with LazyLogging =>
+  this: ElasticClient with ConverterService with LazyLogging =>
 
   trait SearchService[T] {
     val searchIndex: String
@@ -31,16 +34,21 @@ trait SearchService {
     def hitToApiModel(hit: JsonObject, language: String): T
 
     def getHits(response: SearchResult, language: String): Seq[T] = {
-      var resultList = Seq[T]()
       response.getTotal match {
         case count: Integer if count > 0 =>
-          val resultArray = response.getJsonObject.get("hits").asInstanceOf[JsonObject].get("hits").getAsJsonArray
-          val iterator = resultArray.iterator()
-          while (iterator.hasNext) {
-            resultList = resultList :+ hitToApiModel(iterator.next().asInstanceOf[JsonObject].get("_source").asInstanceOf[JsonObject], language)
-          }
-          resultList
-        case _ => Seq.empty
+          val resultArray = (parse(response.getJsonString) \ "hits" \ "hits").asInstanceOf[JArray].arr
+
+          resultArray.map(result => {
+            val matchedLanguage = language match {
+              case "*" => converterService.getLanguageFromHit(result).getOrElse(language)
+              case _ => language
+            }
+
+            val hitString = compact(render(result \ "_source"))
+            val jsonSource = new JsonParser().parse(hitString).getAsJsonObject
+            hitToApiModel(jsonSource, matchedLanguage)
+          })
+        case _ => Seq()
       }
     }
 

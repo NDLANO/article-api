@@ -270,7 +270,7 @@ class ConceptSearchServiceTest extends UnitSuite with TestEnvironment {
   }
 
   test("Searching with query for all languages should return language that matched") {
-    val search = conceptSearchService.matchingQuery("Cats", List(), "all", 1, 10, Sort.ByRelevanceDesc)
+    val search = conceptSearchService.matchingQuery("Cats", List(), Language.AllLanguages, 1, 10, Sort.ByRelevanceDesc)
     val hits = search.results
 
     search.totalCount should equal(1)
