@@ -117,6 +117,26 @@ class ArticleSearchServiceTest extends UnitSuite with TestEnvironment {
     updated = today.minusDays(5).toDate,
     articleType = ArticleType.TopicArticle.toString
   )
+  val article10 = TestData.sampleArticleWithPublicDomain.copy(
+    id = Option(10),
+    title = List(ArticleTitle("This article is in english", "en")),
+    introduction = List(ArticleIntroduction("Engulsk", "en")),
+    content = List(ArticleContent("<p>Something something <em>english</em> What", "en")),
+    tags = List(ArticleTag(List("englando"), "en")),
+    created = today.minusDays(10).toDate,
+    updated = today.minusDays(5).toDate,
+    articleType = ArticleType.TopicArticle.toString
+  )
+  val article11 = TestData.sampleArticleWithPublicDomain.copy(
+    id = Option(11),
+    title = List(ArticleTitle("Katter", "nb"), ArticleTitle("Cats", "en")),
+    introduction = List(ArticleIntroduction("Katter er store", "nb"), ArticleIntroduction("Cats are big", "en")),
+    content = List(ArticleContent("<p>Noe om en katt</p>", "nb"), ArticleContent("<p>Something about a cat</p>", "en")),
+    tags = List(ArticleTag(List("katt"), "nb"), ArticleTag(List("cat"), "en")),
+    created = today.minusDays(10).toDate,
+    updated = today.minusDays(5).toDate,
+    articleType = ArticleType.TopicArticle.toString
+  )
 
   override def beforeAll = {
     articleIndexService.createIndexWithName(ArticleApiProperties.ArticleSearchIndex)
@@ -130,8 +150,10 @@ class ArticleSearchServiceTest extends UnitSuite with TestEnvironment {
     articleIndexService.indexDocument(article7)
     articleIndexService.indexDocument(article8)
     articleIndexService.indexDocument(article9)
+    articleIndexService.indexDocument(article10)
+    articleIndexService.indexDocument(article11)
 
-    blockUntil(() => articleSearchService.countDocuments == 9)
+    blockUntil(() => articleSearchService.countDocuments == 11)
   }
 
   override def afterAll() = {
@@ -156,66 +178,68 @@ class ArticleSearchServiceTest extends UnitSuite with TestEnvironment {
 
   test("all should return only articles of a given type if a type filter is specified") {
     val results = articleSearchService.all(List(), Language.DefaultLanguage, None, 1, 10, Sort.ByIdAsc, Seq(ArticleType.TopicArticle.toString))
-    results.totalCount should be(2)
+    results.totalCount should be(3)
     converterService.getHitsV2(results.response, Language.DefaultLanguage).head.id should be (8)
 
     val results2 = articleSearchService.all(List(), Language.DefaultLanguage, None, 1, 10, Sort.ByIdAsc, ArticleType.all)
-    results2.totalCount should be(8)
+    results2.totalCount should be(9)
   }
 
   test("That all returns all documents ordered by id ascending") {
     val results = articleSearchService.all(List(), Language.DefaultLanguage, None, 1, 10, Sort.ByIdAsc, Seq.empty)
     val hits = converterService.getHitsV2(results.response, Language.DefaultLanguage)
-    results.totalCount should be(8)
+    results.totalCount should be(9)
     hits.head.id should be(1)
     hits(1).id should be(2)
     hits(2).id should be(3)
     hits(3).id should be(5)
     hits(4).id should be(6)
     hits(5).id should be(7)
-    hits.last.id should be(9)
+    hits.last.id should be(11)
   }
 
   test("That all returns all documents ordered by id descending") {
     val results = articleSearchService.all(List(), Language.DefaultLanguage, None, 1, 10, Sort.ByIdDesc, Seq.empty)
     val hits = converterService.getHitsV2(results.response, Language.DefaultLanguage)
-    results.totalCount should be(8)
-    hits.head.id should be (9)
+    results.totalCount should be(9)
+    hits.head.id should be (11)
     hits.last.id should be (1)
   }
 
   test("That all returns all documents ordered by title ascending") {
     val results = articleSearchService.all(List(), Language.DefaultLanguage, None, 1, 10, Sort.ByTitleAsc, Seq.empty)
     val hits = converterService.getHitsV2(results.response, Language.DefaultLanguage)
-    results.totalCount should be(8)
+    results.totalCount should be(9)
     hits.head.id should be(8)
     hits(1).id should be(9)
     hits(2).id should be(1)
     hits(3).id should be(3)
     hits(4).id should be(5)
-    hits(5).id should be(6)
-    hits(6).id should be(2)
+    hits(5).id should be(11)
+    hits(6).id should be(6)
+    hits(7).id should be(2)
     hits.last.id should be(7)
   }
 
   test("That all returns all documents ordered by title descending") {
     val results = articleSearchService.all(List(), Language.DefaultLanguage, None, 1, 10, Sort.ByTitleDesc, Seq.empty)
     val hits = converterService.getHitsV2(results.response, Language.DefaultLanguage)
-    results.totalCount should be(8)
+    results.totalCount should be(9)
     hits.head.id should be(7)
     hits(1).id should be(2)
     hits(2).id should be(6)
-    hits(3).id should be(5)
-    hits(4).id should be(3)
-    hits(5).id should be(1)
-    hits(6).id should be(9)
+    hits(3).id should be(11)
+    hits(4).id should be(5)
+    hits(5).id should be(3)
+    hits(6).id should be(1)
+    hits(7).id should be(9)
     hits.last.id should be(8)
   }
 
   test("That all returns all documents ordered by lastUpdated descending") {
     val results = articleSearchService.all(List(), Language.DefaultLanguage, None, 1, 10, Sort.ByLastUpdatedDesc, Seq.empty)
     val hits = converterService.getHitsV2(results.response, Language.DefaultLanguage)
-    results.totalCount should be(8)
+    results.totalCount should be(9)
     hits.head.id should be(3)
     hits.last.id should be(5)
   }
@@ -223,27 +247,29 @@ class ArticleSearchServiceTest extends UnitSuite with TestEnvironment {
   test("That all returns all documents ordered by lastUpdated ascending") {
     val results = articleSearchService.all(List(), Language.DefaultLanguage, None, 1, 10, Sort.ByLastUpdatedAsc, Seq.empty)
     val hits = converterService.getHitsV2(results.response, Language.DefaultLanguage)
-    results.totalCount should be(8)
+    results.totalCount should be(9)
     hits.head.id should be(5)
     hits(1).id should be(6)
     hits(2).id should be(7)
     hits(3).id should be(8)
     hits(4).id should be(9)
-    hits(5).id should be(1)
-    hits(6).id should be(2)
+    hits(5).id should be(11)
+    hits(6).id should be(1)
+    hits(7).id should be(2)
     hits.last.id should be(3)
   }
 
   test("That all filtering on license only returns documents with given license") {
     val results = articleSearchService.all(List(), Language.DefaultLanguage, Some("publicdomain"), 1, 10, Sort.ByTitleAsc, Seq.empty)
     val hits = converterService.getHitsV2(results.response, Language.DefaultLanguage)
-    results.totalCount should be(7)
+    results.totalCount should be(8)
     hits.head.id should be(8)
     hits(1).id should be(9)
     hits(2).id should be(3)
     hits(3).id should be(5)
-    hits(4).id should be(6)
-    hits(5).id should be(2)
+    hits(4).id should be(11)
+    hits(5).id should be(6)
+    hits(6).id should be(2)
     hits.last.id should be(7)
   }
 
@@ -260,12 +286,12 @@ class ArticleSearchServiceTest extends UnitSuite with TestEnvironment {
     val page2 = articleSearchService.all(List(), Language.DefaultLanguage, None, 2, 2, Sort.ByTitleAsc, Seq.empty)
     val hits1 = converterService.getHitsV2(page1.response, Language.DefaultLanguage)
     val hits2 = converterService.getHitsV2(page2.response, Language.DefaultLanguage)
-    page1.totalCount should be(8)
+    page1.totalCount should be(9)
     page1.page should be(1)
     hits1.size should be(2)
     hits1.head.id should be(8)
     hits1.last.id should be(9)
-    page2.totalCount should be(8)
+    page2.totalCount should be(9)
     page2.page should be(2)
     hits2.size should be(2)
     hits2.head.id should be(1)
@@ -346,6 +372,51 @@ class ArticleSearchServiceTest extends UnitSuite with TestEnvironment {
     val hits = converterService.getHitsV2(search.response, Language.DefaultLanguage)
     hits.map(_.id) should equal (Seq(9, 8))
   }
+
+  test("Search for all languages should return all articles in different languages") {
+    val search = articleSearchService.all(List(), Language.AllLanguages, None, 1, 100, Sort.ByTitleAsc, Seq.empty)
+
+    search.totalCount should equal(10)
+  }
+
+  test("Search for all languages should return all articles in correct language") {
+    val search = articleSearchService.all(List(), Language.AllLanguages, None, 1, 100, Sort.ByIdAsc, Seq.empty)
+    val hits = converterService.getHitsV2(search.response, Language.AllLanguages)
+
+    search.totalCount should equal(10)
+    hits(0).id should equal(1)
+    hits(1).id should equal(2)
+    hits(2).id should equal(3)
+    hits(3).id should equal(5)
+    hits(4).id should equal(6)
+    hits(5).id should equal(7)
+    hits(6).id should equal(8)
+    hits(7).id should equal(9)
+    hits(8).id should equal(10)
+    hits(9).id should equal(11)
+    hits(8).title.language should equal("en")
+    hits(9).title.language should equal("nb")
+  }
+
+  test("Search for all languages should return all languages if copyrighted") {
+    val search = articleSearchService.all(List(), Language.AllLanguages, Some("copyrighted"), 1, 100, Sort.ByTitleAsc, Seq.empty)
+    val hits = converterService.getHitsV2(search.response, Language.AllLanguages)
+
+    search.totalCount should equal(1)
+    hits.head.id should equal(4)
+  }
+
+  test("Searching with query for all languages should return language that matched") {
+    val search = articleSearchService.matchingQuery("Cats", List(), "all", None, 1, 10, Sort.ByRelevanceDesc, Seq.empty)
+    val hits = converterService.getHitsV2(search.response, Language.AllLanguages)
+
+    search.totalCount should equal(1)
+    hits.head.id should equal(11)
+    hits.head.title.title should equal("Cats")
+    hits.head.title.language should equal("en")
+  }
+
+
 
   def blockUntil(predicate: () => Boolean) = {
     var backoff = 0
