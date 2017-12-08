@@ -43,6 +43,8 @@ trait ConverterService {
     def getLanguageFromHit(jsonObject: JValue): Option[String] = {
       implicit val formats = DefaultFormats
 
+      // Fetches matched language from highlight in innerHit
+      // since elasticsearch doesn't return which nested field that matches
       val innerHits = jsonObject \ "inner_hits"
 
       val sortedInnerHits = innerHits.children.sortBy(innerHit => {

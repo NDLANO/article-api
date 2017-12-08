@@ -67,7 +67,7 @@ trait SearchService {
            |if (idx != -1) {
            |  return params['_source']['title'][arr[idx]];
            |} else {
-           |  return doc['id']; // Sort by id if there were no titles in supportedLanguages
+           |  return '\u00ff'; // Sort by last codepoint in unicode if no title is found.
            |}
            |""".stripMargin
       val script = new Script(titleSortScript)
