@@ -105,7 +105,7 @@ object TestData {
     Seq(),
     Seq(VisualElement("image", "en")),
     Seq(ArticleIntroduction("This is an introduction", "en")),
-    Seq(),
+    Seq(ArticleMetaDescription("meta", "en")),
     None,
     DateTime.now().minusDays(4).toDate,
     DateTime.now().minusDays(2).toDate,

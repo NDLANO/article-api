@@ -46,14 +46,22 @@ trait ContentValidator {
         article.requiredLibraries.flatMap(validateRequiredLibrary) ++
         article.metaImageId.flatMap(validateMetaImageId) ++
         article.visualElement.flatMap(v => validateVisualElement(v, allowUnknownLanguage)) ++
-        validateArticleType(article.articleType)
+        validateArticleType(article.articleType) ++
+        validateNonEmpty("content", article.content) ++
+        validateNonEmpty("title", article.title)
 
       if (validationErrors.isEmpty) {
         Success(article)
       } else {
         Failure(new ValidationException(errors = validationErrors))
       }
+    }
 
+    private def validateNonEmpty(field: String, values: Seq[LanguageField[_]]): Option[ValidationMessage] = {
+      if (values.isEmpty) {
+        Some(ValidationMessage(field, "Field must contain at least one entry"))
+      } else
+        None
     }
 
     private def validateConcept(concept: Concept, allowUnknownLanguage: Boolean): Try[Concept] = {
