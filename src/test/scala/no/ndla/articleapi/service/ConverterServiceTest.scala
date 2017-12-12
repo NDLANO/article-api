@@ -484,4 +484,27 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     service.mergeLanguageFields(existing, updated) should equal(Seq(desc1, desc3, oppdatertDesc2))
   }
 
+
+  test("That authors are translated correctly") {
+    val authors = List(
+      Author("Opphavsmann", "A"),
+      Author("Redaksjonelt", "B"),
+      Author("redaKsJoNelT", "C"),
+      Author("distributør", "D"),
+      Author("leVerandør", "E"),
+      Author("Språklig", "F")
+    )
+
+    val copyright = service.toDomainCopyright("by-sa", authors)
+    copyright.creators should contain(Author("Originator", "A"))
+    copyright.creators should contain(Author("Editorial", "B"))
+    copyright.creators should contain(Author("Editorial", "C"))
+
+    copyright.rightsholders should contain(Author("Distributor", "D"))
+    copyright.rightsholders should contain(Author("Supplier", "E"))
+
+    copyright.processors should contain(Author("Linguistic", "F"))
+
+  }
+
 }
