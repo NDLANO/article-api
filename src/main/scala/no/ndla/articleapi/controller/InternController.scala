@@ -11,8 +11,9 @@ package no.ndla.articleapi.controller
 
 import java.util.concurrent.TimeUnit
 
-import no.ndla.articleapi.ArticleApiProperties.RoleWithWriteAccess
 import no.ndla.articleapi.auth.{Role, User}
+import no.ndla.articleapi.model.api.{ArticleIdV2, UpdatedConcept}
+import no.ndla.articleapi.model.domain.{Concept, Language}
 import no.ndla.articleapi.model.api.ArticleIdV2
 import no.ndla.articleapi.model.domain.{Article, Language}
 import no.ndla.articleapi.repository.ArticleRepository
@@ -23,8 +24,8 @@ import no.ndla.validation.ValidationException
 import org.json4s.{DefaultFormats, Formats}
 import org.scalatra.{InternalServerError, NotFound, Ok}
 
+import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent._
-import ExecutionContext.Implicits.global
 import scala.concurrent.duration.Duration
 import scala.util.{Failure, Success}
 
@@ -47,7 +48,6 @@ trait InternController {
   class InternController extends NdlaController {
 
     protected implicit override val jsonFormats: Formats = DefaultFormats
-    private val RoleDraftWrite = "drafts:write"
 
     post("/index") {
       val indexResults = for {
@@ -73,7 +73,7 @@ trait InternController {
 
     post("/import/:external_id") {
       authUser.assertHasId()
-      authRole.assertHasRole(RoleWithWriteAccess)
+      authRole.assertHasWritePermission()
 
       val externalId = params("external_id")
       val forceUpdateArticle = booleanOrDefault("forceUpdate", false)
@@ -97,7 +97,7 @@ trait InternController {
     }
 
     post("/id/article/allocate/?") {
-      authRole.assertHasRole(RoleDraftWrite)
+      authRole.assertHasDraftWritePermission()
 
       val externalId = paramOrNone("external-id")
       val externalSubjectId = paramAsListOfString("external-subject-id")
@@ -105,10 +105,9 @@ trait InternController {
     }
 
     post("/id/concept/allocate/?") {
-      authRole.assertHasRole(RoleDraftWrite)
+      authRole.assertHasDraftWritePermission()
       val externalId = paramOrNone("external-id")
-      val externalSubjectId = paramAsListOfString("external-subject-id")
-      ArticleIdV2(writeService.allocateConceptId(externalId, externalSubjectId.toSet))
+      ArticleIdV2(writeService.allocateConceptId(externalId))
     }
 
     get("/tagsinuse") {
@@ -142,10 +141,23 @@ trait InternController {
     }
 
     post("/article/:id") {
+      authRole.assertHasWritePermission()
       val article = extract[Article](request.body)
       val id = long("id")
+
       writeService.updateArticle(article.copy(id=Some(id))) match {
         case Success(a) => a
+        case Failure(ex) => errorHandler(ex)
+      }
+    }
+
+    post("/concept/:id") {
+      authRole.assertHasWritePermission()
+      val id = long("id")
+      val concept = extract[Concept](request.body)
+
+      writeService.updateConcept(id, concept) match {
+        case Success(c) => c
         case Failure(ex) => errorHandler(ex)
       }
     }

@@ -13,6 +13,7 @@ import no.ndla.articleapi.model.domain._
 import no.ndla.articleapi.ArticleApiProperties._
 import no.ndla.validation.EmbedTagRules.ResourceHtmlEmbedTag
 import no.ndla.articleapi.model.api
+import no.ndla.articleapi.model.api.{NewConcept, UpdatedConcept}
 import org.joda.time.{DateTime, DateTimeZone}
 
 object TestData {
@@ -276,6 +277,20 @@ object TestData {
     DateTime.now().minusDays(4).toDate,
     DateTime.now().minusDays(2).toDate,
     Set("nb")
+  )
+
+  val sampleNewConcept = NewConcept(
+    "nb",
+    "begrep",
+    Some("begrep er begrep"),
+    None
+  )
+
+  val sampleUpdateConcept = UpdatedConcept(
+    "nb",
+    Some("begrep"),
+    Some("begrep er begrep"),
+    None
   )
 
 }

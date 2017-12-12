@@ -183,6 +183,58 @@ trait ConverterService {
       }
     }
 
+    def toDomainConcept(concept: api.NewConcept): Concept = {
+      Concept(
+        None,
+        Seq(ConceptTitle(concept.title, concept.language)),
+        concept.content.map(content => Seq(ConceptContent(content, concept.language))).getOrElse(Seq.empty),
+        concept.copyright.map(toDomainCopyright),
+        clock.now(),
+        clock.now()
+      )
+    }
+
+    def toDomainConcept(toMergeInto: Concept, updateConcept: api.UpdatedConcept): Concept = {
+      val domainTitle = updateConcept.title.map(t => ConceptTitle(t, updateConcept.language)).toSeq
+      val domainContent = updateConcept.content.map(c => ConceptContent(c, updateConcept.language)).toSeq
+
+      toMergeInto.copy(
+        title=mergeLanguageFields(toMergeInto.title, domainTitle),
+        content=mergeLanguageFields(toMergeInto.content, domainContent),
+        copyright=updateConcept.copyright.map(toDomainCopyright).orElse(toMergeInto.copyright),
+        created=toMergeInto.created,
+        updated=clock.now()
+      )
+    }
+
+    def toDomainArticle(toMergeInto: Article, updatedApiArticle: api.UpdatedArticleV2): Article = {
+      val lang = updatedApiArticle.language
+      toMergeInto.copy(
+        revision = Option(updatedApiArticle.revision),
+        title = mergeLanguageFields(toMergeInto.title, updatedApiArticle.title.toSeq.map(t => converterService.toDomainTitle(api.ArticleTitle(t, lang)))),
+        content = mergeLanguageFields(toMergeInto.content, updatedApiArticle.content.toSeq.map(c => converterService.toDomainContent(api.ArticleContentV2(c, lang)))),
+        copyright = updatedApiArticle.copyright.map(c => converterService.toDomainCopyright(c)).getOrElse(toMergeInto.copyright),
+        tags = mergeTags(toMergeInto.tags, converterService.toDomainTagV2(updatedApiArticle.tags, lang)),
+        requiredLibraries = updatedApiArticle.requiredLibraries.map(converterService.toDomainRequiredLibraries),
+        visualElement = mergeLanguageFields(toMergeInto.visualElement, updatedApiArticle.visualElement.map(c => converterService.toDomainVisualElementV2(Some(c), lang)).getOrElse(Seq())),
+        introduction = mergeLanguageFields(toMergeInto.introduction, updatedApiArticle.introduction.map(i => converterService.toDomainIntroductionV2(Some(i), lang)).getOrElse(Seq())),
+        metaDescription = mergeLanguageFields(toMergeInto.metaDescription, updatedApiArticle.metaDescription.map(m => converterService.toDomainMetaDescriptionV2(Some(m), lang)).getOrElse(Seq())),
+        metaImageId = if (updatedApiArticle.metaImageId.isDefined) updatedApiArticle.metaImageId else toMergeInto.metaImageId,
+        updated = clock.now(),
+        updatedBy = authUser.userOrClientid()
+      )
+    }
+
+    private[service] def mergeLanguageFields[A <: LanguageField[String]](existing: Seq[A], updated: Seq[A]): Seq[A] = {
+      val toKeep = existing.filterNot(item => updated.map(_.language).contains(item.language))
+      (toKeep ++ updated).filterNot(_.value.isEmpty)
+    }
+
+    private def mergeTags(existing: Seq[ArticleTag], updated: Seq[ArticleTag]): Seq[ArticleTag] = {
+      val toKeep = existing.filterNot(item => updated.map(_.language).contains(item.language))
+      (toKeep ++ updated).filterNot(_.tags.isEmpty)
+    }
+
     private def toDomainCopyright(license: String, authors: Seq[Author]): Copyright = {
       val origin = authors.find(author => author.`type`.toLowerCase == "opphavsmann").map(_.name).getOrElse("")
 
@@ -455,5 +507,4 @@ trait ConverterService {
     def toApiConceptContent(title: ConceptContent): api.ConceptContent = api.ConceptContent(title.content, title.language)
 
   }
-
 }

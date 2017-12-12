@@ -15,10 +15,18 @@ trait Role {
   val authRole: AuthRole
 
   class AuthRole {
-    def assertHasRole(role: String): Unit = {
-      if (!AuthUser.hasRole(role))
-        throw new AccessDeniedException("User is missing required role to perform this operation")
+    val RoleWithWriteAccess = "articles:write"
+    val DraftRoleWithWriteAccess = "drafts:write"
+
+    def hasRoles(roles: Set[String]): Boolean = roles.map(AuthUser.hasRole).forall(identity)
+
+    def assertHasRoles(roles: String*): Unit = {
+      if (!hasRoles(roles.toSet))
+        throw new AccessDeniedException("User is missing required role(s) to perform this operation")
     }
+
+    def assertHasWritePermission(): Unit = assertHasRoles(RoleWithWriteAccess)
+    def assertHasDraftWritePermission(): Unit = assertHasRoles(DraftRoleWithWriteAccess)
   }
 
 }
