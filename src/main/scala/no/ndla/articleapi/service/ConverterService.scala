@@ -235,7 +235,7 @@ trait ConverterService {
       (toKeep ++ updated).filterNot(_.tags.isEmpty)
     }
 
-    private def toDomainCopyright(license: String, authors: Seq[Author]): Copyright = {
+    private[service] def toDomainCopyright(license: String, authors: Seq[Author]): Copyright = {
       val origin = authors.find(author => author.`type`.toLowerCase == "opphavsmann").map(_.name).getOrElse("")
 
 
