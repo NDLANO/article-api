@@ -40,7 +40,7 @@ trait ConceptIndexService {
         intField("id"),
         languageSupportedField("title", keepRaw = true),
         languageSupportedField("content"),
-        keywordField("defaultTitle"),
+        keywordField("defaultTitle")
       ), ArticleApiProperties.ConceptSearchDocument).string()
     }
 
