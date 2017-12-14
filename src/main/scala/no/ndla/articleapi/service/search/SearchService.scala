@@ -58,38 +58,16 @@ trait SearchService {
         case _ => language
       }
 
-      // Elasticsearch 'Painless' script for sorting by title if searching for all languages
-      val supportedLanguages = Language.languageAnalyzers.map(la => la.lang).mkString("'", "', '", "'")
-      val titleSortScript =
-        s"""
-           |int idx = -1;
-           |String[] arr = new String[]{$supportedLanguages};
-           |for (int i = arr.length-1; i >= 0; i--) {
-           |  if(params['_source'].containsKey('title')){
-           |    if(params['_source']['title'].containsKey(arr[i])){
-           |      idx = i;
-           |    }
-           |  }
-           |}
-           |
-           |if (idx != -1) {
-           |  return params['_source']['title'][arr[idx]];
-           |} else {
-           |  return '\u00ff'; // Sort by last codepoint in unicode if no title is found.
-           |}
-           |""".stripMargin
-      val script = new Script(titleSortScript)
-
       sort match {
         case (Sort.ByTitleAsc) =>
           language match {
-            case "*" => SortBuilders.scriptSort(script, ScriptSortType.STRING).order(SortOrder.ASC)
+            case "*" => SortBuilders.fieldSort("defaultTitle").order(SortOrder.ASC).missing("_last")
             case _ => SortBuilders.fieldSort(s"title.$sortLanguage.raw").setNestedPath("title").order(SortOrder.ASC).missing("_last")
           }
         case (Sort.ByTitleDesc) =>
           language match {
-            case "*" => SortBuilders.scriptSort(script, ScriptSortType.STRING).order(SortOrder.DESC)
-            case _ => SortBuilders.fieldSort(s"title.$sortLanguage.raw").setNestedPath ("title").order (SortOrder.DESC).missing ("_last")
+            case "*" => SortBuilders.fieldSort("defaultTitle").order(SortOrder.DESC).missing("_last")
+            case _ => SortBuilders.fieldSort(s"title.$sortLanguage.raw").setNestedPath("title").order(SortOrder.DESC).missing("_last")
           }
         case (Sort.ByRelevanceAsc) => SortBuilders.fieldSort("_score").order(SortOrder.ASC)
         case (Sort.ByRelevanceDesc) => SortBuilders.fieldSort("_score").order(SortOrder.DESC)

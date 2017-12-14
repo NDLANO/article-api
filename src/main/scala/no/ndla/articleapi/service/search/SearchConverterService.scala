@@ -25,6 +25,11 @@ trait SearchConverterService {
     def asSearchableArticle(ai: Article): SearchableArticle = {
       val articleWithAgreement = converterService.withAgreementCopyright(ai)
 
+      val defaultTitle = articleWithAgreement.title.sortBy(title => {
+        val languagePriority = Language.languageAnalyzers.map(la => la.lang).reverse
+        languagePriority.indexOf(title.language)
+      }).lastOption
+
       SearchableArticle(
         id = articleWithAgreement.id.get,
         title = SearchableLanguageValues(articleWithAgreement.title.map(title => LanguageValue(title.language, title.title))),
@@ -35,7 +40,8 @@ trait SearchConverterService {
         lastUpdated = articleWithAgreement.updated,
         license = articleWithAgreement.copyright.license,
         authors = articleWithAgreement.copyright.creators.map(_.name) ++ articleWithAgreement.copyright.processors.map(_.name) ++ articleWithAgreement.copyright.rightsholders.map(_.name),
-        articleType = articleWithAgreement.articleType
+        articleType = articleWithAgreement.articleType,
+        defaultTitle = defaultTitle.map(t => t.title)
       )
     }
 
@@ -54,10 +60,17 @@ trait SearchConverterService {
     }
 
     def asSearchableConcept(c: Concept): SearchableConcept = {
+
+      val defaultTitle = c.title.sortBy(title => {
+        val languagePriority = Language.languageAnalyzers.map(la => la.lang).reverse
+        languagePriority.indexOf(title.language)
+      }).lastOption
+
       SearchableConcept(
         c.id.get,
         SearchableLanguageValues(c.title.map(title => LanguageValue(title.language, title.title))),
-        SearchableLanguageValues(c.content.map(content => LanguageValue(content.language, content.content)))
+        SearchableLanguageValues(c.content.map(content => LanguageValue(content.language, content.content))),
+        defaultTitle.map(t => t.title)
       )
     }
 
