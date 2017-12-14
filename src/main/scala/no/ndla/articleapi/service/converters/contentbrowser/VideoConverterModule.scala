@@ -26,22 +26,22 @@ trait VideoConverterModule {
     override def convert(content: ContentBrowser, importStatus: ImportStatus): Try[(String, Seq[RequiredLibrary], ImportStatus)] = {
       val (linkText, nodeId) = (content.get("link_text"), content.get("nid"))
 
-      val embedVideo = content.get("insertion") match {
+      val (embedVideo, updatedStatus) = content.get("insertion") match {
         case "link" =>
-          toVideoLink(linkText, nodeId) match {
+          toVideoLink(linkText, nodeId, importStatus) match {
             case Success(link) => link
             case Failure(e) => return Failure(e)
           }
-        case _ => toInlineVideo(linkText, nodeId)
+        case _ => (toInlineVideo(linkText, nodeId), importStatus)
       }
 
       logger.info(s"Added video with nid ${content.get("nid")}")
-      Success(embedVideo, Seq.empty, importStatus)
+      Success(embedVideo, Seq.empty, updatedStatus)
     }
 
-    private def toVideoLink(linkText: String, nodeId: String): Try[String] = {
-      extractConvertStoreContent.processNode(nodeId, ImportStatus.empty) match {
-        case Success((content, _)) => Success(HtmlTagGenerator.buildContentLinkEmbedContent(content.id.get, linkText))
+    private def toVideoLink(linkText: String, nodeId: String, importStatus: ImportStatus): Try[(String, ImportStatus)] = {
+      extractConvertStoreContent.processNode(nodeId, importStatus) match {
+        case Success((content, status)) => Success(HtmlTagGenerator.buildContentLinkEmbedContent(content.id.get, linkText), status)
         case Failure(ex) => Failure(ex)
       }
     }
