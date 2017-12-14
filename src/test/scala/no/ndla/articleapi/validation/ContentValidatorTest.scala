@@ -24,6 +24,11 @@ class ContentValidatorTest extends UnitSuite with TestEnvironment {
     contentValidator.validateArticle(article, false).isSuccess should be (true)
   }
 
+  test("validation should fail if article has no content") {
+    val article = TestData.sampleArticleWithByNcSa.copy(content=Seq.empty)
+    contentValidator.validateArticle(article, false).isFailure should be (true)
+  }
+
   test("validateArticle throws a validation exception on an invalid document") {
     val article = TestData.sampleArticleWithByNcSa.copy(content=Seq(ArticleContent(invalidDocument, "nb")))
     contentValidator.validateArticle(article, false).isFailure should be (true)

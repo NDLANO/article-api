@@ -33,6 +33,8 @@ class InternControllerTest extends UnitSuite with TestEnvironment with ScalatraF
   lazy val controller = new InternController
   addServlet(controller, "/*")
 
+  override val authRole = new AuthRole
+
   test("That POST /import/:node_id returns 500 if the main node is not found") {
 
     when(extractService.getNodeData(nodeId2)).thenReturn(sampleNode2)

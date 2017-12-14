@@ -11,6 +11,7 @@ package no.ndla.articleapi.service
 import no.ndla.articleapi.model.api
 import no.ndla.articleapi.model.domain._
 import no.ndla.articleapi.{TestData, TestEnvironment, UnitSuite}
+import no.ndla.validation.ValidationException
 import org.joda.time.DateTime
 import org.mockito.Matchers._
 import org.mockito.Mockito
@@ -18,7 +19,7 @@ import org.mockito.Mockito._
 import org.mockito.invocation.InvocationOnMock
 import scalikejdbc.DBSession
 
-import scala.util.{Success, Try}
+import scala.util.{Failure, Success, Try}
 
 class WriteServiceTest extends UnitSuite with TestEnvironment {
   override val converterService = new ConverterService
@@ -55,59 +56,6 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     service.newArticleV2(TestData.newArticleV2).get.id.toString should equal(article.id.get.toString)
     verify(articleRepository, times(1)).newArticle(any[Article])
     verify(articleIndexService, times(1)).indexDocument(any[Article])
-  }
-
-  test("That mergeLanguageFields returns original list when updated is empty") {
-    val existing = Seq(ArticleTitle("Tittel 1", "nb"), ArticleTitle("Tittel 2", "nn"), ArticleTitle("Tittel 3", "unknown"))
-    service.mergeLanguageFields(existing, Seq()) should equal(existing)
-  }
-
-  test("That mergeLanguageFields updated the english title only when specified") {
-    val tittel1 = ArticleTitle("Tittel 1", "nb")
-    val tittel2 = ArticleTitle("Tittel 2", "nn")
-    val tittel3 = ArticleTitle("Tittel 3", "en")
-    val oppdatertTittel3 = ArticleTitle("Title 3 in english", "en")
-
-    val existing = Seq(tittel1, tittel2, tittel3)
-    val updated = Seq(oppdatertTittel3)
-
-    service.mergeLanguageFields(existing, updated) should equal(Seq(tittel1, tittel2, oppdatertTittel3))
-  }
-
-  test("That mergeLanguageFields removes a title that is empty") {
-    val tittel1 = ArticleTitle("Tittel 1", "nb")
-    val tittel2 = ArticleTitle("Tittel 2", "nn")
-    val tittel3 = ArticleTitle("Tittel 3", "en")
-    val tittelToRemove = ArticleTitle("", "nn")
-
-    val existing = Seq(tittel1, tittel2, tittel3)
-    val updated = Seq(tittelToRemove)
-
-    service.mergeLanguageFields(existing, updated) should equal(Seq(tittel1, tittel3))
-  }
-
-  test("That mergeLanguageFields updates the title with unknown language specified") {
-    val tittel1 = ArticleTitle("Tittel 1", "nb")
-    val tittel2 = ArticleTitle("Tittel 2", "unknown")
-    val tittel3 = ArticleTitle("Tittel 3", "en")
-    val oppdatertTittel2 = ArticleTitle("Tittel 2 er oppdatert", "unknown")
-
-    val existing = Seq(tittel1, tittel2, tittel3)
-    val updated = Seq(oppdatertTittel2)
-
-    service.mergeLanguageFields(existing, updated) should equal(Seq(tittel1, tittel3, oppdatertTittel2))
-  }
-
-  test("That mergeLanguageFields also updates the correct content") {
-    val desc1 = ArticleContent("Beskrivelse 1", "nb")
-    val desc2 = ArticleContent("Beskrivelse 2", "unknown")
-    val desc3 = ArticleContent("Beskrivelse 3", "en")
-    val oppdatertDesc2 = ArticleContent("Beskrivelse 2 er oppdatert", "unknown")
-
-    val existing = Seq(desc1, desc2, desc3)
-    val updated = Seq(oppdatertDesc2)
-
-    service.mergeLanguageFields(existing, updated) should equal(Seq(desc1, desc3, oppdatertDesc2))
   }
 
   test("That updateArticleV2 updates only content properly") {
@@ -182,7 +130,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
   test("allocateConceptId should reuse existing id if external id already exists") {
     val id = 1122: Long
     when(conceptRepository.getIdFromExternalId(any[String])(any[DBSession])).thenReturn(Some(id))
-    service.allocateConceptId(Some("123123123"), Set.empty) should equal(id)
+    service.allocateConceptId(Some("123123123")) should equal(id)
   }
 
   test("allocateConceptId should allocate new id if no external id is supplied or first time use of external id") {
@@ -190,15 +138,70 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     val external = "12312313"
     when(conceptRepository.getIdFromExternalId(any[String])(any[DBSession])).thenReturn(None)
     when(conceptRepository.allocateConceptIdWithExternal(any[String])(any[DBSession])).thenReturn(id)
-    service.allocateConceptId(Some(external), Set.empty) should equal(id)
+    service.allocateConceptId(Some(external)) should equal(id)
     verify(conceptRepository, times(0)).allocateConceptId()
     verify(conceptRepository, times(1)).allocateConceptIdWithExternal(external)
 
     reset(conceptRepository)
     when(conceptRepository.allocateConceptId()(any[DBSession])).thenReturn(id)
-    service.allocateConceptId(None, Set.empty) should equal(id)
+    service.allocateConceptId(None) should equal(id)
     verify(conceptRepository, times(1)).allocateConceptId()
     verify(conceptRepository, times(0)).allocateConceptIdWithExternal(external)
+  }
+
+  test("newConcept should return Success if everything went well") {
+    when(importValidator.validate(any[Concept], any[Boolean]))
+      .thenAnswer((invocation: InvocationOnMock) => Try(invocation.getArgumentAt(0, classOf[Concept])))
+    when(conceptRepository.insert(any[Concept])(any[DBSession]))
+      .thenAnswer((invocation: InvocationOnMock) => invocation.getArgumentAt(0, classOf[Concept]).copy(id=Some(1)))
+    when(conceptIndexService.indexDocument(any[Concept]))
+      .thenAnswer((invocation: InvocationOnMock) => Try(invocation.getArgumentAt(0, classOf[Concept])))
+
+    val res = service.newConcept(TestData.sampleNewConcept)
+    res.isSuccess should be (true)
+    verify(importValidator, times(1)).validate(any[Concept], any[Boolean])
+    verify(conceptRepository, times(1)).insert(any[Concept])(any[DBSession])
+    verify(conceptIndexService, times(1)).indexDocument(any[Concept])
+  }
+
+  test("newConcept should return Failure if validate fails") {
+    reset(importValidator, conceptRepository, conceptIndexService)
+    when(importValidator.validate(any[Concept], any[Boolean])).thenReturn(Failure(new ValidationException("fail", Seq.empty)))
+
+    val res = service.newConcept(TestData.sampleNewConcept)
+    res.isFailure should be (true)
+    verify(importValidator, times(1)).validate(any[Concept], any[Boolean])
+    verify(conceptRepository, times(0)).insert(any[Concept])(any[DBSession])
+    verify(conceptIndexService, times(0)).indexDocument(any[Concept])
+  }
+
+  test("updateConcept should return Success if everything went well") {
+    reset(importValidator, conceptRepository, conceptIndexService)
+    when(conceptRepository.withId(any[Long])).thenReturn(Some(TestData.sampleConcept))
+    when(importValidator.validate(any[Concept], any[Boolean]))
+      .thenAnswer((invocation: InvocationOnMock) => Try(invocation.getArgumentAt(0, classOf[Concept])))
+    when(conceptRepository.update(any[Concept], any[Long])(any[DBSession]))
+      .thenAnswer((invocation: InvocationOnMock) => Try(invocation.getArgumentAt(0, classOf[Concept])))
+    when(conceptIndexService.indexDocument(any[Concept]))
+      .thenAnswer((invocation: InvocationOnMock) => Try(invocation.getArgumentAt(0, classOf[Concept])))
+
+    val res = service.updateConcept(1, TestData.sampleUpdateConcept)
+    res.isSuccess should be (true)
+    verify(importValidator, times(1)).validate(any[Concept], any[Boolean])
+    verify(conceptRepository, times(1)).update(any[Concept], any[Long])(any[DBSession])
+    verify(conceptIndexService, times(1)).indexDocument(any[Concept])
+  }
+
+  test("updateConcept should return Failure if validate fails") {
+    reset(importValidator, conceptRepository, conceptIndexService)
+    when(conceptRepository.withId(any[Long])).thenReturn(Some(TestData.sampleConcept))
+    when(importValidator.validate(any[Concept], any[Boolean])).thenReturn(Failure(new ValidationException("fail", Seq.empty)))
+
+    val res = service.updateConcept(1, TestData.sampleUpdateConcept)
+    res.isFailure should be (true)
+    verify(importValidator, times(1)).validate(any[Concept], any[Boolean])
+    verify(conceptRepository, times(0)).insert(any[Concept])(any[DBSession])
+    verify(conceptIndexService, times(0)).indexDocument(any[Concept])
   }
 
 }

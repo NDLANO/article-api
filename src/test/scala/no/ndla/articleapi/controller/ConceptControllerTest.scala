@@ -8,13 +8,20 @@
 
 package no.ndla.articleapi.controller
 
+import no.ndla.articleapi.model.api.{NewConcept, UpdatedConcept}
 import no.ndla.articleapi.{ArticleSwagger, TestData, TestEnvironment, UnitSuite}
+import org.json4s.native.Serialization.write
 import org.mockito.Mockito._
+import org.mockito.Matchers._
 import org.scalatra.test.scalatest.ScalatraFunSuite
+
+import scala.util.Success
 
 class ConceptControllerTest extends UnitSuite with TestEnvironment with ScalatraFunSuite {
   implicit val formats = org.json4s.DefaultFormats
   implicit val swagger = new ArticleSwagger
+
+  val authHeaderWithWriteRole = s"Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJhcHBfbWV0YWRhdGEiOnsicm9sZXMiOlsiYXJ0aWNsZXM6d3JpdGUiXSwibmRsYV9pZCI6ImFiYzEyMyJ9LCJuYW1lIjoiRG9uYWxkIER1Y2siLCJpc3MiOiJodHRwczovL3NvbWUtZG9tYWluLyIsInN1YiI6Imdvb2dsZS1vYXV0aDJ8MTIzIiwiYXVkIjoiYWJjIiwiZXhwIjoxNDg2MDcwMDYzLCJpYXQiOjE0ODYwMzQwNjN9.VxqM2bu2UF8IAalibIgdRdmsTDDWKEYpKzHPbCJcFzA"
 
   lazy val controller = new ConceptController
   addServlet(controller, "/test")
@@ -40,6 +47,32 @@ class ConceptControllerTest extends UnitSuite with TestEnvironment with Scalatra
   test("/<concept_id> should return 400 if the article was not found") {
     get(s"/test/one") {
       status should equal(400)
+    }
+  }
+
+  test("POST / should fail with 403 if not required role") {
+    post("/test/", write(TestData.sampleNewConcept)) {
+      status should equal(403)
+    }
+  }
+
+  test("POST / should succeed if has required roles") {
+    when(writeService.newConcept(any[NewConcept])).thenReturn(Success(TestData.sampleApiConcept))
+    post("/test/", write(TestData.sampleNewConcept), headers = Map("Authorization" -> authHeaderWithWriteRole)) {
+      status should equal(200)
+    }
+  }
+
+  test("PATCH /:id should fail with 403 if not required role") {
+    patch("/test/1", write(TestData.sampleNewConcept)) {
+      status should equal(403)
+    }
+  }
+
+  test("PATCH /:id should succeed if has required roles") {
+    when(writeService.updateConcept(any[Long], any[UpdatedConcept])).thenReturn(Success(TestData.sampleApiConcept))
+    patch("/test/1", write(TestData.sampleNewConcept), headers = Map("Authorization" -> authHeaderWithWriteRole)) {
+      status should equal(200)
     }
   }
 
