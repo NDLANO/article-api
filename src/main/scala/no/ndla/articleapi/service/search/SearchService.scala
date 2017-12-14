@@ -61,12 +61,12 @@ trait SearchService {
       sort match {
         case (Sort.ByTitleAsc) =>
           language match {
-            case "*" => SortBuilders.fieldSort("defaultTitle").order(SortOrder.ASC).missing("_last")
+            case "*" | Language.AllLanguages => SortBuilders.fieldSort("defaultTitle").order(SortOrder.ASC).missing("_last")
             case _ => SortBuilders.fieldSort(s"title.$sortLanguage.raw").setNestedPath("title").order(SortOrder.ASC).missing("_last")
           }
         case (Sort.ByTitleDesc) =>
           language match {
-            case "*" => SortBuilders.fieldSort("defaultTitle").order(SortOrder.DESC).missing("_last")
+            case "*" | Language.AllLanguages => SortBuilders.fieldSort("defaultTitle").order(SortOrder.DESC).missing("_last")
             case _ => SortBuilders.fieldSort(s"title.$sortLanguage.raw").setNestedPath("title").order(SortOrder.DESC).missing("_last")
           }
         case (Sort.ByRelevanceAsc) => SortBuilders.fieldSort("_score").order(SortOrder.ASC)
