@@ -39,7 +39,8 @@ trait ConceptIndexService {
       MappingBuilderFn.buildWithName(mapping(documentType).fields(
         intField("id"),
         languageSupportedField("title", keepRaw = true),
-        languageSupportedField("content")
+        languageSupportedField("content"),
+        keywordField("defaultTitle")
       ), ArticleApiProperties.ConceptSearchDocument).string()
     }
 

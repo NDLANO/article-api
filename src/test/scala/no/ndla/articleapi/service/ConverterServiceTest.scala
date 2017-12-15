@@ -15,11 +15,14 @@ import no.ndla.articleapi.model.api
 import no.ndla.articleapi.model.api.ImportException
 import no.ndla.articleapi.model.domain._
 import no.ndla.articleapi.service.converters.TableConverter
-import no.ndla.validation.{TagAttributes, ResourceType}
+import no.ndla.validation.{ResourceType, TagAttributes}
 import no.ndla.validation.EmbedTagRules.ResourceHtmlEmbedTag
 import no.ndla.articleapi.{TestData, TestEnvironment, UnitSuite}
 import org.joda.time.{DateTime, DateTimeZone}
 import org.mockito.Mockito._
+import org.json4s._
+import org.json4s.native.JsonMethods._
+
 import scala.util.{Success, Try}
 
 class ConverterServiceTest extends UnitSuite with TestEnvironment {
@@ -430,6 +433,20 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     service.oldToNewLicenseKey("by-sa") should be("by-sa")
   }
 
+  test("That language of hit is returned correctly from getLanguageFromHit") {
+    implicit val formats = DefaultFormats
+    val jsonstring = """{"took":3,"timed_out":false,"_shards":{"total":5,"successful":5,"failed":0},"hits":{"total":3,"max_score":3.3036344,"hits":[{"_index":"articles_20171206110732","_type":"article","_id":"4","_score":3.3036344,"_source":{"id":4,"title":{"nb":"8. mars, den internasjonale kvinnedagen","nn":"8. mars, den internasjonale kvinnedagen"},"content":{"nb":"Det norske Kvinneforbundet","nn":"Det norske Kvinneforbundet"},"visualElement":{},"introduction":{"nb":"8. mars er den internasjonale kvinnedagen.","nn":"8. mars er den internasjonale kvinnedagen."},"tags":{"nn":["8. mars","demokrati","likestilling","røysterett"],"nb":["8. mars","demokrati","kjønnskamp","kvinnedag","likestilling","stemmerett"]},"lastUpdated":"2017-06-20T07:13:45Z","license":"by-sa","authors":["Kristin Klepp"],"articleType":"standard"},"inner_hits":{"title":{"hits":{"total":0,"max_score":null,"hits":[]}},"introduction":{"hits":{"total":1,"max_score":1.0077262,"hits":[{"_nested":{"field":"introduction","offset":0},"_score":1.0077262,"_source":{"nb":"8. mars er den internasjonale kvinnedagen.","nn":"8. mars er den internasjonale kvinnedagen."},"highlight":{"introduction.nn":["8. mars er den internasjonale kvinnedagen."]}}]}},"content":{"hits":{"total":1,"max_score":1.288182,"hits":[{"_nested":{"field":"content","offset":0},"_score":1.288182,"_source":{"nb":"Det norske Kvinneforbundet","nn":"Det norske Kvinneforbundet"},"highlight":{"content.nn":["Det norske Kvinneforbundet"]}}]}},"tags":{"hits":{"total":0,"max_score":null,"hits":[]}}}},{"_index":"articles_20171206110732","_type":"article","_id":"11","_score":2.4251919,"_source":{"id":11,"title":{"nb":"Streik","nn":"Streik"},"content":{"nb":"Hensikten med en streik er å tvinge fram en løsning på en tvist mellom arbeidstakerne","nn":"Formålet med ein streik er å tvinge fram ei løysing på ein tvist mellom arbeidstakarane"},"visualElement":{},"introduction":{"nb":"Streik ble første gang tatt i bruk i Norge","nn":"Streik blei første gongen teke i bruk i Noreg"},"tags":{"nn":["arbeidsliv","konfliktar","lønnsforhandlingar","streik","tariffoppgjør"],"nb":["arbeidsliv","konflikter","lønnsforhandlinger","streik","tariffoppgjør"]},"lastUpdated":"2017-08-09T09:16:31Z","license":"by-sa","authors":["Inga Berntsen Rudi"],"articleType":"standard"},"inner_hits":{"title":{"hits":{"total":0,"max_score":null,"hits":[]}},"introduction":{"hits":{"total":1,"max_score":1.2125959,"hits":[{"_nested":{"field":"introduction","offset":0},"_score":1.2125959,"_source":{"nb":"Streik ble første gang tatt i bruk i Norge","nn":"Streik blei første gongen teke i bruk i Noreg"},"highlight":{"introduction.nn":["Streik blei første gongen teke i bruk i Noreg"]}}]}},"content":{"hits":{"total":0,"max_score":null,"hits":[]}},"tags":{"hits":{"total":0,"max_score":null,"hits":[]}}}},{"_index":"articles_20171206110732","_type":"article","_id":"1","_score":1.3002287,"_source":{"id":1,"title":{"nb":"Arrangerte ekteskap og tvangsekteskap","nn":"Arrangerte ekteskap og tvangsekteskap"},"content":{"nb":"Ifølge vår vestlige menneskerettighetsoppfatning","nn":"Ifølgje den oppfatninga av menneskerettar som vi har i Vesten"},"visualElement":{},"introduction":{"nb":"Tvangsekteskap er klart ulovlig ifølge norsk lov.","nn":"Tvangsekteskap er klart ulovleg etter norsk lov."},"tags":{"nn":["ekteskap","lovgiving","tvangsekteskap"],"nb":["ekteskap","lovgivning","tvangsekteskap"]},"lastUpdated":"2017-03-03T16:38:33Z","license":"by-nc-sa","authors":["Hans Nissen","Hans Nissen"],"articleType":"standard"},"inner_hits":{"title":{"hits":{"total":0,"max_score":null,"hits":[]}},"introduction":{"hits":{"total":0,"max_score":null,"hits":[]}},"content":{"hits":{"total":1,"max_score":1.3002287,"hits":[{"_nested":{"field":"content","offset":0},"_score":1.3002287,"_source":{"nb":"Ifølge vår vestlige menneskerettighetsoppfatning","nn":"Ifølgje den oppfatninga av menneskerettar som vi har i Vesten"},"highlight":{"content.nn":["Ifølgje den oppfatninga av menneskerettar som vi har i Vesten"]}}]}},"tags":{"hits":{"total":0,"max_score":null,"hits":[]}}}}]}}"""
+
+    val resultArray = (parse(jsonstring) \ "hits" \ "hits").asInstanceOf[JArray].arr
+    val languages = resultArray.map(result => {
+      service.getLanguageFromHit(result)
+    })
+
+    languages.size should equal(3)
+    languages(0).get should equal("nn")
+    languages(1).get should equal("nn")
+    languages(2).get should equal("nn")
+  }
 
   test("That mergeLanguageFields returns original list when updated is empty") {
     val existing = Seq(ArticleTitle("Tittel 1", "nb"), ArticleTitle("Tittel 2", "nn"), ArticleTitle("Tittel 3", "unknown"))
@@ -504,7 +521,6 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     copyright.rightsholders should contain(Author("Supplier", "E"))
 
     copyright.processors should contain(Author("Linguistic", "F"))
-
   }
 
 }
