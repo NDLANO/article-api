@@ -56,7 +56,7 @@ trait InternController {
       } yield (articleIndex, conceptIndex)
 
 
-      Await.result(indexResults, Duration(1, TimeUnit.MINUTES)) match {
+      Await.result(indexResults, Duration(10, TimeUnit.MINUTES)) match {
         case (Success(articleResult), Success(conceptResult)) =>
           val indexTime = math.max(articleResult.millisUsed, conceptResult.millisUsed)
           val result = s"Completed indexing of ${articleResult.totalIndexed} articles and ${conceptResult.totalIndexed} concepts in $indexTime ms."
