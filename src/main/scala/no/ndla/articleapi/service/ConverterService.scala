@@ -11,7 +11,7 @@ package no.ndla.articleapi.service
 
 import java.util.Map.Entry
 
-import com.google.gson._
+import com.google.gson.{JsonElement, JsonObject}
 import com.typesafe.scalalogging.LazyLogging
 import io.searchbox.core.{SearchResult => JestSearchResult}
 import no.ndla.articleapi.ArticleApiProperties._
@@ -25,14 +25,11 @@ import no.ndla.articleapi.model.domain._
 import no.ndla.articleapi.repository.ArticleRepository
 import no.ndla.mapping.License.{getLicense, getLicenses}
 import no.ndla.network.ApplicationUrl
-import no.ndla.validation.{EmbedTagRules, HtmlTagRules, ResourceType, TagAttributes}
+import no.ndla.validation.{HtmlTagRules, EmbedTagRules, ResourceType, TagAttributes}
 
 import scala.annotation.tailrec
 import scala.collection.JavaConverters._
 import scala.util.{Failure, Success, Try}
-
-import org.json4s._
-import org.json4s.native.JsonMethods._
 
 trait ConverterService {
   this: ConverterModules with ExtractConvertStoreContent with ImageApiClient with Clock with ArticleRepository with DraftApiClient with User =>
@@ -40,27 +37,18 @@ trait ConverterService {
 
   class ConverterService extends LazyLogging {
 
-    def getLanguageFromHit(jsonObject: JValue): Option[String] = {
-      implicit val formats = DefaultFormats
-
-      // Fetches matched language from highlight in innerHit
-      // since elasticsearch doesn't return which nested field that matches
-      val innerHits = jsonObject \ "inner_hits"
-
-      val sortedInnerHits = innerHits.children.sortBy(innerHit => {
-        (innerHit \ "hits" \ "max_score").toOption.map(s => {
-          s.extract[Double]
-        }).getOrElse[Double](0)
-      }).reverse
-
-      sortedInnerHits.headOption.flatMap(innerHit => {
-        (innerHit \\ "highlight").extract[Map[String, Any]].keySet.headOption.map(fieldName =>
-          fieldName.split('.').last)
-      }) match {
-        case Some(lang) => Some(lang)
-        case _ =>
-          (jsonObject \ "_source" \ "title").extract[Map[String, Any]].keySet.headOption.map(fieldName =>
-            fieldName.split('.').last)
+    def getHitsV2(response: JestSearchResult, language: String): Seq[ArticleSummaryV2] = {
+      var resultList = Seq[ArticleSummaryV2]()
+      response.getTotal match {
+        case count: Integer if count > 0 => {
+          val resultArray = response.getJsonObject.get("hits").asInstanceOf[JsonObject].get("hits").getAsJsonArray
+          val iterator = resultArray.iterator()
+          while (iterator.hasNext) {
+            resultList = resultList :+ hitAsArticleSummaryV2(iterator.next().asInstanceOf[JsonObject].get("_source").asInstanceOf[JsonObject], language)
+          }
+          resultList
+        }
+        case _ => Seq()
       }
     }
 
