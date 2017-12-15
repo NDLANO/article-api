@@ -25,7 +25,6 @@ import org.elasticsearch.ElasticsearchException
 import org.elasticsearch.index.IndexNotFoundException
 import org.elasticsearch.index.query._
 import org.elasticsearch.search.builder.SearchSourceBuilder
-import org.elasticsearch.search.fetch.subphase.highlight.HighlightBuilder
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.collection.JavaConverters._
@@ -53,22 +52,19 @@ trait ArticleSearchService {
     }
 
     def matchingQuery(query: String, withIdIn: List[Long], searchLanguage: String, license: Option[String], page: Int, pageSize: Int, sort: Sort.Value, articleTypes: Seq[String]): SearchResult = {
-      val language = if (searchLanguage == Language.AllLanguages) "*" else searchLanguage
+      val language = if (searchLanguage == Language.AllLanguages) Language.DefaultLanguage else searchLanguage
       val articleTypesFilter = if (articleTypes.nonEmpty) articleTypes else ArticleType.all
       val titleSearch = QueryBuilders.simpleQueryStringQuery(query).field(s"title.$language")
       val introSearch = QueryBuilders.simpleQueryStringQuery(query).field(s"introduction.$language")
       val contentSearch = QueryBuilders.simpleQueryStringQuery(query).field(s"content.$language")
       val tagSearch = QueryBuilders.simpleQueryStringQuery(query).field(s"tags.$language")
 
-      val highlightBuilder = new HighlightBuilder().preTags("").postTags("").field("*").numOfFragments(0)
-      val innerHitBuilder = new InnerHitBuilder().setHighlightBuilder(highlightBuilder)
-
       val fullQuery = QueryBuilders.boolQuery()
         .must(QueryBuilders.boolQuery()
-          .should(QueryBuilders.nestedQuery("title", titleSearch, ScoreMode.Avg).boost(2).innerHit(innerHitBuilder, false))
-          .should(QueryBuilders.nestedQuery("introduction", introSearch, ScoreMode.Avg).boost(2).innerHit(innerHitBuilder, false))
-          .should(QueryBuilders.nestedQuery("content", contentSearch, ScoreMode.Avg).boost(1).innerHit(innerHitBuilder, false))
-          .should(QueryBuilders.nestedQuery("tags", tagSearch, ScoreMode.Avg).boost(2).innerHit(innerHitBuilder, false)))
+          .should(QueryBuilders.nestedQuery("title", titleSearch, ScoreMode.Avg).boost(2))
+          .should(QueryBuilders.nestedQuery("introduction", introSearch, ScoreMode.Avg).boost(2))
+          .should(QueryBuilders.nestedQuery("content", contentSearch, ScoreMode.Avg).boost(1))
+          .should(QueryBuilders.nestedQuery("tags", tagSearch, ScoreMode.Avg).boost(2)))
         .filter(QueryBuilders.constantScoreQuery(QueryBuilders.termsQuery("articleType", articleTypesFilter:_*)))
 
       executeSearch(withIdIn, language, license, sort, page, pageSize, fullQuery)
@@ -83,7 +79,7 @@ trait ArticleSearchService {
         }
 
         language match {
-          case Language.AllLanguages => (licenseFilteredSearch, "*")
+          case Language.AllLanguages => (licenseFilteredSearch, Language.DefaultLanguage)
           case _ => (licenseFilteredSearch.filter(QueryBuilders.nestedQuery("title", QueryBuilders.existsQuery(s"title.$language"), ScoreMode.Avg)), language)
         }
       }
@@ -94,12 +90,12 @@ trait ArticleSearchService {
       }
 
       val searchQuery = new SearchSourceBuilder().query(idFilteredSearch).sort(getSortDefinition(sort, searchLanguage))
+
       val (startAt, numResults) = getStartAtAndNumResults(page, pageSize)
       val request = new Search.Builder(searchQuery.toString)
         .addIndex(searchIndex)
         .setParameter(Parameters.SIZE, numResults)
         .setParameter("from", startAt)
-
 
       val requestedResultWindow = pageSize * page
       if (requestedResultWindow > ArticleApiProperties.ElasticSearchIndexMaxResultWindow) {
