@@ -10,7 +10,7 @@
 package no.ndla.articleapi.service.search
 
 import com.sksamuel.elastic4s.http.ElasticDsl._
-import com.sksamuel.elastic4s.mappings.{MappingContentBuilder, NestedFieldDefinition}
+import com.sksamuel.elastic4s.mappings.{MappingBuilderFn, NestedFieldDefinition}
 import com.typesafe.scalalogging.LazyLogging
 import io.searchbox.core.Index
 import no.ndla.articleapi.ArticleApiProperties
@@ -36,7 +36,7 @@ trait ArticleIndexService {
     }
 
     def getMapping: String = {
-      MappingContentBuilder.buildWithName(mapping(documentType).fields(
+      MappingBuilderFn.buildWithName(mapping(documentType).fields(
         intField("id"),
         languageSupportedField("title", keepRaw = true),
         languageSupportedField("content"),
@@ -45,18 +45,18 @@ trait ArticleIndexService {
         languageSupportedField("tags"),
         keywordField("defaultTitle"),
         dateField("lastUpdated"),
-        keywordField("license") index "not_analyzed",
-        textField("authors") fielddata true,
-        textField("articleType") analyzer "keyword"
+        keywordField("license"),
+        textField("authors").fielddata(true),
+        textField("articleType").analyzer("keyword")
       ), ArticleApiProperties.ArticleSearchDocument).string()
     }
 
     private def languageSupportedField(fieldName: String, keepRaw: Boolean = false) = {
-      val languageSupportedField = new NestedFieldDefinition(fieldName)
-      languageSupportedField._fields = keepRaw match {
-        case true => languageAnalyzers.map(langAnalyzer => textField(langAnalyzer.lang).fielddata(true) analyzer langAnalyzer.analyzer fields (keywordField("raw") index "not_analyzed"))
-        case false => languageAnalyzers.map(langAnalyzer => textField(langAnalyzer.lang).fielddata(true) analyzer langAnalyzer.analyzer)
-      }
+      val languageSupportedField = NestedFieldDefinition(fieldName).fields(
+      keepRaw match {
+        case true => languageAnalyzers.map(langAnalyzer => textField(langAnalyzer.lang).fielddata(true).analyzer(langAnalyzer.analyzer).fields(keywordField("raw")))
+        case false => languageAnalyzers.map(langAnalyzer => textField(langAnalyzer.lang).fielddata(true).analyzer(langAnalyzer.analyzer))
+      })
 
       languageSupportedField
     }

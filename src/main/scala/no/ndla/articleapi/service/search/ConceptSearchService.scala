@@ -81,8 +81,8 @@ trait ConceptSearchService {
 
       val fullQuery = QueryBuilders.boolQuery()
         .must(QueryBuilders.boolQuery()
-          .should(QueryBuilders.nestedQuery("title", titleSearch, ScoreMode.Avg).boost(2).innerHit(innerHitBuilder, false))
-          .should(QueryBuilders.nestedQuery("content", contentSearch, ScoreMode.Avg).boost(1).innerHit(innerHitBuilder, false)))
+          .should(QueryBuilders.nestedQuery("title", titleSearch, ScoreMode.Avg).boost(2).innerHit(innerHitBuilder))
+          .should(QueryBuilders.nestedQuery("content", contentSearch, ScoreMode.Avg).boost(1).innerHit(innerHitBuilder)))
 
       executeSearch(withIdIn, language, sort, page, pageSize, fullQuery)
     }
