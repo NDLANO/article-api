@@ -94,12 +94,12 @@ trait ArticleControllerV2 {
         )
       }
 
-      val hitResult = articleSearchService.getHits(searchResult.response, language, converterService.hitAsArticleSummaryV2)
+      val hitResult = converterService.getHitsV2(searchResult.response, language)
       SearchResultV2(
         searchResult.totalCount,
         searchResult.page,
         searchResult.pageSize,
-        if (searchResult.language == "*") "all" else searchResult.language,
+        searchResult.language,
         hitResult
       )
     }
