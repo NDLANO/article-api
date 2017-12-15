@@ -68,8 +68,8 @@ trait ArticleSearchService {
           .should(QueryBuilders.nestedQuery("title", titleSearch, ScoreMode.Avg).boost(2).innerHit(innerHitBuilder))
           .should(QueryBuilders.nestedQuery("introduction", introSearch, ScoreMode.Avg).boost(2).innerHit(innerHitBuilder))
           .should(QueryBuilders.nestedQuery("content", contentSearch, ScoreMode.Avg).boost(1).innerHit(innerHitBuilder))
-          .should(QueryBuilders.nestedQuery("tags", tagSearch, ScoreMode.Avg).boost(2).innerHit(innerHitBuilder))
-        .filter(QueryBuilders.constantScoreQuery(QueryBuilders.termsQuery("articleType", articleTypesFilter:_*))))
+          .should(QueryBuilders.nestedQuery("tags", tagSearch, ScoreMode.Avg).boost(2).innerHit(innerHitBuilder)))
+        .filter(QueryBuilders.constantScoreQuery(QueryBuilders.termsQuery("articleType", articleTypesFilter:_*)))
 
       executeSearch(withIdIn, language, license, sort, page, pageSize, fullQuery)
     }
