@@ -13,12 +13,12 @@ import no.ndla.articleapi.model.api.ImportException
 import no.ndla.articleapi.model.domain.{FootNoteItem, ImportStatus, RequiredLibrary}
 import no.ndla.articleapi.repository.ArticleRepository
 import no.ndla.articleapi.service.converters.HtmlTagGenerator
-import no.ndla.articleapi.service.{ExtractConvertStoreContent, ExtractService}
+import no.ndla.articleapi.service.ExtractService
 
 import scala.util.{Failure, Success, Try}
 
 trait BiblioConverterModule {
-  this: ExtractService with ExtractConvertStoreContent with ArticleRepository with HtmlTagGenerator =>
+  this: ExtractService with ArticleRepository with HtmlTagGenerator =>
 
   object BiblioConverter extends ContentBrowserConverterModule with LazyLogging {
     override val typeName: String = "biblio"
