@@ -8,7 +8,6 @@
 
 package no.ndla.articleapi
 
-import no.ndla.articleapi.auth.Role
 import org.scalatra.ScalatraServlet
 import org.scalatra.swagger._
 
@@ -28,8 +27,13 @@ object ArticleApiInfo {
     "http://www.gnu.org/licenses/gpl-3.0.en.html")
 }
 
-class ArticleSwagger extends Swagger("2.0", "0.8", ArticleApiInfo.apiInfo) with Role {
-  def createRoleInTestEnv(role: String): String = role.replace(":", "-test:")
+class ArticleSwagger extends Swagger("2.0", "0.8", ArticleApiInfo.apiInfo) {
 
-  addAuthorization(OAuth(List(createRoleInTestEnv(authRole.DraftRoleWithWriteAccess), createRoleInTestEnv(authRole.RoleWithWriteAccess)), List(ImplicitGrant(LoginEndpoint(ArticleApiProperties.Auth0LoginEndpoint), "access_token"))))
+  private def writeRolesInTest: List[String] = {
+    val writeRoles = List(ArticleApiProperties.DraftRoleWithWriteAccess, ArticleApiProperties.RoleWithWriteAccess)
+    writeRoles.map(_.replace(":", "-test:"))
+  }
+
+  addAuthorization(OAuth(writeRolesInTest, List(ImplicitGrant(LoginEndpoint(ArticleApiProperties.Auth0LoginEndpoint), "access_token"))))
+
 }
