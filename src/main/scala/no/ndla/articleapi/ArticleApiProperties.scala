@@ -19,6 +19,8 @@ import scala.util.Properties._
 import scala.util.{Failure, Success}
 
 object ArticleApiProperties extends LazyLogging {
+  val Auth0LoginEndpoint = "https://ndla.eu.auth0.com/authorize"
+
   val SecretsFile = "article-api.secrets"
 
   val ApplicationPort = propOrElse("APPLICATION_PORT", "80").toInt
