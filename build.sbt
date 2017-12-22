@@ -8,7 +8,7 @@ val Jettyversion = "9.2.10.v20150310"
 val AwsSdkversion = "1.11.46"
 val ScalaTestVersion = "3.0.1"
 val MockitoVersion = "1.10.19"
-val Elastic4sVersion = "6.0.0"
+val Elastic4sVersion = "6.0.1"
 val ElasticsearchVersion = "6.0.1"
 
 val appProperties = settingKey[Properties]("The application properties")
@@ -57,7 +57,8 @@ lazy val article_api = (project in file(".")).
       "org.elasticsearch" % "elasticsearch" % ElasticsearchVersion,
       "com.sksamuel.elastic4s" %% "elastic4s-core" % Elastic4sVersion,
       "com.sksamuel.elastic4s" %% "elastic4s-http" % Elastic4sVersion,
-      "org.elasticsearch" % "elasticsearch" % ElasticsearchVersion % "test",
+      "com.sksamuel.elastic4s" %% "elastic4s-aws" % Elastic4sVersion,
+      "org.elasticsearch" % "elasticsearch" % ElasticsearchVersion,
       "org.apache.lucene" % "lucene-test-framework" % "6.4.1" % "test",
       "vc.inreach.aws" % "aws-signing-request-interceptor" % "0.0.16",
       "org.scalatest" %% "scalatest" % ScalaTestVersion % "test",
