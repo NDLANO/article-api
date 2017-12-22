@@ -25,6 +25,7 @@ import org.scalatest.mockito.MockitoSugar
 
 trait TestEnvironment
   extends ElasticClient
+    with Elastic4sClient
     with ArticleSearchService
     with ArticleIndexService
     with ConceptSearchService
@@ -114,6 +115,7 @@ trait TestEnvironment
   val tagsService = mock[TagsService]
   val searchConverterService = mock[SearchConverterService]
   val jestClient = mock[NdlaJestClient]
+  val e4sClient = mock[NdlaE4sClient]
   val audioApiClient = mock[AudioApiClient]
   val imageApiClient = mock[ImageApiClient]
   val draftApiClient = mock[DraftApiClient]

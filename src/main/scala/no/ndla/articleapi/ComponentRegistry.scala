@@ -37,6 +37,7 @@ object ComponentRegistry
     with ArticleRepository
     with ConceptRepository
     with ElasticClient
+    with Elastic4sClient
     with ArticleSearchService
     with IndexService
     with ArticleIndexService
@@ -127,6 +128,7 @@ object ComponentRegistry
   )
 
   lazy val jestClient: NdlaJestClient = JestClientFactory.getClient()
+  lazy val e4sClient: NdlaE4sClient = Elastic4sClientFactory.getClient()
   lazy val audioApiClient = new AudioApiClient
   lazy val imageApiClient = new ImageApiClient
   lazy val draftApiClient = new DraftApiClient

@@ -17,29 +17,31 @@ import io.searchbox.core.{Bulk, Delete, Index}
 import io.searchbox.indices.aliases.{AddAliasMapping, GetAliases, ModifyAliases, RemoveAliasMapping}
 import io.searchbox.indices.mapping.PutMapping
 import io.searchbox.indices.{CreateIndex, DeleteIndex, IndicesExists}
+import com.sksamuel.elastic4s.http.ElasticDsl._
+import com.sksamuel.elastic4s.mappings.MappingDefinition
 import no.ndla.articleapi.ArticleApiProperties
-import no.ndla.articleapi.integration.ElasticClient
+import no.ndla.articleapi.integration.{Elastic4sClient, ElasticClient}
 import no.ndla.articleapi.model.domain.{Content, NdlaSearchException, ReindexResult}
 import no.ndla.articleapi.repository.Repository
 
 import scala.util.{Failure, Success, Try}
 
 trait IndexService {
-  this: ElasticClient =>
+  this: ElasticClient with Elastic4sClient =>
 
   trait IndexService[D <: Content, T <: AnyRef] extends LazyLogging {
     val documentType: String
     val searchIndex: String
     val repository: Repository[D]
 
-    def getMapping: String
+    def getMapping: MappingDefinition
     def createIndexRequest(domainModel: D, indexName: String): Index
 
     def indexDocument(imported: D): Try[D] = {
       for {
         _ <- getAliasTarget.map {
           case Some(index) => Success(index)
-          case None => createIndex.map(newIndex => updateAliasTarget(None, newIndex))
+          case None => createIndexWithGeneratedName.map(newIndex => updateAliasTarget(None, newIndex))
         }
         _ <- jestClient.execute(createIndexRequest(imported, searchIndex))
       } yield imported
@@ -48,7 +50,7 @@ trait IndexService {
     def indexDocuments: Try[ReindexResult] = {
       synchronized {
         val start = System.currentTimeMillis()
-        createIndex.flatMap(indexName => {
+        createIndexWithGeneratedName.flatMap(indexName => {
           val operations = for {
             numIndexed <- sendToElastic(indexName)
             aliasTarget <- getAliasTarget
@@ -105,7 +107,7 @@ trait IndexService {
       for {
         _ <- getAliasTarget.map {
           case Some(index) => Success(index)
-          case None => createIndex.map(newIndex => updateAliasTarget(None, newIndex))
+          case None => createIndexWithGeneratedName.map(newIndex => updateAliasTarget(None, newIndex))
         }
         deleted <- {
           jestClient.execute(
@@ -115,19 +117,25 @@ trait IndexService {
       } yield deleted
     }
 
-    def createIndex: Try[String] = createIndexWithName(searchIndex + "_" + getTimestamp)
+    def createIndexWithGeneratedName: Try[String] = createIndexWithName(searchIndex + "_" + getTimestamp)
 
     def createIndexWithName(indexName: String): Try[String] = {
-      if (indexExists(indexName)) {
+      if (indexWithNameExists(indexName).getOrElse(false)) {
         Success(indexName)
       } else {
-        val createIndexResponse = jestClient.execute(
-          new CreateIndex.Builder(indexName)
-            .settings(s"""{"index":{"max_result_window":${ArticleApiProperties.ElasticSearchIndexMaxResultWindow}}}""")
-            .build())
-        createIndexResponse.map(_ => createMapping(indexName)).map(_ => indexName)
+        val response = e4sClient.execute {
+          createIndex(indexName)
+            .mappings(getMapping)
+            .indexSetting("max_result_window", ArticleApiProperties.ElasticSearchIndexMaxResultWindow)
+        }
+
+        response match {
+          case Success(_) => Success(indexName)
+          case Failure(ex) => Failure(ex)
+        }
       }
     }
+
 
     def createMapping(indexName: String): Try[String] = {
       val mappingResponse = jestClient.execute(new PutMapping.Builder(indexName, documentType, getMapping).build())
@@ -135,22 +143,18 @@ trait IndexService {
     }
 
     def getAliasTarget: Try[Option[String]] = {
-      val getAliasRequest = new GetAliases.Builder().addIndex(searchIndex).build()
-      jestClient.execute(getAliasRequest) match {
-        case Success(result) => {
-          val aliasIterator = result.getJsonObject.entrySet().iterator()
-          aliasIterator.hasNext match {
-            case true => Success(Some(aliasIterator.next().getKey))
-            case false => Success(None)
-          }
-        }
-        case Failure(_: NdlaSearchException) => Success(None)
-        case Failure(t: Throwable) => Failure(t)
+      val response = e4sClient.execute{
+        getAliases(Nil, List(searchIndex))
+      }
+
+      response match {
+        case Success(results) => Success(results.result.mappings.headOption.map((t) => t._1.name))
+        case Failure(ex) => Failure(ex)
       }
     }
 
     def updateAliasTarget(oldIndexName: Option[String], newIndexName: String): Try[Any] = {
-      if (!indexExists(newIndexName)) {
+      if (!indexWithNameExists(newIndexName).getOrElse(false)) {
         Failure(new IllegalArgumentException(s"No such index: $newIndexName"))
       } else {
         val addAliasDefinition = new AddAliasMapping.Builder(newIndexName, searchIndex).build()
@@ -170,7 +174,7 @@ trait IndexService {
       optIndexName match {
         case None => Success(optIndexName)
         case Some(indexName) => {
-          if (!indexExists(indexName)) {
+          if (!indexWithNameExists(indexName).getOrElse(false)) {
             Failure(new IllegalArgumentException(s"No such index: $indexName"))
           } else {
             jestClient.execute(new DeleteIndex.Builder(indexName).build())
@@ -180,7 +184,17 @@ trait IndexService {
 
     }
 
-    def indexExists(indexName: String): Boolean = jestClient.execute(new IndicesExists.Builder(indexName).build()).isSuccess
+    def indexWithNameExists(indexName: String): Try[Boolean] = {
+      val response = e4sClient.execute {
+        indexExists(indexName)
+      }
+
+      response match {
+        case Success(resp) if resp.status != 404 => Success(true)
+        case Success(_) => Success(false)
+        case Failure(ex) => Failure(ex)
+      }
+    }
 
     def getTimestamp: String = new SimpleDateFormat("yyyyMMddHHmmss").format(Calendar.getInstance.getTime)
 

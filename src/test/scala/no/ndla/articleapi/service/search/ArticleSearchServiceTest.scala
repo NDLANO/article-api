@@ -9,7 +9,7 @@
 
 package no.ndla.articleapi.service.search
 
-import no.ndla.articleapi.integration.JestClientFactory
+import no.ndla.articleapi.integration.{Elastic4sClientFactory, JestClientFactory}
 import no.ndla.articleapi.model.domain._
 import no.ndla.articleapi._
 import no.ndla.articleapi.ArticleApiProperties.DefaultPageSize
@@ -24,6 +24,7 @@ class ArticleSearchServiceTest extends UnitSuite with TestEnvironment {
   val esPort = 9200
 
   override val jestClient = JestClientFactory.getClient(searchServer = s"http://localhost:$esPort")
+  override val e4sClient = Elastic4sClientFactory.getClient(searchServer = s"http://localhost:$esPort")
 
   override val articleSearchService = new ArticleSearchService
   override val articleIndexService = new ArticleIndexService

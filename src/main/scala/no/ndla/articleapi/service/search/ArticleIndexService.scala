@@ -10,7 +10,7 @@
 package no.ndla.articleapi.service.search
 
 import com.sksamuel.elastic4s.http.ElasticDsl._
-import com.sksamuel.elastic4s.mappings.{MappingBuilderFn, NestedFieldDefinition}
+import com.sksamuel.elastic4s.mappings.{MappingBuilderFn, MappingDefinition, NestedFieldDefinition}
 import com.typesafe.scalalogging.LazyLogging
 import io.searchbox.core.Index
 import no.ndla.articleapi.ArticleApiProperties
@@ -35,8 +35,8 @@ trait ArticleIndexService {
       new Index.Builder(source).index(indexName).`type`(documentType).id(domainModel.id.get.toString).build
     }
 
-    def getMapping: String = {
-      MappingBuilderFn.buildWithName(mapping(documentType).fields(
+    def getMapping: MappingDefinition = {
+      mapping(documentType).fields(
         intField("id"),
         languageSupportedField("title", keepRaw = true),
         languageSupportedField("content"),
@@ -48,7 +48,7 @@ trait ArticleIndexService {
         keywordField("license"),
         textField("authors").fielddata(true),
         textField("articleType").analyzer("keyword")
-      ), ArticleApiProperties.ArticleSearchDocument).string()
+      )
     }
 
     private def languageSupportedField(fieldName: String, keepRaw: Boolean = false) = {
