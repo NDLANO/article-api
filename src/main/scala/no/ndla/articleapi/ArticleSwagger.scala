@@ -28,5 +28,12 @@ object ArticleApiInfo {
 }
 
 class ArticleSwagger extends Swagger("2.0", "0.8", ArticleApiInfo.apiInfo) {
-  addAuthorization(OAuth(List("articles:all"), List(ApplicationGrant(TokenEndpoint("/auth/tokens", "access_token")))))
+
+  private def writeRolesInTest: List[String] = {
+    val writeRoles = List(ArticleApiProperties.DraftRoleWithWriteAccess, ArticleApiProperties.RoleWithWriteAccess)
+    writeRoles.map(_.replace(":", "-test:"))
+  }
+
+  addAuthorization(OAuth(writeRolesInTest, List(ImplicitGrant(LoginEndpoint(ArticleApiProperties.Auth0LoginEndpoint), "access_token"))))
+
 }
