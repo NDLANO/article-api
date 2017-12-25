@@ -136,12 +136,6 @@ trait IndexService {
       }
     }
 
-
-    def createMapping(indexName: String): Try[String] = {
-      val mappingResponse = jestClient.execute(new PutMapping.Builder(indexName, documentType, getMapping).build())
-      mappingResponse.map(_ => indexName)
-    }
-
     def getAliasTarget: Try[Option[String]] = {
       val response = e4sClient.execute{
         getAliases(Nil, List(searchIndex))
