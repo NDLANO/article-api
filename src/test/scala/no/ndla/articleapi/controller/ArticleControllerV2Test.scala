@@ -8,6 +8,7 @@
 
 package no.ndla.articleapi.controller
 
+import com.sksamuel.elastic4s.http.search.SearchResponse
 import no.ndla.articleapi.model.api._
 import no.ndla.articleapi.model.domain._
 import no.ndla.articleapi.{ArticleSwagger, TestData, TestEnvironment, UnitSuite}
@@ -84,18 +85,17 @@ class ArticleControllerV2Test extends UnitSuite with TestEnvironment with Scalat
   }
 
   test("GET / should use size of id-list as page-size if defined") {
-    val searchMock = mock[SearchResult]
-    val searchResultMock = mock[io.searchbox.core.SearchResult]
+    val searchMock = mock[SearchResultV2]
     when(articleSearchService.all(any[List[Long]], any[String], any[Option[String]], any[Int], any[Int], any[Sort.Value], any[Seq[String]]))
       .thenReturn(searchMock)
-    when(searchMock.response).thenReturn(searchResultMock)
-    when(articleSearchService.getHits(searchResultMock, "nb", converterService.hitAsArticleSummaryV2)).thenReturn(Seq.empty)
+    when(articleSearchService.getHits(any[SearchResponse], "nb", converterService.hitAsArticleSummaryV2)).thenReturn(Seq.empty)
 
     get("/test/", "ids" -> "1,2,3,4", "page-size" -> "10", "language" -> "nb") {
       status should equal (200)
       verify(articleSearchService, times(1)).all(List(1, 2, 3, 4), Language.DefaultLanguage, None, 1, 4, Sort.ByTitleAsc, ArticleType.all)
     }
   }
+
   test("POST / should return 400 on failure to validate request") {
     post("/test/", "{}", headers = Map("Authorization" -> authHeaderWithWriteRole)) {
       status should equal(400)
