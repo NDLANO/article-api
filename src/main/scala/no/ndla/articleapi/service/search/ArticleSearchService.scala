@@ -11,21 +11,21 @@ package no.ndla.articleapi.service.search
 
 import com.google.gson.JsonObject
 import com.typesafe.scalalogging.LazyLogging
-import io.searchbox.core.Search
-import io.searchbox.params.Parameters
 import no.ndla.articleapi.ArticleApiProperties
-import no.ndla.articleapi.integration.ElasticClient
+import no.ndla.articleapi.integration.{Elastic4sClient, ElasticClient}
 import no.ndla.articleapi.model.api
-import no.ndla.articleapi.model.api.ResultWindowTooLargeException
+import no.ndla.articleapi.model.api.{ResultWindowTooLargeException, SearchResultV2}
 import no.ndla.articleapi.model.domain._
 import no.ndla.articleapi.service.ConverterService
 import no.ndla.network.ApplicationUrl
-import org.apache.lucene.search.join.ScoreMode
 import org.elasticsearch.ElasticsearchException
 import org.elasticsearch.index.IndexNotFoundException
 import org.elasticsearch.index.query._
 import org.elasticsearch.search.builder.SearchSourceBuilder
 import org.elasticsearch.search.fetch.subphase.highlight.HighlightBuilder
+import com.sksamuel.elastic4s.http.ElasticDsl._
+import com.sksamuel.elastic4s.searches.ScoreMode
+import com.sksamuel.elastic4s.searches.queries.BoolQueryDefinition
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.collection.JavaConverters._
@@ -33,84 +33,84 @@ import scala.concurrent.Future
 import scala.util.{Failure, Success}
 
 trait ArticleSearchService {
-  this: ElasticClient with SearchConverterService with SearchService with ArticleIndexService with ConverterService =>
+  this: ElasticClient with Elastic4sClient with SearchConverterService with SearchService with ArticleIndexService with ConverterService =>
   val articleSearchService: ArticleSearchService
 
   class ArticleSearchService extends LazyLogging with SearchService[api.ArticleSummaryV2] {
-    private val noCopyright = QueryBuilders.boolQuery().mustNot(QueryBuilders.termQuery("license", "copyrighted"))
+    private val noCopyright = boolQuery().not(termQuery("license", "copyrighted"))
 
     override val searchIndex: String = ArticleApiProperties.ArticleSearchIndex
 
-    override def hitToApiModel(hit: JsonObject, language: String): api.ArticleSummaryV2 = {
+    override def hitToApiModel(hit: String, language: String): api.ArticleSummaryV2 = {
       converterService.hitAsArticleSummaryV2(hit, language)
     }
 
-    def all(withIdIn: List[Long], language: String, license: Option[String], page: Int, pageSize: Int, sort: Sort.Value, articleTypes: Seq[String]): SearchResult = {
-      val articleTypesFilter = if (articleTypes.nonEmpty) articleTypes else ArticleType.all
-      val fullSearch = QueryBuilders.boolQuery()
-        .filter(QueryBuilders.constantScoreQuery(QueryBuilders.termsQuery("articleType", articleTypesFilter:_*)))
-      executeSearch(withIdIn, language, license, sort, page, pageSize, fullSearch)
+    def all(withIdIn: List[Long], language: String, license: Option[String], page: Int, pageSize: Int, sort: Sort.Value, articleTypes: Seq[String]): SearchResultV2 = {
+      executeSearch(withIdIn, language, license, sort, page, pageSize, boolQuery(), articleTypes)
     }
 
-    def matchingQuery(query: String, withIdIn: List[Long], searchLanguage: String, license: Option[String], page: Int, pageSize: Int, sort: Sort.Value, articleTypes: Seq[String]): SearchResult = {
+    def matchingQuery(query: String, withIdIn: List[Long], searchLanguage: String, license: Option[String], page: Int, pageSize: Int, sort: Sort.Value, articleTypes: Seq[String]): SearchResultV2 = {
       val language = if (searchLanguage == Language.AllLanguages) "*" else searchLanguage
-      val articleTypesFilter = if (articleTypes.nonEmpty) articleTypes else ArticleType.all
-      val titleSearch = QueryBuilders.simpleQueryStringQuery(query).field(s"title.$language")
-      val introSearch = QueryBuilders.simpleQueryStringQuery(query).field(s"introduction.$language")
-      val contentSearch = QueryBuilders.simpleQueryStringQuery(query).field(s"content.$language")
-      val tagSearch = QueryBuilders.simpleQueryStringQuery(query).field(s"tags.$language")
+      val titleSearch = simpleStringQuery(query).field(s"title.$language", 2)
+      val introSearch = simpleStringQuery(query).field(s"introduction.$language", 2)
+      val contentSearch = simpleStringQuery(query).field(s"content.$language", 1)
+      val tagSearch = simpleStringQuery(query).field(s"tags.$language", 1)
 
-      val highlightBuilder = new HighlightBuilder().preTags("").postTags("").field("*").numOfFragments(0)
-      val innerHitBuilder = new InnerHitBuilder().setHighlightBuilder(highlightBuilder)
+      val hi = highlight("*").preTag("").postTag("").numberOfFragments(0)
+      val ih = innerHits("inner_hits").highlighting(hi)
 
-      val fullQuery = QueryBuilders.boolQuery()
-        .must(QueryBuilders.boolQuery()
-          .should(QueryBuilders.nestedQuery("title", titleSearch, ScoreMode.Avg).boost(2).innerHit(innerHitBuilder))
-          .should(QueryBuilders.nestedQuery("introduction", introSearch, ScoreMode.Avg).boost(2).innerHit(innerHitBuilder))
-          .should(QueryBuilders.nestedQuery("content", contentSearch, ScoreMode.Avg).boost(1).innerHit(innerHitBuilder))
-          .should(QueryBuilders.nestedQuery("tags", tagSearch, ScoreMode.Avg).boost(2).innerHit(innerHitBuilder)))
-        .filter(QueryBuilders.constantScoreQuery(QueryBuilders.termsQuery("articleType", articleTypesFilter:_*)))
+      val fullQuery = boolQuery()
+        .must(
+          boolQuery()
+            .should(
+              nestedQuery("title", titleSearch).scoreMode(ScoreMode.Avg).inner(ih),
+              nestedQuery("introduction", introSearch).scoreMode(ScoreMode.Avg).inner(ih),
+              nestedQuery("content", contentSearch).scoreMode(ScoreMode.Avg).inner(ih),
+              nestedQuery("tags", tagSearch).scoreMode(ScoreMode.Avg).inner(ih)
+            )
+        )
 
-      executeSearch(withIdIn, language, license, sort, page, pageSize, fullQuery)
+      executeSearch(withIdIn, language, license, sort, page, pageSize, fullQuery, articleTypes)
     }
 
-    def executeSearch(withIdIn: List[Long], language: String, license: Option[String], sort: Sort.Value, page: Int, pageSize: Int, queryBuilder: BoolQueryBuilder): SearchResult = {
+    def executeSearch(withIdIn: List[Long], language: String, license: Option[String], sort: Sort.Value, page: Int, pageSize: Int, queryBuilder: BoolQueryDefinition, articleTypes: Seq[String]): SearchResultV2 = {
 
-      val (filteredSearch, searchLanguage) = {
-        val licenseFilteredSearch = license match {
-          case None => queryBuilder.filter(noCopyright)
-          case Some(lic) => queryBuilder.filter(QueryBuilders.termQuery("license", lic))
-        }
+      val articleTypesFilter = if (articleTypes.nonEmpty) Some(constantScoreQuery(termQuery("articleType", articleTypes))) else None
 
-        language match {
-          case Language.AllLanguages => (licenseFilteredSearch, "*")
-          case _ => (licenseFilteredSearch.filter(QueryBuilders.nestedQuery("title", QueryBuilders.existsQuery(s"title.$language"), ScoreMode.Avg)), language)
-        }
+      val licenseFilter = license match {
+        case None => Some(noCopyright)
+        case Some(lic) => Some(termQuery("license", lic))
       }
 
-      val idFilteredSearch = withIdIn match {
-        case head :: tail => filteredSearch.filter(QueryBuilders.idsQuery(ArticleApiProperties.ArticleSearchDocument).addIds(head.toString :: tail.map(_.toString):_*))
-        case Nil => filteredSearch
+      val idFilter = if (withIdIn.isEmpty) None else Some(idsQuery(withIdIn))
+
+      val (languageFilter, searchLanguage) = language match {
+        case "" | Language.AllLanguages =>
+          (None, "*")
+        case lang =>
+          (Some(nestedQuery("title", existsQuery(s"title.$lang")).scoreMode(ScoreMode.Avg)), lang)
       }
 
-      val searchQuery = new SearchSourceBuilder().query(idFilteredSearch).sort(getSortDefinition(sort, searchLanguage))
+      val filters = List(licenseFilter, idFilter, languageFilter, articleTypesFilter)
+      val filteredSearch = queryBuilder.filter(filters.flatten)
+
+
       val (startAt, numResults) = getStartAtAndNumResults(page, pageSize)
-      val request = new Search.Builder(searchQuery.toString)
-        .addIndex(searchIndex)
-        .setParameter(Parameters.SIZE, numResults)
-        .setParameter("from", startAt)
-
-
       val requestedResultWindow = pageSize * page
       if (requestedResultWindow > ArticleApiProperties.ElasticSearchIndexMaxResultWindow) {
         logger.info(s"Max supported results are ${ArticleApiProperties.ElasticSearchIndexMaxResultWindow}, user requested ${requestedResultWindow}")
         throw new ResultWindowTooLargeException()
       }
 
-      jestClient.execute(request.build()) match {
-        case Success(response) => SearchResult(response.getTotal.toLong, page, numResults, searchLanguage, response)
-        case Failure(f) => errorHandler(Failure(f))
+      e4sClient.execute{
+        search(searchIndex).size(numResults).from(startAt).query(filteredSearch).sortBy(getSortDefinition(sort, searchLanguage))
+      } match {
+        case Success(response) =>
+          SearchResultV2(response.result.totalHits, page, numResults, language, getHits(response.result, language, hitToApiModel))
+        case Failure(ex) =>
+          errorHandler(Failure(ex))
       }
+
     }
 
     protected def errorHandler[T](failure: Failure[T]) = {

@@ -12,6 +12,7 @@ package no.ndla.articleapi.service
 import java.util.Map.Entry
 
 import com.google.gson._
+import com.sksamuel.elastic4s.http.search.SearchHit
 import com.typesafe.scalalogging.LazyLogging
 import io.searchbox.core.{SearchResult => JestSearchResult}
 import no.ndla.articleapi.ArticleApiProperties._
@@ -19,9 +20,10 @@ import no.ndla.articleapi.auth.User
 import no.ndla.articleapi.integration.ConverterModule.{jsoupDocumentToString, stringToJsoupDocument}
 import no.ndla.articleapi.integration.{DraftApiClient, ImageApiClient}
 import no.ndla.articleapi.model.api
-import no.ndla.articleapi.model.api.{ImportException, ArticleSummaryV2}
+import no.ndla.articleapi.model.api.{ArticleSummaryV2, ImportException}
 import no.ndla.articleapi.model.domain.Language._
 import no.ndla.articleapi.model.domain._
+import no.ndla.articleapi.model.search.SearchableLanguageFormats
 import no.ndla.articleapi.repository.ArticleRepository
 import no.ndla.mapping.License.{getLicense, getLicenses}
 import no.ndla.network.ApplicationUrl
@@ -30,9 +32,9 @@ import no.ndla.validation.{EmbedTagRules, HtmlTagRules, ResourceType, TagAttribu
 import scala.annotation.tailrec
 import scala.collection.JavaConverters._
 import scala.util.{Failure, Success, Try}
-
 import org.json4s._
 import org.json4s.native.JsonMethods._
+import org.json4s.native.Serialization.read
 
 trait ConverterService {
   this: ConverterModules with ExtractConvertStoreContent with ImageApiClient with Clock with ArticleRepository with DraftApiClient with User =>
@@ -40,31 +42,42 @@ trait ConverterService {
 
   class ConverterService extends LazyLogging {
 
-    def getLanguageFromHit(jsonObject: JValue): Option[String] = {
+    def getLanguageFromHit(result: SearchHit): Option[String] = {
       implicit val formats = DefaultFormats
+      val sortedInnerHits = result.innerHits.toList.filter(ih => ih._2.total > 0).sortBy{
+        case (_, hit) => hit.max_score
+      }.reverse
 
-      // Fetches matched language from highlight in innerHit
-      // since elasticsearch doesn't return which nested field that matches
-      val innerHits = jsonObject \ "inner_hits"
+      val matchLanguage = sortedInnerHits.headOption.flatMap{
+        case (_, innerHit) =>
+          innerHit.hits.sortBy(hit => hit.score).reverse.headOption.flatMap(hit => {
+            hit.highlight.headOption.map(hl => hl._1.split('.').last)
+          })
+      }
 
-      val sortedInnerHits = innerHits.children.sortBy(innerHit => {
-        (innerHit \ "hits" \ "max_score").toOption.map(s => {
-          s.extract[Double]
-        }).getOrElse[Double](0)
-      }).reverse
-
-      sortedInnerHits.headOption.flatMap(innerHit => {
-        (innerHit \\ "highlight").extract[Map[String, Any]].keySet.headOption.map(fieldName =>
-          fieldName.split('.').last)
-      }) match {
-        case Some(lang) => Some(lang)
+      matchLanguage match {
+        case Some(lang) =>
+          Some(lang)
         case _ =>
-          (jsonObject \ "_source" \ "title").extract[Map[String, Any]].keySet.headOption.map(fieldName =>
-            fieldName.split('.').last)
+          val title = result.sourceAsMap.get("title")
+          val titleMap = title.map(tm => {
+            tm.asInstanceOf[Map[String, _]]
+          })
+
+          val languages = titleMap.map(title => title.keySet.toList)
+
+          languages.flatMap(languageList => {
+            languageList.sortBy(lang => {
+              val languagePriority = Language.languageAnalyzers.map(la => la.lang).reverse
+              languagePriority.indexOf(lang)
+            }).lastOption
+          })
       }
     }
 
-    def hitAsArticleSummaryV2(hit: JsonObject, language: String): ArticleSummaryV2 = {
+    def hitAsArticleSummaryV2(hitString: String, language: String): ArticleSummaryV2 = {
+      val hit = new JsonParser().parse(hitString).getAsJsonObject
+
       val titles = getEntrySetSeq(hit, "title").map(entr => ArticleTitle(entr.getValue.getAsString, entr.getKey))
       val introductions = getEntrySetSeq(hit, "introduction").map(entr => ArticleIntroduction(entr.getValue.getAsString, entr.getKey))
       val visualElements = getEntrySetSeq(hit, "visualElement").map(entr => VisualElement(entr.getValue.getAsString, entr.getKey))

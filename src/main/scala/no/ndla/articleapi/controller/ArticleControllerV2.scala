@@ -93,15 +93,6 @@ trait ArticleControllerV2 {
           if (articleTypesFilter.isEmpty) ArticleType.all else articleTypesFilter
         )
       }
-
-      val hitResult = articleSearchService.getHits(searchResult.response, language, converterService.hitAsArticleSummaryV2)
-      SearchResultV2(
-        searchResult.totalCount,
-        searchResult.page,
-        searchResult.pageSize,
-        if (searchResult.language == "*") "all" else searchResult.language,
-        hitResult
-      )
     }
 
     val getAllArticles =

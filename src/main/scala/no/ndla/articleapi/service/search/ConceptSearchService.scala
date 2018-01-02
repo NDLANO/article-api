@@ -10,17 +10,19 @@ package no.ndla.articleapi.service.search
 
 import java.util.Map.Entry
 
-import com.google.gson.{JsonElement, JsonObject}
+import com.google.gson.{JsonElement, JsonObject, JsonParser}
 import com.typesafe.scalalogging.LazyLogging
 import io.searchbox.core.Search
 import io.searchbox.params.Parameters
 import no.ndla.articleapi.ArticleApiProperties
-import no.ndla.articleapi.integration.ElasticClient
+import no.ndla.articleapi.integration.{Elastic4sClient, ElasticClient}
 import no.ndla.articleapi.model.api
 import no.ndla.articleapi.model.api.ResultWindowTooLargeException
 import no.ndla.articleapi.model.domain._
 import no.ndla.articleapi.service.ConverterService
-import org.apache.lucene.search.join.ScoreMode
+import com.sksamuel.elastic4s.http.ElasticDsl._
+import com.sksamuel.elastic4s.searches.ScoreMode
+import com.sksamuel.elastic4s.searches.queries.BoolQueryDefinition
 import org.elasticsearch.ElasticsearchException
 import org.elasticsearch.index.IndexNotFoundException
 import org.elasticsearch.index.query.{BoolQueryBuilder, InnerHitBuilder, QueryBuilders}
@@ -33,7 +35,7 @@ import scala.concurrent.Future
 import scala.util.{Failure, Success}
 
 trait ConceptSearchService {
-  this: ElasticClient with SearchService with ConceptIndexService with ConverterService =>
+  this: ElasticClient with Elastic4sClient with SearchService with ConceptIndexService with ConverterService =>
   val conceptSearchService: ConceptSearchService
 
   class ConceptSearchService extends LazyLogging with SearchService[api.ConceptSummary] {
@@ -47,7 +49,8 @@ trait ConceptSearchService {
       }
     }
 
-    override def hitToApiModel(hit: JsonObject, language: String): api.ConceptSummary = {
+    override def hitToApiModel(hitString: String, language: String): api.ConceptSummary = {
+      val hit = new JsonParser().parse(hitString).getAsJsonObject
       val titles = getEntrySetSeq(hit, "title").map(ent => ConceptTitle(ent.getValue.getAsString, ent.getKey))
       val contents = getEntrySetSeq(hit, "content").map(ent => ConceptContent(ent.getValue.getAsString, ent.getKey))
       val supportedLanguages = (titles union contents).map(_.language).toSet
@@ -68,42 +71,42 @@ trait ConceptSearchService {
     }
 
     def all(withIdIn: List[Long], language: String, page: Int, pageSize: Int, sort: Sort.Value): api.ConceptSearchResult = {
-      executeSearch(withIdIn, language, sort, page, pageSize, QueryBuilders.boolQuery())
+      executeSearch(withIdIn, language, sort, page, pageSize, boolQuery())
     }
 
     def matchingQuery(query: String, withIdIn: List[Long], searchLanguage: String, page: Int, pageSize: Int, sort: Sort.Value): api.ConceptSearchResult = {
       val language = if (searchLanguage == Language.AllLanguages) "*" else searchLanguage
-      val titleSearch = QueryBuilders.simpleQueryStringQuery(query).field(s"title.$language")
-      val contentSearch = QueryBuilders.simpleQueryStringQuery(query).field(s"content.$language")
+      val titleSearch = simpleStringQuery(query).field(s"title.$language")
+      val contentSearch = simpleStringQuery(query).field(s"content.$language")
 
-      val highlightBuilder = new HighlightBuilder().preTags("").postTags("").field("*").numOfFragments(0)
-      val innerHitBuilder = new InnerHitBuilder().setHighlightBuilder(highlightBuilder)
+      val hi = highlight("*").preTag("").postTag("").numberOfFragments(0)
+      val ih = innerHits("inner_hits").highlighting(hi)
 
-      val fullQuery = QueryBuilders.boolQuery()
-        .must(QueryBuilders.boolQuery()
-          .should(QueryBuilders.nestedQuery("title", titleSearch, ScoreMode.Avg).boost(2).innerHit(innerHitBuilder))
-          .should(QueryBuilders.nestedQuery("content", contentSearch, ScoreMode.Avg).boost(1).innerHit(innerHitBuilder)))
+      val fullQuery = boolQuery()
+        .must(
+          boolQuery()
+            .should(
+              nestedQuery("title", titleSearch).scoreMode(ScoreMode.Avg).inner(ih),
+              nestedQuery("content", contentSearch).scoreMode(ScoreMode.Avg).inner(ih)
+            )
+        )
+
 
       executeSearch(withIdIn, language, sort, page, pageSize, fullQuery)
     }
 
-    def executeSearch(withIdIn: List[Long], language: String, sort: Sort.Value, page: Int, pageSize: Int, queryBuilder: BoolQueryBuilder): api.ConceptSearchResult = {
+    def executeSearch(withIdIn: List[Long], language: String, sort: Sort.Value, page: Int, pageSize: Int, queryBuilder: BoolQueryDefinition): api.ConceptSearchResult = {
       val searchLanguage = language match {
-        case Language.AllLanguages => "*"
+        case Language.AllLanguages | "*" => "*"
         case _ => language
       }
 
-      val idFilteredSearch = withIdIn.nonEmpty match {
-        case true => queryBuilder.filter(QueryBuilders.idsQuery(ArticleApiProperties.ConceptSearchDocument).addIds(withIdIn.map(_.toString):_*))
-        case false => queryBuilder
-      }
-      val searchQuery = new SearchSourceBuilder().query(idFilteredSearch).sort(getSortDefinition(sort, searchLanguage))
+      val idFilter = if (withIdIn.isEmpty) None else Some(idsQuery(withIdIn))
 
       val (startAt, numResults) = getStartAtAndNumResults(page, pageSize)
-      val request = new Search.Builder(searchQuery.toString)
-        .addIndex(searchIndex)
-        .setParameter(Parameters.SIZE, numResults)
-        .setParameter("from", startAt)
+
+      val filters = List(idFilter)
+      val filteredSearch = queryBuilder.filter(filters.flatten)
 
       val requestedResultWindow = pageSize * page
       if (requestedResultWindow > ArticleApiProperties.ElasticSearchIndexMaxResultWindow) {
@@ -111,10 +114,15 @@ trait ConceptSearchService {
         throw new ResultWindowTooLargeException()
       }
 
-      jestClient.execute(request.build()) match {
-        case Success(response) => api.ConceptSearchResult(response.getTotal.toLong, page, numResults, getHits(response, searchLanguage, hitToApiModel))
-        case Failure(f) => errorHandler(Failure(f))
+      e4sClient.execute{
+        search(searchIndex).size(numResults).from(startAt).query(filteredSearch).sortBy(getSortDefinition(sort, searchLanguage))
+      } match {
+        case Success(response) =>
+          api.ConceptSearchResult(response.result.totalHits, page, numResults, getHits(response.result, language, hitToApiModel))
+        case Failure(ex) =>
+          errorHandler(Failure(ex))
       }
+
     }
 
     protected def errorHandler[T](failure: Failure[T]) = {
