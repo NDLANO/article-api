@@ -98,7 +98,7 @@ trait ArticleSearchService {
       val (startAt, numResults) = getStartAtAndNumResults(page, pageSize)
       val requestedResultWindow = pageSize * page
       if (requestedResultWindow > ArticleApiProperties.ElasticSearchIndexMaxResultWindow) {
-        logger.info(s"Max supported results are ${ArticleApiProperties.ElasticSearchIndexMaxResultWindow}, user requested ${requestedResultWindow}")
+        logger.info(s"Max supported results are ${ArticleApiProperties.ElasticSearchIndexMaxResultWindow}, user requested $requestedResultWindow")
         throw new ResultWindowTooLargeException()
       }
       val cli = e4sClient.getCli()

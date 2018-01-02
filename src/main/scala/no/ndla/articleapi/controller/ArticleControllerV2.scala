@@ -71,7 +71,7 @@ trait ArticleControllerV2 {
     }
 
     private def search(query: Option[String], sort: Option[Sort.Value], language: String, license: Option[String], page: Int, pageSize: Int, idList: List[Long], articleTypesFilter: Seq[String]) = {
-      val searchResult = query match {
+      query match {
         case Some(q) => articleSearchService.matchingQuery(
           query = q,
           withIdIn = idList,
