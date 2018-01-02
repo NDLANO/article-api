@@ -90,19 +90,23 @@ trait IndexService {
     }
 
     def indexDocuments(contents: Seq[D], indexName: String): Try[Int] = {
-      val response = e4sClient.execute{
-        bulk(contents.map(content => {
-          createIndexRequest(content, indexName)
-        }))
+      if(contents.isEmpty){
+        Success(0)
       }
+      else {
+        val response = e4sClient.execute{
+          bulk(contents.map(content => {
+            createIndexRequest(content, indexName)
+          }))
+        }
 
-      response match {
-        case Success(r) =>
-          logger.info(s"Indexed ${contents.size} documents. No of failed items: ${r.result.failures.size}")
-          Success(contents.size)
-        case Failure(ex) => Failure(ex)
+        response match {
+          case Success(r) =>
+            logger.info(s"Indexed ${contents.size} documents. No of failed items: ${r.result.failures.size}")
+            Success(contents.size)
+          case Failure(ex) => Failure(ex)
+        }
       }
-
     }
 
     def deleteDocument(contentId: Long): Try[_] = {

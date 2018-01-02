@@ -11,10 +11,10 @@ package no.ndla.articleapi.service.search
 
 import com.sksamuel.elastic4s.http.ElasticDsl._
 import com.sksamuel.elastic4s.indexes.IndexDefinition
-import com.sksamuel.elastic4s.mappings.{MappingBuilderFn, MappingDefinition, NestedFieldDefinition}
+import com.sksamuel.elastic4s.mappings.{MappingDefinition, NestedFieldDefinition}
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.articleapi.ArticleApiProperties
-import no.ndla.articleapi.model.domain.{Article, Concept}
+import no.ndla.articleapi.model.domain.Concept
 import no.ndla.articleapi.model.domain.Language.languageAnalyzers
 import no.ndla.articleapi.model.search.{SearchableArticle, SearchableLanguageFormats}
 import no.ndla.articleapi.repository.{ConceptRepository, Repository}
