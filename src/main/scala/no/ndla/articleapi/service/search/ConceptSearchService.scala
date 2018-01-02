@@ -76,8 +76,8 @@ trait ConceptSearchService {
 
     def matchingQuery(query: String, withIdIn: List[Long], searchLanguage: String, page: Int, pageSize: Int, sort: Sort.Value): api.ConceptSearchResult = {
       val language = if (searchLanguage == Language.AllLanguages) "*" else searchLanguage
-      val titleSearch = simpleStringQuery(query).field(s"title.$language")
-      val contentSearch = simpleStringQuery(query).field(s"content.$language")
+      val titleSearch = simpleStringQuery(query).field(s"title.$language", 2)
+      val contentSearch = simpleStringQuery(query).field(s"content.$language", 1)
 
       val hi = highlight("*").preTag("").postTag("").numberOfFragments(0)
       val ih = innerHits("inner_hits").highlighting(hi)

@@ -101,8 +101,6 @@ trait ArticleSearchService {
         logger.info(s"Max supported results are ${ArticleApiProperties.ElasticSearchIndexMaxResultWindow}, user requested $requestedResultWindow")
         throw new ResultWindowTooLargeException()
       }
-      val cli = e4sClient.getCli()
-      val json = cli.show(search(searchIndex).query(filteredSearch).sortBy(getSortDefinition(sort, searchLanguage)))
 
       e4sClient.execute{
         search(searchIndex).size(numResults).from(startAt).query(filteredSearch).sortBy(getSortDefinition(sort, searchLanguage))

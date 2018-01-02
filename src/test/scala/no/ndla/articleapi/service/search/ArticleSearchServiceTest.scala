@@ -416,8 +416,6 @@ class ArticleSearchServiceTest extends UnitSuite with TestEnvironment {
     hits.head.title.language should equal("en")
   }
 
-
-
   def blockUntil(predicate: () => Boolean) = {
     var backoff = 0
     var done = false
