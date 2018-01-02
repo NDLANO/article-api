@@ -16,7 +16,6 @@ import com.typesafe.scalalogging.LazyLogging
 import com.sksamuel.elastic4s.http.ElasticDsl._
 import com.sksamuel.elastic4s.indexes.IndexDefinition
 import com.sksamuel.elastic4s.mappings.MappingDefinition
-import io.searchbox.core.{Bulk, Delete}
 import no.ndla.articleapi.ArticleApiProperties
 import no.ndla.articleapi.integration.{Elastic4sClient, ElasticClient}
 import no.ndla.articleapi.model.domain.{Content, NdlaSearchException, ReindexResult}
@@ -113,9 +112,9 @@ trait IndexService {
           case None => createIndexWithGeneratedName.map(newIndex => updateAliasTarget(None, newIndex))
         }
         deleted <- {
-          jestClient.execute(
-            new Delete.Builder(s"$contentId").index(searchIndex).`type`(documentType).build()
-          )
+          e4sClient.execute{
+            delete(s"$contentId").from(searchIndex / documentType)
+          }
         }
       } yield deleted
     }
