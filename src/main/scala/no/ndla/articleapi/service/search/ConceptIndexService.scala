@@ -32,7 +32,7 @@ trait ConceptIndexService {
 
     override def createIndexRequest(concept: Concept, indexName: String): IndexDefinition = {
       val source = write(searchConverterService.asSearchableConcept(concept))
-      indexInto(searchIndex / documentType).doc(source).id(concept.id.get.toString)
+      indexInto(indexName / documentType).doc(source).id(concept.id.get.toString)
     }
 
     def getMapping: MappingDefinition = {

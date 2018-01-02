@@ -101,6 +101,8 @@ trait ArticleSearchService {
         logger.info(s"Max supported results are ${ArticleApiProperties.ElasticSearchIndexMaxResultWindow}, user requested ${requestedResultWindow}")
         throw new ResultWindowTooLargeException()
       }
+      val cli = e4sClient.getCli()
+      val json = cli.show(search(searchIndex).query(filteredSearch).sortBy(getSortDefinition(sort, searchLanguage)))
 
       e4sClient.execute{
         search(searchIndex).size(numResults).from(startAt).query(filteredSearch).sortBy(getSortDefinition(sort, searchLanguage))
@@ -125,6 +127,17 @@ trait ArticleSearchService {
               logger.error(e.getResponse.getErrorMessage)
               throw new ElasticsearchException(s"Unable to execute search in $searchIndex", e.getResponse.getErrorMessage)
           }
+        case Failure(e: Ndla4sSearchException) =>
+          e.rf.status match {
+            case notFound: Int if notFound == 404 =>
+              logger.error(s"Index $searchIndex not found. Scheduling a reindex.")
+              scheduleIndexDocuments()
+              throw new IndexNotFoundException(s"Index $searchIndex not found. Scheduling a reindex")
+            case _ =>
+              logger.error(e.getMessage)
+              throw new ElasticsearchException(s"Unable to execute search in $searchIndex", e.getMessage)
+            }
+
         case Failure(t: Throwable) => throw t
       }
     }

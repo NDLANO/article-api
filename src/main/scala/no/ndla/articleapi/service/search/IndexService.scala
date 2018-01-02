@@ -85,7 +85,7 @@ trait IndexService {
     def getRanges:Try[List[(Long, Long)]] = {
       Try {
         val (minId, maxId) = repository.minMaxId
-        Seq.range(minId, maxId).grouped(ArticleApiProperties.IndexBulkSize).map(group => (group.head, group.last + 1)).toList
+        Seq.range(minId, maxId + 1).grouped(ArticleApiProperties.IndexBulkSize).map(group => (group.head, group.last)).toList
       }
     }
 
@@ -148,7 +148,8 @@ trait IndexService {
       }
 
       response match {
-        case Success(results) => Success(results.result.mappings.headOption.map((t) => t._1.name))
+        case Success(results) =>
+          Success(results.result.mappings.headOption.map((t) => t._1.name))
         case Failure(ex) => Failure(ex)
       }
     }

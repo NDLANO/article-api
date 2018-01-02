@@ -15,6 +15,7 @@ import com.netaporter.uri.dsl._
 import com.sksamuel.elastic4s.ElasticsearchClientUri
 import com.sksamuel.elastic4s.aws._
 import com.sksamuel.elastic4s.http.{HttpClient, HttpExecutable, HttpRequestClient, RequestSuccess}
+import com.sksamuel.elastic4s.searches.queries.QueryDefinition
 import no.ndla.articleapi.ArticleApiProperties
 import no.ndla.articleapi.model.domain.Ndla4sSearchException
 
@@ -48,6 +49,15 @@ case class NdlaE4sClient(searchServer: String, signingClient: Boolean) {
       case Failure(ex) => Failure(ex)
     }
 
+  }
+
+  def getCli() = { //TODO: remove debug method
+    val httpClient = signingClient match {
+      case true => getSigningClient(searchServer)
+      case false => getNonSigningClient(searchServer)
+    }
+
+    httpClient
   }
 
   private def getNonSigningClient(searchServer: String): HttpClient = {

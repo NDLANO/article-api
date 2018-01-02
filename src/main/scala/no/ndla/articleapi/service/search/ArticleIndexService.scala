@@ -32,7 +32,7 @@ trait ArticleIndexService {
 
     override def createIndexRequest(domainModel: Article, indexName: String): IndexDefinition = {
       val source = write(searchConverterService.asSearchableArticle(domainModel))
-      indexInto(searchIndex / documentType).doc(source).id(domainModel.id.get.toString)
+      indexInto(indexName / documentType).doc(source).id(domainModel.id.get.toString)
     }
 
     def getMapping: MappingDefinition = {
