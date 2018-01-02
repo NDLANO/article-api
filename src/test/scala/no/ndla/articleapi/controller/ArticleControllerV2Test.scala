@@ -88,7 +88,6 @@ class ArticleControllerV2Test extends UnitSuite with TestEnvironment with Scalat
     val searchMock = mock[SearchResultV2]
     when(articleSearchService.all(any[List[Long]], any[String], any[Option[String]], any[Int], any[Int], any[Sort.Value], any[Seq[String]]))
       .thenReturn(searchMock)
-    when(articleSearchService.getHits(any[SearchResponse], "nb", converterService.hitAsArticleSummaryV2)).thenReturn(Seq.empty)
 
     get("/test/", "ids" -> "1,2,3,4", "page-size" -> "10", "language" -> "nb") {
       status should equal (200)
