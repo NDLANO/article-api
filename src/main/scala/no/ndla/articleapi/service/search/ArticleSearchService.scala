@@ -75,7 +75,7 @@ trait ArticleSearchService {
 
     def executeSearch(withIdIn: List[Long], language: String, license: Option[String], sort: Sort.Value, page: Int, pageSize: Int, queryBuilder: BoolQueryDefinition, articleTypes: Seq[String]): SearchResultV2 = {
 
-      val articleTypesFilter = if (articleTypes.nonEmpty) Some(constantScoreQuery(termQuery("articleType", articleTypes))) else None
+      val articleTypesFilter = if (articleTypes.nonEmpty) Some(constantScoreQuery(termsQuery("articleType", articleTypes))) else None
 
       val licenseFilter = license match {
         case None => Some(noCopyright)
