@@ -13,12 +13,10 @@ import java.text.SimpleDateFormat
 import java.util.Calendar
 
 import com.typesafe.scalalogging.LazyLogging
-import io.searchbox.core.{Bulk, Delete, Index}
-import io.searchbox.indices.aliases.{AddAliasMapping, GetAliases, ModifyAliases, RemoveAliasMapping}
-import io.searchbox.indices.mapping.PutMapping
-import io.searchbox.indices.{CreateIndex, DeleteIndex, IndicesExists}
 import com.sksamuel.elastic4s.http.ElasticDsl._
+import com.sksamuel.elastic4s.indexes.IndexDefinition
 import com.sksamuel.elastic4s.mappings.MappingDefinition
+import io.searchbox.core.{Bulk, Delete}
 import no.ndla.articleapi.ArticleApiProperties
 import no.ndla.articleapi.integration.{Elastic4sClient, ElasticClient}
 import no.ndla.articleapi.model.domain.{Content, NdlaSearchException, ReindexResult}
@@ -35,7 +33,7 @@ trait IndexService {
     val repository: Repository[D]
 
     def getMapping: MappingDefinition
-    def createIndexRequest(domainModel: D, indexName: String): Index
+    def createIndexRequest(domainModel: D, indexName: String): IndexDefinition
 
     def indexDocument(imported: D): Try[D] = {
       for {
@@ -43,7 +41,7 @@ trait IndexService {
           case Some(index) => Success(index)
           case None => createIndexWithGeneratedName.map(newIndex => updateAliasTarget(None, newIndex))
         }
-        _ <- jestClient.execute(createIndexRequest(imported, searchIndex))
+        _ <- e4sClient.execute{createIndexRequest(imported, searchIndex)}
       } yield imported
     }
 
@@ -55,12 +53,12 @@ trait IndexService {
             numIndexed <- sendToElastic(indexName)
             aliasTarget <- getAliasTarget
             _ <- updateAliasTarget(aliasTarget, indexName)
-            _ <- deleteIndex(aliasTarget)
+            _ <- deleteIndexWithName(aliasTarget)
           } yield numIndexed
 
           operations match {
             case Failure(f) => {
-              deleteIndex(Some(indexName))
+              deleteIndexWithName(Some(indexName))
               Failure(f)
             }
             case Success(totalIndexed) => {
@@ -93,14 +91,19 @@ trait IndexService {
     }
 
     def indexDocuments(contents: Seq[D], indexName: String): Try[Int] = {
-      val bulkBuilder = new Bulk.Builder()
-      contents.foreach(content => bulkBuilder.addAction(createIndexRequest(content, indexName)))
+      val response = e4sClient.execute{
+        bulk(contents.map(content => {
+          createIndexRequest(content, indexName)
+        }))
+      }
 
-      val response = jestClient.execute(bulkBuilder.build())
-      response.map(r => {
-        logger.info(s"Indexed ${contents.size} documents. No of failed items: ${r.getFailedItems.size()}")
-        contents.size
-      })
+      response match {
+        case Success(r) =>
+          logger.info(s"Indexed ${contents.size} documents. No of failed items: ${r.result.failures.size}")
+          Success(contents.size)
+        case Failure(ex) => Failure(ex)
+      }
+
     }
 
     def deleteDocument(contentId: Long): Try[_] = {
@@ -163,14 +166,16 @@ trait IndexService {
       }
     }
 
-    def deleteIndex(optIndexName: Option[String]): Try[_] = {
+    def deleteIndexWithName(optIndexName: Option[String]): Try[_] = {
       optIndexName match {
         case None => Success(optIndexName)
         case Some(indexName) => {
           if (!indexWithNameExists(indexName).getOrElse(false)) {
             Failure(new IllegalArgumentException(s"No such index: $indexName"))
           } else {
-            jestClient.execute(new DeleteIndex.Builder(indexName).build())
+            e4sClient.execute{
+              deleteIndex(indexName)
+            }
           }
         }
       }
