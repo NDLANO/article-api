@@ -151,16 +151,15 @@ trait IndexService {
       if (!indexWithNameExists(newIndexName).getOrElse(false)) {
         Failure(new IllegalArgumentException(s"No such index: $newIndexName"))
       } else {
-        val addAliasDefinition = new AddAliasMapping.Builder(newIndexName, searchIndex).build()
-        val modifyAliasRequest = oldIndexName match {
-          case None => new ModifyAliases.Builder(addAliasDefinition).build()
+        oldIndexName match {
+          case None =>
+            e4sClient.execute(addAlias(searchIndex).on(newIndexName))
           case Some(oldIndex) =>
-            new ModifyAliases.Builder(
-              new RemoveAliasMapping.Builder(oldIndex, searchIndex).build()
-            ).addAlias(addAliasDefinition).build()
+            e4sClient.execute {
+              removeAlias(searchIndex).on(oldIndex)
+              addAlias(searchIndex).on(newIndexName)
+            }
         }
-
-        jestClient.execute(modifyAliasRequest)
       }
     }
 
