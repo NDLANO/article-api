@@ -12,10 +12,8 @@ import java.util.Map.Entry
 
 import com.google.gson.{JsonElement, JsonObject, JsonParser}
 import com.typesafe.scalalogging.LazyLogging
-import io.searchbox.core.Search
-import io.searchbox.params.Parameters
 import no.ndla.articleapi.ArticleApiProperties
-import no.ndla.articleapi.integration.{Elastic4sClient, ElasticClient}
+import no.ndla.articleapi.integration.Elastic4sClient
 import no.ndla.articleapi.model.api
 import no.ndla.articleapi.model.api.ResultWindowTooLargeException
 import no.ndla.articleapi.model.domain._
@@ -35,7 +33,7 @@ import scala.concurrent.Future
 import scala.util.{Failure, Success}
 
 trait ConceptSearchService {
-  this: ElasticClient with Elastic4sClient with SearchService with ConceptIndexService with ConverterService =>
+  this: Elastic4sClient with SearchService with ConceptIndexService with ConverterService =>
   val conceptSearchService: ConceptSearchService
 
   class ConceptSearchService extends LazyLogging with SearchService[api.ConceptSummary] {
@@ -127,15 +125,15 @@ trait ConceptSearchService {
 
     protected def errorHandler[T](failure: Failure[T]) = {
       failure match {
-        case Failure(e: NdlaSearchException) =>
-          e.getResponse.getResponseCode match {
+        case Failure(e: Ndla4sSearchException) =>
+          e.rf.status match {
             case notFound: Int if notFound == 404 =>
               logger.error(s"Index $searchIndex not found. Scheduling a reindex.")
               scheduleIndexDocuments()
               throw new IndexNotFoundException(s"Index $searchIndex not found. Scheduling a reindex")
             case _ =>
-              logger.error(e.getResponse.getErrorMessage)
-              throw new ElasticsearchException(s"Unable to execute search in $searchIndex", e.getResponse.getErrorMessage)
+              logger.error(e.getMessage)
+              throw new ElasticsearchException(s"Unable to execute search in $searchIndex", e.getMessage)
           }
         case Failure(t: Throwable) => throw t
       }

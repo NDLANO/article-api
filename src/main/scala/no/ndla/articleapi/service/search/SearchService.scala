@@ -11,13 +11,12 @@ package no.ndla.articleapi.service.search
 
 import java.lang.Math.max
 
-import com.google.gson.{JsonObject, JsonParser}
 import com.sksamuel.elastic4s.http.ElasticDsl._
 import com.sksamuel.elastic4s.http.search.SearchResponse
 import com.sksamuel.elastic4s.searches.sort.SortOrder
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.articleapi.ArticleApiProperties.MaxPageSize
-import no.ndla.articleapi.integration.{Elastic4sClient, ElasticClient}
+import no.ndla.articleapi.integration.Elastic4sClient
 import no.ndla.articleapi.model.domain
 import no.ndla.articleapi.model.domain._
 import no.ndla.articleapi.service.ConverterService
@@ -26,7 +25,7 @@ import org.json4s.native.JsonMethods._
 import scala.util.{Failure, Success}
 
 trait SearchService {
-  this: ElasticClient with Elastic4sClient with ConverterService with LazyLogging =>
+  this: Elastic4sClient with ConverterService with LazyLogging =>
 
   trait SearchService[T] {
     val searchIndex: String

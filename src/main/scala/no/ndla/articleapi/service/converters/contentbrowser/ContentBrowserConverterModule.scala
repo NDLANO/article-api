@@ -44,7 +44,6 @@ trait ContentBrowserConverterModules
   with IndexService
   with LazyLogging
   with SearchService
-  with ElasticClient
   with Elastic4sClient
   with SearchConverterService
   with ImageConverterModule

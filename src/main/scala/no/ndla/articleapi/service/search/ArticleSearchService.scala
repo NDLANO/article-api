@@ -9,10 +9,9 @@
 
 package no.ndla.articleapi.service.search
 
-import com.google.gson.JsonObject
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.articleapi.ArticleApiProperties
-import no.ndla.articleapi.integration.{Elastic4sClient, ElasticClient}
+import no.ndla.articleapi.integration.Elastic4sClient
 import no.ndla.articleapi.model.api
 import no.ndla.articleapi.model.api.{ResultWindowTooLargeException, SearchResultV2}
 import no.ndla.articleapi.model.domain._
@@ -33,7 +32,7 @@ import scala.concurrent.Future
 import scala.util.{Failure, Success}
 
 trait ArticleSearchService {
-  this: ElasticClient with Elastic4sClient with SearchConverterService with SearchService with ArticleIndexService with ConverterService =>
+  this: Elastic4sClient with SearchConverterService with SearchService with ArticleIndexService with ConverterService =>
   val articleSearchService: ArticleSearchService
 
   class ArticleSearchService extends LazyLogging with SearchService[api.ArticleSummaryV2] {
@@ -115,16 +114,6 @@ trait ArticleSearchService {
 
     protected def errorHandler[T](failure: Failure[T]) = {
       failure match {
-        case Failure(e: NdlaSearchException) =>
-          e.getResponse.getResponseCode match {
-            case notFound: Int if notFound == 404 =>
-              logger.error(s"Index $searchIndex not found. Scheduling a reindex.")
-              scheduleIndexDocuments()
-              throw new IndexNotFoundException(s"Index $searchIndex not found. Scheduling a reindex")
-            case _ =>
-              logger.error(e.getResponse.getErrorMessage)
-              throw new ElasticsearchException(s"Unable to execute search in $searchIndex", e.getResponse.getErrorMessage)
-          }
         case Failure(e: Ndla4sSearchException) =>
           e.rf.status match {
             case notFound: Int if notFound == 404 =>
@@ -135,7 +124,6 @@ trait ArticleSearchService {
               logger.error(e.getMessage)
               throw new ElasticsearchException(s"Unable to execute search in $searchIndex", e.getMessage)
             }
-
         case Failure(t: Throwable) => throw t
       }
     }

@@ -11,7 +11,7 @@ package no.ndla.articleapi.service.search
 
 import no.ndla.articleapi.ArticleApiProperties.DefaultPageSize
 import no.ndla.articleapi._
-import no.ndla.articleapi.integration.{Elastic4sClientFactory, JestClientFactory}
+import no.ndla.articleapi.integration.Elastic4sClientFactory
 import no.ndla.articleapi.model.domain._
 import no.ndla.tag.IntegrationTest
 import org.joda.time.DateTime
@@ -21,7 +21,6 @@ class ConceptSearchServiceTest extends UnitSuite with TestEnvironment {
 
   val esPort = 9200
 
-  override val jestClient = JestClientFactory.getClient(searchServer = s"http://localhost:$esPort")
   override val e4sClient = Elastic4sClientFactory.getClient(searchServer = s"http://localhost:$esPort")
 
   override val conceptSearchService = new ConceptSearchService

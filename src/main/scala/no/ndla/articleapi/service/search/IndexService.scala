@@ -17,14 +17,14 @@ import com.sksamuel.elastic4s.http.ElasticDsl._
 import com.sksamuel.elastic4s.indexes.IndexDefinition
 import com.sksamuel.elastic4s.mappings.MappingDefinition
 import no.ndla.articleapi.ArticleApiProperties
-import no.ndla.articleapi.integration.{Elastic4sClient, ElasticClient}
-import no.ndla.articleapi.model.domain.{Content, NdlaSearchException, ReindexResult}
+import no.ndla.articleapi.integration.Elastic4sClient
+import no.ndla.articleapi.model.domain.{Content, ReindexResult}
 import no.ndla.articleapi.repository.Repository
 
 import scala.util.{Failure, Success, Try}
 
 trait IndexService {
-  this: ElasticClient with Elastic4sClient =>
+  this: Elastic4sClient =>
 
   trait IndexService[D <: Content, T <: AnyRef] extends LazyLogging {
     val documentType: String
