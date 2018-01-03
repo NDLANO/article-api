@@ -8,9 +8,9 @@
 
 package no.ndla.articleapi.service.search
 
-import java.util.Map.Entry
-
-import com.google.gson.{JsonElement, JsonObject, JsonParser}
+import com.sksamuel.elastic4s.http.ElasticDsl._
+import com.sksamuel.elastic4s.searches.ScoreMode
+import com.sksamuel.elastic4s.searches.queries.BoolQueryDefinition
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.articleapi.ArticleApiProperties
 import no.ndla.articleapi.integration.Elastic4sClient
@@ -18,16 +18,11 @@ import no.ndla.articleapi.model.api
 import no.ndla.articleapi.model.api.ResultWindowTooLargeException
 import no.ndla.articleapi.model.domain._
 import no.ndla.articleapi.service.ConverterService
-import com.sksamuel.elastic4s.http.ElasticDsl._
-import com.sksamuel.elastic4s.searches.ScoreMode
-import com.sksamuel.elastic4s.searches.queries.BoolQueryDefinition
 import org.elasticsearch.ElasticsearchException
 import org.elasticsearch.index.IndexNotFoundException
-import org.elasticsearch.index.query.{BoolQueryBuilder, InnerHitBuilder, QueryBuilders}
-import org.elasticsearch.search.builder.SearchSourceBuilder
-import org.elasticsearch.search.fetch.subphase.highlight.HighlightBuilder
+import org.json4s.{DefaultFormats, _}
+import org.json4s.native.JsonMethods._
 
-import scala.collection.JavaConverters._
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 import scala.util.{Failure, Success}
@@ -37,6 +32,7 @@ trait ConceptSearchService {
   val conceptSearchService: ConceptSearchService
 
   class ConceptSearchService extends LazyLogging with SearchService[api.ConceptSummary] {
+    implicit val formats = DefaultFormats
     override val searchIndex: String = ArticleApiProperties.ConceptSearchIndex
 
     private def getSearchLanguage(supportedLanguages: Seq[String], language: String): String = {
@@ -48,24 +44,21 @@ trait ConceptSearchService {
     }
 
     override def hitToApiModel(hitString: String, language: String): api.ConceptSummary = {
-      val hit = new JsonParser().parse(hitString).getAsJsonObject
-      val titles = getEntrySetSeq(hit, "title").map(ent => ConceptTitle(ent.getValue.getAsString, ent.getKey))
-      val contents = getEntrySetSeq(hit, "content").map(ent => ConceptContent(ent.getValue.getAsString, ent.getKey))
+      val hit = parse(hitString)
+      val titles = (hit \ "title").extract[Map[String, String]].map(title => ConceptTitle(title._2, title._1)).toSeq
+      val contents = (hit \ "content").extract[Map[String, String]].map(content => ConceptContent(content._2, content._1)).toSeq
+
       val supportedLanguages = (titles union contents).map(_.language).toSet
 
       val title = Language.findByLanguageOrBestEffort(titles, language).map(converterService.toApiConceptTitle).getOrElse(api.ConceptTitle("", Language.DefaultLanguage))
       val concept = Language.findByLanguageOrBestEffort(contents, language).map(converterService.toApiConceptContent).getOrElse(api.ConceptContent("", Language.DefaultLanguage))
 
       api.ConceptSummary(
-        hit.get("id").getAsLong,
+        (hit \ "id").extract[Long],
         title,
         concept,
         supportedLanguages
       )
-    }
-
-    def getEntrySetSeq(hit: JsonObject, fieldPath: String): Seq[Entry[String, JsonElement]] = {
-      hit.get(fieldPath).getAsJsonObject.entrySet.asScala.to[Seq]
     }
 
     def all(withIdIn: List[Long], language: String, page: Int, pageSize: Int, sort: Sort.Value): api.ConceptSearchResult = {

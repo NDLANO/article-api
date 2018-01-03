@@ -32,16 +32,15 @@ import scala.collection.JavaConverters._
 import scala.util.{Failure, Success, Try}
 import org.json4s._
 import org.json4s.native.JsonMethods._
-import org.json4s.native.Serialization.read
 
 trait ConverterService {
   this: ConverterModules with ExtractConvertStoreContent with ImageApiClient with Clock with ArticleRepository with DraftApiClient with User =>
   val converterService: ConverterService
 
   class ConverterService extends LazyLogging {
+    implicit val formats = DefaultFormats
 
     def getLanguageFromHit(result: SearchHit): Option[String] = {
-      implicit val formats = DefaultFormats
       val sortedInnerHits = result.innerHits.toList.filter(ih => ih._2.total > 0).sortBy{
         case (_, hit) => hit.max_score
       }.reverse
@@ -74,11 +73,10 @@ trait ConverterService {
     }
 
     def hitAsArticleSummaryV2(hitString: String, language: String): ArticleSummaryV2 = {
-      implicit val formats = DefaultFormats
       val hit = parse(hitString)
-      val titles = (hit \\ "title").extract[Map[String, String]].map(title => ArticleTitle(title._2, title._1)).toSeq
-      val introductions = (hit \\ "introduction").extract[Map[String, String]].map(title => ArticleIntroduction(title._2, title._1)).toSeq
-      val visualElements = (hit \\ "visualElement").extract[Map[String, String]].map(title => VisualElement(title._2, title._1)).toSeq
+      val titles = (hit \ "title").extract[Map[String, String]].map(title => ArticleTitle(title._2, title._1)).toSeq
+      val introductions = (hit \ "introduction").extract[Map[String, String]].map(title => ArticleIntroduction(title._2, title._1)).toSeq
+      val visualElements = (hit \ "visualElement").extract[Map[String, String]].map(title => VisualElement(title._2, title._1)).toSeq
 
       val supportedLanguages = getSupportedLanguages(Seq(titles, visualElements, introductions))
 

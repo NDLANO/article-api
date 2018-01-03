@@ -11,7 +11,6 @@ package no.ndla.articleapi.service
 
 import java.util.Date
 
-import io.searchbox.client.JestResult
 import no.ndla.articleapi.integration.{LanguageIngress, MigrationSubjectMeta}
 import no.ndla.articleapi.model.api.OptimisticLockException
 import no.ndla.articleapi.model.domain._

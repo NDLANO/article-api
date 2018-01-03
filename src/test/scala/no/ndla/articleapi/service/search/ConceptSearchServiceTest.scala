@@ -279,6 +279,21 @@ class ConceptSearchServiceTest extends UnitSuite with TestEnvironment {
     hits.head.title.language should equal("en")
   }
 
+  test("That hitToApiModel returns correct summary") {
+    val id = 1
+    val title = "Batmen er på vift med en bil"
+    val content = "Bilde av en <strong>bil</strong> flaggermusmann som vifter med vingene <em>bil</em>."
+    val supportedLanguages = Set("nb")
+    val hitString = s"""{"id":$id,"title":{"nb":"$title"},"content":{"nb":"$content"},"defaultTitle":"$title"}"""
+
+    val result = conceptSearchService.hitToApiModel(hitString, "nb")
+
+    result.id should equal(id)
+    result.title.title should equal(title)
+    result.content.content should equal(content)
+    result.supportedLanguages should equal(supportedLanguages)
+  }
+
   def blockUntil(predicate: () => Boolean) = {
     var backoff = 0
     var done = false
