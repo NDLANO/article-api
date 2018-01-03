@@ -112,7 +112,7 @@ class ExtractConvertStoreContentTest extends UnitSuite with TestEnvironment {
   }
 
   test("That ETL returns a Failure if failed to index the converted article") {
-    when(articleIndexService.indexDocument(any[Article])).thenReturn(Failure(mock[Ndla4sSearchException]))
+    when(articleIndexService.indexDocument(any[Article])).thenReturn(Failure(mock[NdlaSearchException]))
     when(articleRepository.getIdFromExternalId(nodeId)).thenReturn(None)
 
     val result = eCSService.processNode(nodeId, ImportStatus(Seq(), Set("9876")))

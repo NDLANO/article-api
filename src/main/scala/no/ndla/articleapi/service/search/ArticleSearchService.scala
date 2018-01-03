@@ -114,7 +114,7 @@ trait ArticleSearchService {
 
     protected def errorHandler[T](failure: Failure[T]) = {
       failure match {
-        case Failure(e: Ndla4sSearchException) =>
+        case Failure(e: NdlaSearchException) =>
           e.rf.status match {
             case notFound: Int if notFound == 404 =>
               logger.error(s"Index $searchIndex not found. Scheduling a reindex.")

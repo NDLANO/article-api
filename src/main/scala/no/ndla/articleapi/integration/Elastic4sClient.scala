@@ -17,7 +17,7 @@ import com.sksamuel.elastic4s.aws._
 import com.sksamuel.elastic4s.http.{HttpClient, HttpExecutable, HttpRequestClient, RequestSuccess}
 import com.sksamuel.elastic4s.searches.queries.QueryDefinition
 import no.ndla.articleapi.ArticleApiProperties
-import no.ndla.articleapi.model.domain.Ndla4sSearchException
+import no.ndla.articleapi.model.domain.NdlaSearchException
 
 import scala.concurrent.Await
 import scala.concurrent.duration.Duration
@@ -44,20 +44,11 @@ case class NdlaE4sClient(searchServer: String, signingClient: Boolean) {
     response match {
       case Success(either) => either match {
         case Right(result) => Success(result)
-        case Left(requestFailure) => Failure(Ndla4sSearchException(requestFailure))
+        case Left(requestFailure) => Failure(NdlaSearchException(requestFailure))
       }
       case Failure(ex) => Failure(ex)
     }
 
-  }
-
-  def getCli() = { //TODO: remove debug method
-    val httpClient = signingClient match {
-      case true => getSigningClient(searchServer)
-      case false => getNonSigningClient(searchServer)
-    }
-
-    httpClient
   }
 
   private def getNonSigningClient(searchServer: String): HttpClient = {
