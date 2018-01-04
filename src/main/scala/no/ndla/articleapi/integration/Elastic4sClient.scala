@@ -27,19 +27,11 @@ trait Elastic4sClient {
   val e4sClient: NdlaE4sClient
 }
 
-case class NdlaE4sClient(searchServer: String, signingClient: Boolean) {
+case class NdlaE4sClient(httpClient: HttpClient) {
   def execute[T, U](request: T)(implicit exec: HttpExecutable[T, U]): Try[RequestSuccess[U]] = {
-
-    val httpClient = signingClient match {
-      case true => getSigningClient(searchServer)
-      case false => getNonSigningClient(searchServer)
-    }
-
     val response = Await.ready(httpClient.execute {
       request
     }, Duration.Inf).value.get
-
-    httpClient.close()
 
     response match {
       case Success(either) => either match {
@@ -48,7 +40,15 @@ case class NdlaE4sClient(searchServer: String, signingClient: Boolean) {
       }
       case Failure(ex) => Failure(ex)
     }
+  }
+}
 
+object Elastic4sClientFactory {
+  def getClient(searchServer: String = ArticleApiProperties.SearchServer): NdlaE4sClient = {
+    ArticleApiProperties.RunWithSignedSearchRequests match {
+      case true => NdlaE4sClient(getSigningClient(searchServer))
+      case false => NdlaE4sClient(getNonSigningClient(searchServer))
+    }
   }
 
   private def getNonSigningClient(searchServer: String): HttpClient = {
@@ -74,11 +74,5 @@ case class NdlaE4sClient(searchServer: String, signingClient: Boolean) {
     field.setAccessible(true)
     val map = field.get(System.getenv()).asInstanceOf[java.util.Map[java.lang.String, java.lang.String]]
     map.put(key, value)
-  }
-}
-
-object Elastic4sClientFactory {
-  def getClient(searchServer: String = ArticleApiProperties.SearchServer): NdlaE4sClient = {
-    NdlaE4sClient(searchServer, ArticleApiProperties.RunWithSignedSearchRequests)
   }
 }
