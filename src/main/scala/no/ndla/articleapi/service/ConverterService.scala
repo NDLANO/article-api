@@ -11,79 +11,89 @@ package no.ndla.articleapi.service
 
 import java.util.Map.Entry
 
-import com.google.gson.{JsonElement, JsonObject}
+import com.sksamuel.elastic4s.http.search.SearchHit
 import com.typesafe.scalalogging.LazyLogging
-import io.searchbox.core.{SearchResult => JestSearchResult}
 import no.ndla.articleapi.ArticleApiProperties._
 import no.ndla.articleapi.auth.User
 import no.ndla.articleapi.integration.ConverterModule.{jsoupDocumentToString, stringToJsoupDocument}
 import no.ndla.articleapi.integration.{DraftApiClient, ImageApiClient}
 import no.ndla.articleapi.model.api
-import no.ndla.articleapi.model.api.{ImportException, ArticleSummaryV2}
+import no.ndla.articleapi.model.api.{ArticleSummaryV2, ImportException}
 import no.ndla.articleapi.model.domain.Language._
 import no.ndla.articleapi.model.domain._
+import no.ndla.articleapi.model.search.SearchableLanguageFormats
 import no.ndla.articleapi.repository.ArticleRepository
 import no.ndla.mapping.License.{getLicense, getLicenses}
 import no.ndla.network.ApplicationUrl
-import no.ndla.validation.{HtmlTagRules, EmbedTagRules, ResourceType, TagAttributes}
+import no.ndla.validation.{EmbedTagRules, HtmlTagRules, ResourceType, TagAttributes}
 
 import scala.annotation.tailrec
 import scala.collection.JavaConverters._
 import scala.util.{Failure, Success, Try}
+import org.json4s._
+import org.json4s.native.JsonMethods._
 
 trait ConverterService {
   this: ConverterModules with ExtractConvertStoreContent with ImageApiClient with Clock with ArticleRepository with DraftApiClient with User =>
   val converterService: ConverterService
 
   class ConverterService extends LazyLogging {
+    implicit val formats = DefaultFormats
 
-    def getHitsV2(response: JestSearchResult, language: String): Seq[ArticleSummaryV2] = {
-      var resultList = Seq[ArticleSummaryV2]()
-      response.getTotal match {
-        case count: Integer if count > 0 => {
-          val resultArray = response.getJsonObject.get("hits").asInstanceOf[JsonObject].get("hits").getAsJsonArray
-          val iterator = resultArray.iterator()
-          while (iterator.hasNext) {
-            resultList = resultList :+ hitAsArticleSummaryV2(iterator.next().asInstanceOf[JsonObject].get("_source").asInstanceOf[JsonObject], language)
-          }
-          resultList
-        }
-        case _ => Seq()
+    def getLanguageFromHit(result: SearchHit): Option[String] = {
+      val sortedInnerHits = result.innerHits.toList.filter(ih => ih._2.total > 0).sortBy{
+        case (_, hit) => hit.max_score
+      }.reverse
+
+      val matchLanguage = sortedInnerHits.headOption.flatMap{
+        case (_, innerHit) =>
+          innerHit.hits.sortBy(hit => hit.score).reverse.headOption.flatMap(hit => {
+            hit.highlight.headOption.map(hl => hl._1.split('.').last)
+          })
+      }
+
+      matchLanguage match {
+        case Some(lang) =>
+          Some(lang)
+        case _ =>
+          val title = result.sourceAsMap.get("title")
+          val titleMap = title.map(tm => {
+            tm.asInstanceOf[Map[String, _]]
+          })
+
+          val languages = titleMap.map(title => title.keySet.toList)
+
+          languages.flatMap(languageList => {
+            languageList.sortBy(lang => {
+              val languagePriority = Language.languageAnalyzers.map(la => la.lang).reverse
+              languagePriority.indexOf(lang)
+            }).lastOption
+          })
       }
     }
 
-    def hitAsArticleSummaryV2(hit: JsonObject, language: String): ArticleSummaryV2 = {
-      val titles = getEntrySetSeq(hit, "title").map(entr => ArticleTitle(entr.getValue.getAsString, entr.getKey))
-      val introductions = getEntrySetSeq(hit, "introduction").map(entr => ArticleIntroduction(entr.getValue.getAsString, entr.getKey))
-      val visualElements = getEntrySetSeq(hit, "visualElement").map(entr => VisualElement(entr.getValue.getAsString, entr.getKey))
+    def hitAsArticleSummaryV2(hitString: String, language: String): ArticleSummaryV2 = {
+      val hit = parse(hitString)
+      val titles = (hit \ "title").extract[Map[String, String]].map(title => ArticleTitle(title._2, title._1)).toSeq
+      val introductions = (hit \ "introduction").extract[Map[String, String]].map(title => ArticleIntroduction(title._2, title._1)).toSeq
+      val visualElements = (hit \ "visualElement").extract[Map[String, String]].map(title => VisualElement(title._2, title._1)).toSeq
 
       val supportedLanguages = getSupportedLanguages(Seq(titles, visualElements, introductions))
 
-      val title = findByLanguageOrBestEffort(titles, language).map(converterService.toApiArticleTitle).getOrElse(api.ArticleTitle("", DefaultLanguage))
-      val visualElement = findByLanguageOrBestEffort(visualElements, language).map(converterService.toApiVisualElement)
-      val introduction = findByLanguageOrBestEffort(introductions, language).map(converterService.toApiArticleIntroduction)
+      val title = findByLanguageOrBestEffort(titles, language).map(toApiArticleTitle).getOrElse(api.ArticleTitle("", DefaultLanguage))
+      val visualElement = findByLanguageOrBestEffort(visualElements, language).map(toApiVisualElement)
+      val introduction = findByLanguageOrBestEffort(introductions, language).map(toApiArticleIntroduction)
 
       ArticleSummaryV2(
-        hit.get("id").getAsLong,
+        (hit \ "id").extract[Long],
         title,
         visualElement,
         introduction,
-        ApplicationUrl.get + hit.get("id").getAsString,
-        hit.get("license").getAsString,
-        hit.get("articleType").getAsString,
+        ApplicationUrl.get + (hit \ "id").extract[String],
+        (hit \ "license").extract[String],
+        (hit \ "articleType").extract[String],
         supportedLanguages
       )
-    }
-
-    def getEntrySetSeq(hit: JsonObject, fieldPath: String): Seq[Entry[String, JsonElement]] = {
-      hit.get(fieldPath).getAsJsonObject.entrySet.asScala.to[Seq]
-    }
-
-    def getValueByFieldAndLanguage(hit: JsonObject, fieldPath: String, searchLanguage: String): String = {
-      hit.get(fieldPath).getAsJsonObject.entrySet.asScala.to[Seq].find(entr => entr.getKey == searchLanguage) match {
-        case Some(element) => element.getValue.getAsString
-        case None => ""
-      }
     }
 
     def toDomainArticle(nodeToConvert: NodeToConvert, importStatus: ImportStatus): Try[(Content, ImportStatus)] = {

@@ -11,7 +11,7 @@ package no.ndla.articleapi.service.search
 
 import no.ndla.articleapi.ArticleApiProperties.DefaultPageSize
 import no.ndla.articleapi._
-import no.ndla.articleapi.integration.JestClientFactory
+import no.ndla.articleapi.integration.Elastic4sClientFactory
 import no.ndla.articleapi.model.domain._
 import no.ndla.tag.IntegrationTest
 import org.joda.time.DateTime
@@ -21,7 +21,7 @@ class ConceptSearchServiceTest extends UnitSuite with TestEnvironment {
 
   val esPort = 9200
 
-  override val jestClient = JestClientFactory.getClient(searchServer = s"http://localhost:$esPort")
+  override val e4sClient = Elastic4sClientFactory.getClient(searchServer = s"http://localhost:$esPort")
 
   override val conceptSearchService = new ConceptSearchService
   override val conceptIndexService = new ConceptIndexService
@@ -70,6 +70,14 @@ class ConceptSearchServiceTest extends UnitSuite with TestEnvironment {
     id = Option(9),
     title = List(ConceptTitle("Baldur har mareritt om Ragnarok", "nb")),
     content = List(ConceptContent("<p>Bilde av <em>Baldurs</em> som har  mareritt.", "nb")))
+  val concept10 = TestData.sampleConcept.copy(
+    id = Option(10),
+    title = List(ConceptTitle("This article is in english", "en")),
+    content = List(ConceptContent("<p>Something something <em>english</em> What", "en")))
+  val concept11 = TestData.sampleConcept.copy(
+    id = Option(11),
+    title = List(ConceptTitle("Katter", "nb"), ConceptTitle("Cats", "en")),
+    content = List(ConceptContent("<p>Noe om en katt</p>", "nb"), ConceptContent("<p>Something about a cat</p>", "en")))
 
   override def beforeAll = {
     conceptIndexService.createIndexWithName(ArticleApiProperties.ConceptSearchIndex)
@@ -83,12 +91,14 @@ class ConceptSearchServiceTest extends UnitSuite with TestEnvironment {
     conceptIndexService.indexDocument(concept7)
     conceptIndexService.indexDocument(concept8)
     conceptIndexService.indexDocument(concept9)
+    conceptIndexService.indexDocument(concept10)
+    conceptIndexService.indexDocument(concept11)
 
-    blockUntil(() => conceptSearchService.countDocuments == 9)
+    blockUntil(() => conceptSearchService.countDocuments == 11)
   }
 
   override def afterAll() = {
-    conceptIndexService.deleteIndex(Some(ArticleApiProperties.ConceptSearchIndex))
+    conceptIndexService.deleteIndexWithName(Some(ArticleApiProperties.ConceptSearchIndex))
   }
 
   test("That getStartAtAndNumResults returns SEARCH_MAX_PAGE_SIZE for value greater than SEARCH_MAX_PAGE_SIZE") {
@@ -110,7 +120,7 @@ class ConceptSearchServiceTest extends UnitSuite with TestEnvironment {
   test("That all returns all documents ordered by id ascending") {
     val results = conceptSearchService.all(List(), Language.DefaultLanguage, 1, 10, Sort.ByIdAsc)
     val hits = results.results
-    results.totalCount should be(9)
+    results.totalCount should be(11)
     hits.head.id should be(1)
     hits(1).id should be(2)
     hits(2).id should be(3)
@@ -119,45 +129,48 @@ class ConceptSearchServiceTest extends UnitSuite with TestEnvironment {
     hits(5).id should be(6)
     hits(6).id should be(7)
     hits(7).id should be(8)
-    hits.last.id should be(9)
+    hits(8).id should be(9)
+    hits.last.id should be(10)
   }
 
   test("That all returns all documents ordered by id descending") {
     val results = conceptSearchService.all(List(), Language.DefaultLanguage, 1, 10, Sort.ByIdDesc)
     val hits = results.results
-    results.totalCount should be(9)
-    hits.head.id should be (9)
-    hits.last.id should be (1)
+    results.totalCount should be(11)
+    hits.head.id should be (11)
+    hits.last.id should be (2)
   }
 
   test("That all returns all documents ordered by title ascending") {
     val results = conceptSearchService.all(List(), Language.DefaultLanguage, 1, 10, Sort.ByTitleAsc)
     val hits = results.results
     hits.foreach(println)
-    results.totalCount should be(9)
+    results.totalCount should be(11)
     hits.head.id should be(8)
     hits(1).id should be(9)
     hits(2).id should be(1)
     hits(3).id should be(3)
     hits(4).id should be(5)
-    hits(5).id should be(6)
-    hits(6).id should be(2)
-    hits(7).id should be(4)
+    hits(5).id should be(11)
+    hits(6).id should be(6)
+    hits(7).id should be(2)
+    hits(8).id should be(4)
     hits.last.id should be(7)
   }
 
   test("That all returns all documents ordered by title descending") {
     val results = conceptSearchService.all(List(), Language.DefaultLanguage, 1, 10, Sort.ByTitleDesc)
     val hits = results.results
-    results.totalCount should be(9)
+    results.totalCount should be(11)
     hits.head.id should be(7)
     hits(1).id should be(4)
     hits(2).id should be(2)
     hits(3).id should be(6)
-    hits(4).id should be(5)
-    hits(5).id should be(3)
-    hits(6).id should be(1)
-    hits(7).id should be(9)
+    hits(4).id should be(11)
+    hits(5).id should be(5)
+    hits(6).id should be(3)
+    hits(7).id should be(1)
+    hits(8).id should be(9)
     hits.last.id should be(8)
 
   }
@@ -175,14 +188,14 @@ class ConceptSearchServiceTest extends UnitSuite with TestEnvironment {
     val page2 = conceptSearchService.all(List(), Language.DefaultLanguage, 2, 2, Sort.ByTitleAsc)
 
     val hits1 = page1.results
-    page1.totalCount should be(9)
+    page1.totalCount should be(11)
     page1.page should be(1)
     hits1.size should be(2)
     hits1.head.id should be(8)
     hits1.last.id should be(9)
 
     val hits2 = page2.results
-    page2.totalCount should be(9)
+    page2.totalCount should be(11)
     page2.page should be(2)
     hits2.size should be(2)
     hits2.head.id should be(1)
@@ -228,6 +241,62 @@ class ConceptSearchServiceTest extends UnitSuite with TestEnvironment {
     val search = conceptSearchService.matchingQuery("mareritt + ragnarok", List(), "nb", 1, 10, Sort.ByRelevanceDesc)
     val hits = search.results
     hits.map(_.id) should equal (Seq(9, 8))
+  }
+
+  test("Search for all languages should return all concepts in different languages") {
+    val search = conceptSearchService.all(List(), Language.AllLanguages, 1, 100, Sort.ByTitleAsc)
+
+    search.totalCount should equal(11)
+  }
+
+  test("Search for all languages should return all concepts in correct language") {
+    val search = conceptSearchService.all(List(), Language.AllLanguages, 1, 100, Sort.ByIdAsc)
+    val hits = search.results
+
+    search.totalCount should equal(11)
+    hits(0).id should equal(1)
+    hits(1).id should equal(2)
+    hits(2).id should equal(3)
+    hits(3).id should equal(4)
+    hits(4).id should equal(5)
+    hits(5).id should equal(6)
+    hits(6).id should equal(7)
+    hits(7).id should equal(8)
+    hits(8).id should equal(9)
+    hits(9).id should equal(10)
+    hits(10).id should equal(11)
+    hits(9).title.language should equal("en")
+    hits(10).title.language should equal("nb")
+  }
+
+  test("Searching with query for all languages should return language that matched") {
+    val searchEn = conceptSearchService.matchingQuery("Cats", List(), Language.AllLanguages, 1, 10, Sort.ByRelevanceDesc)
+    val searchNb = conceptSearchService.matchingQuery("Katter", List(), Language.AllLanguages, 1, 10, Sort.ByRelevanceDesc)
+
+    searchEn.totalCount should equal(1)
+    searchEn.results.head.id should equal(11)
+    searchEn.results.head.title.title should equal("Cats")
+    searchEn.results.head.title.language should equal("en")
+
+    searchNb.totalCount should equal(1)
+    searchNb.results.head.id should equal(11)
+    searchNb.results.head.title.title should equal("Katter")
+    searchNb.results.head.title.language should equal("nb")
+  }
+
+  test("That hitToApiModel returns correct summary") {
+    val id = 1
+    val title = "Batmen er på vift med en bil"
+    val content = "Bilde av en <strong>bil</strong> flaggermusmann som vifter med vingene <em>bil</em>."
+    val supportedLanguages = Set("nb")
+    val hitString = s"""{"id":$id,"title":{"nb":"$title"},"content":{"nb":"$content"},"defaultTitle":"$title"}"""
+
+    val result = conceptSearchService.hitToApiModel(hitString, "nb")
+
+    result.id should equal(id)
+    result.title.title should equal(title)
+    result.content.content should equal(content)
+    result.supportedLanguages should equal(supportedLanguages)
   }
 
   def blockUntil(predicate: () => Boolean) = {

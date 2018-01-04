@@ -71,7 +71,7 @@ trait ArticleControllerV2 {
     }
 
     private def search(query: Option[String], sort: Option[Sort.Value], language: String, license: Option[String], page: Int, pageSize: Int, idList: List[Long], articleTypesFilter: Seq[String]) = {
-      val searchResult = query match {
+      query match {
         case Some(q) => articleSearchService.matchingQuery(
           query = q,
           withIdIn = idList,
@@ -93,15 +93,6 @@ trait ArticleControllerV2 {
           if (articleTypesFilter.isEmpty) ArticleType.all else articleTypesFilter
         )
       }
-
-      val hitResult = converterService.getHitsV2(searchResult.response, language)
-      SearchResultV2(
-        searchResult.totalCount,
-        searchResult.page,
-        searchResult.pageSize,
-        searchResult.language,
-        hitResult
-      )
     }
 
     val getAllArticles =

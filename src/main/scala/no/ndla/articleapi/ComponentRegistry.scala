@@ -36,7 +36,7 @@ object ComponentRegistry
     with HealthController
     with ArticleRepository
     with ConceptRepository
-    with ElasticClient
+    with Elastic4sClient
     with ArticleSearchService
     with IndexService
     with ArticleIndexService
@@ -126,7 +126,7 @@ object ComponentRegistry
     postProcessorConverters = List(LeafNodeConverter) ++ articleConverter.postProcessorConverters
   )
 
-  lazy val jestClient: NdlaJestClient = JestClientFactory.getClient()
+  lazy val e4sClient: NdlaE4sClient = Elastic4sClientFactory.getClient()
   lazy val audioApiClient = new AudioApiClient
   lazy val imageApiClient = new ImageApiClient
   lazy val draftApiClient = new DraftApiClient

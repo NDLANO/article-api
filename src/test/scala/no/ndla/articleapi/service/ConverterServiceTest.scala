@@ -15,11 +15,14 @@ import no.ndla.articleapi.model.api
 import no.ndla.articleapi.model.api.ImportException
 import no.ndla.articleapi.model.domain._
 import no.ndla.articleapi.service.converters.TableConverter
-import no.ndla.validation.{TagAttributes, ResourceType}
+import no.ndla.validation.{ResourceType, TagAttributes}
 import no.ndla.validation.EmbedTagRules.ResourceHtmlEmbedTag
 import no.ndla.articleapi.{TestData, TestEnvironment, UnitSuite}
 import org.joda.time.{DateTime, DateTimeZone}
 import org.mockito.Mockito._
+import org.json4s._
+import org.json4s.native.JsonMethods._
+
 import scala.util.{Success, Try}
 
 class ConverterServiceTest extends UnitSuite with TestEnvironment {
@@ -430,7 +433,6 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     service.oldToNewLicenseKey("by-sa") should be("by-sa")
   }
 
-
   test("That mergeLanguageFields returns original list when updated is empty") {
     val existing = Seq(ArticleTitle("Tittel 1", "nb"), ArticleTitle("Tittel 2", "nn"), ArticleTitle("Tittel 3", "unknown"))
     service.mergeLanguageFields(existing, Seq()) should equal(existing)
@@ -484,6 +486,25 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     service.mergeLanguageFields(existing, updated) should equal(Seq(desc1, desc3, oppdatertDesc2))
   }
 
+  test("That hitAsArticleSummaryV2 returns correct summary") {
+    val id = 8
+    val title = "Baldur har mareritt"
+    val visualElement = "image"
+    val introduction = "Baldur"
+    val license = "publicdomain"
+    val articleType = "topic-article"
+    val supportedLanguages = Set("en", "nb")
+    val hitString = s"""{"visualElement":{"en":"$visualElement"},"introduction":{"nb":"$introduction"},"lastUpdated":"2017-12-29T07:18:27Z","tags":{"nb":["baldur"]},"license":"$license","id":$id,"authors":[],"content":{"nb":"Bilde av Baldurs mareritt om Ragnarok."},"defaultTitle":"Baldur har mareritt","title":{"nb":"$title"},"articleType":"$articleType"}"""
+    val result = service.hitAsArticleSummaryV2(hitString, "nb")
+
+    result.id should equal(id)
+    result.title.title should equal(title)
+    result.visualElement.get.visualElement should equal(visualElement)
+    result.introduction.get.introduction should equal(introduction)
+    result.license should equal(license)
+    result.articleType should equal(articleType)
+    result.supportedLanguages.toSet should equal(supportedLanguages)
+  }
 
   test("That authors are translated correctly") {
     val authors = List(
@@ -504,7 +525,6 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     copyright.rightsholders should contain(Author("Supplier", "E"))
 
     copyright.processors should contain(Author("Linguistic", "F"))
-
   }
 
 }
