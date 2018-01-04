@@ -406,13 +406,19 @@ class ArticleSearchServiceTest extends UnitSuite with TestEnvironment {
   }
 
   test("Searching with query for all languages should return language that matched") {
-    val search = articleSearchService.matchingQuery("Cats", List(), "all", None, 1, 10, Sort.ByRelevanceDesc, Seq.empty)
-    val hits = search.results
+    val searchEn = articleSearchService.matchingQuery("Cats", List(), "all", None, 1, 10, Sort.ByRelevanceDesc, Seq.empty)
+    val searchNb = articleSearchService.matchingQuery("Katter", List(), "all", None, 1, 10, Sort.ByRelevanceDesc, Seq.empty)
 
-    search.totalCount should equal(1)
-    hits.head.id should equal(11)
-    hits.head.title.title should equal("Cats")
-    hits.head.title.language should equal("en")
+    searchEn.totalCount should equal(1)
+    searchEn.results.head.id should equal(11)
+    searchEn.results.head.title.title should equal("Cats")
+    searchEn.results.head.title.language should equal("en")
+
+
+    searchNb.totalCount should equal(1)
+    searchNb.results.head.id should equal(11)
+    searchNb.results.head.title.title should equal("Katter")
+    searchNb.results.head.title.language should equal("nb")
   }
 
   def blockUntil(predicate: () => Boolean) = {
