@@ -150,7 +150,7 @@ trait ConverterService {
         visualElements,
         ingresses,
         nodeToConvert.contents.map(_.asArticleMetaDescription),
-        None,
+        Seq.empty,
         nodeToConvert.created,
         nodeToConvert.updated,
         authUser.userOrClientid(),
@@ -229,7 +229,7 @@ trait ConverterService {
         visualElement = mergeLanguageFields(toMergeInto.visualElement, updatedApiArticle.visualElement.map(c => converterService.toDomainVisualElementV2(Some(c), lang)).getOrElse(Seq())),
         introduction = mergeLanguageFields(toMergeInto.introduction, updatedApiArticle.introduction.map(i => converterService.toDomainIntroductionV2(Some(i), lang)).getOrElse(Seq())),
         metaDescription = mergeLanguageFields(toMergeInto.metaDescription, updatedApiArticle.metaDescription.map(m => converterService.toDomainMetaDescriptionV2(Some(m), lang)).getOrElse(Seq())),
-        metaImageId = if (updatedApiArticle.metaImageId.isDefined) updatedApiArticle.metaImageId else toMergeInto.metaImageId,
+        metaImageId = mergeLanguageFields(toMergeInto.metaImageId, updatedApiArticle.metaImageId.map(m => toDomainMetaImage(m, lang)).toSeq),
         updated = clock.now(),
         updatedBy = authUser.userOrClientid()
       )
@@ -275,7 +275,7 @@ trait ConverterService {
         visualElement=toDomainVisualElementV2(newArticle.visualElement, newArticle.language),
         introduction=toDomainIntroductionV2(newArticle.introduction, newArticle.language),
         metaDescription=toDomainMetaDescriptionV2(newArticle.metaDescription, newArticle.language),
-        metaImageId=newArticle.metaImageId,
+        metaImageId=newArticle.metaImageId.map(imageId => toDomainMetaImage(imageId, newArticle.language)).toSeq,
         created=clock.now(),
         updated=clock.now(),
         updatedBy=authUser.userOrClientid(),
@@ -352,9 +352,9 @@ trait ConverterService {
       }
     }
 
-    def toDomainMetaDescription(meta: api.ArticleMetaDescription): ArticleMetaDescription = {
-      ArticleMetaDescription(meta.metaDescription, meta.language)
-    }
+    def toDomainMetaDescription(meta: api.ArticleMetaDescription): ArticleMetaDescription = ArticleMetaDescription(meta.metaDescription, meta.language)
+
+    def toDomainMetaImage(imageId: String, language: String): ArticleMetaImage = ArticleMetaImage(imageId, language)
 
     def toDomainMetaDescriptionV2(meta: Option[String], language: String): Seq[ArticleMetaDescription] = {
       if (meta.isEmpty) {
@@ -376,9 +376,7 @@ trait ConverterService {
         copyright.validTo)
     }
 
-    def toDomainAuthor(author: api.Author): Author = {
-      Author(author.`type`, author.name)
-    }
+    def toDomainAuthor(author: api.Author): Author = Author(author.`type`, author.name)
 
     def toDomainRequiredLibraries(requiredLibs: api.RequiredLibrary): RequiredLibrary = {
       RequiredLibrary(requiredLibs.mediaType, requiredLibs.name, requiredLibs.url)
@@ -405,7 +403,6 @@ trait ConverterService {
       )
 
       if (supportedLanguages.isEmpty || (!supportedLanguages.contains(language) && language != AllLanguages)) return None
-      val searchLanguage = getSearchLanguage(language, supportedLanguages)
 
       val meta = findByLanguageOrBestEffort(article.metaDescription, language).map(toApiArticleMetaDescription).getOrElse(api.ArticleMetaDescription("", DefaultLanguage))
       val tags = findByLanguageOrBestEffort(article.tags, language).map(toApiArticleTag).getOrElse(api.ArticleTag(Seq(), DefaultLanguage))
@@ -413,7 +410,7 @@ trait ConverterService {
       val introduction = findByLanguageOrBestEffort(article.introduction, language).map(toApiArticleIntroduction)
       val visualElement = findByLanguageOrBestEffort(article.visualElement, language).map(toApiVisualElement)
       val articleContent = findByLanguageOrBestEffort(article.content, language).map(toApiArticleContentV2).getOrElse(api.ArticleContentV2("", DefaultLanguage))
-      val metaImage = article.metaImageId.map(toApiMetaImage)
+      val metaImage = findByLanguageOrBestEffort(article.metaImageId, language).map(toApiMetaImage)
 
 
       Some(api.ArticleV2(
@@ -437,9 +434,10 @@ trait ConverterService {
       ))
     }
 
-    def toApiMetaImage(metaImageId: String): String = {
-      s"${externalApiUrls("raw-image")}/$metaImageId"
+    def toApiMetaImage(metaImageId: ArticleMetaImage): String = {
+      s"${externalApiUrls("raw-image")}/${metaImageId.imageId}"
     }
+
     def toApiArticleTitle(title: ArticleTitle): api.ArticleTitle = {
       api.ArticleTitle(title.title, title.language)
     }

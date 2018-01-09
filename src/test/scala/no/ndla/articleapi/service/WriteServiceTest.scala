@@ -99,7 +99,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       visualElement = Seq(VisualElement(updatedVisualElement, "en")),
       introduction = Seq(ArticleIntroduction(updatedIntro, "en")),
       metaDescription = Seq(ArticleMetaDescription(updatedMetaDescription, "en")),
-      metaImageId = Some(updatedMetaId),
+      metaImageId = Seq(ArticleMetaImage(updatedMetaId, "en")),
       updated = today)
 
     service.updateArticleV2(articleId, updatedApiArticle).get should equal(converterService.toApiArticleV2(expectedArticle, "en").get)
