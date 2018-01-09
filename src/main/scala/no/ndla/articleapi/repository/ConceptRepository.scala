@@ -66,6 +66,21 @@ trait ConceptRepository {
       }
     }
 
+    def updateConceptFromDraftApi(concept: Concept)(implicit session: DBSession = AutoSession): Try[Concept] = {
+      val dataObject = new PGobject()
+      dataObject.setType("jsonb")
+      dataObject.setValue(write(concept))
+
+      Try {
+        sql"update ${Concept.table} set document=${dataObject} where id=${concept.id}".update.apply
+      } match {
+        case Success(_) =>
+          logger.info(s"Updated concept ${concept.id}")
+          Success(concept)
+        case Failure(ex) => Failure(ex)
+      }
+    }
+
     def insert(concept: Concept)(implicit session: DBSession = AutoSession): Concept = {
       val dataObject = new PGobject()
       dataObject.setType("jsonb")
