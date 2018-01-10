@@ -85,7 +85,7 @@ object TestData {
     api.ArticleTag(Seq(), "nb"),
     Seq(),
     None,
-    Some(s"${externalApiUrls("raw-image")}/11"),
+    Some(api.ArticleMetaImage(s"${externalApiUrls("raw-image")}/11", "nb")),
     None,
     api.ArticleMetaDescription("meta description", "nb"),
     today,

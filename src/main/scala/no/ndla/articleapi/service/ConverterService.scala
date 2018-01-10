@@ -434,8 +434,8 @@ trait ConverterService {
       ))
     }
 
-    def toApiMetaImage(metaImageId: ArticleMetaImage): String = {
-      s"${externalApiUrls("raw-image")}/${metaImageId.imageId}"
+    def toApiMetaImage(metaImage: ArticleMetaImage): api.ArticleMetaImage = {
+      api.ArticleMetaImage(s"${externalApiUrls("raw-image")}/${metaImage.imageId}", metaImage.language)
     }
 
     def toApiArticleTitle(title: ArticleTitle): api.ArticleTitle = {
