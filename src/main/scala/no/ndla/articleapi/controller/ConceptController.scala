@@ -132,45 +132,5 @@ trait ConceptController {
       }
     }
 
-    val newConcept =
-      (apiOperation[Concept]("newConceptById")
-        summary "Create new concept"
-        notes "Create new concept"
-        parameters(
-        headerParam[Option[String]]("X-Correlation-ID").description("User supplied correlation-id. May be omitted."),
-        queryParam[String]("externalId").description("The external node id of this concept"),
-        bodyParam[NewConcept]
-      )
-        authorizations "oauth2"
-        responseMessages(response404, response500))
-
-    post("/", operation(newConcept)) {
-      authRole.assertHasWritePermission()
-      writeService.newConcept(extract[NewConcept](request.body)) match {
-        case Success(c) => c
-        case Failure(ex) => errorHandler(ex)
-      }
-    }
-
-    val updateConcept =
-      (apiOperation[Concept]("updateConceptById")
-        summary "Update a concept"
-        notes "Update a concept"
-        parameters(
-        headerParam[Option[String]]("X-Correlation-ID").description("User supplied correlation-id. May be omitted."),
-        queryParam[String]("externalId").description("The external node id of this concept"),
-        bodyParam[NewConcept]
-      )
-        authorizations "oauth2"
-        responseMessages(response404, response500))
-
-    patch("/:id", operation(updateConcept)) {
-      authRole.assertHasWritePermission()
-      writeService.updateConcept(long("id"), extract[UpdatedConcept](request.body)) match {
-        case Success(c) => c
-        case Failure(ex) => errorHandler(ex)
-      }
-    }
-
   }
 }

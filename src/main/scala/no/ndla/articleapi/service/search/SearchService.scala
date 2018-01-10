@@ -13,7 +13,7 @@ import java.lang.Math.max
 
 import com.sksamuel.elastic4s.http.ElasticDsl._
 import com.sksamuel.elastic4s.http.search.SearchResponse
-import com.sksamuel.elastic4s.searches.sort.SortOrder
+import com.sksamuel.elastic4s.searches.sort.{FieldSortDefinition, SortOrder}
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.articleapi.ArticleApiProperties.MaxPageSize
 import no.ndla.articleapi.integration.Elastic4sClient
@@ -50,7 +50,7 @@ trait SearchService {
       }
     }
 
-    def getSortDefinition(sort: Sort.Value, language: String) = {
+    def getSortDefinition(sort: Sort.Value, language: String): FieldSortDefinition = {
       val sortLanguage = language match {
         case domain.Language.NoLanguage => domain.Language.DefaultLanguage
         case _ => language

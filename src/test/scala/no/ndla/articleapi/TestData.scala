@@ -22,8 +22,6 @@ object TestData {
   private val copyrighted = Copyright("copyrighted", "New York", List(Author("Writer", "Clark Kent")), List(), List(), None, None, None)
   private val today = new DateTime().toDate
 
-  private val embedUrl = "http://www.example.org"
-
   val (articleId, externalId) = (1, "751234")
 
   val sampleArticleV2 = api.ArticleV2(
@@ -45,35 +43,6 @@ object TestData {
     articleType = "standard",
     supportedLanguages = Seq("nb")
   )
-
-  val articleHit1 = """
-                      |{
-                      |  "id": "4",
-                      |  "title": [
-                      |    {
-                      |      "title": "8. mars, den internasjonale kvinnedagen",
-                      |      "language": "nb"
-                      |    },
-                      |    {
-                      |      "title": "8. mars, den internasjonale kvinnedagen",
-                      |      "language": "nn"
-                      |    }
-                      |  ],
-                      |  "introduction": [
-                      |    {
-                      |      "introduction": "8. mars er den internasjonale kvinnedagen.",
-                      |      "language": "nb"
-                      |    },
-                      |    {
-                      |      "introduction": "8. mars er den internasjonale kvinnedagen.",
-                      |      "language": "nn"
-                      |    }
-                      |  ],
-                      |  "url": "http://localhost:30002/article-api/v2/articles/4",
-                      |  "license": "by-sa",
-                      |  "articleType": "standard"
-                      |}
-                    """.stripMargin
 
   val apiArticleV2 = api.ArticleV2(
     articleId,
@@ -192,8 +161,8 @@ object TestData {
     None
   )
 
-  val sampleArticleWithByNcSa = sampleArticleWithPublicDomain.copy(copyright=byNcSaCopyright)
-  val sampleArticleWithCopyrighted = sampleArticleWithPublicDomain.copy(copyright=copyrighted )
+  val sampleArticleWithByNcSa: Article = sampleArticleWithPublicDomain.copy(copyright=byNcSaCopyright)
+  val sampleArticleWithCopyrighted: Article = sampleArticleWithPublicDomain.copy(copyright=copyrighted )
 
   val sampleDomainArticleWithHtmlFault = Article(
     Option(articleId),
@@ -245,20 +214,8 @@ object TestData {
 
   val (nodeId, nodeId2) = ("1234", "4321")
   val sampleTitle = ArticleTitle("title", "en")
-  val sampleContent = LanguageContent(nodeId, nodeId, "sample content", "metadescription", "en", None, "fagstoff", Some("title"), Seq.empty)
-  val sampleTranslationContent = sampleContent.copy(tnid=nodeId2)
 
   val visualElement = VisualElement(s"""<$ResourceHtmlEmbedTag  data-align="" data-alt="" data-caption="" data-resource="image" data-resource_id="1" data-size="" />""", "nb")
-
-  val sampleImageMetaInformation = ImageMetaInformation(
-    "1",
-    List(ImageTitle("Sample title", Some("nb"))),
-    List(ImageAltText("alt text", Some("nb"))),
-    "://image-url.com/image/img.jpg",
-    1024,
-    "application/jpeg",
-    ImageCopyright(ImageLicense("by", "Creative Commons", None), "pix", Seq.empty),
-    ImageTag(Seq("sample tag"), Some("nb")))
 
   val sampleConcept = Concept(
     Some(1),

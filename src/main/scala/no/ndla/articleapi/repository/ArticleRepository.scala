@@ -78,7 +78,6 @@ trait ArticleRepository {
     }
 
     def insertWithExternalIds(article: Article, externalId: String, externalSubjectId: Seq[String])(implicit session: DBSession = AutoSession): Article = {
-      val startRevision = 1
       val dataObject = new PGobject()
       dataObject.setType("jsonb")
       dataObject.setValue(write(article))
@@ -96,16 +95,14 @@ trait ArticleRepository {
 
       val expectedArticleRevision = 1
       Try(sql"update ${Article.table} set document=${dataObject} where external_id=${externalId} and revision=$expectedArticleRevision".updateAndReturnGeneratedKey().apply) match {
-        case Success(articleId) => {
+        case Success(articleId) =>
           logger.info(s"Updated article with external_id=$externalId, id=$articleId")
           Success(article.copy(id=Some(articleId)))
-        }
-        case Failure(ex) => {
+        case Failure(_) =>
           val message = "The revision stored in the database is newer than the one being updated. Please use the latest version from database when updating."
 
           logger.info(message)
           Failure(new OptimisticLockException(message))
-        }
       }
     }
 

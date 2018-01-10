@@ -128,7 +128,7 @@ trait ArticleSearchService {
       }
     }
 
-    private def scheduleIndexDocuments() = {
+    private def scheduleIndexDocuments(): Unit = {
       val f = Future {
         articleIndexService.indexDocuments
       }
