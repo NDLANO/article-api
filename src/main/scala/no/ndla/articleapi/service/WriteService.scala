@@ -66,7 +66,7 @@ trait WriteService {
 
     def updateConcept(id: Long, concept: Concept): Try[Concept] = {
       for {
-        _ <- contentValidator.validate(concept, allowUnknownLanguage = true)
+        _ <- contentValidator.validateConcept(concept, allowUnknownLanguage = true)
         domainConcept <- conceptRepository.updateConceptFromDraftApi(concept.copy(id=Some(id)))
         _ <- conceptIndexService.indexDocument(domainConcept)
       } yield domainConcept
