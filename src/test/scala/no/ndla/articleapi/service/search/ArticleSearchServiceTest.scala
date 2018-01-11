@@ -132,7 +132,7 @@ class ArticleSearchServiceTest extends UnitSuite with TestEnvironment {
     title = List(ArticleTitle("Katter", "nb"), ArticleTitle("Cats", "en")),
     introduction = List(ArticleIntroduction("Katter er store", "nb"), ArticleIntroduction("Cats are big", "en")),
     content = List(ArticleContent("<p>Noe om en katt</p>", "nb"), ArticleContent("<p>Something about a cat</p>", "en")),
-    tags = List(ArticleTag(List("katt"), "nb"), ArticleTag(List("cat"), "en")),
+    tags = List(ArticleTag(List("ikkehund"), "nb"), ArticleTag(List("notdog"), "en")),
     created = today.minusDays(10).toDate,
     updated = today.minusDays(5).toDate,
     articleType = ArticleType.TopicArticle.toString

@@ -71,14 +71,13 @@ trait ConceptSearchService {
       val contentSearch = simpleStringQuery(query).field(s"content.$language", 1)
 
       val hi = highlight("*").preTag("").postTag("").numberOfFragments(0)
-      val ih = innerHits("inner_hits").highlighting(hi)
 
       val fullQuery = boolQuery()
         .must(
           boolQuery()
             .should(
-              nestedQuery("title", titleSearch).scoreMode(ScoreMode.Avg).inner(ih),
-              nestedQuery("content", contentSearch).scoreMode(ScoreMode.Avg).inner(ih)
+              nestedQuery("title", titleSearch).scoreMode(ScoreMode.Avg).inner(innerHits("title").highlighting(hi)),
+              nestedQuery("content", contentSearch).scoreMode(ScoreMode.Avg).inner(innerHits("content").highlighting(hi))
             )
         )
 
