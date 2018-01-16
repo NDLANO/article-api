@@ -326,12 +326,10 @@ trait ConverterService {
       val supportedLanguages = getSupportedLanguages(
         article.title, article.visualElement, article.introduction, article.metaDescription, article.tags, article.content
       )
-
+      val isLanguageNeutral = supportedLanguages.contains(UnknownLanguage) && supportedLanguages.length == 1
       val lang = if (language == AllLanguages) getSearchLanguage(language, supportedLanguages) else language
 
-      if (!(supportedLanguages.contains(lang) || supportedLanguages.contains(UnknownLanguage))) {
-        Failure(NotFoundException(s"The article with id ${article.id.get} and language $language was not found", supportedLanguages))
-      } else {
+      if (supportedLanguages.contains(lang) || isLanguageNeutral) {
         val meta = findByLanguageOrBestEffort(article.metaDescription, language).map(toApiArticleMetaDescription).getOrElse(api.ArticleMetaDescription("", DefaultLanguage))
         val tags = findByLanguageOrBestEffort(article.tags, language).map(toApiArticleTag).getOrElse(api.ArticleTag(Seq(), DefaultLanguage))
         val title = findByLanguageOrBestEffort(article.title, language).map(toApiArticleTitle).getOrElse(api.ArticleTitle("", DefaultLanguage))
@@ -359,6 +357,8 @@ trait ConverterService {
           article.articleType,
           supportedLanguages
         ))
+      } else  {
+        Failure(NotFoundException(s"The article with id ${article.id.get} and language $language was not found", supportedLanguages))
       }
     }
 
