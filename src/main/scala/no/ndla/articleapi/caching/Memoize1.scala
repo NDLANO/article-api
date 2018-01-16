@@ -20,7 +20,7 @@ class Memoize[R](maxCacheAgeMs: Long, f: () => R, autoRefreshCache: Boolean) ext
 
   private[this] var cache :Option[CacheValue] = None
 
-  private def renewCache = {
+  private def renewCache: Unit = {
     cache = Some(CacheValue(f(), System.currentTimeMillis()))
   }
 

@@ -4,7 +4,7 @@ import org.json4s.JsonAST.{JArray, JField, JObject, JString}
 import org.json4s.{CustomSerializer, MappingException}
 import no.ndla.articleapi.model.domain.Language.UnknownLanguage
 
-class SearchableLanguageValueSerializer extends CustomSerializer[SearchableLanguageValues](format => ( {
+class SearchableLanguageValueSerializer extends CustomSerializer[SearchableLanguageValues](_ => ( {
   case JObject(items) => SearchableLanguageValues(items.map {
     case JField(name, JString(value)) => LanguageValue(name, value)
   })
@@ -14,15 +14,14 @@ class SearchableLanguageValueSerializer extends CustomSerializer[SearchableLangu
 }))
 
 
-class SearchableLanguageListSerializer extends CustomSerializer[SearchableLanguageList](format => ( {
-  case JObject(items) => {
+class SearchableLanguageListSerializer extends CustomSerializer[SearchableLanguageList](_ => ( {
+  case JObject(items) =>
     SearchableLanguageList(items.map{
       case JField(name, JArray(fieldItems)) => LanguageValue(name, fieldItems.map{
         case JString(value) => value
         case x => throw new MappingException(s"Cannot convert $x to SearchableLanguageList")
       }.to[Seq])
     })
-  }
 }, {
   case x: SearchableLanguageList =>
     JObject(x.languageValues.map(languageValue => JField(languageValue.lang, JArray(languageValue.value.map(lv => JString(lv)).toList))).toList)

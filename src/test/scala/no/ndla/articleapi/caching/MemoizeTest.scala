@@ -32,7 +32,7 @@ class MemoizeTest extends UnitSuite {
     val memoizedTarget = new Memoize[String](Long.MaxValue, targetMock.targetMethod _, false)
 
     when(targetMock.targetMethod()).thenReturn("Hello from mock")
-    Seq(1 to 10).foreach (i => {
+    Seq(1 to 10).foreach (_ => {
       memoizedTarget() should equal("Hello from mock")
     })
     verify(targetMock, times(1)).targetMethod()

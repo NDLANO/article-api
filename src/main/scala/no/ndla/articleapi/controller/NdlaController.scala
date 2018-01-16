@@ -14,7 +14,7 @@ import javax.servlet.http.HttpServletRequest
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.articleapi.ArticleApiProperties.{CorrelationIdHeader, CorrelationIdKey}
 import no.ndla.articleapi.model.api.{AccessDeniedException, Error, ImportException, ImportExceptions, NotFoundException, OptimisticLockException, ResultWindowTooLargeException, ValidationError}
-import no.ndla.articleapi.model.domain.{ImportError, emptySomeToNone}
+import no.ndla.articleapi.model.domain.emptySomeToNone
 import no.ndla.network.{ApplicationUrl, AuthUser, CorrelationID}
 import no.ndla.validation.{ValidationException, ValidationMessage}
 import org.apache.logging.log4j.ThreadContext
@@ -48,16 +48,13 @@ abstract class NdlaController extends ScalatraServlet with NativeJsonSupport wit
   error {
     case a: AccessDeniedException => Forbidden(body = Error(Error.ACCESS_DENIED, a.getMessage))
     case v: ValidationException => BadRequest(body=ValidationError(messages=v.errors))
-    case e: IndexNotFoundException => InternalServerError(body=Error.IndexMissingError)
+    case _: IndexNotFoundException => InternalServerError(body=Error.IndexMissingError)
     case n: NotFoundException => NotFound(body=Error(Error.NOT_FOUND, n.getMessage))
     case o: OptimisticLockException => Conflict(body=Error(Error.RESOURCE_OUTDATED, o.getMessage))
-    case i: ImportExceptions => UnprocessableEntity(body=ImportError(i.message, i.errors.map(_.getMessage)))
-    case im: ImportException =>  UnprocessableEntity(body=ImportError(messages=Seq(im.message)))
     case rw: ResultWindowTooLargeException => UnprocessableEntity(body=Error(Error.WINDOW_TOO_LARGE, rw.getMessage))
-    case t: Throwable => {
+    case t: Throwable =>
       logger.error(Error.GenericError.toString, t)
       InternalServerError(body=Error.GenericError)
-    }
   }
 
 
@@ -110,10 +107,9 @@ abstract class NdlaController extends ScalatraServlet with NativeJsonSupport wit
     Try {
       read[T](json)
     } match {
-      case Failure(e) => {
+      case Failure(e) =>
         logger.error(e.getMessage, e)
         throw new ValidationException(errors=Seq(ValidationMessage("body", e.getMessage)))
-      }
       case Success(data) => data
     }
   }

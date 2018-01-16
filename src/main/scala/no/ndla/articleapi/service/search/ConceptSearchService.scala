@@ -35,14 +35,6 @@ trait ConceptSearchService {
     implicit val formats = DefaultFormats
     override val searchIndex: String = ArticleApiProperties.ConceptSearchIndex
 
-    private def getSearchLanguage(supportedLanguages: Seq[String], language: String): String = {
-      language match {
-        case Language.NoLanguage if supportedLanguages.contains(Language.DefaultLanguage) => Language.DefaultLanguage
-        case Language.NoLanguage if supportedLanguages.nonEmpty => supportedLanguages.head
-        case lang => lang
-      }
-    }
-
     override def hitToApiModel(hitString: String, language: String): api.ConceptSummary = {
       val hit = parse(hitString)
       val titles = (hit \ "title").extract[Map[String, String]].map(title => ConceptTitle(title._2, title._1)).toSeq
@@ -100,7 +92,7 @@ trait ConceptSearchService {
 
       val requestedResultWindow = pageSize * page
       if (requestedResultWindow > ArticleApiProperties.ElasticSearchIndexMaxResultWindow) {
-        logger.info(s"Max supported results are ${ArticleApiProperties.ElasticSearchIndexMaxResultWindow}, user requested ${requestedResultWindow}")
+        logger.info(s"Max supported results are ${ArticleApiProperties.ElasticSearchIndexMaxResultWindow}, user requested $requestedResultWindow")
         throw new ResultWindowTooLargeException()
       }
 

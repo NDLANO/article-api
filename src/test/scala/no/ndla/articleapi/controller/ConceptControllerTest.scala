@@ -50,30 +50,4 @@ class ConceptControllerTest extends UnitSuite with TestEnvironment with Scalatra
     }
   }
 
-  test("POST / should fail with 403 if not required role") {
-    post("/test/", write(TestData.sampleNewConcept)) {
-      status should equal(403)
-    }
-  }
-
-  test("POST / should succeed if has required roles") {
-    when(writeService.newConcept(any[NewConcept])).thenReturn(Success(TestData.sampleApiConcept))
-    post("/test/", write(TestData.sampleNewConcept), headers = Map("Authorization" -> authHeaderWithWriteRole)) {
-      status should equal(200)
-    }
-  }
-
-  test("PATCH /:id should fail with 403 if not required role") {
-    patch("/test/1", write(TestData.sampleNewConcept)) {
-      status should equal(403)
-    }
-  }
-
-  test("PATCH /:id should succeed if has required roles") {
-    when(writeService.updateConcept(any[Long], any[UpdatedConcept])).thenReturn(Success(TestData.sampleApiConcept))
-    patch("/test/1", write(TestData.sampleNewConcept), headers = Map("Authorization" -> authHeaderWithWriteRole)) {
-      status should equal(200)
-    }
-  }
-
 }

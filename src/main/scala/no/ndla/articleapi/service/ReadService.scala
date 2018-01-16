@@ -11,7 +11,7 @@ package no.ndla.articleapi.service
 import no.ndla.articleapi.ArticleApiProperties.externalApiUrls
 import no.ndla.validation.EmbedTagRules.ResourceHtmlEmbedTag
 import no.ndla.articleapi.caching.MemoizeAutoRenew
-import no.ndla.articleapi.integration.ConverterModule.{jsoupDocumentToString, stringToJsoupDocument}
+import no.ndla.validation.HtmlTagRules.{stringToJsoupDocument, jsoupDocumentToString}
 import no.ndla.articleapi.model.api
 import no.ndla.articleapi.model.domain._
 import no.ndla.articleapi.model.domain.Language._
@@ -72,10 +72,9 @@ trait ReadService {
       val resourceIdAttrName = TagAttributes.DataResource_Id.toString
       embedTag.hasAttr(resourceIdAttrName) match {
         case false =>
-        case true => {
+        case true =>
           val (resourceType, id) = (embedTag.attr(s"${TagAttributes.DataResource}"), embedTag.attr(resourceIdAttrName))
           embedTag.attr(s"${TagAttributes.DataUrl}", s"${externalApiUrls(resourceType)}/$id")
-        }
       }
     }
 

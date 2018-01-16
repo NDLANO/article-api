@@ -32,11 +32,8 @@ import scala.util.{Failure, Success}
 trait InternController {
   this: ReadService
     with WriteService
-    with ExtractService
     with ConverterService
     with ArticleRepository
-    with ArticleContentInformation
-    with ExtractConvertStoreContent
     with IndexService
     with ArticleIndexService
     with ConceptIndexService
@@ -71,19 +68,6 @@ trait InternController {
       }
     }
 
-    post("/import/:external_id") {
-      authUser.assertHasId()
-      authRole.assertHasWritePermission()
-
-      val externalId = params("external_id")
-      val forceUpdateArticle = booleanOrDefault("forceUpdate", false)
-
-      extractConvertStoreContent.processNode(externalId, forceUpdateArticle) match {
-        case Success((content, status)) => status.addMessage(s"Successfully imported node $externalId: ${content.id.get}")
-        case Failure(exc) => errorHandler(exc)
-      }
-    }
-
     get("/ids") {
       articleRepository.getAllIds
     }
@@ -108,19 +92,6 @@ trait InternController {
       authRole.assertHasDraftWritePermission()
       val externalId = paramOrNone("external-id")
       ArticleIdV2(writeService.allocateConceptId(externalId))
-    }
-
-    get("/tagsinuse") {
-      ArticleContentInformation.getHtmlTagsMap
-    }
-
-    get("/embedurls/:external_subject_id") {
-      ArticleContentInformation.getExternalEmbedResources(params("external_subject_id"))
-    }
-
-    get("/reports/headerElementsInLists") {
-      contentType = "text/csv"
-      ArticleContentInformation.getFaultyHtmlReport
     }
 
     get("/articles") {
