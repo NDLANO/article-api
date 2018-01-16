@@ -174,8 +174,8 @@ trait ArticleControllerV2 {
       val language = paramOrDefault("language", Language.AllLanguages)
 
       readService.withIdV2(articleId, language) match {
-        case Some(article) => article
-        case None => NotFound(body = Error(Error.NOT_FOUND, s"No article with id $articleId and language $language found"))
+        case Success(article) => article
+        case Failure(ex) => errorHandler(ex)
       }
     }
 

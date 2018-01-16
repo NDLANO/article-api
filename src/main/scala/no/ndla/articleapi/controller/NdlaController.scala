@@ -49,7 +49,8 @@ abstract class NdlaController extends ScalatraServlet with NativeJsonSupport wit
     case a: AccessDeniedException => Forbidden(body = Error(Error.ACCESS_DENIED, a.getMessage))
     case v: ValidationException => BadRequest(body=ValidationError(messages=v.errors))
     case _: IndexNotFoundException => InternalServerError(body=Error.IndexMissingError)
-    case n: NotFoundException => NotFound(body=Error(Error.NOT_FOUND, n.getMessage))
+    case NotFoundException(message, List()) => NotFound(body=Error(Error.NOT_FOUND, message))
+    case NotFoundException(message, supportedLanguages) => NotFound(body=Error(Error.NOT_FOUND, message, supportedLanguages = Some(supportedLanguages)))
     case o: OptimisticLockException => Conflict(body=Error(Error.RESOURCE_OUTDATED, o.getMessage))
     case rw: ResultWindowTooLargeException => UnprocessableEntity(body=Error(Error.WINDOW_TOO_LARGE, rw.getMessage))
     case t: Throwable =>
