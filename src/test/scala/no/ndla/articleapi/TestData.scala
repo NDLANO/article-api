@@ -250,6 +250,26 @@ object TestData {
     None
   )
 
+  def sampleDomainArticleWithLanguage(lang: String): Article = {
+    Article(
+      Option(articleId),
+      Option(2),
+      Seq(ArticleTitle("title", lang)),
+      Seq(ArticleContent("content", lang)),
+      Copyright("by", "", Seq(), Seq(), Seq(), None, None, None),
+      Seq(),
+      Seq(),
+      Seq(),
+      Seq(),
+      Seq(ArticleMetaDescription("meta description", lang)),
+      Some("11"),
+      today,
+      today,
+      "ndalId54321",
+      ArticleType.Standard.toString
+    )
+  }
+
 }
 
 

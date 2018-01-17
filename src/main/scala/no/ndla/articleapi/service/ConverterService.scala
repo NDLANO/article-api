@@ -15,7 +15,7 @@ import no.ndla.articleapi.ArticleApiProperties._
 import no.ndla.articleapi.auth.User
 import no.ndla.articleapi.integration.DraftApiClient
 import no.ndla.articleapi.model.api
-import no.ndla.articleapi.model.api.{ArticleSummaryV2, ImportException}
+import no.ndla.articleapi.model.api.{ArticleSummaryV2, ImportException, NotFoundException}
 import no.ndla.articleapi.model.domain.Language._
 import no.ndla.articleapi.model.domain._
 import no.ndla.articleapi.repository.ArticleRepository
@@ -27,6 +27,7 @@ import org.json4s._
 import org.json4s.native.JsonMethods._
 
 import scala.collection.JavaConverters._
+import scala.util.{Failure, Success, Try}
 
 
 trait ConverterService {
@@ -74,7 +75,7 @@ trait ConverterService {
       val introductions = (hit \ "introduction").extract[Map[String, String]].map(title => ArticleIntroduction(title._2, title._1)).toSeq
       val visualElements = (hit \ "visualElement").extract[Map[String, String]].map(title => VisualElement(title._2, title._1)).toSeq
 
-      val supportedLanguages = getSupportedLanguages(Seq(titles, visualElements, introductions))
+      val supportedLanguages = getSupportedLanguages(titles, visualElements, introductions)
 
       val title = findByLanguageOrBestEffort(titles, language).map(toApiArticleTitle).getOrElse(api.ArticleTitle("", DefaultLanguage))
       val visualElement = findByLanguageOrBestEffort(visualElements, language).map(toApiVisualElement)
@@ -321,41 +322,44 @@ trait ConverterService {
       jsoupDocumentToString(document)
     }
 
-    def toApiArticleV2(article: Article, language: String): Option[api.ArticleV2] = {
+    def toApiArticleV2(article: Article, language: String): Try[api.ArticleV2] = {
       val supportedLanguages = getSupportedLanguages(
-        Seq(article.title, article.visualElement, article.introduction, article.metaDescription, article.tags, article.content)
+        article.title, article.visualElement, article.introduction, article.metaDescription, article.tags, article.content
       )
+      val isLanguageNeutral = supportedLanguages.contains(UnknownLanguage) && supportedLanguages.length == 1
+      val lang = if (language == AllLanguages) getSearchLanguage(language, supportedLanguages) else language
 
-      if (supportedLanguages.isEmpty || (!supportedLanguages.contains(language) && language != AllLanguages)) return None
+      if (supportedLanguages.contains(lang) || isLanguageNeutral) {
+        val meta = findByLanguageOrBestEffort(article.metaDescription, language).map(toApiArticleMetaDescription).getOrElse(api.ArticleMetaDescription("", DefaultLanguage))
+        val tags = findByLanguageOrBestEffort(article.tags, language).map(toApiArticleTag).getOrElse(api.ArticleTag(Seq(), DefaultLanguage))
+        val title = findByLanguageOrBestEffort(article.title, language).map(toApiArticleTitle).getOrElse(api.ArticleTitle("", DefaultLanguage))
+        val introduction = findByLanguageOrBestEffort(article.introduction, language).map(toApiArticleIntroduction)
+        val visualElement = findByLanguageOrBestEffort(article.visualElement, language).map(toApiVisualElement)
+        val articleContent = findByLanguageOrBestEffort(article.content, language).map(toApiArticleContentV2).getOrElse(api.ArticleContentV2("", DefaultLanguage))
+        val metaImage = article.metaImageId.map(toApiMetaImage)
 
-      val meta = findByLanguageOrBestEffort(article.metaDescription, language).map(toApiArticleMetaDescription).getOrElse(api.ArticleMetaDescription("", DefaultLanguage))
-      val tags = findByLanguageOrBestEffort(article.tags, language).map(toApiArticleTag).getOrElse(api.ArticleTag(Seq(), DefaultLanguage))
-      val title = findByLanguageOrBestEffort(article.title, language).map(toApiArticleTitle).getOrElse(api.ArticleTitle("", DefaultLanguage))
-      val introduction = findByLanguageOrBestEffort(article.introduction, language).map(toApiArticleIntroduction)
-      val visualElement = findByLanguageOrBestEffort(article.visualElement, language).map(toApiVisualElement)
-      val articleContent = findByLanguageOrBestEffort(article.content, language).map(toApiArticleContentV2).getOrElse(api.ArticleContentV2("", DefaultLanguage))
-      val metaImage = article.metaImageId.map(toApiMetaImage)
-
-
-      Some(api.ArticleV2(
-        article.id.get,
-        article.id.flatMap(getLinkToOldNdla),
-        article.revision.get,
-        title,
-        articleContent,
-        withAgreementCopyright(toApiCopyright(article.copyright)),
-        tags,
-        article.requiredLibraries.map(toApiRequiredLibrary),
-        visualElement,
-        metaImage,
-        introduction,
-        meta,
-        article.created,
-        article.updated,
-        article.updatedBy,
-        article.articleType,
-        supportedLanguages
-      ))
+        Success(api.ArticleV2(
+          article.id.get,
+          article.id.flatMap(getLinkToOldNdla),
+          article.revision.get,
+          title,
+          articleContent,
+          withAgreementCopyright(toApiCopyright(article.copyright)),
+          tags,
+          article.requiredLibraries.map(toApiRequiredLibrary),
+          visualElement,
+          metaImage,
+          introduction,
+          meta,
+          article.created,
+          article.updated,
+          article.updatedBy,
+          article.articleType,
+          supportedLanguages
+        ))
+      } else  {
+        Failure(NotFoundException(s"The article with id ${article.id.get} and language $language was not found", supportedLanguages))
+      }
     }
 
     def toApiMetaImage(metaImageId: String): String = {

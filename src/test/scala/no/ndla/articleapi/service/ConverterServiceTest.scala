@@ -16,6 +16,8 @@ import no.ndla.validation.{ResourceType, TagAttributes}
 import org.joda.time.DateTime
 import org.mockito.Mockito._
 
+import scala.util.Success
+
 class ConverterServiceTest extends UnitSuite with TestEnvironment {
 
   val service = new ConverterService
@@ -43,13 +45,25 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
 
   test("toApiArticleV2 converts a domain.Article to an api.ArticleV2") {
     when(articleRepository.getExternalIdFromId(TestData.articleId)).thenReturn(Some(TestData.externalId))
-    service.toApiArticleV2(TestData.sampleDomainArticle, "nb") should equal(Some(TestData.apiArticleV2))
+    service.toApiArticleV2(TestData.sampleDomainArticle, "nb") should equal(Success(TestData.apiArticleV2))
   }
 
   test("toApiArticleV2 returns None when language is not supported") {
     when(articleRepository.getExternalIdFromId(TestData.articleId)).thenReturn(Some(TestData.externalId))
-    service.toApiArticleV2(TestData.sampleDomainArticle, "someRandomLanguage") should be(None)
-    service.toApiArticleV2(TestData.sampleDomainArticle, "") should be(None)
+    service.toApiArticleV2(TestData.sampleDomainArticle, "someRandomLanguage").isFailure should be(true)
+    service.toApiArticleV2(TestData.sampleDomainArticle, "").isFailure should be(true)
+  }
+
+  test("toApiArticleV2 should always an article if language neutral") {
+    val domainArticle = TestData.sampleDomainArticleWithLanguage("unknown")
+    when(articleRepository.getExternalIdFromId(TestData.articleId)).thenReturn(Some(TestData.externalId))
+    service.toApiArticleV2(domainArticle, "someRandomLanguage").isSuccess should be(true)
+  }
+
+  test("toApiArticleV2 should return Failure if article does not exist on the language asked for and is not language neutral") {
+    val domainArticle = TestData.sampleDomainArticleWithLanguage("en")
+    when(articleRepository.getExternalIdFromId(TestData.articleId)).thenReturn(Some(TestData.externalId))
+    service.toApiArticleV2(domainArticle, "someRandomLanguage").isFailure should be(true)
   }
 
   test("toApiArticleV2 converts a domain.Article to an api.ArticleV2 with Agreement Copyright") {

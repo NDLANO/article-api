@@ -19,7 +19,7 @@ import no.ndla.mapping.License.getLicenses
 import org.json4s.native.Serialization.{read, write}
 import scalikejdbc.DBSession
 
-import scala.util.Success
+import scala.util.{Failure, Success}
 
 class ArticleControllerV2Test extends UnitSuite with TestEnvironment with ScalatraFunSuite {
 
@@ -43,7 +43,7 @@ class ArticleControllerV2Test extends UnitSuite with TestEnvironment with Scalat
   val articleId = 1
 
   test("/<article_id> should return 200 if the cover was found withIdV2") {
-    when(readService.withIdV2(articleId, lang)).thenReturn(Some(TestData.sampleArticleV2))
+    when(readService.withIdV2(articleId, lang)).thenReturn(Success(TestData.sampleArticleV2))
 
     get(s"/test/$articleId?language=$lang") {
       status should equal(200)
@@ -51,7 +51,7 @@ class ArticleControllerV2Test extends UnitSuite with TestEnvironment with Scalat
   }
 
   test("/<article_id> should return 404 if the article was not found withIdV2") {
-    when(readService.withIdV2(articleId, lang)).thenReturn(None)
+    when(readService.withIdV2(articleId, lang)).thenReturn(Failure(NotFoundException("Not found")))
 
     get(s"/test/$articleId?language=$lang") {
       status should equal(404)
