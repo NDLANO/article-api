@@ -52,6 +52,7 @@ trait ArticleSearchService {
       val language = if (searchLanguage == Language.AllLanguages) "*" else searchLanguage
       val titleSearch = simpleStringQuery(query).field(s"title.$language", 2)
       val introSearch = simpleStringQuery(query).field(s"introduction.$language", 2)
+      val metaSearch = simpleStringQuery(query).field(s"metaDescription.$language", 1)
       val contentSearch = simpleStringQuery(query).field(s"content.$language", 1)
       val tagSearch = simpleStringQuery(query).field(s"tags.$language", 1)
 
@@ -63,6 +64,7 @@ trait ArticleSearchService {
             .should(
               nestedQuery("title", titleSearch).scoreMode(ScoreMode.Avg).inner(innerHits("title").highlighting(hi)),
               nestedQuery("introduction", introSearch).scoreMode(ScoreMode.Avg).inner(innerHits("introduction").highlighting(hi)),
+              nestedQuery("metaDescription", metaSearch).scoreMode(ScoreMode.Avg).inner(innerHits("metaDescription").highlighting(hi)),
               nestedQuery("content", contentSearch).scoreMode(ScoreMode.Avg).inner(innerHits("content").highlighting(hi)),
               nestedQuery("tags", tagSearch).scoreMode(ScoreMode.Avg).inner(innerHits("tags").highlighting(hi))
             )

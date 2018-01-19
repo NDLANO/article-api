@@ -32,6 +32,7 @@ case class SearchableArticle(
   content: SearchableLanguageValues,
   visualElement: SearchableLanguageValues,
   introduction: SearchableLanguageValues,
+  metaDescription: SearchableLanguageValues,
   tags: SearchableLanguageList,
   lastUpdated: Date,
   license: String,

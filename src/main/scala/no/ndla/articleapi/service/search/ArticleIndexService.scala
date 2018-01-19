@@ -42,6 +42,7 @@ trait ArticleIndexService {
         languageSupportedField("content"),
         languageSupportedField("visualElement"),
         languageSupportedField("introduction"),
+        languageSupportedField("metaDescription"),
         languageSupportedField("tags"),
         keywordField("defaultTitle"),
         dateField("lastUpdated"),
