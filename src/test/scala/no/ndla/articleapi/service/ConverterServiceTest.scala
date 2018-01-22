@@ -183,16 +183,18 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     val title = "Baldur har mareritt"
     val visualElement = "image"
     val introduction = "Baldur"
+    val metaDescription = "Hurr Durr"
     val license = "publicdomain"
     val articleType = "topic-article"
     val supportedLanguages = Set("en", "nb")
-    val hitString = s"""{"visualElement":{"en":"$visualElement"},"introduction":{"nb":"$introduction"},"lastUpdated":"2017-12-29T07:18:27Z","tags":{"nb":["baldur"]},"license":"$license","id":$id,"authors":[],"content":{"nb":"Bilde av Baldurs mareritt om Ragnarok."},"defaultTitle":"Baldur har mareritt","title":{"nb":"$title"},"articleType":"$articleType"}"""
+    val hitString = s"""{"visualElement":{"en":"$visualElement"},"introduction":{"nb":"$introduction"},"metaDescription":{"nb":"$metaDescription"}, "lastUpdated":"2017-12-29T07:18:27Z","tags":{"nb":["baldur"]},"license":"$license","id":$id,"authors":[],"content":{"nb":"Bilde av Baldurs mareritt om Ragnarok."},"defaultTitle":"Baldur har mareritt","title":{"nb":"$title"},"articleType":"$articleType"}"""
     val result = service.hitAsArticleSummaryV2(hitString, "nb")
 
     result.id should equal(id)
     result.title.title should equal(title)
     result.visualElement.get.visualElement should equal(visualElement)
     result.introduction.get.introduction should equal(introduction)
+    result.metaDescription.get.metaDescription should equal(metaDescription)
     result.license should equal(license)
     result.articleType should equal(articleType)
     result.supportedLanguages.toSet should equal(supportedLanguages)

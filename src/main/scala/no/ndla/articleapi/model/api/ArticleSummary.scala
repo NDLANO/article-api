@@ -18,6 +18,7 @@ case class ArticleSummaryV2(@(ApiModelProperty@field)(description = "The unique 
                             @(ApiModelProperty@field)(description = "The title of the article") title: ArticleTitle,
                             @(ApiModelProperty@field)(description = "A visual element article") visualElement: Option[VisualElement],
                             @(ApiModelProperty@field)(description = "An introduction for the article") introduction: Option[ArticleIntroduction],
+                            @(ApiModelProperty@field)(description = "A metaDescription for the article") metaDescription: Option[ArticleMetaDescription],
                             @(ApiModelProperty@field)(description = "The full url to where the complete information about the article can be found") url: String,
                             @(ApiModelProperty@field)(description = "Describes the license of the article") license: String,
                             @(ApiModelProperty@field)(description = "The type of article this is. Possible values are topic-article,standard") articleType: String,

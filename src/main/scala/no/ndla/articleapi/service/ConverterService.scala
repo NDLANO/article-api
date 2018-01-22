@@ -73,6 +73,7 @@ trait ConverterService {
       val hit = parse(hitString)
       val titles = (hit \ "title").extract[Map[String, String]].map(title => ArticleTitle(title._2, title._1)).toSeq
       val introductions = (hit \ "introduction").extract[Map[String, String]].map(title => ArticleIntroduction(title._2, title._1)).toSeq
+      val metaDescriptions = (hit \ "metaDescription").extract[Map[String, String]].map(title => ArticleMetaDescription(title._2, title._1)).toSeq
       val visualElements = (hit \ "visualElement").extract[Map[String, String]].map(title => VisualElement(title._2, title._1)).toSeq
 
       val supportedLanguages = getSupportedLanguages(titles, visualElements, introductions)
@@ -80,12 +81,14 @@ trait ConverterService {
       val title = findByLanguageOrBestEffort(titles, language).map(toApiArticleTitle).getOrElse(api.ArticleTitle("", DefaultLanguage))
       val visualElement = findByLanguageOrBestEffort(visualElements, language).map(toApiVisualElement)
       val introduction = findByLanguageOrBestEffort(introductions, language).map(toApiArticleIntroduction)
+      val metaDescription = findByLanguageOrBestEffort(metaDescriptions, language).map(toApiArticleMetaDescription)
 
       ArticleSummaryV2(
         (hit \ "id").extract[Long],
         title,
         visualElement,
         introduction,
+        metaDescription,
         ApplicationUrl.get + (hit \ "id").extract[String],
         (hit \ "license").extract[String],
         (hit \ "articleType").extract[String],
