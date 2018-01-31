@@ -48,6 +48,12 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     service.toApiArticleV2(TestData.sampleDomainArticle, "nb") should equal(Success(TestData.apiArticleV2))
   }
 
+  test("that toApiArticleV2 returns sorted supportedLanguages") {
+    when(articleRepository.getExternalIdFromId(TestData.articleId)).thenReturn(Some(TestData.externalId))
+    val result = service.toApiArticleV2(TestData.sampleDomainArticle.copy(title = TestData.sampleDomainArticle.title :+ ArticleTitle("hehe", "unknown")), "nb")
+    result.get.supportedLanguages should be(Seq("unknown", "nb"))
+  }
+
   test("toApiArticleV2 returns None when language is not supported") {
     when(articleRepository.getExternalIdFromId(TestData.articleId)).thenReturn(Some(TestData.externalId))
     service.toApiArticleV2(TestData.sampleDomainArticle, "someRandomLanguage").isFailure should be(true)
@@ -186,7 +192,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     val metaDescription = "Hurr Durr"
     val license = "publicdomain"
     val articleType = "topic-article"
-    val supportedLanguages = Set("en", "nb")
+    val supportedLanguages = Seq("nb", "en")
     val hitString = s"""{"visualElement":{"en":"$visualElement"},"introduction":{"nb":"$introduction"},"metaDescription":{"nb":"$metaDescription"}, "lastUpdated":"2017-12-29T07:18:27Z","tags":{"nb":["baldur"]},"license":"$license","id":$id,"authors":[],"content":{"nb":"Bilde av Baldurs mareritt om Ragnarok."},"defaultTitle":"Baldur har mareritt","title":{"nb":"$title"},"articleType":"$articleType"}"""
     val result = service.hitAsArticleSummaryV2(hitString, "nb")
 
@@ -197,7 +203,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     result.metaDescription.get.metaDescription should equal(metaDescription)
     result.license should equal(license)
     result.articleType should equal(articleType)
-    result.supportedLanguages.toSet should equal(supportedLanguages)
+    result.supportedLanguages should equal(supportedLanguages)
   }
 
   test("That authors are translated correctly") {
