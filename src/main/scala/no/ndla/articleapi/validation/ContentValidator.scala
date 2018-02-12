@@ -10,12 +10,12 @@ package no.ndla.articleapi.validation
 
 import no.ndla.articleapi.ArticleApiProperties
 import no.ndla.articleapi.ArticleApiProperties.{H5PResizerScriptUrl, NDLABrightcoveVideoScriptUrl, NRKVideoScriptUrl}
-import no.ndla.articleapi.integration.ConverterModule.stringToJsoupDocument
 import no.ndla.articleapi.integration.DraftApiClient
 import no.ndla.articleapi.model.domain._
 import no.ndla.mapping.ISO639.get6391CodeFor6392CodeMappings
 import no.ndla.mapping.License.getLicense
 import no.ndla.validation.{TextValidator, ValidationException, ValidationMessage}
+import no.ndla.validation.HtmlTagRules.stringToJsoupDocument
 
 import scala.collection.JavaConverters._
 import scala.util.{Failure, Success, Try}
@@ -23,18 +23,10 @@ import scala.util.{Failure, Success, Try}
 trait ContentValidator {
   this: DraftApiClient =>
   val contentValidator: ContentValidator
-  val importValidator: ContentValidator
 
   class ContentValidator(allowEmptyLanguageField: Boolean) {
     private val NoHtmlValidator = new TextValidator(allowHtml=false)
     private val HtmlValidator = new TextValidator(allowHtml=true)
-
-    def validate(content: Content, allowUnknownLanguage: Boolean = false): Try[Content] = {
-      content match {
-        case concept: Concept => validateConcept(concept, allowUnknownLanguage)
-        case article: Article => validateArticle(article, allowUnknownLanguage)
-      }
-    }
 
     def validateArticle(article: Article, allowUnknownLanguage: Boolean): Try[Article] = {
       val validationErrors = article.content.flatMap(c => validateArticleContent(c, allowUnknownLanguage)) ++
@@ -57,14 +49,7 @@ trait ContentValidator {
       }
     }
 
-    private def validateNonEmpty(field: String, values: Seq[LanguageField[_]]): Option[ValidationMessage] = {
-      if (values.isEmpty) {
-        Some(ValidationMessage(field, "Field must contain at least one entry"))
-      } else
-        None
-    }
-
-    private def validateConcept(concept: Concept, allowUnknownLanguage: Boolean): Try[Concept] = {
+    def validateConcept(concept: Concept, allowUnknownLanguage: Boolean): Try[Concept] = {
       val validationErrors = concept.content.flatMap(c => validateConceptContent(c, allowUnknownLanguage)) ++
         concept.title.flatMap(t => validateTitle(t, allowUnknownLanguage))
 
@@ -73,6 +58,13 @@ trait ContentValidator {
       } else {
         Failure(new ValidationException(errors = validationErrors))
       }
+    }
+
+    private def validateNonEmpty(field: String, values: Seq[LanguageField[_]]): Option[ValidationMessage] = {
+      if (values.isEmpty) {
+        Some(ValidationMessage(field, "Field must contain at least one entry"))
+      } else
+        None
     }
 
     private def validateArticleType(articleType: String): Seq[ValidationMessage] = {

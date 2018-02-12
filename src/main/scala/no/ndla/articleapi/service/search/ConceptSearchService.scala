@@ -35,14 +35,6 @@ trait ConceptSearchService {
     implicit val formats = DefaultFormats
     override val searchIndex: String = ArticleApiProperties.ConceptSearchIndex
 
-    private def getSearchLanguage(supportedLanguages: Seq[String], language: String): String = {
-      language match {
-        case Language.NoLanguage if supportedLanguages.contains(Language.DefaultLanguage) => Language.DefaultLanguage
-        case Language.NoLanguage if supportedLanguages.nonEmpty => supportedLanguages.head
-        case lang => lang
-      }
-    }
-
     override def hitToApiModel(hitString: String, language: String): api.ConceptSummary = {
       val hit = parse(hitString)
       val titles = (hit \ "title").extract[Map[String, String]].map(title => ConceptTitle(title._2, title._1)).toSeq
@@ -71,14 +63,13 @@ trait ConceptSearchService {
       val contentSearch = simpleStringQuery(query).field(s"content.$language", 1)
 
       val hi = highlight("*").preTag("").postTag("").numberOfFragments(0)
-      val ih = innerHits("inner_hits").highlighting(hi)
 
       val fullQuery = boolQuery()
         .must(
           boolQuery()
             .should(
-              nestedQuery("title", titleSearch).scoreMode(ScoreMode.Avg).inner(ih),
-              nestedQuery("content", contentSearch).scoreMode(ScoreMode.Avg).inner(ih)
+              nestedQuery("title", titleSearch).scoreMode(ScoreMode.Avg).inner(innerHits("title").highlighting(hi)),
+              nestedQuery("content", contentSearch).scoreMode(ScoreMode.Avg).inner(innerHits("content").highlighting(hi))
             )
         )
 
@@ -101,7 +92,7 @@ trait ConceptSearchService {
 
       val requestedResultWindow = pageSize * page
       if (requestedResultWindow > ArticleApiProperties.ElasticSearchIndexMaxResultWindow) {
-        logger.info(s"Max supported results are ${ArticleApiProperties.ElasticSearchIndexMaxResultWindow}, user requested ${requestedResultWindow}")
+        logger.info(s"Max supported results are ${ArticleApiProperties.ElasticSearchIndexMaxResultWindow}, user requested $requestedResultWindow")
         throw new ResultWindowTooLargeException()
       }
 
@@ -109,7 +100,7 @@ trait ConceptSearchService {
         search(searchIndex).size(numResults).from(startAt).query(filteredSearch).sortBy(getSortDefinition(sort, searchLanguage))
       } match {
         case Success(response) =>
-          api.ConceptSearchResult(response.result.totalHits, page, numResults, getHits(response.result, language, hitToApiModel))
+          api.ConceptSearchResult(response.result.totalHits, page, numResults, if(searchLanguage == "*") Language.AllLanguages else searchLanguage ,getHits(response.result, language, hitToApiModel))
         case Failure(ex) =>
           errorHandler(Failure(ex))
       }

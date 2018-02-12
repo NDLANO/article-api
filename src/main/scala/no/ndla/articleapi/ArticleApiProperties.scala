@@ -25,26 +25,26 @@ object ArticleApiProperties extends LazyLogging {
 
   val SecretsFile = "article-api.secrets"
 
-  val ApplicationPort = propOrElse("APPLICATION_PORT", "80").toInt
+  val ApplicationPort: Int = propOrElse("APPLICATION_PORT", "80").toInt
   val ContactEmail = "christergundersen@ndla.no"
-  val Environment = propOrElse("NDLA_ENVIRONMENT", "local")
+  val Environment: String = propOrElse("NDLA_ENVIRONMENT", "local")
 
-  lazy val MetaUserName = prop(PropertyKeys.MetaUserNameKey)
-  lazy val MetaPassword = prop(PropertyKeys.MetaPasswordKey)
-  lazy val MetaResource = prop(PropertyKeys.MetaResourceKey)
-  lazy val MetaServer = prop(PropertyKeys.MetaServerKey)
-  lazy val MetaPort = prop(PropertyKeys.MetaPortKey).toInt
-  lazy val MetaSchema = prop(PropertyKeys.MetaSchemaKey)
+  lazy val MetaUserName: String = prop(PropertyKeys.MetaUserNameKey)
+  lazy val MetaPassword: String = prop(PropertyKeys.MetaPasswordKey)
+  lazy val MetaResource: String = prop(PropertyKeys.MetaResourceKey)
+  lazy val MetaServer: String = prop(PropertyKeys.MetaServerKey)
+  lazy val MetaPort: Int = prop(PropertyKeys.MetaPortKey).toInt
+  lazy val MetaSchema: String = prop(PropertyKeys.MetaSchemaKey)
   val MetaInitialConnections = 3
   val MetaMaxConnections = 20
 
   val AttachmentStorageName = s"$Environment.article-attachments.ndla"
 
-  val SearchServer = propOrElse("SEARCH_SERVER", "http://search-article-api.ndla-local")
-  val SearchRegion = propOrElse("SEARCH_REGION", "eu-central-1")
-  val RunWithSignedSearchRequests = propOrElse("RUN_WITH_SIGNED_SEARCH_REQUESTS", "true").toBoolean
-  val ArticleSearchIndex = propOrElse("SEARCH_INDEX_NAME", "articles")
-  val ConceptSearchIndex = propOrElse("CONCEPT_SEARCH_INDEX_NAME", "concepts")
+  val SearchServer: String = propOrElse("SEARCH_SERVER", "http://search-article-api.ndla-local")
+  val SearchRegion: String = propOrElse("SEARCH_REGION", "eu-central-1")
+  val RunWithSignedSearchRequests: Boolean = propOrElse("RUN_WITH_SIGNED_SEARCH_REQUESTS", "true").toBoolean
+  val ArticleSearchIndex: String = propOrElse("SEARCH_INDEX_NAME", "articles")
+  val ConceptSearchIndex: String = propOrElse("CONCEPT_SEARCH_INDEX_NAME", "concepts")
   val ArticleSearchDocument = "article"
   val ConceptSearchDocument = "concept"
   val DefaultPageSize = 10
@@ -53,15 +53,15 @@ object ArticleApiProperties extends LazyLogging {
   val ElasticSearchIndexMaxResultWindow = 10000
 
   val TopicAPIUrl = "http://api.topic.ndla.no/rest/v1/keywords/?filter[node]=ndlanode_"
-  val MigrationHost = prop("MIGRATION_HOST")
-  val MigrationUser = prop("MIGRATION_USER")
-  val MigrationPassword = prop("MIGRATION_PASSWORD")
+  val MigrationHost: String = prop("MIGRATION_HOST")
+  val MigrationUser: String = prop("MIGRATION_USER")
+  val MigrationPassword: String = prop("MIGRATION_PASSWORD")
 
   val CorrelationIdKey = "correlationID"
   val CorrelationIdHeader = "X-Correlation-ID"
-  val AudioHost = propOrElse("AUDIO_API_HOST", "audio-api.ndla-local")
-  val ImageHost = propOrElse("IMAGE_API_HOST", "image-api.ndla-local")
-  val DraftHost = propOrElse("DRAFT_API_HOST", "draft-api.ndla-local")
+  val AudioHost: String = propOrElse("AUDIO_API_HOST", "audio-api.ndla-local")
+  val ImageHost: String = propOrElse("IMAGE_API_HOST", "image-api.ndla-local")
+  val DraftHost: String = propOrElse("DRAFT_API_HOST", "draft-api.ndla-local")
   val ApiClientsCacheAgeInMs: Long = 1000 * 60 * 60 // 1 hour caching
 
   val nodeTypeBegrep: String = "begrep"
@@ -77,13 +77,13 @@ object ArticleApiProperties extends LazyLogging {
 
   val oldRightsholderTypes = List("rettighetshaver", "forlag", "distributør", "leverandør")
   val rightsholderTypes = List("rightsholder", "publisher", "distributor", "supplier")
-  val allowedAuthors = creatorTypes ++ processorTypes ++ rightsholderTypes
+  val allowedAuthors: List[String] = creatorTypes ++ processorTypes ++ rightsholderTypes
 
   // When converting a content node, the converter may run several times over the content to make sure
   // everything is converted. This value defines a maximum number of times the converter runs on a node
   val maxConvertionRounds = 5
 
-  lazy val Domain = Domains.get(Environment)
+  lazy val Domain: String = Domains.get(Environment)
 
   val externalApiUrls = Map(
     ResourceType.Image.toString -> s"$Domain/image-api/v2/images",
@@ -91,23 +91,23 @@ object ArticleApiProperties extends LazyLogging {
     ResourceType.Audio.toString -> s"$Domain/audio-api/v1/audio"
   )
 
-  val NDLABrightcoveAccountId = prop("NDLA_BRIGHTCOVE_ACCOUNT_ID")
-  val NDLABrightcovePlayerId = prop("NDLA_BRIGHTCOVE_PLAYER_ID")
+  val NDLABrightcoveAccountId: String = prop("NDLA_BRIGHTCOVE_ACCOUNT_ID")
+  val NDLABrightcovePlayerId: String = prop("NDLA_BRIGHTCOVE_PLAYER_ID")
 
   val H5PResizerScriptUrl = "//ndla.no/sites/all/modules/h5p/library/js/h5p-resizer.js"
-  val H5PHost = Map(
+  val H5PHost: String = Map(
     "prod" -> "h5p.ndla.no"
   ).getOrElse(Environment, "h5p-test.ndla.no")
 
   val NDLABrightcoveVideoScriptUrl = s"//players.brightcove.net/$NDLABrightcoveAccountId/${NDLABrightcovePlayerId}_default/index.min.js"
   val NRKVideoScriptUrl = Seq("//www.nrk.no/serum/latest/js/video_embed.js", "//nrk.no/serum/latest/js/video_embed.js")
 
-  lazy val secrets = readSecrets(SecretsFile) match {
+  lazy val secrets: Map[String, Option[String]] = readSecrets(SecretsFile) match {
      case Success(values) => values
      case Failure(exception) => throw new RuntimeException(s"Unable to load remote secrets from $SecretsFile", exception)
    }
 
-  def booleanProp(key: String) = prop(key).toBoolean
+  def booleanProp(key: String): Boolean = prop(key).toBoolean
 
   def prop(key: String): String = {
     propOrElse(key, throw new RuntimeException(s"Unable to load property $key"))

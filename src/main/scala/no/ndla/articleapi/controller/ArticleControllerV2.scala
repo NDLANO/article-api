@@ -120,7 +120,7 @@ trait ArticleControllerV2 {
     get("/", operation(getAllArticles)) {
       val query = paramOrNone("query")
       val sort = Sort.valueOf(paramOrDefault("sort", ""))
-      val language = paramOrDefault("language", Language.DefaultLanguage)
+      val language = paramOrDefault("language", Language.AllLanguages)
       val license = paramOrNone("license")
       val pageSize = intOrDefault("page-size", ArticleApiProperties.DefaultPageSize)
       val page = intOrDefault("page", 1)
@@ -147,7 +147,7 @@ trait ArticleControllerV2 {
 
       val query = searchParams.query
       val sort = Sort.valueOf(searchParams.sort.getOrElse(""))
-      val language = searchParams.language.getOrElse(Language.DefaultLanguage)
+      val language = searchParams.language.getOrElse(Language.AllLanguages)
       val license = searchParams.license
       val pageSize = searchParams.pageSize.getOrElse(ArticleApiProperties.DefaultPageSize)
       val page = searchParams.page.getOrElse(1)
@@ -174,8 +174,8 @@ trait ArticleControllerV2 {
       val language = paramOrDefault("language", Language.AllLanguages)
 
       readService.withIdV2(articleId, language) match {
-        case Some(article) => article
-        case None => NotFound(body = Error(Error.NOT_FOUND, s"No article with id $articleId and language $language found"))
+        case Success(article) => article
+        case Failure(ex) => errorHandler(ex)
       }
     }
 
@@ -222,51 +222,6 @@ trait ArticleControllerV2 {
       }
 
       licenses.map(x => License(x.license, Option(x.description), x.url))
-    }
-
-    val newArticle =
-      (apiOperation[ArticleV2]("newArticle")
-        summary "Create a new article"
-        notes "Creates a new article"
-        parameters(
-        headerParam[Option[String]]("X-Correlation-ID").description("User supplied correlation-id"),
-        bodyParam[NewArticleV2]
-      )
-        authorizations "oauth2"
-        responseMessages(response400, response403, response500))
-
-    post("/", operation(newArticle)) {
-      authUser.assertHasId()
-      authRole.assertHasWritePermission()
-      val newArticle = extract[NewArticleV2](request.body)
-      writeService.newArticleV2(newArticle) match {
-        case Success(article) => Created(body=article)
-        case Failure(exception) => errorHandler(exception)
-      }
-    }
-
-    val updateArticle =
-      (apiOperation[ArticleV2]("updateArticle")
-        summary "Update an existing article"
-        notes "Update an existing article"
-        parameters(
-        headerParam[Option[String]]("X-Correlation-ID").description("User supplied correlation-id"),
-        pathParam[Long]("article_id").description("Id of the article that is to be updated"),
-        bodyParam[UpdatedArticleV2]
-      )
-        authorizations "oauth2"
-        responseMessages(response400, response403, response404, response500))
-
-    patch("/:article_id", operation(updateArticle)) {
-      authUser.assertHasId()
-      authRole.assertHasWritePermission()
-
-      val articleId = long("article_id")
-      val updatedArticle = extract[UpdatedArticleV2](request.body)
-      writeService.updateArticleV2(articleId, updatedArticle) match {
-        case Success(article) => Ok(body=article)
-        case Failure(exception) => errorHandler(exception)
-      }
     }
 
   }

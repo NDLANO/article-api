@@ -13,7 +13,7 @@ import javax.sql.DataSource
 import org.flywaydb.core.Flyway
 
 object DBMigrator {
-  def migrate(datasource: DataSource) = {
+  def migrate(datasource: DataSource): Int = {
     val flyway = new Flyway()
     flyway.setDataSource(datasource)
     flyway.migrate()

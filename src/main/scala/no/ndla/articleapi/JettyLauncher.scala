@@ -18,7 +18,7 @@ import scala.io.Source
 
 
 object JettyLauncher extends LazyLogging {
-  def buildMostUsedTagsCache = {
+  def buildMostUsedTagsCache: Unit = {
     ComponentRegistry.readService.getTagUsageMap()
   }
 

@@ -16,9 +16,11 @@ class SafeLanguageStringTest extends UnitSuite with TestEnvironment {
   test("emtpySomeToNone should return None on Some(\"\")") {
     emptySomeToNone(Some("")) should equal(None)
   }
+
   test("emtpySomeToNone should return Some with same content on non empty") {
     emptySomeToNone(Some("I have content :)")) should equal(Some("I have content :)"))
   }
+
   test("emtpySomeToNone should return None on None") {
     emptySomeToNone(None) should equal(None)
   }

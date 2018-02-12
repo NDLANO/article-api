@@ -52,20 +52,21 @@ trait ArticleSearchService {
       val language = if (searchLanguage == Language.AllLanguages) "*" else searchLanguage
       val titleSearch = simpleStringQuery(query).field(s"title.$language", 2)
       val introSearch = simpleStringQuery(query).field(s"introduction.$language", 2)
+      val metaSearch = simpleStringQuery(query).field(s"metaDescription.$language", 1)
       val contentSearch = simpleStringQuery(query).field(s"content.$language", 1)
       val tagSearch = simpleStringQuery(query).field(s"tags.$language", 1)
 
       val hi = highlight("*").preTag("").postTag("").numberOfFragments(0)
-      val ih = innerHits("inner_hits").highlighting(hi)
 
       val fullQuery = boolQuery()
         .must(
           boolQuery()
             .should(
-              nestedQuery("title", titleSearch).scoreMode(ScoreMode.Avg).inner(ih),
-              nestedQuery("introduction", introSearch).scoreMode(ScoreMode.Avg).inner(ih),
-              nestedQuery("content", contentSearch).scoreMode(ScoreMode.Avg).inner(ih),
-              nestedQuery("tags", tagSearch).scoreMode(ScoreMode.Avg).inner(ih)
+              nestedQuery("title", titleSearch).scoreMode(ScoreMode.Avg).inner(innerHits("title").highlighting(hi)),
+              nestedQuery("introduction", introSearch).scoreMode(ScoreMode.Avg).inner(innerHits("introduction").highlighting(hi)),
+              nestedQuery("metaDescription", metaSearch).scoreMode(ScoreMode.Avg).inner(innerHits("metaDescription").highlighting(hi)),
+              nestedQuery("content", contentSearch).scoreMode(ScoreMode.Avg).inner(innerHits("content").highlighting(hi)),
+              nestedQuery("tags", tagSearch).scoreMode(ScoreMode.Avg).inner(innerHits("tags").highlighting(hi))
             )
         )
 
@@ -105,7 +106,7 @@ trait ArticleSearchService {
         search(searchIndex).size(numResults).from(startAt).query(filteredSearch).sortBy(getSortDefinition(sort, searchLanguage))
       } match {
         case Success(response) =>
-          SearchResultV2(response.result.totalHits, page, numResults, language, getHits(response.result, language, hitToApiModel))
+          SearchResultV2(response.result.totalHits, page, numResults, if (searchLanguage == "*") Language.AllLanguages else searchLanguage, getHits(response.result, language, hitToApiModel))
         case Failure(ex) =>
           errorHandler(Failure(ex))
       }
@@ -128,7 +129,7 @@ trait ArticleSearchService {
       }
     }
 
-    private def scheduleIndexDocuments() = {
+    private def scheduleIndexDocuments(): Unit = {
       val f = Future {
         articleIndexService.indexDocuments
       }

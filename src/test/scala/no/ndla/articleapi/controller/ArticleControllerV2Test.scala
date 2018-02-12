@@ -19,7 +19,7 @@ import no.ndla.mapping.License.getLicenses
 import org.json4s.native.Serialization.{read, write}
 import scalikejdbc.DBSession
 
-import scala.util.Success
+import scala.util.{Failure, Success}
 
 class ArticleControllerV2Test extends UnitSuite with TestEnvironment with ScalatraFunSuite {
 
@@ -43,7 +43,7 @@ class ArticleControllerV2Test extends UnitSuite with TestEnvironment with Scalat
   val articleId = 1
 
   test("/<article_id> should return 200 if the cover was found withIdV2") {
-    when(readService.withIdV2(articleId, lang)).thenReturn(Some(TestData.sampleArticleV2))
+    when(readService.withIdV2(articleId, lang)).thenReturn(Success(TestData.sampleArticleV2))
 
     get(s"/test/$articleId?language=$lang") {
       status should equal(200)
@@ -51,7 +51,7 @@ class ArticleControllerV2Test extends UnitSuite with TestEnvironment with Scalat
   }
 
   test("/<article_id> should return 404 if the article was not found withIdV2") {
-    when(readService.withIdV2(articleId, lang)).thenReturn(None)
+    when(readService.withIdV2(articleId, lang)).thenReturn(Failure(NotFoundException("Not found")))
 
     get(s"/test/$articleId?language=$lang") {
       status should equal(404)
@@ -95,140 +95,4 @@ class ArticleControllerV2Test extends UnitSuite with TestEnvironment with Scalat
     }
   }
 
-  test("POST / should return 400 on failure to validate request") {
-    post("/test/", "{}", headers = Map("Authorization" -> authHeaderWithWriteRole)) {
-      status should equal(400)
-    }
-  }
-
-  test("POST / should return 201 on created") {
-    when(writeService.newArticleV2(any[NewArticleV2])).thenReturn(Success(TestData.sampleArticleV2))
-    post("/test/", write(TestData.newArticleV2Body), headers = Map("Authorization" -> authHeaderWithWriteRole)) {
-      status should equal(201)
-    }
-  }
-
-  test("That / returns a validation message if article is invalid") {
-    post("/test", headers = Map("Authorization" -> authHeaderWithWriteRole)) {
-      status should equal (400)
-    }
-  }
-
-  test("That POST / returns 403 if no auth-header") {
-    post("/test") {
-      status should equal (403)
-    }
-  }
-
-  test("That POST / returns 403 if auth header does not have expected role") {
-    post("/test", headers = Map("Authorization" -> authHeaderWithWrongRole)) {
-      status should equal (403)
-    }
-  }
-
-  test("That POST / returns 403 if auth header does not have any roles") {
-    post("/test", headers = Map("Authorization" -> authHeaderWithoutAnyRoles)) {
-      status should equal (403)
-    }
-  }
-
-  test("That PATCH /:id returns a validation message if article is invalid") {
-    patch("/test/123", invalidArticle, headers = Map("Authorization" -> authHeaderWithWriteRole)) {
-      status should equal (400)
-    }
-  }
-
-  test("That PATCH /:id returns 403 if no auth-header") {
-    patch("/test/123") {
-      status should equal (403)
-    }
-  }
-
-  test("That PATCH /:id returns 403 if auth header does not have expected role") {
-    patch("/test/123", headers = Map("Authorization" -> authHeaderWithWrongRole)) {
-      status should equal (403)
-    }
-  }
-
-  test("That PATCH /:id returns 403 if auth header does not have any roles") {
-    patch("/test/123", headers = Map("Authorization" -> authHeaderWithoutAnyRoles)) {
-      status should equal (403)
-    }
-  }
-
-  test("That PATCH /:id returns 200 on success") {
-    when(writeService.updateArticleV2(any[Long], any[UpdatedArticleV2])).thenReturn(Success(TestData.apiArticleWithHtmlFaultV2))
-    patch("/test/123", updateTitleJson, headers = Map("Authorization" -> authHeaderWithWriteRole)) {
-      status should equal (200)
-    }
-  }
-
-  // Legacy tests. May be removed when the legacy token format in ndla.network v0.24 is removed
-  test("LEGACY - POST / should return 400 on failure to validate request") {
-    post("/test/", "{}", headers = Map("Authorization" -> legacyAuthHeaderWithWriteRole)) {
-      status should equal(400)
-    }
-  }
-
-  test("LEGACY - POST / should return 201 on created") {
-    when(writeService.newArticleV2(any[NewArticleV2])).thenReturn(Success(TestData.sampleArticleV2))
-    post("/test/", write(TestData.newArticleV2Body), headers = Map("Authorization" -> legacyAuthHeaderWithWriteRole)) {
-      status should equal(201)
-    }
-  }
-
-  test("LEGACY - That / returns a validation message if article is invalid") {
-    post("/test", headers = Map("Authorization" -> legacyAuthHeaderWithWriteRole)) {
-      status should equal (400)
-    }
-  }
-
-  test("LEGACY - That POST / returns 403 if no auth-header") {
-    post("/test") {
-      status should equal (403)
-    }
-  }
-
-  test("LEGACY - That POST / returns 403 if auth header does not have expected role") {
-    post("/test", headers = Map("Authorization" -> legacyAuthHeaderWithWrongRole)) {
-      status should equal (403)
-    }
-  }
-
-  test("LEGACY - That POST / returns 403 if auth header does not have any roles") {
-    post("/test", headers = Map("Authorization" -> legacyAuthHeaderWithoutAnyRoles)) {
-      status should equal (403)
-    }
-  }
-
-  test("LEGACY - That PATCH /:id returns a validation message if article is invalid") {
-    patch("/test/123", invalidArticle, headers = Map("Authorization" -> legacyAuthHeaderWithWriteRole)) {
-      status should equal (400)
-    }
-  }
-
-  test("LEGACY - That PATCH /:id returns 403 if no auth-header") {
-    patch("/test/123") {
-      status should equal (403)
-    }
-  }
-
-  test("LEGACY - That PATCH /:id returns 403 if auth header does not have expected role") {
-    patch("/test/123", headers = Map("Authorization" -> legacyAuthHeaderWithWrongRole)) {
-      status should equal (403)
-    }
-  }
-
-  test("LEGACY - That PATCH /:id returns 403 if auth header does not have any roles") {
-    patch("/test/123", headers = Map("Authorization" -> legacyAuthHeaderWithoutAnyRoles)) {
-      status should equal (403)
-    }
-  }
-
-  test("LEGACY - That PATCH /:id returns 200 on success") {
-    when(writeService.updateArticleV2(any[Long], any[UpdatedArticleV2])).thenReturn(Success(TestData.apiArticleWithHtmlFaultV2))
-    patch("/test/123", updateTitleJson, headers = Map("Authorization" -> legacyAuthHeaderWithWriteRole)) {
-      status should equal (200)
-    }
-  }
 }

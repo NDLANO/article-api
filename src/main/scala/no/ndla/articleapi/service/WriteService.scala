@@ -30,20 +30,6 @@ trait WriteService {
   val writeService: WriteService
 
   class WriteService {
-    def newArticleV2(newArticle: api.NewArticleV2): Try[ArticleV2] = {
-      validateAndConvertNewArticle(newArticle) match {
-        case Success(domainArticle) =>
-          val article = articleRepository.newArticle(domainArticle)
-          articleIndexService.indexDocument(article)
-          Success(converterService.toApiArticleV2(article, newArticle.language).get)
-        case Failure(exception) => Failure(exception)
-      }
-    }
-
-    def validateAndConvertNewArticle(newArticle: api.NewArticleV2): Try[Article] = {
-      contentValidator.validateArticle(converterService.toDomainArticle(newArticle), allowUnknownLanguage = false)
-    }
-
     def validateAndConvertUpdatedArticle(articleId: Long, updatedApiArticle: UpdatedArticleV2): Try[Article] = {
       articleRepository.withId(articleId) match {
         case None => Failure(NotFoundException(s"Article with id $articleId does not exist"))
@@ -51,16 +37,6 @@ trait WriteService {
           val domainArticle = converterService.toDomainArticle(existing, updatedApiArticle)
           contentValidator.validateArticle(domainArticle, allowUnknownLanguage = true)
       }
-    }
-
-    def updateArticleV2(articleId: Long, updatedApiArticle: api.UpdatedArticleV2): Try[api.ArticleV2] = {
-      val article = for {
-        toUpdate <- validateAndConvertUpdatedArticle(articleId, updatedApiArticle)
-        domainArticle <- articleRepository.updateArticle(toUpdate)
-        _ <- articleIndexService.indexDocument(domainArticle)
-      } yield domainArticle
-
-      article.map(a => converterService.toApiArticleV2(readService.addUrlsOnEmbedResources(a), updatedApiArticle.language).get)
     }
 
     def updateArticle(article: Article): Try[Article] = {
@@ -88,34 +64,12 @@ trait WriteService {
       }
     }
 
-    def newConcept(newConcept: NewConcept): Try[api.Concept] = {
-      val concept = converterService.toDomainConcept(newConcept)
-      for {
-        _ <- importValidator.validate(concept)
-        persistedConcept <- Try(conceptRepository.insert(concept))
-        _ <- conceptIndexService.indexDocument(persistedConcept)
-      } yield converterService.toApiConcept(persistedConcept, newConcept.language)
-    }
-
     def updateConcept(id: Long, concept: Concept): Try[Concept] = {
       for {
-        _ <- contentValidator.validate(concept, allowUnknownLanguage = true)
+        _ <- contentValidator.validateConcept(concept, allowUnknownLanguage = true)
         domainConcept <- conceptRepository.updateConceptFromDraftApi(concept.copy(id=Some(id)))
         _ <- conceptIndexService.indexDocument(domainConcept)
       } yield domainConcept
-    }
-
-    def updateConcept(id: Long, updateConcept: api.UpdatedConcept): Try[api.Concept] = {
-      conceptRepository.withId(id) match {
-        case None => Failure(NotFoundException(s"Concept with id $id does not exist"))
-        case Some(concept) =>
-          val domainConcept = converterService.toDomainConcept(concept, updateConcept)
-          for {
-            _ <- importValidator.validate(domainConcept)
-            persistedConcept <- conceptRepository.update(domainConcept, id)
-            _ <- conceptIndexService.indexDocument(concept)
-          } yield converterService.toApiConcept(persistedConcept, updateConcept.language)
-      }
     }
 
   }

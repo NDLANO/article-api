@@ -11,15 +11,18 @@ package no.ndla.articleapi.service
 import no.ndla.articleapi.ArticleApiProperties.externalApiUrls
 import no.ndla.validation.EmbedTagRules.ResourceHtmlEmbedTag
 import no.ndla.articleapi.caching.MemoizeAutoRenew
-import no.ndla.articleapi.integration.ConverterModule.{jsoupDocumentToString, stringToJsoupDocument}
+import no.ndla.validation.HtmlTagRules.{jsoupDocumentToString, stringToJsoupDocument}
 import no.ndla.articleapi.model.api
+import no.ndla.articleapi.model.api.NotFoundException
 import no.ndla.articleapi.model.domain._
 import no.ndla.articleapi.model.domain.Language._
 import no.ndla.articleapi.repository.{ArticleRepository, ConceptRepository}
 import no.ndla.validation.TagAttributes
 import org.jsoup.nodes.Element
+
 import scala.math.max
 import scala.collection.JavaConverters._
+import scala.util.{Failure, Try}
 
 trait ReadService {
   this: ArticleRepository with ConceptRepository with ConverterService =>
@@ -29,10 +32,11 @@ trait ReadService {
     def getInternalIdByExternalId(externalId: Long): Option[api.ArticleIdV2] =
       articleRepository.getIdFromExternalId(externalId.toString).map(api.ArticleIdV2)
 
-    def withIdV2(id: Long, language: String): Option[api.ArticleV2] = {
-      articleRepository.withId(id)
-        .map(addUrlsOnEmbedResources)
-        .flatMap(article => converterService.toApiArticleV2(article, language))
+    def withIdV2(id: Long, language: String): Try[api.ArticleV2] = {
+      articleRepository.withId(id).map(addUrlsOnEmbedResources) match {
+        case None => Failure(NotFoundException(s"The article with id $id was not found"))
+        case Some(article) => converterService.toApiArticleV2(article, language)
+      }
     }
 
     private[service] def addUrlsOnEmbedResources(article: Article): Article = {
@@ -52,7 +56,9 @@ trait ReadService {
 
     def getArticlesByPage(pageNo: Int, pageSize: Int, lang: String): api.ArticleDump = {
       val (safePageNo, safePageSize) = (max(pageNo, 1), max(pageSize, 0))
-      val results = articleRepository.getArticlesByPage(safePageSize, (safePageNo - 1) * safePageSize).flatMap(article => converterService.toApiArticleV2(article, lang))
+      val results = articleRepository.getArticlesByPage(safePageSize, (safePageNo - 1) * safePageSize)
+        .flatMap(article => converterService.toApiArticleV2(article, lang).toOption)
+
       api.ArticleDump(articleRepository.articleCount, pageNo, pageSize, lang, results)
     }
 
@@ -72,10 +78,9 @@ trait ReadService {
       val resourceIdAttrName = TagAttributes.DataResource_Id.toString
       embedTag.hasAttr(resourceIdAttrName) match {
         case false =>
-        case true => {
+        case true =>
           val (resourceType, id) = (embedTag.attr(s"${TagAttributes.DataResource}"), embedTag.attr(resourceIdAttrName))
           embedTag.attr(s"${TagAttributes.DataUrl}", s"${externalApiUrls(resourceType)}/$id")
-        }
       }
     }
 

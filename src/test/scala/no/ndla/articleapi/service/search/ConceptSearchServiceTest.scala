@@ -144,7 +144,6 @@ class ConceptSearchServiceTest extends UnitSuite with TestEnvironment {
   test("That all returns all documents ordered by title ascending") {
     val results = conceptSearchService.all(List(), Language.DefaultLanguage, 1, 10, Sort.ByTitleAsc)
     val hits = results.results
-    hits.foreach(println)
     results.totalCount should be(11)
     hits.head.id should be(8)
     hits(1).id should be(9)

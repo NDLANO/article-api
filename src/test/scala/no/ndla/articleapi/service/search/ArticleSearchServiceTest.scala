@@ -131,8 +131,9 @@ class ArticleSearchServiceTest extends UnitSuite with TestEnvironment {
     id = Option(11),
     title = List(ArticleTitle("Katter", "nb"), ArticleTitle("Cats", "en")),
     introduction = List(ArticleIntroduction("Katter er store", "nb"), ArticleIntroduction("Cats are big", "en")),
+    metaDescription = List(ArticleMetaDescription("hurr durr ima sheep", "en")),
     content = List(ArticleContent("<p>Noe om en katt</p>", "nb"), ArticleContent("<p>Something about a cat</p>", "en")),
-    tags = List(ArticleTag(List("katt"), "nb"), ArticleTag(List("cat"), "en")),
+    tags = List(ArticleTag(List("ikkehund"), "nb"), ArticleTag(List("notdog"), "en")),
     created = today.minusDays(10).toDate,
     updated = today.minusDays(5).toDate,
     articleType = ArticleType.TopicArticle.toString
@@ -419,6 +420,15 @@ class ArticleSearchServiceTest extends UnitSuite with TestEnvironment {
     searchNb.results.head.id should equal(11)
     searchNb.results.head.title.title should equal("Katter")
     searchNb.results.head.title.language should equal("nb")
+  }
+
+  test("metadescription is searchable") {
+    val search = articleSearchService.matchingQuery("hurr dirr", List(), "all", None, 1, 10, Sort.ByRelevanceDesc, Seq.empty)
+
+    search.totalCount should equal(1)
+    search.results.head.id should equal(11)
+    search.results.head.title.title should equal("Cats")
+    search.results.head.title.language should equal("en")
   }
 
   def blockUntil(predicate: () => Boolean) = {

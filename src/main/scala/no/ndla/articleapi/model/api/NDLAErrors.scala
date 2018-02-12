@@ -18,7 +18,9 @@ import org.scalatra.swagger.annotations.{ApiModel, ApiModelProperty}
 @ApiModel(description = "Information about an error")
 case class Error(@(ApiModelProperty@field)(description = "Code stating the type of error") code: String = Error.GENERIC,
                  @(ApiModelProperty@field)(description = "Description of the error") description: String = Error.GENERIC_DESCRIPTION,
-                 @(ApiModelProperty@field)(description = "When the error occured") occuredAt: Date = new Date())
+                 @(ApiModelProperty@field)(description = "When the error occured") occuredAt: Date = new Date(),
+                 @(ApiModelProperty@field)(description = "The supported languages for an article") supportedLanguages: Option[Seq[String]] = None
+                )
 
 object Error {
   val GENERIC = "GENERIC"
@@ -39,7 +41,7 @@ object Error {
   val IndexMissingError = Error(INDEX_MISSING, INDEX_MISSING_DESCRIPTION)
 }
 
-case class NotFoundException(message: String) extends RuntimeException(message)
+case class NotFoundException(message: String, supportedLanguages: Seq[String] = Seq.empty) extends RuntimeException(message)
 case class ImportException(message: String) extends RuntimeException(message)
 
 class AccessDeniedException(message: String) extends RuntimeException(message)
