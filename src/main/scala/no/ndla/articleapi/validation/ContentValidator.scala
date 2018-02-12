@@ -36,7 +36,7 @@ trait ContentValidator {
         validateCopyright(article.copyright) ++
         validateTags(article.tags, allowUnknownLanguage) ++
         article.requiredLibraries.flatMap(validateRequiredLibrary) ++
-        article.metaImageId.flatMap(validateMetaImageId) ++
+        article.metaImage.flatMap(validateMetaImageId) ++
         article.visualElement.flatMap(v => validateVisualElement(v, allowUnknownLanguage)) ++
         validateArticleType(article.articleType) ++
         validateNonEmpty("content", article.content) ++

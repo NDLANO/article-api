@@ -155,7 +155,7 @@ trait ConverterService {
         visualElement = mergeLanguageFields(toMergeInto.visualElement, updatedApiArticle.visualElement.map(c => converterService.toDomainVisualElementV2(Some(c), lang)).getOrElse(Seq())),
         introduction = mergeLanguageFields(toMergeInto.introduction, updatedApiArticle.introduction.map(i => converterService.toDomainIntroductionV2(Some(i), lang)).getOrElse(Seq())),
         metaDescription = mergeLanguageFields(toMergeInto.metaDescription, updatedApiArticle.metaDescription.map(m => converterService.toDomainMetaDescriptionV2(Some(m), lang)).getOrElse(Seq())),
-        metaImageId = mergeLanguageFields(toMergeInto.metaImageId, updatedApiArticle.metaImageId.map(m => toDomainMetaImage(m, lang)).toSeq),
+        metaImage = mergeLanguageFields(toMergeInto.metaImage, updatedApiArticle.metaImageId.map(m => toDomainMetaImage(m, lang)).toSeq),
         updated = clock.now(),
         updatedBy = authUser.userOrClientid()
       )
@@ -201,7 +201,7 @@ trait ConverterService {
         visualElement=toDomainVisualElementV2(newArticle.visualElement, newArticle.language),
         introduction=toDomainIntroductionV2(newArticle.introduction, newArticle.language),
         metaDescription=toDomainMetaDescriptionV2(newArticle.metaDescription, newArticle.language),
-        metaImageId=newArticle.metaImageId.map(imageId => toDomainMetaImage(imageId, newArticle.language)).toSeq,
+        metaImage=newArticle.metaImageId.map(imageId => toDomainMetaImage(imageId, newArticle.language)).toSeq,
         created=clock.now(),
         updated=clock.now(),
         updatedBy=authUser.userOrClientid(),
@@ -337,7 +337,7 @@ trait ConverterService {
         val introduction = findByLanguageOrBestEffort(article.introduction, language).map(toApiArticleIntroduction)
         val visualElement = findByLanguageOrBestEffort(article.visualElement, language).map(toApiVisualElement)
         val articleContent = findByLanguageOrBestEffort(article.content, language).map(toApiArticleContentV2).getOrElse(api.ArticleContentV2("", DefaultLanguage))
-        val metaImage = findByLanguageOrBestEffort(article.metaImageId, language).map(toApiMetaImage)
+        val metaImage = findByLanguageOrBestEffort(article.metaImage, language).map(toApiMetaImage)
 
         Success(api.ArticleV2(
           article.id.get,
