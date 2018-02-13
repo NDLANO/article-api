@@ -9,7 +9,7 @@
 
 package no.ndla.articleapi.controller
 
-import java.util.concurrent.TimeUnit
+import java.util.concurrent.{Executors, TimeUnit}
 
 import no.ndla.articleapi.auth.{Role, User}
 import no.ndla.articleapi.model.api.{ArticleIdV2, UpdatedConcept}
@@ -24,7 +24,6 @@ import no.ndla.validation.ValidationException
 import org.json4s.{DefaultFormats, Formats}
 import org.scalatra.{InternalServerError, NotFound, Ok}
 
-import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent._
 import scala.concurrent.duration.Duration
 import scala.util.{Failure, Success}
@@ -47,6 +46,7 @@ trait InternController {
     protected implicit override val jsonFormats: Formats = DefaultFormats
 
     post("/index") {
+      implicit val ec = ExecutionContext.fromExecutorService(Executors.newSingleThreadExecutor)
       val indexResults = for {
         articleIndex <- Future { articleIndexService.indexDocuments }
         conceptIndex <- Future { conceptIndexService.indexDocuments }

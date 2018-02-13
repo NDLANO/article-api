@@ -8,6 +8,8 @@
 
 package no.ndla.articleapi.service.search
 
+import java.util.concurrent.Executors
+
 import com.sksamuel.elastic4s.http.ElasticDsl._
 import com.sksamuel.elastic4s.searches.ScoreMode
 import com.sksamuel.elastic4s.searches.queries.BoolQueryDefinition
@@ -24,7 +26,7 @@ import org.json4s.{DefaultFormats, _}
 import org.json4s.native.JsonMethods._
 
 import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 import scala.util.{Failure, Success}
 
 trait ConceptSearchService {
@@ -124,6 +126,7 @@ trait ConceptSearchService {
     }
 
     private def scheduleIndexDocuments() = {
+      implicit val ec = ExecutionContext.fromExecutorService(Executors.newSingleThreadExecutor)
       val f = Future {
         conceptIndexService.indexDocuments
       }

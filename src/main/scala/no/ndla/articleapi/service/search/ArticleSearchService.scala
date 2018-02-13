@@ -9,6 +9,8 @@
 
 package no.ndla.articleapi.service.search
 
+import java.util.concurrent.Executors
+
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.articleapi.ArticleApiProperties
 import no.ndla.articleapi.integration.Elastic4sClient
@@ -28,7 +30,7 @@ import com.sksamuel.elastic4s.searches.queries.BoolQueryDefinition
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.collection.JavaConverters._
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 import scala.util.{Failure, Success}
 
 trait ArticleSearchService {
@@ -130,6 +132,7 @@ trait ArticleSearchService {
     }
 
     private def scheduleIndexDocuments(): Unit = {
+      implicit val ec = ExecutionContext.fromExecutorService(Executors.newSingleThreadExecutor)
       val f = Future {
         articleIndexService.indexDocuments
       }
