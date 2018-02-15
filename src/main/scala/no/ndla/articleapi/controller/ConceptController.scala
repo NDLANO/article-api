@@ -26,7 +26,7 @@ trait ConceptController {
 
   class ConceptController(implicit val swagger: Swagger) extends NdlaController with SwaggerSupport {
     protected implicit override val jsonFormats: Formats = DefaultFormats
-    protected val applicationDescription = "API for accessing concepts from ndla.no."
+    protected val applicationDescription = "Services for accessing concepts"
 
     registerModel[Error]()
 
@@ -37,7 +37,7 @@ trait ConceptController {
 
     val getAllConcepts =
       (apiOperation[ConceptSearchResult]("getAllConcepts")
-        summary "Show all concepts"
+        summary "Find concepts"
         notes "Shows all concepts. You can search it too."
         parameters(
           headerParam[Option[String]]("X-Correlation-ID").description("User supplied correlation-id. May be omitted."),
@@ -48,27 +48,26 @@ trait ConceptController {
           queryParam[Option[Int]]("page-size").description("The number of search hits to display for each page."),
           queryParam[Option[String]]("sort").description(
             """The sorting used on results.
-               Default is by -relevance (desc) when querying.
-               When browsing, the default is title (asc).
-               The following are supported: relevance, -relevance, title, -title, lastUpdated, -lastUpdated, id, -id""".stripMargin)
+             The following are supported: relevance, -relevance, title, -title, lastUpdated, -lastUpdated, id, -id.
+|             Default is by -relevance (desc) when query is set, and title (asc) when query is empty.""".stripMargin)
         )
         authorizations "oauth2"
         responseMessages(response500))
 
-    val getConceptById =
-      (apiOperation[String]("getConceptById")
-        summary "Show concept with a specified Id"
-        notes "Shows the concept for the specified id."
-        parameters(
-          headerParam[Option[String]]("X-Correlation-ID").description("User supplied correlation-id. May be omitted."),
-          pathParam[Long]("concept_id").description("Id of the concept that is to be returned")
-        )
-        authorizations "oauth2"
-        responseMessages(response404, response500))
+    get("/", operation(getAllConcepts)) {
+      val query = paramOrNone("query")
+      val sort = Sort.valueOf(paramOrDefault("sort", ""))
+      val language = paramOrDefault("language", Language.NoLanguage)
+      val pageSize = intOrDefault("page-size", ArticleApiProperties.DefaultPageSize)
+      val page = intOrDefault("page", 1)
+      val idList = paramAsListOfLong("ids")
+
+      search(query, sort, language, page, pageSize, idList)
+    }
 
     val getAllConceptsPost =
       (apiOperation[ConceptSearchResult]("searchConcepts")
-        summary "Show all concepts"
+        summary "Find concepts"
         notes "Shows all concepts. You can search it too."
         parameters(
           headerParam[Option[String]]("X-Correlation-ID").description("User supplied correlation-id"),
@@ -76,6 +75,19 @@ trait ConceptController {
         )
         authorizations "oauth2"
         responseMessages(response400, response500))
+
+    post("/search/", operation(getAllConceptsPost)) {
+      val searchParams = extract[ConceptSearchParams](request.body)
+
+      val query = searchParams.query
+      val sort = Sort.valueOf(searchParams.sort.getOrElse(""))
+      val language = searchParams.language.getOrElse(Language.NoLanguage)
+      val pageSize = searchParams.pageSize.getOrElse(ArticleApiProperties.DefaultPageSize)
+      val page = searchParams.page.getOrElse(1)
+      val idList = searchParams.idList
+
+      search(query, sort, language, page, pageSize, idList)
+    }
 
     private def search(query: Option[String], sort: Option[Sort.Value], language: String, page: Int, pageSize: Int, idList: List[Long]) = {
       query match {
@@ -98,32 +110,19 @@ trait ConceptController {
 
     }
 
-    get("/", operation(getAllConcepts)) {
-      val query = paramOrNone("query")
-      val sort = Sort.valueOf(paramOrDefault("sort", ""))
-      val language = paramOrDefault("language", Language.NoLanguage)
-      val pageSize = intOrDefault("page-size", ArticleApiProperties.DefaultPageSize)
-      val page = intOrDefault("page", 1)
-      val idList = paramAsListOfLong("ids")
+    val getConceptById =
+      (apiOperation[String]("getConceptById")
+        summary "Fetch specified concept"
+        notes "Shows the concept for the specified id."
+        parameters(
+          headerParam[Option[String]]("X-Correlation-ID").description("User supplied correlation-id. May be omitted."),
+          pathParam[Long]("concept_id").description("Id of the concept that is to be returned")
+        )
+        authorizations "oauth2"
+        responseMessages(response404, response500))
 
-      search(query, sort, language, page, pageSize, idList)
-    }
-
-    post("/search/", operation(getAllConceptsPost)) {
-      val searchParams = extract[ConceptSearchParams](request.body)
-
-      val query = searchParams.query
-      val sort = Sort.valueOf(searchParams.sort.getOrElse(""))
-      val language = searchParams.language.getOrElse(Language.NoLanguage)
-      val pageSize = searchParams.pageSize.getOrElse(ArticleApiProperties.DefaultPageSize)
-      val page = searchParams.page.getOrElse(1)
-      val idList = searchParams.idList
-
-      search(query, sort, language, page, pageSize, idList)
-    }
-
-    get("/:id", operation(getConceptById)) {
-      val conceptId = long("id")
+    get("/:concept_id", operation(getConceptById)) {
+      val conceptId = long("concept_id")
       val language = paramOrDefault("language", Language.NoLanguage)
 
       readService.conceptWithId(conceptId, language) match {

@@ -30,7 +30,7 @@ trait ArticleControllerV2 {
 
   class ArticleControllerV2(implicit val swagger: Swagger) extends NdlaController with SwaggerSupport {
     protected implicit override val jsonFormats: Formats = DefaultFormats
-    protected val applicationDescription = "API for accessing articles from ndla.no."
+    protected val applicationDescription = "Services for accessing articles"
 
     // Additional models used in error responses
     registerModel[ValidationError]()
@@ -45,7 +45,7 @@ trait ArticleControllerV2 {
 
     val getTags =
       (apiOperation[ArticleTag]("getTags")
-        summary "Retrieves a list of all previously used tags in articles"
+        summary "Fetch tags used in articles"
         notes "Retrieves a list of all previously used tags in articles"
         parameters(
           queryParam[Option[Int]]("size").description("Limit the number of results to this many elements"),
@@ -55,7 +55,7 @@ trait ArticleControllerV2 {
         responseMessages response500
         authorizations "oauth2")
 
-    get("/tags/?", operation(getTags)) {
+    get("/tags/", operation(getTags)) {
       val defaultSize = 20
       val language = paramOrDefault("language", Language.AllLanguages)
       val size = intOrDefault("size", defaultSize) match {
@@ -97,7 +97,7 @@ trait ArticleControllerV2 {
 
     val getAllArticles =
       (apiOperation[List[SearchResultV2]]("getAllArticles")
-        summary "Show all articles"
+        summary "Find articles"
         notes "Shows all articles. You can search it too."
         parameters(
         headerParam[Option[String]]("X-Correlation-ID").description("User supplied correlation-id. May be omitted."),
@@ -110,9 +110,8 @@ trait ArticleControllerV2 {
         queryParam[Option[Int]]("page-size").description("The number of search hits to display for each page."),
         queryParam[Option[String]]("sort").description(
           """The sorting used on results.
-             Default is by -relevance (desc) when querying.
-             When browsing, the default is title (asc).
-             The following are supported: relevance, -relevance, title, -title, lastUpdated, -lastUpdated, id, -id""".stripMargin)
+             The following are supported: relevance, -relevance, title, -title, lastUpdated, -lastUpdated, id, -id.
+|             Default is by -relevance (desc) when query is set, and title (asc) when query is empty.""".stripMargin)
       )
         authorizations "oauth2"
         responseMessages(response500))
@@ -132,7 +131,7 @@ trait ArticleControllerV2 {
 
     val getAllArticlesPost =
       (apiOperation[List[SearchResultV2]]("getAllArticlesPost")
-        summary "Show all articles"
+        summary "Find articles"
         notes "Shows all articles. You can search it too."
         parameters(
         headerParam[Option[String]]("X-Correlation-ID").description("User supplied correlation-id"),
@@ -159,7 +158,7 @@ trait ArticleControllerV2 {
 
     val getArticleById =
       (apiOperation[List[ArticleV2]]("getArticleById")
-        summary "Show article with a specified Id"
+        summary "Fetch specified article"
         notes "Shows the article for the specified id."
         parameters(
         headerParam[Option[String]]("X-Correlation-ID").description("User supplied correlation-id. May be omitted."),
