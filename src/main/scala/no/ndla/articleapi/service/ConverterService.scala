@@ -325,14 +325,14 @@ trait ConverterService {
       jsoupDocumentToString(document)
     }
 
-    def toApiArticleV2(article: Article, language: String): Try[api.ArticleV2] = {
+    def toApiArticleV2(article: Article, language: String, fallback: Boolean = false): Try[api.ArticleV2] = {
       val supportedLanguages = getSupportedLanguages(
         article.title, article.visualElement, article.introduction, article.metaDescription, article.tags, article.content
       )
       val isLanguageNeutral = supportedLanguages.contains(UnknownLanguage) && supportedLanguages.length == 1
       val lang = if (language == AllLanguages) getSearchLanguage(language, supportedLanguages) else language
 
-      if (supportedLanguages.contains(lang) || isLanguageNeutral) {
+      if (supportedLanguages.contains(lang) || isLanguageNeutral || fallback) {
         val meta = findByLanguageOrBestEffort(article.metaDescription, language).map(toApiArticleMetaDescription).getOrElse(api.ArticleMetaDescription("", DefaultLanguage))
         val tags = findByLanguageOrBestEffort(article.tags, language).map(toApiArticleTag).getOrElse(api.ArticleTag(Seq(), DefaultLanguage))
         val title = findByLanguageOrBestEffort(article.title, language).map(toApiArticleTitle).getOrElse(api.ArticleTitle("", DefaultLanguage))
