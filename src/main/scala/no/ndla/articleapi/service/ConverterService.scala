@@ -330,15 +330,14 @@ trait ConverterService {
         article.title, article.visualElement, article.introduction, article.metaDescription, article.tags, article.content
       )
       val isLanguageNeutral = supportedLanguages.contains(UnknownLanguage) && supportedLanguages.length == 1
-      val lang = if (language == AllLanguages) getSearchLanguage(language, supportedLanguages) else language
 
-      if (supportedLanguages.contains(lang) || isLanguageNeutral || fallback) {
-        val meta = findByLanguageOrBestEffort(article.metaDescription, language).map(toApiArticleMetaDescription).getOrElse(api.ArticleMetaDescription("", DefaultLanguage))
-        val tags = findByLanguageOrBestEffort(article.tags, language).map(toApiArticleTag).getOrElse(api.ArticleTag(Seq(), DefaultLanguage))
-        val title = findByLanguageOrBestEffort(article.title, language).map(toApiArticleTitle).getOrElse(api.ArticleTitle("", DefaultLanguage))
+      if (supportedLanguages.contains(language) || language == AllLanguages || isLanguageNeutral || fallback) {
+        val meta = findByLanguageOrBestEffort(article.metaDescription, language).map(toApiArticleMetaDescription).getOrElse(api.ArticleMetaDescription("", UnknownLanguage))
+        val tags = findByLanguageOrBestEffort(article.tags, language).map(toApiArticleTag).getOrElse(api.ArticleTag(Seq(), UnknownLanguage))
+        val title = findByLanguageOrBestEffort(article.title, language).map(toApiArticleTitle).getOrElse(api.ArticleTitle("", UnknownLanguage))
         val introduction = findByLanguageOrBestEffort(article.introduction, language).map(toApiArticleIntroduction)
         val visualElement = findByLanguageOrBestEffort(article.visualElement, language).map(toApiVisualElement)
-        val articleContent = findByLanguageOrBestEffort(article.content, language).map(toApiArticleContentV2).getOrElse(api.ArticleContentV2("", DefaultLanguage))
+        val articleContent = findByLanguageOrBestEffort(article.content, language).map(toApiArticleContentV2).getOrElse(api.ArticleContentV2("", UnknownLanguage))
         val metaImage = article.metaImageId.map(toApiMetaImage)
 
         Success(api.ArticleV2(
