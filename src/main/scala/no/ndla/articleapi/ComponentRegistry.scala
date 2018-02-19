@@ -47,6 +47,7 @@ object ComponentRegistry
     with Clock
     with Role
     with User {
+  def connectToDatabase(): Unit = ConnectionPool.singleton(new DataSourceConnectionPool(dataSource))
 
   implicit val swagger: ArticleSwagger = new ArticleSwagger
 
@@ -59,7 +60,7 @@ object ComponentRegistry
   dataSource.setInitialConnections(ArticleApiProperties.MetaInitialConnections)
   dataSource.setMaxConnections(ArticleApiProperties.MetaMaxConnections)
   dataSource.setCurrentSchema(ArticleApiProperties.MetaSchema)
-  ConnectionPool.singleton(new DataSourceConnectionPool(dataSource))
+  connectToDatabase()
 
   lazy val internController = new InternController
   lazy val articleControllerV2 = new ArticleControllerV2
