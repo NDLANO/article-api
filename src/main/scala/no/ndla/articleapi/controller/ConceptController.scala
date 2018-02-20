@@ -17,8 +17,7 @@ import no.ndla.articleapi.service.search.ConceptSearchService
 import org.json4s.{DefaultFormats, Formats}
 import org.scalatra.NotFound
 import org.scalatra.swagger.{ResponseMessage, Swagger, SwaggerSupport}
-
-import scala.util.{Failure, Success}
+import org.scalatra.util.NotNothing
 
 trait ConceptController {
   this: ReadService with WriteService with ConceptSearchService with Role =>
@@ -35,32 +34,48 @@ trait ConceptController {
     val response404 = ResponseMessage(404, "Not found", Some("Error"))
     val response500 = ResponseMessage(500, "Unknown error", Some("Error"))
 
+    case class Param(paramName:String, description:String)
+
+    private val correlationId = Param("X-Correlation-ID","User supplied correlation-id. May be omitted.")
+    private val query = Param("query","Return only concepts with content matching the specified query.")
+    private val language = Param("language", "The ISO 639-1 language code describing language.")
+    private val sort = Param("sort",
+      """The sorting used on results.
+             The following are supported: relevance, -relevance, title, -title, lastUpdated, -lastUpdated, id, -id.
+             Default is by -relevance (desc) when query is set, and title (asc) when query is empty.""".stripMargin)
+    private val pageNo = Param("page","The page number of the search hits to display.")
+    private val pageSize = Param("page-size","The number of search hits to display for each page.")
+    private val conceptId = Param("concept_id","Id of the concept that is to be fecthed")
+    private val conceptIds = Param("ids","Return only concepts that have one of the provided ids. To provide multiple ids, separate by comma (,).")
+
+
+    private def asQueryParam[T: Manifest: NotNothing](param: Param) = queryParam[T](param.paramName).description(param.description)
+    private def asHeaderParam[T: Manifest: NotNothing](param: Param) = headerParam[T](param.paramName).description(param.description)
+    private def asPathParam[T: Manifest: NotNothing](param: Param) = pathParam[T](param.paramName).description(param.description)
+
     val getAllConcepts =
       (apiOperation[ConceptSearchResult]("getAllConcepts")
         summary "Find concepts"
         notes "Shows all concepts. You can search it too."
         parameters(
-          headerParam[Option[String]]("X-Correlation-ID").description("User supplied correlation-id. May be omitted."),
-          queryParam[Option[String]]("query").description("Return only concepts with content matching the specified query."),
-          queryParam[Option[String]]("ids").description("Return only concepts that have one of the provided ids. To provide multiple ids, separate by comma (,)."),
-          queryParam[Option[String]]("language").description("The ISO 639-1 language code describing language used in query-params."),
-          queryParam[Option[Int]]("page").description("The page number of the search hits to display."),
-          queryParam[Option[Int]]("page-size").description("The number of search hits to display for each page."),
-          queryParam[Option[String]]("sort").description(
-            """The sorting used on results.
-             The following are supported: relevance, -relevance, title, -title, lastUpdated, -lastUpdated, id, -id.
-|             Default is by -relevance (desc) when query is set, and title (asc) when query is empty.""".stripMargin)
+          asHeaderParam[Option[String]](correlationId),
+          asQueryParam[Option[String]](query),
+          asQueryParam[Option[String]](conceptIds),
+          asQueryParam[Option[String]](language),
+          asQueryParam[Option[Int]](pageNo),
+          asQueryParam[Option[Int]](pageSize),
+          asQueryParam[Option[String]](sort)
         )
         authorizations "oauth2"
         responseMessages(response500))
 
     get("/", operation(getAllConcepts)) {
-      val query = paramOrNone("query")
-      val sort = Sort.valueOf(paramOrDefault("sort", ""))
-      val language = paramOrDefault("language", Language.NoLanguage)
-      val pageSize = intOrDefault("page-size", ArticleApiProperties.DefaultPageSize)
-      val page = intOrDefault("page", 1)
-      val idList = paramAsListOfLong("ids")
+      val query = paramOrNone(this.query.paramName)
+      val sort = Sort.valueOf(paramOrDefault(this.sort.paramName, ""))
+      val language = paramOrDefault(this.language.paramName, Language.NoLanguage)
+      val pageSize = intOrDefault(this.pageSize.paramName, ArticleApiProperties.DefaultPageSize)
+      val page = intOrDefault(this.pageNo.paramName, 1)
+      val idList = paramAsListOfLong(this.conceptIds.paramName)
 
       search(query, sort, language, page, pageSize, idList)
     }
@@ -70,7 +85,7 @@ trait ConceptController {
         summary "Find concepts"
         notes "Shows all concepts. You can search it too."
         parameters(
-          headerParam[Option[String]]("X-Correlation-ID").description("User supplied correlation-id"),
+          asHeaderParam[Option[String]](correlationId),
           bodyParam[ConceptSearchParams]
         )
         authorizations "oauth2"
@@ -115,15 +130,15 @@ trait ConceptController {
         summary "Fetch specified concept"
         notes "Shows the concept for the specified id."
         parameters(
-          headerParam[Option[String]]("X-Correlation-ID").description("User supplied correlation-id. May be omitted."),
-          pathParam[Long]("concept_id").description("Id of the concept that is to be returned")
+          asHeaderParam[Option[String]](correlationId),
+          asPathParam[Long](conceptId)
         )
         authorizations "oauth2"
         responseMessages(response404, response500))
 
     get("/:concept_id", operation(getConceptById)) {
-      val conceptId = long("concept_id")
-      val language = paramOrDefault("language", Language.NoLanguage)
+      val conceptId = long(this.conceptId.paramName)
+      val language = paramOrDefault(this.language.paramName, Language.NoLanguage)
 
       readService.conceptWithId(conceptId, language) match {
         case Some(concept) => concept

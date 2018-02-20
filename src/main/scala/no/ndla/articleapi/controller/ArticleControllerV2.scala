@@ -16,13 +16,12 @@ import no.ndla.articleapi.model.domain.{ArticleType, Language, Sort}
 import no.ndla.articleapi.service.search.ArticleSearchService
 import no.ndla.articleapi.service.{ConverterService, ReadService, WriteService}
 import no.ndla.articleapi.validation.ContentValidator
-import no.ndla.mapping
-import no.ndla.mapping.LicenseDefinition
 import org.json4s.{DefaultFormats, Formats}
-import org.scalatra.swagger.{ResponseMessage, Swagger, SwaggerSupport}
-import org.scalatra.{Created, NoContent, NotFound, Ok}
+import org.scalatra.NotFound
+import org.scalatra.swagger._
+import org.scalatra.util.NotNothing
 
-import scala.util.{Failure, Success, Try}
+import scala.util.{Failure, Success}
 
 trait ArticleControllerV2 {
   this: ReadService with WriteService with ArticleSearchService with ConverterService with Role with User with ContentValidator =>
@@ -42,23 +41,46 @@ trait ArticleControllerV2 {
     val response404 = ResponseMessage(404, "Not found", Some("Error"))
     val response500 = ResponseMessage(500, "Unknown error", Some("Error"))
 
+    case class Param(paramName:String, description:String)
+
+    private val correlationId = Param("X-Correlation-ID","User supplied correlation-id. May be omitted.")
+    private val query = Param("query","Return only articles with content matching the specified query.")
+    private val language = Param("language", "The ISO 639-1 language code describing language.")
+    private val license = Param("license","Return only results with provided license.")
+    private val sort = Param("sort",
+      """The sorting used on results.
+             The following are supported: relevance, -relevance, title, -title, lastUpdated, -lastUpdated, id, -id.
+             Default is by -relevance (desc) when query is set, and title (asc) when query is empty.""".stripMargin)
+    private val pageNo = Param("page","The page number of the search hits to display.")
+    private val pageSize = Param("page-size","The number of search hits to display for each page.")
+    private val articleId = Param("article_id","Id of the article that is to be fecthed")
+    private val size = Param("size", "Limit the number of results to this many elements")
+    private val articleTypes = Param("articleTypes", "Return only articles of specific type(s). To provide multiple types, separate by comma (,).")
+    private val articleIds = Param("ids","Return only articles that have one of the provided ids. To provide multiple ids, separate by comma (,).")
+    private val deprecatedNodeId = Param("deprecated_node_id", "Id of deprecated NDLA node")
+
+
+    private def asQueryParam[T: Manifest: NotNothing](param: Param) = queryParam[T](param.paramName).description(param.description)
+    private def asHeaderParam[T: Manifest: NotNothing](param: Param) = headerParam[T](param.paramName).description(param.description)
+    private def asPathParam[T: Manifest: NotNothing](param: Param) = pathParam[T](param.paramName).description(param.description)
+
 
     val getTags =
       (apiOperation[ArticleTag]("getTags")
         summary "Fetch tags used in articles"
         notes "Retrieves a list of all previously used tags in articles"
         parameters(
-          queryParam[Option[Int]]("size").description("Limit the number of results to this many elements"),
-          headerParam[Option[String]]("X-Correlation-ID").description("User supplied correlation-id. May be omitted."),
-          queryParam[Option[String]]("language").description("Only return results on the given language. Default is nb")
+          asHeaderParam[Option[String]](correlationId),
+          asQueryParam[Option[Int]](size),
+          asQueryParam[Option[String]](language)
         )
         responseMessages response500
         authorizations "oauth2")
 
     get("/tags/", operation(getTags)) {
       val defaultSize = 20
-      val language = paramOrDefault("language", Language.AllLanguages)
-      val size = intOrDefault("size", defaultSize) match {
+      val language = paramOrDefault(this.language.paramName, Language.AllLanguages)
+      val size = intOrDefault(this.size.paramName, defaultSize) match {
         case tooSmall if tooSmall < 1 => defaultSize
         case x => x
       }
@@ -100,31 +122,28 @@ trait ArticleControllerV2 {
         summary "Find articles"
         notes "Shows all articles. You can search it too."
         parameters(
-        headerParam[Option[String]]("X-Correlation-ID").description("User supplied correlation-id. May be omitted."),
-        queryParam[Option[String]]("articleTypes").description("Return only articles of specific type(s). To provide multiple types, separate by comma (,)."),
-        queryParam[Option[String]]("query").description("Return only articles with content matching the specified query."),
-        queryParam[Option[String]]("ids").description("Return only articles that have one of the provided ids. To provide multiple ids, separate by comma (,)."),
-        queryParam[Option[String]]("language").description("Only return results on the given language. Default is nb"),
-        queryParam[Option[String]]("license").description("Return only articles with provided license."),
-        queryParam[Option[Int]]("page").description("The page number of the search hits to display."),
-        queryParam[Option[Int]]("page-size").description("The number of search hits to display for each page."),
-        queryParam[Option[String]]("sort").description(
-          """The sorting used on results.
-             The following are supported: relevance, -relevance, title, -title, lastUpdated, -lastUpdated, id, -id.
-|             Default is by -relevance (desc) when query is set, and title (asc) when query is empty.""".stripMargin)
+        asHeaderParam[Option[String]](correlationId),
+        asQueryParam[Option[String]](articleTypes),
+        asQueryParam[Option[String]](query),
+        asQueryParam[Option[String]](articleIds),
+        asQueryParam[Option[String]](language),
+        asQueryParam[Option[String]](license),
+        asQueryParam[Option[Int]](pageNo),
+        asQueryParam[Option[Int]](pageSize),
+        asQueryParam[Option[String]](sort)
       )
         authorizations "oauth2"
         responseMessages(response500))
 
     get("/", operation(getAllArticles)) {
-      val query = paramOrNone("query")
-      val sort = Sort.valueOf(paramOrDefault("sort", ""))
-      val language = paramOrDefault("language", Language.AllLanguages)
-      val license = paramOrNone("license")
-      val pageSize = intOrDefault("page-size", ArticleApiProperties.DefaultPageSize)
-      val page = intOrDefault("page", 1)
-      val idList = paramAsListOfLong("ids")
-      val articleTypesFilter = paramAsListOfString("articleTypes")
+      val query = paramOrNone(this.query.paramName)
+      val sort = Sort.valueOf(paramOrDefault(this.sort.paramName, ""))
+      val language = paramOrDefault(this.language.paramName, Language.AllLanguages)
+      val license = paramOrNone(this.license.paramName)
+      val pageSize = intOrDefault(this.pageSize.paramName, ArticleApiProperties.DefaultPageSize)
+      val page = intOrDefault(this.pageNo.paramName, 1)
+      val idList = paramAsListOfLong(this.articleIds.paramName)
+      val articleTypesFilter = paramAsListOfString(this.articleTypes.paramName)
 
       search(query, sort, language, license, page, pageSize, idList, articleTypesFilter)
     }
@@ -134,10 +153,9 @@ trait ArticleControllerV2 {
         summary "Find articles"
         notes "Shows all articles. You can search it too."
         parameters(
-        headerParam[Option[String]]("X-Correlation-ID").description("User supplied correlation-id"),
-        queryParam[Option[String]]("language").description("Only return results on the given language. Default is nb"),
-        bodyParam[ArticleSearchParams]
-      )
+          asHeaderParam[Option[String]](correlationId),
+          bodyParam[ArticleSearchParams]
+        )
         authorizations "oauth2"
         responseMessages(response400, response500))
 
@@ -161,16 +179,16 @@ trait ArticleControllerV2 {
         summary "Fetch specified article"
         notes "Shows the article for the specified id."
         parameters(
-        headerParam[Option[String]]("X-Correlation-ID").description("User supplied correlation-id. May be omitted."),
-        pathParam[Long]("article_id").description("Id of the article that is to be returned"),
-        queryParam[Option[String]]("language").description("Only return results on the given language. Default is nb")
+        asHeaderParam[Option[String]](correlationId),
+        asPathParam[Long](articleId),
+        asQueryParam[Option[String]](language)
       )
         authorizations "oauth2"
         responseMessages(response404, response500))
 
     get("/:article_id", operation(getArticleById)) {
-      val articleId = long("article_id")
-      val language = paramOrDefault("language", Language.AllLanguages)
+      val articleId = long(this.articleId.paramName)
+      val language = paramOrDefault(this.language.paramName, Language.AllLanguages)
 
       readService.withIdV2(articleId, language) match {
         case Success(article) => article
@@ -183,14 +201,14 @@ trait ArticleControllerV2 {
         summary "Get id of article corresponding to specified deprecated node id"
         notes "Get internal id of article for a specified ndla_node_id"
         parameters(
-        headerParam[Option[String]]("X-Correlation-ID").description("User supplied correlation-id. May be omitted."),
-        pathParam[Long]("deprecated_node_id").description("Id of deprecated NDLA node")
+        asHeaderParam[Option[String]](correlationId),
+        asPathParam[Long](deprecatedNodeId)
       )
         authorizations "oauth2"
         responseMessages(response404, response500))
 
     get("/external_id/:deprecated_node_id", operation(getInternalIdByExternalId)) {
-      val externalId = long("deprecated_node_id")
+      val externalId = long(this.deprecatedNodeId.paramName)
       readService.getInternalIdByExternalId(externalId) match {
         case Some(id) => id
         case None => NotFound(body = Error(Error.NOT_FOUND, s"No article with id $externalId"))
