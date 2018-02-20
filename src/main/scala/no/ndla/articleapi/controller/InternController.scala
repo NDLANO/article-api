@@ -98,8 +98,9 @@ trait InternController {
       val pageNo = intOrDefault("page", 1)
       val pageSize = intOrDefault("page-size", 250)
       val lang = paramOrDefault("language", Language.AllLanguages)
+      val fallback = booleanOrDefault("fallback", default = false)
 
-      readService.getArticlesByPage(pageNo, pageSize, lang)
+      readService.getArticlesByPage(pageNo, pageSize, lang, fallback)
     }
 
     post("/validate/article") {

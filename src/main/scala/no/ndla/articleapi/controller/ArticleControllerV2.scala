@@ -58,7 +58,7 @@ trait ArticleControllerV2 {
     private val articleTypes = Param("articleTypes", "Return only articles of specific type(s). To provide multiple types, separate by comma (,).")
     private val articleIds = Param("ids","Return only articles that have one of the provided ids. To provide multiple ids, separate by comma (,).")
     private val deprecatedNodeId = Param("deprecated_node_id", "Id of deprecated NDLA node")
-
+    private val fallback = Param("fallback", "Fallback to existing language if language is specified.")
 
     private def asQueryParam[T: Manifest: NotNothing](param: Param) = queryParam[T](param.paramName).description(param.description)
     private def asHeaderParam[T: Manifest: NotNothing](param: Param) = headerParam[T](param.paramName).description(param.description)
@@ -181,7 +181,8 @@ trait ArticleControllerV2 {
         parameters(
         asHeaderParam[Option[String]](correlationId),
         asPathParam[Long](articleId),
-        asQueryParam[Option[String]](language)
+        asQueryParam[Option[String]](language),
+        asQueryParam[Option[Boolean]](fallback)
       )
         authorizations "oauth2"
         responseMessages(response404, response500))
@@ -189,8 +190,9 @@ trait ArticleControllerV2 {
     get("/:article_id", operation(getArticleById)) {
       val articleId = long(this.articleId.paramName)
       val language = paramOrDefault(this.language.paramName, Language.AllLanguages)
+      val fallback = booleanOrDefault(this.fallback.paramName, default = false)
 
-      readService.withIdV2(articleId, language) match {
+      readService.withIdV2(articleId, language, fallback) match {
         case Success(article) => article
         case Failure(ex) => errorHandler(ex)
       }
