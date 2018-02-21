@@ -119,7 +119,13 @@ trait ConceptSearchService {
         search(searchIndex).size(numResults).from(startAt).query(filteredSearch).sortBy(getSortDefinition(sort, searchLanguage))
       } match {
         case Success(response) =>
-          api.ConceptSearchResult(response.result.totalHits, page, numResults, if(searchLanguage == "*") Language.AllLanguages else searchLanguage ,getHits(response.result, language, hitToApiModel, fallback))
+          api.ConceptSearchResult(
+            response.result.totalHits,
+            page,
+            numResults,
+            if(language == "*") Language.AllLanguages else language,
+            getHits(response.result, language, fallback)
+          )
         case Failure(ex) =>
           errorHandler(Failure(ex))
       }

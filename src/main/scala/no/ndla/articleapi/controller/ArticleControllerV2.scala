@@ -18,9 +18,11 @@ import no.ndla.articleapi.service.{ConverterService, ReadService, WriteService}
 import no.ndla.articleapi.validation.ContentValidator
 import no.ndla.mapping
 import no.ndla.mapping.LicenseDefinition
+import org.elasticsearch.ElasticsearchException
+import org.elasticsearch.index.IndexNotFoundException
 import org.json4s.{DefaultFormats, Formats}
 import org.scalatra.swagger.{ResponseMessage, Swagger, SwaggerSupport}
-import org.scalatra.{Created, NoContent, NotFound, Ok}
+import org.scalatra._
 
 import scala.util.{Failure, Success, Try}
 
@@ -70,8 +72,16 @@ trait ArticleControllerV2 {
       }
     }
 
-    private def search(query: Option[String], sort: Option[Sort.Value], language: String, license: Option[String], page: Int, pageSize: Int, idList: List[Long], articleTypesFilter: Seq[String], fallback: Boolean) = {
-      query match {
+    private def search(query: Option[String],
+                       sort: Option[Sort.Value],
+                       language: String,
+                       license: Option[String],
+                       page: Int,
+                       pageSize: Int,
+                       idList: List[Long],
+                       articleTypesFilter: Seq[String],
+                       fallback: Boolean) = {
+      val result = query match {
         case Some(q) => articleSearchService.matchingQuery(
           query = q,
           withIdIn = idList,
@@ -94,6 +104,11 @@ trait ArticleControllerV2 {
           if (articleTypesFilter.isEmpty) ArticleType.all else articleTypesFilter,
           fallback = fallback
         )
+      }
+
+      result match {
+        case Success(searchResult) => searchResult
+        case Failure(ex) => errorHandler(ex)
       }
     }
 

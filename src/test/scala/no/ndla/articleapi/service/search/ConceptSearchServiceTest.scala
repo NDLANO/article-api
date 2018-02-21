@@ -298,6 +298,11 @@ class ConceptSearchServiceTest extends UnitSuite with TestEnvironment {
     result.supportedLanguages should equal(supportedLanguages)
   }
 
+  // TODO: fallback param test
+  test("fallback param search test") {
+    1 should be (2)
+  }
+
   def blockUntil(predicate: () => Boolean) = {
     var backoff = 0
     var done = false

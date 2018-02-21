@@ -30,9 +30,15 @@ trait SearchService {
   trait SearchService[T] {
     val searchIndex: String
 
+    /**
+      * Returns hit as summary
+      * @param hit as json string
+      * @param language language as ISO639 code
+      * @return api-model summary of hit
+      */
     def hitToApiModel(hit: String, language: String): T
 
-    def getHits(response: SearchResponse, language: String, hitToApi:(String, String) => T, fallback: Boolean): Seq[T] = {
+    def getHits(response: SearchResponse, language: String, fallback: Boolean): Seq[T] = {
       response.totalHits match {
         case count if count > 0 =>
           val resultArray = response.hits.hits
@@ -44,7 +50,7 @@ trait SearchService {
               case _ => language
             }
 
-            hitToApi(result.sourceAsString, matchedLanguage)
+            hitToApiModel(result.sourceAsString, matchedLanguage)
           })
         case _ => Seq()
       }

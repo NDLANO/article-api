@@ -50,4 +50,9 @@ class ConceptControllerTest extends UnitSuite with TestEnvironment with Scalatra
     }
   }
 
+  // TODO: fallback titlesort error test
+  test("/ search fallback titlesort error test") {
+    1 should be (2)
+  }
+
 }

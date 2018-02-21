@@ -87,11 +87,21 @@ class ArticleControllerV2Test extends UnitSuite with TestEnvironment with Scalat
   test("GET / should use size of id-list as page-size if defined") {
     val searchMock = mock[SearchResultV2]
     when(articleSearchService.all(any[List[Long]], any[String], any[Option[String]], any[Int], any[Int], any[Sort.Value], any[Seq[String]], any[Boolean]))
-      .thenReturn(searchMock)
+      .thenReturn(Success(searchMock))
 
     get("/test/", "ids" -> "1,2,3,4", "page-size" -> "10", "language" -> "nb") {
       status should equal (200)
       verify(articleSearchService, times(1)).all(List(1, 2, 3, 4), Language.DefaultLanguage, None, 1, 4, Sort.ByTitleAsc, ArticleType.all, fallback = false)
+    }
+  }
+
+  test("GET / should return different errors based on error") {
+    val searchMock = mock[SearchResultV2]
+    when(articleSearchService.all(any[List[Long]], any[String], any[Option[String]], any[Int], any[Int], any[Sort.Value], any[Seq[String]], any[Boolean]))
+      .thenReturn(Failure(FallbackTitleSortUnsupportedException(Error.FALLBACK_TITLE_SORT)))
+
+    get("/test/", "ids" -> "1,2,3,4", "page-size" -> "10", "language" -> "nb", "fallback" -> "true", "sort" -> "title") {
+      status should equal(501)
     }
   }
 

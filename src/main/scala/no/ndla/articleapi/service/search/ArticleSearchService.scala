@@ -15,7 +15,7 @@ import com.typesafe.scalalogging.LazyLogging
 import no.ndla.articleapi.ArticleApiProperties
 import no.ndla.articleapi.integration.Elastic4sClient
 import no.ndla.articleapi.model.api
-import no.ndla.articleapi.model.api.{ResultWindowTooLargeException, SearchResultV2}
+import no.ndla.articleapi.model.api.{FallbackTitleSortUnsupportedException, ResultWindowTooLargeException, SearchResultV2}
 import no.ndla.articleapi.model.domain._
 import no.ndla.articleapi.service.ConverterService
 import no.ndla.network.ApplicationUrl
@@ -31,7 +31,7 @@ import com.sksamuel.elastic4s.searches.queries.BoolQueryDefinition
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.collection.JavaConverters._
 import scala.concurrent.{ExecutionContext, Future}
-import scala.util.{Failure, Success}
+import scala.util.{Failure, Success, Try}
 
 trait ArticleSearchService {
   this: Elastic4sClient with SearchConverterService with SearchService with ArticleIndexService with ConverterService =>
@@ -53,7 +53,7 @@ trait ArticleSearchService {
             pageSize: Int,
             sort: Sort.Value,
             articleTypes: Seq[String],
-            fallback: Boolean): SearchResultV2 = {
+            fallback: Boolean): Try[SearchResultV2] = {
       executeSearch(withIdIn, language, license, sort, page, pageSize, boolQuery(), articleTypes, fallback)
     }
 
@@ -65,8 +65,8 @@ trait ArticleSearchService {
                       pageSize: Int,
                       sort: Sort.Value,
                       articleTypes: Seq[String],
-                      fallback: Boolean): SearchResultV2 = {
-      val language = if (searchLanguage == Language.AllLanguages) "*" else searchLanguage
+                      fallback: Boolean): Try[SearchResultV2] = {
+      val language = if (searchLanguage == Language.AllLanguages || fallback) "*" else searchLanguage
       val titleSearch = simpleStringQuery(query).field(s"title.$language", 2)
       val introSearch = simpleStringQuery(query).field(s"introduction.$language", 2)
       val metaSearch = simpleStringQuery(query).field(s"metaDescription.$language", 1)
@@ -87,7 +87,7 @@ trait ArticleSearchService {
             )
         )
 
-      executeSearch(withIdIn, language, license, sort, page, pageSize, fullQuery, articleTypes, fallback)
+      executeSearch(withIdIn, searchLanguage, license, sort, page, pageSize, fullQuery, articleTypes, fallback)
     }
 
     def executeSearch(withIdIn: List[Long],
@@ -98,65 +98,67 @@ trait ArticleSearchService {
                       pageSize: Int,
                       queryBuilder: BoolQueryDefinition,
                       articleTypes: Seq[String],
-                      fallback: Boolean): SearchResultV2 = {
+                      fallback: Boolean): Try[SearchResultV2] = {
 
       val articleTypesFilter = if (articleTypes.nonEmpty) Some(constantScoreQuery(termsQuery("articleType", articleTypes))) else None
+      val idFilter = if (withIdIn.isEmpty) None else Some(idsQuery(withIdIn))
 
       val licenseFilter = license match {
         case None => Some(noCopyright)
         case Some(lic) => Some(termQuery("license", lic))
       }
 
-      val idFilter = if (withIdIn.isEmpty) None else Some(idsQuery(withIdIn))
-
       val (languageFilter, searchLanguage) = language match {
         case "" | Language.AllLanguages =>
           (None, "*")
         case lang =>
-          (Some(nestedQuery("title", existsQuery(s"title.$lang")).scoreMode(ScoreMode.Avg)), lang)
+          fallback match {
+            case true => (None, "*")
+            case false => (Some(nestedQuery("title", existsQuery(s"title.$lang")).scoreMode(ScoreMode.Avg)), lang)
+          }
       }
 
       val filters = List(licenseFilter, idFilter, languageFilter, articleTypesFilter)
       val filteredSearch = queryBuilder.filter(filters.flatten)
 
-
       val (startAt, numResults) = getStartAtAndNumResults(page, pageSize)
       val requestedResultWindow = pageSize * page
       if (requestedResultWindow > ArticleApiProperties.ElasticSearchIndexMaxResultWindow) {
         logger.info(s"Max supported results are ${ArticleApiProperties.ElasticSearchIndexMaxResultWindow}, user requested $requestedResultWindow")
-        throw new ResultWindowTooLargeException()
+        Failure(ResultWindowTooLargeException())
+      } else if (fallback && (sort == Sort.ByTitleAsc || sort == Sort.ByTitleDesc)) {
+        Failure(FallbackTitleSortUnsupportedException())
+      } else {
+        e4sClient.execute{
+          search(searchIndex).size(numResults).from(startAt).query(filteredSearch).sortBy(getSortDefinition(sort, searchLanguage))
+        } match {
+          case Success(response) =>
+            Success(SearchResultV2(
+              response.result.totalHits,
+              page,
+              numResults,
+              if (language == "*") Language.AllLanguages else language,
+              getHits(response.result, language, fallback)
+            ))
+          case Failure(ex) =>
+            errorHandler(ex)
+        }
       }
-
-      e4sClient.execute{
-        search(searchIndex).size(numResults).from(startAt).query(filteredSearch).sortBy(getSortDefinition(sort, searchLanguage))
-      } match {
-        case Success(response) =>
-          SearchResultV2(
-            response.result.totalHits,
-            page,
-            numResults,
-            if (searchLanguage == "*") Language.AllLanguages else searchLanguage,
-            getHits(response.result, language, hitToApiModel, fallback)
-          )
-        case Failure(ex) =>
-          errorHandler(Failure(ex))
-      }
-
     }
 
-    protected def errorHandler[T](failure: Failure[T]) = {
+    protected def errorHandler[T, U](failure: Throwable): Failure[U] = {
       failure match {
-        case Failure(e: NdlaSearchException) =>
+        case e: NdlaSearchException =>
           e.rf.status match {
             case notFound: Int if notFound == 404 =>
               logger.error(s"Index $searchIndex not found. Scheduling a reindex.")
               scheduleIndexDocuments()
-              throw new IndexNotFoundException(s"Index $searchIndex not found. Scheduling a reindex")
+              Failure(new IndexNotFoundException(s"Index $searchIndex not found. Scheduling a reindex"))
             case _ =>
               logger.error(e.getMessage)
-              throw new ElasticsearchException(s"Unable to execute search in $searchIndex", e.getMessage)
+              Failure(new ElasticsearchException(s"Unable to execute search in $searchIndex", e.getMessage))
             }
-        case Failure(t: Throwable) => throw t
+        case t: Throwable => Failure(t)
       }
     }
 
