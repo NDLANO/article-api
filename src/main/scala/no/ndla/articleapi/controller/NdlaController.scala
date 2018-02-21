@@ -122,5 +122,7 @@ abstract class NdlaController extends ScalatraServlet with NativeJsonSupport wit
     }
   }
 
+  case class Param(paramName:String, description:String)
+
 }
 
