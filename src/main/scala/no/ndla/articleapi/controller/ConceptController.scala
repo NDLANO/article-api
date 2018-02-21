@@ -64,7 +64,8 @@ trait ConceptController {
           asQueryParam[Option[String]](language),
           asQueryParam[Option[Int]](pageNo),
           asQueryParam[Option[Int]](pageSize),
-          asQueryParam[Option[String]](sort)
+          asQueryParam[Option[String]](sort),
+          asQueryParam[Option[Boolean]](fallback)
         )
         authorizations "oauth2"
         responseMessages(response500))
@@ -147,7 +148,8 @@ trait ConceptController {
         notes "Shows the concept for the specified id."
         parameters(
           asHeaderParam[Option[String]](correlationId),
-          asPathParam[Long](conceptId)
+          asPathParam[Long](conceptId),
+          asQueryParam[Option[Boolean]](fallback)
         )
         authorizations "oauth2"
         responseMessages(response404, response500))
@@ -157,9 +159,9 @@ trait ConceptController {
       val language = paramOrDefault(this.language.paramName, Language.NoLanguage)
       val fallback = booleanOrDefault(this.fallback.paramName, default = false)
 
-      readService.conceptWithId(conceptId, language) match {
-        case Some(concept) => concept
-        case None => NotFound(body = Error(Error.NOT_FOUND, s"No concept with id $conceptId found"))
+      readService.conceptWithId(conceptId, language, fallback) match {
+        case Success(concept) => concept
+        case Failure(ex) => errorHandler(ex)
       }
     }
 

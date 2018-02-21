@@ -32,14 +32,14 @@ class ConceptControllerTest extends UnitSuite with TestEnvironment with Scalatra
   val lang = "nb"
 
   test("/<concept_id> should return 200 if the cover was found") {
-    when(readService.conceptWithId(1, lang)).thenReturn(Some(TestData.sampleApiConcept))
+    when(readService.conceptWithId(1, lang, fallback = false)).thenReturn(Success(TestData.sampleApiConcept))
     get(s"/test/$conceptId?language=$lang") {
       status should equal(200)
     }
   }
 
   test("/<concept_id> should return 404 if the article was not found") {
-    when(readService.conceptWithId(conceptId, lang)).thenReturn(None)
+    when(readService.conceptWithId(conceptId, lang, fallback = false)).thenReturn(Failure(NotFoundException("nope")))
 
     get(s"/test/$conceptId?language=$lang") {
       status should equal(404)

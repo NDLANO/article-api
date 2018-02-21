@@ -233,7 +233,7 @@ object TestData {
     Some(api.Copyright(api.License("publicdomain", None, None), "", Seq(), Seq(), Seq(), None, None, None)),
     DateTime.now().minusDays(4).toDate,
     DateTime.now().minusDays(2).toDate,
-    Set("nb")
+    Seq("nb")
   )
 
   val sampleNewConcept = NewConcept(

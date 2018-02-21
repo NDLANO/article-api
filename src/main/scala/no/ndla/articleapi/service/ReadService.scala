@@ -96,8 +96,11 @@ trait ReadService {
       def getNMostFrequent(n: Int): Seq[String] = mostFrequentOccorencesDec.slice(0, n)
     }
 
-    def conceptWithId(id: Long, language: String): Option[api.Concept] =
-      conceptRepository.withId(id).map(concept => converterService.toApiConcept(concept, language))
+    def conceptWithId(id: Long, language: String, fallback: Boolean): Try[api.Concept] =
+      conceptRepository.withId(id) match {
+        case None => Failure(NotFoundException(s"The concept with id $id was not found"))
+        case Some(concept) => converterService.toApiConcept(concept, language, fallback)
+      }
 
     def getContentByExternalId(externalId: String): Option[Content] =
       articleRepository.withExternalId(externalId) orElse conceptRepository.withExternalId(externalId)
