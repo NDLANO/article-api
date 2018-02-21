@@ -19,7 +19,6 @@ import no.ndla.articleapi.model.domain.emptySomeToNone
 import no.ndla.network.{ApplicationUrl, AuthUser, CorrelationID}
 import no.ndla.validation.{ValidationException, ValidationMessage}
 import org.apache.logging.log4j.ThreadContext
-import org.elasticsearch.ElasticsearchException
 import org.elasticsearch.index.IndexNotFoundException
 import org.json4s.native.Serialization.read
 import org.json4s.{DefaultFormats, Formats}

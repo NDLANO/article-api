@@ -17,7 +17,7 @@ import com.typesafe.scalalogging.LazyLogging
 import no.ndla.articleapi.ArticleApiProperties
 import no.ndla.articleapi.integration.Elastic4sClient
 import no.ndla.articleapi.model.api
-import no.ndla.articleapi.model.api.ResultWindowTooLargeException
+import no.ndla.articleapi.model.api.{FallbackTitleSortUnsupportedException, ResultWindowTooLargeException}
 import no.ndla.articleapi.model.domain._
 import no.ndla.articleapi.service.ConverterService
 import org.elasticsearch.ElasticsearchException
@@ -27,7 +27,7 @@ import org.json4s.native.JsonMethods._
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.{ExecutionContext, Future}
-import scala.util.{Failure, Success}
+import scala.util.{Failure, Success, Try}
 
 trait ConceptSearchService {
   this: Elastic4sClient with SearchService with ConceptIndexService with ConverterService =>
@@ -44,8 +44,8 @@ trait ConceptSearchService {
 
       val supportedLanguages = (titles union contents).map(_.language).toSet
 
-      val title = Language.findByLanguageOrBestEffort(titles, language).map(converterService.toApiConceptTitle).getOrElse(api.ConceptTitle("", Language.DefaultLanguage))
-      val concept = Language.findByLanguageOrBestEffort(contents, language).map(converterService.toApiConceptContent).getOrElse(api.ConceptContent("", Language.DefaultLanguage))
+      val title = Language.findByLanguageOrBestEffort(titles, language).map(converterService.toApiConceptTitle).getOrElse(api.ConceptTitle("", Language.UnknownLanguage))
+      val concept = Language.findByLanguageOrBestEffort(contents, language).map(converterService.toApiConceptContent).getOrElse(api.ConceptContent("", Language.UnknownLanguage))
 
       api.ConceptSummary(
         (hit \ "id").extract[Long],
@@ -60,7 +60,7 @@ trait ConceptSearchService {
             page: Int,
             pageSize: Int,
             sort: Sort.Value,
-            fallback: Boolean): api.ConceptSearchResult = {
+            fallback: Boolean): Try[api.ConceptSearchResult] = {
       executeSearch(withIdIn, language, sort, page, pageSize, boolQuery(), fallback)
     }
 
@@ -70,7 +70,7 @@ trait ConceptSearchService {
                       page: Int,
                       pageSize: Int,
                       sort: Sort.Value,
-                      fallback: Boolean): api.ConceptSearchResult = {
+                      fallback: Boolean): Try[api.ConceptSearchResult] = {
       val language = if (searchLanguage == Language.AllLanguages) "*" else searchLanguage
       val titleSearch = simpleStringQuery(query).field(s"title.$language", 2)
       val contentSearch = simpleStringQuery(query).field(s"content.$language", 1)
@@ -96,59 +96,49 @@ trait ConceptSearchService {
                       page: Int,
                       pageSize: Int,
                       queryBuilder: BoolQueryDefinition,
-                      fallback: Boolean): api.ConceptSearchResult = {
-      val searchLanguage = language match {
-        case Language.AllLanguages | "*" => "*"
-        case _ => language
-      }
+                      fallback: Boolean): Try[api.ConceptSearchResult] = {
 
       val idFilter = if (withIdIn.isEmpty) None else Some(idsQuery(withIdIn))
 
-      val (startAt, numResults) = getStartAtAndNumResults(page, pageSize)
+      val (languageFilter, searchLanguage) = language match {
+        case Language.AllLanguages | "*" =>
+          (None, "*")
+        case lang =>
+          fallback match {
+            case true => (None, "*")
+            case false => (Some(nestedQuery("title", existsQuery(s"title.$lang")).scoreMode(ScoreMode.Avg)), lang)
+          }
+      }
 
-      val filters = List(idFilter)
+      val filters = List(idFilter, languageFilter)
       val filteredSearch = queryBuilder.filter(filters.flatten)
 
+      val (startAt, numResults) = getStartAtAndNumResults(page, pageSize)
       val requestedResultWindow = pageSize * page
       if (requestedResultWindow > ArticleApiProperties.ElasticSearchIndexMaxResultWindow) {
         logger.info(s"Max supported results are ${ArticleApiProperties.ElasticSearchIndexMaxResultWindow}, user requested $requestedResultWindow")
-        throw new ResultWindowTooLargeException()
-      }
-
-      e4sClient.execute{
-        search(searchIndex).size(numResults).from(startAt).query(filteredSearch).sortBy(getSortDefinition(sort, searchLanguage))
-      } match {
-        case Success(response) =>
-          api.ConceptSearchResult(
-            response.result.totalHits,
-            page,
-            numResults,
-            if(language == "*") Language.AllLanguages else language,
-            getHits(response.result, language, fallback)
-          )
-        case Failure(ex) =>
-          errorHandler(Failure(ex))
-      }
-
-    }
-
-    protected def errorHandler[T](failure: Failure[T]) = {
-      failure match {
-        case Failure(e: NdlaSearchException) =>
-          e.rf.status match {
-            case notFound: Int if notFound == 404 =>
-              logger.error(s"Index $searchIndex not found. Scheduling a reindex.")
-              scheduleIndexDocuments()
-              throw new IndexNotFoundException(s"Index $searchIndex not found. Scheduling a reindex")
-            case _ =>
-              logger.error(e.getMessage)
-              throw new ElasticsearchException(s"Unable to execute search in $searchIndex", e.getMessage)
-          }
-        case Failure(t: Throwable) => throw t
+        Failure(ResultWindowTooLargeException())
+      } else if (fallback && (sort == Sort.ByTitleAsc || sort == Sort.ByTitleDesc)){
+        logger.info("User attempted to sort by title when using fallback parameter")
+        Failure(FallbackTitleSortUnsupportedException())
+      } else {
+        e4sClient.execute{
+          search(searchIndex).size(numResults).from(startAt).query(filteredSearch).sortBy(getSortDefinition(sort, searchLanguage))
+        } match {
+          case Success(response) =>
+            Success(api.ConceptSearchResult(
+              response.result.totalHits,
+              page,
+              numResults,
+              if(language == "*") Language.AllLanguages else language,
+              getHits(response.result, language, fallback)
+            ))
+          case Failure(ex) => errorHandler(ex)
+        }
       }
     }
 
-    private def scheduleIndexDocuments() = {
+    override def scheduleIndexDocuments(): Unit = {
       implicit val ec = ExecutionContext.fromExecutorService(Executors.newSingleThreadExecutor)
       val f = Future {
         conceptIndexService.indexDocuments

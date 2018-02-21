@@ -18,13 +18,11 @@ import no.ndla.articleapi.service.{ConverterService, ReadService, WriteService}
 import no.ndla.articleapi.validation.ContentValidator
 import no.ndla.mapping
 import no.ndla.mapping.LicenseDefinition
-import org.elasticsearch.ElasticsearchException
-import org.elasticsearch.index.IndexNotFoundException
 import org.json4s.{DefaultFormats, Formats}
 import org.scalatra.swagger.{ResponseMessage, Swagger, SwaggerSupport}
 import org.scalatra._
 
-import scala.util.{Failure, Success, Try}
+import scala.util.{Failure, Success}
 
 trait ArticleControllerV2 {
   this: ReadService with WriteService with ArticleSearchService with ConverterService with Role with User with ContentValidator =>
@@ -100,7 +98,7 @@ trait ArticleControllerV2 {
           license = license,
           page = page,
           pageSize = if (idList.isEmpty) pageSize else idList.size,
-          sort = sort.getOrElse(Sort.ByTitleAsc),
+          sort = sort.getOrElse(Sort.ByIdAsc),
           if (articleTypesFilter.isEmpty) ArticleType.all else articleTypesFilter,
           fallback = fallback
         )
@@ -125,10 +123,11 @@ trait ArticleControllerV2 {
         queryParam[Option[String]]("license").description("Return only articles with provided license."),
         queryParam[Option[Int]]("page").description("The page number of the search hits to display."),
         queryParam[Option[Int]]("page-size").description("The number of search hits to display for each page."),
+        queryParam[Option[Boolean]]("fallback").description("Fallback to existing language if language is specified."),
         queryParam[Option[String]]("sort").description(
           """The sorting used on results.
              Default is by -relevance (desc) when querying.
-             When browsing, the default is title (asc).
+             When browsing, the default is id (asc).
              The following are supported: relevance, -relevance, title, -title, lastUpdated, -lastUpdated, id, -id""".stripMargin)
       )
         authorizations "oauth2"
@@ -155,6 +154,7 @@ trait ArticleControllerV2 {
         parameters(
         headerParam[Option[String]]("X-Correlation-ID").description("User supplied correlation-id"),
         queryParam[Option[String]]("language").description("Only return results on the given language. Default is all languages."),
+        queryParam[Option[Boolean]]("fallback").description("Fallback to existing language if language is specified."),
         bodyParam[ArticleSearchParams]
       )
         authorizations "oauth2"

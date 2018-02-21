@@ -20,6 +20,8 @@ import no.ndla.articleapi.integration.Elastic4sClient
 import no.ndla.articleapi.model.domain
 import no.ndla.articleapi.model.domain._
 import no.ndla.articleapi.service.ConverterService
+import org.elasticsearch.ElasticsearchException
+import org.elasticsearch.index.IndexNotFoundException
 import org.json4s.native.JsonMethods._
 
 import scala.util.{Failure, Success}
@@ -99,6 +101,24 @@ trait SearchService {
 
       (startAt, numResults)
     }
+
+    protected def errorHandler[U](failure: Throwable): Failure[U] = {
+      failure match {
+        case e: NdlaSearchException =>
+          e.rf.status match {
+            case notFound: Int if notFound == 404 =>
+              logger.error(s"Index $searchIndex not found. Scheduling a reindex.")
+              scheduleIndexDocuments()
+              Failure(new IndexNotFoundException(s"Index $searchIndex not found. Scheduling a reindex"))
+            case _ =>
+              logger.error(e.getMessage)
+              Failure(new ElasticsearchException(s"Unable to execute search in $searchIndex", e.getMessage))
+          }
+        case t: Throwable => Failure(t)
+      }
+    }
+
+    protected def scheduleIndexDocuments(): Unit
 
   }
 }

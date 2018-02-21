@@ -127,6 +127,7 @@ trait ArticleSearchService {
         logger.info(s"Max supported results are ${ArticleApiProperties.ElasticSearchIndexMaxResultWindow}, user requested $requestedResultWindow")
         Failure(ResultWindowTooLargeException())
       } else if (fallback && (sort == Sort.ByTitleAsc || sort == Sort.ByTitleDesc)) {
+        logger.info("User attempted to sort by title when using fallback parameter")
         Failure(FallbackTitleSortUnsupportedException())
       } else {
         e4sClient.execute{
@@ -140,29 +141,12 @@ trait ArticleSearchService {
               if (language == "*") Language.AllLanguages else language,
               getHits(response.result, language, fallback)
             ))
-          case Failure(ex) =>
-            errorHandler(ex)
+          case Failure(ex) => errorHandler(ex)
         }
       }
     }
 
-    protected def errorHandler[T, U](failure: Throwable): Failure[U] = {
-      failure match {
-        case e: NdlaSearchException =>
-          e.rf.status match {
-            case notFound: Int if notFound == 404 =>
-              logger.error(s"Index $searchIndex not found. Scheduling a reindex.")
-              scheduleIndexDocuments()
-              Failure(new IndexNotFoundException(s"Index $searchIndex not found. Scheduling a reindex"))
-            case _ =>
-              logger.error(e.getMessage)
-              Failure(new ElasticsearchException(s"Unable to execute search in $searchIndex", e.getMessage))
-            }
-        case t: Throwable => Failure(t)
-      }
-    }
-
-    private def scheduleIndexDocuments(): Unit = {
+    override def scheduleIndexDocuments(): Unit = {
       implicit val ec = ExecutionContext.fromExecutorService(Executors.newSingleThreadExecutor)
       val f = Future {
         articleIndexService.indexDocuments

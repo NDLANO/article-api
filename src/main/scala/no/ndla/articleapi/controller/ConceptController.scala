@@ -46,10 +46,11 @@ trait ConceptController {
           queryParam[Option[String]]("language").description("The ISO 639-1 language code describing language used in query-params."),
           queryParam[Option[Int]]("page").description("The page number of the search hits to display."),
           queryParam[Option[Int]]("page-size").description("The number of search hits to display for each page."),
+          queryParam[Option[Boolean]]("fallback").description("Fallback to existing language if language is specified."),
           queryParam[Option[String]]("sort").description(
             """The sorting used on results.
                Default is by -relevance (desc) when querying.
-               When browsing, the default is title (asc).
+               When browsing, the default is id (asc).
                The following are supported: relevance, -relevance, title, -title, lastUpdated, -lastUpdated, id, -id""".stripMargin)
         )
         authorizations "oauth2"
@@ -72,6 +73,7 @@ trait ConceptController {
         notes "Shows all concepts. You can search it too."
         parameters(
           headerParam[Option[String]]("X-Correlation-ID").description("User supplied correlation-id"),
+          queryParam[Option[Boolean]]("fallback").description("Fallback to existing language if language is specified."),
           bodyParam[ConceptSearchParams]
         )
         authorizations "oauth2"
@@ -84,7 +86,7 @@ trait ConceptController {
                        pageSize: Int,
                        idList: List[Long],
                        fallback: Boolean) = {
-      query match {
+      val result = query match {
         case Some(q) => conceptSearchService.matchingQuery(
           query = q,
           withIdIn = idList,
@@ -100,9 +102,14 @@ trait ConceptController {
           language = language,
           page = page,
           pageSize = pageSize,
-          sort = sort.getOrElse(Sort.ByTitleAsc),
+          sort = sort.getOrElse(Sort.ByIdAsc),
           fallback = fallback
         )
+      }
+
+      result match {
+        case Success(searchResult) => searchResult
+        case Failure(ex) => errorHandler(ex)
       }
 
     }
