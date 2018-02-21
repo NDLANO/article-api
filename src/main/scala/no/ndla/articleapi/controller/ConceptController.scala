@@ -34,8 +34,6 @@ trait ConceptController {
     val response404 = ResponseMessage(404, "Not found", Some("Error"))
     val response500 = ResponseMessage(500, "Unknown error", Some("Error"))
 
-    case class Param(paramName:String, description:String)
-
     private val correlationId = Param("X-Correlation-ID","User supplied correlation-id. May be omitted.")
     private val query = Param("query","Return only concepts with content matching the specified query.")
     private val language = Param("language", "The ISO 639-1 language code describing language.")
