@@ -32,7 +32,7 @@ trait SearchService {
 
     def hitToApiModel(hit: String, language: String): T
 
-    def getHits(response: SearchResponse, language: String, hitToApi:(String, String) => T): Seq[T] = {
+    def getHits(response: SearchResponse, language: String, hitToApi:(String, String) => T, fallback: Boolean): Seq[T] = {
       response.totalHits match {
         case count if count > 0 =>
           val resultArray = response.hits.hits

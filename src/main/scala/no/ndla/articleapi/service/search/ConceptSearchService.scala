@@ -55,11 +55,22 @@ trait ConceptSearchService {
       )
     }
 
-    def all(withIdIn: List[Long], language: String, page: Int, pageSize: Int, sort: Sort.Value): api.ConceptSearchResult = {
-      executeSearch(withIdIn, language, sort, page, pageSize, boolQuery())
+    def all(withIdIn: List[Long],
+            language: String,
+            page: Int,
+            pageSize: Int,
+            sort: Sort.Value,
+            fallback: Boolean): api.ConceptSearchResult = {
+      executeSearch(withIdIn, language, sort, page, pageSize, boolQuery(), fallback)
     }
 
-    def matchingQuery(query: String, withIdIn: List[Long], searchLanguage: String, page: Int, pageSize: Int, sort: Sort.Value): api.ConceptSearchResult = {
+    def matchingQuery(query: String,
+                      withIdIn: List[Long],
+                      searchLanguage: String,
+                      page: Int,
+                      pageSize: Int,
+                      sort: Sort.Value,
+                      fallback: Boolean): api.ConceptSearchResult = {
       val language = if (searchLanguage == Language.AllLanguages) "*" else searchLanguage
       val titleSearch = simpleStringQuery(query).field(s"title.$language", 2)
       val contentSearch = simpleStringQuery(query).field(s"content.$language", 1)
@@ -76,10 +87,16 @@ trait ConceptSearchService {
         )
 
 
-      executeSearch(withIdIn, language, sort, page, pageSize, fullQuery)
+      executeSearch(withIdIn, language, sort, page, pageSize, fullQuery, fallback)
     }
 
-    def executeSearch(withIdIn: List[Long], language: String, sort: Sort.Value, page: Int, pageSize: Int, queryBuilder: BoolQueryDefinition): api.ConceptSearchResult = {
+    def executeSearch(withIdIn: List[Long],
+                      language: String,
+                      sort: Sort.Value,
+                      page: Int,
+                      pageSize: Int,
+                      queryBuilder: BoolQueryDefinition,
+                      fallback: Boolean): api.ConceptSearchResult = {
       val searchLanguage = language match {
         case Language.AllLanguages | "*" => "*"
         case _ => language
@@ -102,7 +119,7 @@ trait ConceptSearchService {
         search(searchIndex).size(numResults).from(startAt).query(filteredSearch).sortBy(getSortDefinition(sort, searchLanguage))
       } match {
         case Success(response) =>
-          api.ConceptSearchResult(response.result.totalHits, page, numResults, if(searchLanguage == "*") Language.AllLanguages else searchLanguage ,getHits(response.result, language, hitToApiModel))
+          api.ConceptSearchResult(response.result.totalHits, page, numResults, if(searchLanguage == "*") Language.AllLanguages else searchLanguage ,getHits(response.result, language, hitToApiModel, fallback))
         case Failure(ex) =>
           errorHandler(Failure(ex))
       }

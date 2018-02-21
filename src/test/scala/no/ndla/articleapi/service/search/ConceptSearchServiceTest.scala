@@ -118,7 +118,7 @@ class ConceptSearchServiceTest extends UnitSuite with TestEnvironment {
   }
 
   test("That all returns all documents ordered by id ascending") {
-    val results = conceptSearchService.all(List(), Language.DefaultLanguage, 1, 10, Sort.ByIdAsc)
+    val results = conceptSearchService.all(List(), Language.DefaultLanguage, 1, 10, Sort.ByIdAsc, fallback = false)
     val hits = results.results
     results.totalCount should be(11)
     hits.head.id should be(1)
@@ -134,7 +134,7 @@ class ConceptSearchServiceTest extends UnitSuite with TestEnvironment {
   }
 
   test("That all returns all documents ordered by id descending") {
-    val results = conceptSearchService.all(List(), Language.DefaultLanguage, 1, 10, Sort.ByIdDesc)
+    val results = conceptSearchService.all(List(), Language.DefaultLanguage, 1, 10, Sort.ByIdDesc, fallback = false)
     val hits = results.results
     results.totalCount should be(11)
     hits.head.id should be (11)
@@ -142,7 +142,7 @@ class ConceptSearchServiceTest extends UnitSuite with TestEnvironment {
   }
 
   test("That all returns all documents ordered by title ascending") {
-    val results = conceptSearchService.all(List(), Language.DefaultLanguage, 1, 10, Sort.ByTitleAsc)
+    val results = conceptSearchService.all(List(), Language.DefaultLanguage, 1, 10, Sort.ByTitleAsc, fallback = false)
     val hits = results.results
     results.totalCount should be(11)
     hits.head.id should be(8)
@@ -158,7 +158,7 @@ class ConceptSearchServiceTest extends UnitSuite with TestEnvironment {
   }
 
   test("That all returns all documents ordered by title descending") {
-    val results = conceptSearchService.all(List(), Language.DefaultLanguage, 1, 10, Sort.ByTitleDesc)
+    val results = conceptSearchService.all(List(), Language.DefaultLanguage, 1, 10, Sort.ByTitleDesc, fallback = false)
     val hits = results.results
     results.totalCount should be(11)
     hits.head.id should be(7)
@@ -175,7 +175,7 @@ class ConceptSearchServiceTest extends UnitSuite with TestEnvironment {
   }
 
   test("That all filtered by id only returns documents with the given ids") {
-    val results = conceptSearchService.all(List(1, 3), Language.DefaultLanguage, 1, 10, Sort.ByIdAsc)
+    val results = conceptSearchService.all(List(1, 3), Language.DefaultLanguage, 1, 10, Sort.ByIdAsc, fallback = false)
     val hits = results.results
     results.totalCount should be(2)
     hits.head.id should be(1)
@@ -183,8 +183,8 @@ class ConceptSearchServiceTest extends UnitSuite with TestEnvironment {
   }
 
   test("That paging returns only hits on current page and not more than page-size") {
-    val page1 = conceptSearchService.all(List(), Language.DefaultLanguage, 1, 2, Sort.ByTitleAsc)
-    val page2 = conceptSearchService.all(List(), Language.DefaultLanguage, 2, 2, Sort.ByTitleAsc)
+    val page1 = conceptSearchService.all(List(), Language.DefaultLanguage, 1, 2, Sort.ByTitleAsc, fallback = false)
+    val page2 = conceptSearchService.all(List(), Language.DefaultLanguage, 2, 2, Sort.ByTitleAsc, fallback = false)
 
     val hits1 = page1.results
     page1.totalCount should be(11)
@@ -202,7 +202,7 @@ class ConceptSearchServiceTest extends UnitSuite with TestEnvironment {
   }
 
   test("That search matches title and content ordered by relevance descending") {
-    val results = conceptSearchService.matchingQuery("bil", List(), "nb", 1, 10, Sort.ByRelevanceDesc)
+    val results = conceptSearchService.matchingQuery("bil", List(), "nb", 1, 10, Sort.ByRelevanceDesc, fallback = false)
     val hits = results.results
 
     results.totalCount should be(3)
@@ -212,44 +212,44 @@ class ConceptSearchServiceTest extends UnitSuite with TestEnvironment {
   }
 
   test("That search matches title") {
-    val results = conceptSearchService.matchingQuery("Pingvinen", List(), "nb", 1, 10, Sort.ByTitleAsc)
+    val results = conceptSearchService.matchingQuery("Pingvinen", List(), "nb", 1, 10, Sort.ByTitleAsc, fallback = false)
     val hits = results.results
     results.totalCount should be(1)
     hits.head.id should be(2)
   }
 
   test("Searching with logical AND only returns results with all terms") {
-    val search1 = conceptSearchService.matchingQuery("bilde + bil", List(), "nb", 1, 10, Sort.ByTitleAsc)
+    val search1 = conceptSearchService.matchingQuery("bilde + bil", List(), "nb", 1, 10, Sort.ByTitleAsc, fallback = false)
     val hits1 = search1.results
     hits1.map(_.id) should equal (Seq(1, 3, 5))
 
-    val search2 = conceptSearchService.matchingQuery("batmen + bil", List(), "nb", 1, 10, Sort.ByTitleAsc)
+    val search2 = conceptSearchService.matchingQuery("batmen + bil", List(), "nb", 1, 10, Sort.ByTitleAsc, fallback = false)
     val hits2 = search2.results
     hits2.map(_.id) should equal (Seq(1))
 
-    val search3 = conceptSearchService.matchingQuery("bil + bilde + -flaggermusmann", List(), "nb", 1, 10, Sort.ByTitleAsc)
+    val search3 = conceptSearchService.matchingQuery("bil + bilde + -flaggermusmann", List(), "nb", 1, 10, Sort.ByTitleAsc, fallback = false)
     val hits3 = search3.results
     hits3.map(_.id) should equal (Seq(3, 5))
 
-    val search4 = conceptSearchService.matchingQuery("bil + -hulken", List(), "nb", 1, 10, Sort.ByTitleAsc)
+    val search4 = conceptSearchService.matchingQuery("bil + -hulken", List(), "nb", 1, 10, Sort.ByTitleAsc, fallback = false)
     val hits4 = search4.results
     hits4.map(_.id) should equal (Seq(1, 3))
   }
 
   test("search in content should be ranked lower than title") {
-    val search = conceptSearchService.matchingQuery("mareritt + ragnarok", List(), "nb", 1, 10, Sort.ByRelevanceDesc)
+    val search = conceptSearchService.matchingQuery("mareritt + ragnarok", List(), "nb", 1, 10, Sort.ByRelevanceDesc, fallback = false)
     val hits = search.results
     hits.map(_.id) should equal (Seq(9, 8))
   }
 
   test("Search for all languages should return all concepts in different languages") {
-    val search = conceptSearchService.all(List(), Language.AllLanguages, 1, 100, Sort.ByTitleAsc)
+    val search = conceptSearchService.all(List(), Language.AllLanguages, 1, 100, Sort.ByTitleAsc, fallback = false)
 
     search.totalCount should equal(11)
   }
 
   test("Search for all languages should return all concepts in correct language") {
-    val search = conceptSearchService.all(List(), Language.AllLanguages, 1, 100, Sort.ByIdAsc)
+    val search = conceptSearchService.all(List(), Language.AllLanguages, 1, 100, Sort.ByIdAsc, fallback = false)
     val hits = search.results
 
     search.totalCount should equal(11)
@@ -269,8 +269,8 @@ class ConceptSearchServiceTest extends UnitSuite with TestEnvironment {
   }
 
   test("Searching with query for all languages should return language that matched") {
-    val searchEn = conceptSearchService.matchingQuery("Cats", List(), Language.AllLanguages, 1, 10, Sort.ByRelevanceDesc)
-    val searchNb = conceptSearchService.matchingQuery("Katter", List(), Language.AllLanguages, 1, 10, Sort.ByRelevanceDesc)
+    val searchEn = conceptSearchService.matchingQuery("Cats", List(), Language.AllLanguages, 1, 10, Sort.ByRelevanceDesc, fallback = false)
+    val searchNb = conceptSearchService.matchingQuery("Katter", List(), Language.AllLanguages, 1, 10, Sort.ByRelevanceDesc, fallback = false)
 
     searchEn.totalCount should equal(1)
     searchEn.results.head.id should equal(11)

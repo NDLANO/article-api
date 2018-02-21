@@ -77,7 +77,13 @@ trait ConceptController {
         authorizations "oauth2"
         responseMessages(response400, response500))
 
-    private def search(query: Option[String], sort: Option[Sort.Value], language: String, page: Int, pageSize: Int, idList: List[Long]) = {
+    private def search(query: Option[String],
+                       sort: Option[Sort.Value],
+                       language: String,
+                       page: Int,
+                       pageSize: Int,
+                       idList: List[Long],
+                       fallback: Boolean) = {
       query match {
         case Some(q) => conceptSearchService.matchingQuery(
           query = q,
@@ -85,14 +91,17 @@ trait ConceptController {
           searchLanguage = language,
           page = page,
           pageSize = pageSize,
-          sort = sort.getOrElse(Sort.ByRelevanceDesc))
+          sort = sort.getOrElse(Sort.ByRelevanceDesc),
+          fallback = fallback
+        )
 
         case None => conceptSearchService.all(
           withIdIn = idList,
           language = language,
           page = page,
           pageSize = pageSize,
-          sort = sort.getOrElse(Sort.ByTitleAsc)
+          sort = sort.getOrElse(Sort.ByTitleAsc),
+          fallback = fallback
         )
       }
 
@@ -105,8 +114,9 @@ trait ConceptController {
       val pageSize = intOrDefault("page-size", ArticleApiProperties.DefaultPageSize)
       val page = intOrDefault("page", 1)
       val idList = paramAsListOfLong("ids")
+      val fallback = booleanOrDefault("fallback", default = false)
 
-      search(query, sort, language, page, pageSize, idList)
+      search(query, sort, language, page, pageSize, idList, fallback)
     }
 
     post("/search/", operation(getAllConceptsPost)) {
@@ -118,8 +128,9 @@ trait ConceptController {
       val pageSize = searchParams.pageSize.getOrElse(ArticleApiProperties.DefaultPageSize)
       val page = searchParams.page.getOrElse(1)
       val idList = searchParams.idList
+      val fallback = booleanOrDefault("fallback", default = false)
 
-      search(query, sort, language, page, pageSize, idList)
+      search(query, sort, language, page, pageSize, idList, fallback)
     }
 
     get("/:id", operation(getConceptById)) {

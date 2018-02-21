@@ -70,7 +70,7 @@ trait ArticleControllerV2 {
       }
     }
 
-    private def search(query: Option[String], sort: Option[Sort.Value], language: String, license: Option[String], page: Int, pageSize: Int, idList: List[Long], articleTypesFilter: Seq[String]) = {
+    private def search(query: Option[String], sort: Option[Sort.Value], language: String, license: Option[String], page: Int, pageSize: Int, idList: List[Long], articleTypesFilter: Seq[String], fallback: Boolean) = {
       query match {
         case Some(q) => articleSearchService.matchingQuery(
           query = q,
@@ -80,7 +80,8 @@ trait ArticleControllerV2 {
           page = page,
           pageSize = if (idList.isEmpty) pageSize else idList.size,
           sort = sort.getOrElse(Sort.ByRelevanceDesc),
-          if (articleTypesFilter.isEmpty) ArticleType.all else articleTypesFilter
+          if (articleTypesFilter.isEmpty) ArticleType.all else articleTypesFilter,
+          fallback = fallback
         )
 
         case None => articleSearchService.all(
@@ -90,7 +91,8 @@ trait ArticleControllerV2 {
           page = page,
           pageSize = if (idList.isEmpty) pageSize else idList.size,
           sort = sort.getOrElse(Sort.ByTitleAsc),
-          if (articleTypesFilter.isEmpty) ArticleType.all else articleTypesFilter
+          if (articleTypesFilter.isEmpty) ArticleType.all else articleTypesFilter,
+          fallback = fallback
         )
       }
     }
@@ -126,8 +128,9 @@ trait ArticleControllerV2 {
       val page = intOrDefault("page", 1)
       val idList = paramAsListOfLong("ids")
       val articleTypesFilter = paramAsListOfString("articleTypes")
+      val fallback = booleanOrDefault("fallback", default = false)
 
-      search(query, sort, language, license, page, pageSize, idList, articleTypesFilter)
+      search(query, sort, language, license, page, pageSize, idList, articleTypesFilter, fallback)
     }
 
     val getAllArticlesPost =
@@ -153,8 +156,9 @@ trait ArticleControllerV2 {
       val page = searchParams.page.getOrElse(1)
       val idList = searchParams.idList
       val articleTypesFilter = searchParams.articleTypes
+      val fallback = booleanOrDefault("fallback", default = false)
 
-      search(query, sort, language, license, page, pageSize, idList, articleTypesFilter)
+      search(query, sort, language, license, page, pageSize, idList, articleTypesFilter, fallback)
     }
 
     val getArticleById =

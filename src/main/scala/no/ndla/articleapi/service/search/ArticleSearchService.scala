@@ -46,11 +46,26 @@ trait ArticleSearchService {
       converterService.hitAsArticleSummaryV2(hit, language)
     }
 
-    def all(withIdIn: List[Long], language: String, license: Option[String], page: Int, pageSize: Int, sort: Sort.Value, articleTypes: Seq[String]): SearchResultV2 = {
-      executeSearch(withIdIn, language, license, sort, page, pageSize, boolQuery(), articleTypes)
+    def all(withIdIn: List[Long],
+            language: String,
+            license: Option[String],
+            page: Int,
+            pageSize: Int,
+            sort: Sort.Value,
+            articleTypes: Seq[String],
+            fallback: Boolean): SearchResultV2 = {
+      executeSearch(withIdIn, language, license, sort, page, pageSize, boolQuery(), articleTypes, fallback)
     }
 
-    def matchingQuery(query: String, withIdIn: List[Long], searchLanguage: String, license: Option[String], page: Int, pageSize: Int, sort: Sort.Value, articleTypes: Seq[String]): SearchResultV2 = {
+    def matchingQuery(query: String,
+                      withIdIn: List[Long],
+                      searchLanguage: String,
+                      license: Option[String],
+                      page: Int,
+                      pageSize: Int,
+                      sort: Sort.Value,
+                      articleTypes: Seq[String],
+                      fallback: Boolean): SearchResultV2 = {
       val language = if (searchLanguage == Language.AllLanguages) "*" else searchLanguage
       val titleSearch = simpleStringQuery(query).field(s"title.$language", 2)
       val introSearch = simpleStringQuery(query).field(s"introduction.$language", 2)
@@ -72,10 +87,18 @@ trait ArticleSearchService {
             )
         )
 
-      executeSearch(withIdIn, language, license, sort, page, pageSize, fullQuery, articleTypes)
+      executeSearch(withIdIn, language, license, sort, page, pageSize, fullQuery, articleTypes, fallback)
     }
 
-    def executeSearch(withIdIn: List[Long], language: String, license: Option[String], sort: Sort.Value, page: Int, pageSize: Int, queryBuilder: BoolQueryDefinition, articleTypes: Seq[String]): SearchResultV2 = {
+    def executeSearch(withIdIn: List[Long],
+                      language: String,
+                      license: Option[String],
+                      sort: Sort.Value,
+                      page: Int,
+                      pageSize: Int,
+                      queryBuilder: BoolQueryDefinition,
+                      articleTypes: Seq[String],
+                      fallback: Boolean): SearchResultV2 = {
 
       val articleTypesFilter = if (articleTypes.nonEmpty) Some(constantScoreQuery(termsQuery("articleType", articleTypes))) else None
 
@@ -108,7 +131,13 @@ trait ArticleSearchService {
         search(searchIndex).size(numResults).from(startAt).query(filteredSearch).sortBy(getSortDefinition(sort, searchLanguage))
       } match {
         case Success(response) =>
-          SearchResultV2(response.result.totalHits, page, numResults, if (searchLanguage == "*") Language.AllLanguages else searchLanguage, getHits(response.result, language, hitToApiModel))
+          SearchResultV2(
+            response.result.totalHits,
+            page,
+            numResults,
+            if (searchLanguage == "*") Language.AllLanguages else searchLanguage,
+            getHits(response.result, language, hitToApiModel, fallback)
+          )
         case Failure(ex) =>
           errorHandler(Failure(ex))
       }
