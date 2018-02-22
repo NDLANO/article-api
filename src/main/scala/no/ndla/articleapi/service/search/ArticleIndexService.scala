@@ -11,11 +11,10 @@ package no.ndla.articleapi.service.search
 
 import com.sksamuel.elastic4s.http.ElasticDsl._
 import com.sksamuel.elastic4s.indexes.IndexDefinition
-import com.sksamuel.elastic4s.mappings.{MappingBuilderFn, MappingDefinition, NestedFieldDefinition}
+import com.sksamuel.elastic4s.mappings._
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.articleapi.ArticleApiProperties
 import no.ndla.articleapi.model.domain.Article
-import no.ndla.articleapi.model.domain.Language.languageAnalyzers
 import no.ndla.articleapi.model.search.{SearchableArticle, SearchableLanguageFormats}
 import no.ndla.articleapi.repository.{ArticleRepository, Repository}
 import org.json4s.native.Serialization.write
@@ -37,30 +36,25 @@ trait ArticleIndexService {
 
     def getMapping: MappingDefinition = {
       mapping(documentType).fields(
-        intField("id"),
-        languageSupportedField("title", keepRaw = true),
-        languageSupportedField("content"),
-        languageSupportedField("visualElement"),
-        languageSupportedField("introduction"),
-        languageSupportedField("metaDescription"),
-        languageSupportedField("tags"),
-        keywordField("defaultTitle"),
-        dateField("lastUpdated"),
-        keywordField("license"),
-        textField("authors").fielddata(true),
-        textField("articleType").analyzer("keyword")
+        List(
+          intField("id"),
+          generateLanguageSupportedFieldList("title", keepRaw = true),
+          generateLanguageSupportedFieldList("content"),
+          generateLanguageSupportedFieldList("visualElement"),
+          generateLanguageSupportedFieldList("introduction"),
+          generateLanguageSupportedFieldList("metaDescription"),
+          generateLanguageSupportedFieldList("tags"),
+          keywordField("defaultTitle"),
+          dateField("lastUpdated"),
+          keywordField("license"),
+          textField("authors").fielddata(true),
+          textField("articleType").analyzer("keyword")
+        ).flatMap {
+          case l: List[FieldDefinition] => l
+          case e: FieldDefinition => List(e)
+        }
       )
     }
-
-    private def languageSupportedField(fieldName: String, keepRaw: Boolean = false) = {
-      val languageSupportedField = NestedFieldDefinition(fieldName).fields(
-      keepRaw match {
-        case true => languageAnalyzers.map(langAnalyzer => textField(langAnalyzer.lang).fielddata(true).analyzer(langAnalyzer.analyzer).fields(keywordField("raw")))
-        case false => languageAnalyzers.map(langAnalyzer => textField(langAnalyzer.lang).fielddata(true).analyzer(langAnalyzer.analyzer))
-      })
-
-      languageSupportedField
-    }
-
   }
+
 }

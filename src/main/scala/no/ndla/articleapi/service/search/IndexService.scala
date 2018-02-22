@@ -15,11 +15,12 @@ import java.util.Calendar
 import com.typesafe.scalalogging.LazyLogging
 import com.sksamuel.elastic4s.http.ElasticDsl._
 import com.sksamuel.elastic4s.indexes.IndexDefinition
-import com.sksamuel.elastic4s.mappings.MappingDefinition
+import com.sksamuel.elastic4s.mappings.{FieldDefinition, MappingDefinition}
 import no.ndla.articleapi.ArticleApiProperties
 import no.ndla.articleapi.integration.Elastic4sClient
 import no.ndla.articleapi.model.domain.{Content, ReindexResult}
 import no.ndla.articleapi.repository.Repository
+import no.ndla.articleapi.model.domain.Language.languageAnalyzers
 
 import scala.util.{Failure, Success, Try}
 
@@ -32,6 +33,7 @@ trait IndexService {
     val repository: Repository[D]
 
     def getMapping: MappingDefinition
+
     def createIndexRequest(domainModel: D, indexName: String): IndexDefinition
 
     def indexDocument(imported: D): Try[D] = {
@@ -40,7 +42,9 @@ trait IndexService {
           case Some(index) => Success(index)
           case None => createIndexWithGeneratedName.map(newIndex => updateAliasTarget(None, newIndex))
         }
-        _ <- e4sClient.execute{createIndexRequest(imported, searchIndex)}
+        _ <- e4sClient.execute {
+          createIndexRequest(imported, searchIndex)
+        }
       } yield imported
     }
 
@@ -78,7 +82,7 @@ trait IndexService {
       })
     }
 
-    def getRanges:Try[List[(Long, Long)]] = {
+    def getRanges: Try[List[(Long, Long)]] = {
       Try {
         val (minId, maxId) = repository.minMaxId
         Seq.range(minId, maxId + 1).grouped(ArticleApiProperties.IndexBulkSize).map(group => (group.head, group.last)).toList
@@ -86,11 +90,11 @@ trait IndexService {
     }
 
     def indexDocuments(contents: Seq[D], indexName: String): Try[Int] = {
-      if(contents.isEmpty){
+      if (contents.isEmpty) {
         Success(0)
       }
       else {
-        val response = e4sClient.execute{
+        val response = e4sClient.execute {
           bulk(contents.map(content => {
             createIndexRequest(content, indexName)
           }))
@@ -112,7 +116,7 @@ trait IndexService {
           case None => createIndexWithGeneratedName.map(newIndex => updateAliasTarget(None, newIndex))
         }
         deleted <- {
-          e4sClient.execute{
+          e4sClient.execute {
             delete(s"$contentId").from(searchIndex / documentType)
           }
         }
@@ -139,7 +143,7 @@ trait IndexService {
     }
 
     def getAliasTarget: Try[Option[String]] = {
-      val response = e4sClient.execute{
+      val response = e4sClient.execute {
         getAliases(Nil, List(searchIndex))
       }
 
@@ -173,7 +177,7 @@ trait IndexService {
           if (!indexWithNameExists(indexName).getOrElse(false)) {
             Failure(new IllegalArgumentException(s"No such index: $indexName"))
           } else {
-            e4sClient.execute{
+            e4sClient.execute {
               deleteIndex(indexName)
             }
           }
@@ -195,5 +199,21 @@ trait IndexService {
 
     def getTimestamp: String = new SimpleDateFormat("yyyyMMddHHmmss").format(Calendar.getInstance.getTime)
 
+    /**
+      * Returns Sequence of FieldDefinitions for a given field.
+      *
+      * @param fieldName Name of field in mapping.
+      * @param keepRaw   Whether to add a keywordField named raw.
+      *                  Usually used for sorting, aggregations or scripts.
+      * @return Sequence of FieldDefinitions for a field.
+      */
+    protected def generateLanguageSupportedFieldList(fieldName: String, keepRaw: Boolean = false): Seq[FieldDefinition] = {
+      keepRaw match {
+        //TODO: Attempt to disable fielddata where possible
+        case true => languageAnalyzers.map(langAnalyzer => textField(s"$fieldName.${langAnalyzer.lang}").fielddata(true).analyzer(langAnalyzer.analyzer).fields(keywordField("raw")))
+        case false => languageAnalyzers.map(langAnalyzer => textField(s"$fieldName.${langAnalyzer.lang}").fielddata(true).analyzer(langAnalyzer.analyzer))
+      }
+    }
   }
+
 }
