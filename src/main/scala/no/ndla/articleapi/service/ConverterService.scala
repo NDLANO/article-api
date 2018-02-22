@@ -18,6 +18,7 @@ import no.ndla.articleapi.model.api
 import no.ndla.articleapi.model.api.{ArticleSummaryV2, ImportException, NotFoundException}
 import no.ndla.articleapi.model.domain.Language._
 import no.ndla.articleapi.model.domain._
+import no.ndla.articleapi.model.search.{SearchableArticle, SearchableLanguageFormats}
 import no.ndla.articleapi.repository.ArticleRepository
 import no.ndla.mapping.License.getLicense
 import no.ndla.network.ApplicationUrl
@@ -25,6 +26,7 @@ import no.ndla.validation.{EmbedTagRules, HtmlTagRules, ResourceType, TagAttribu
 import no.ndla.validation.HtmlTagRules.{jsoupDocumentToString, stringToJsoupDocument}
 import org.json4s._
 import org.json4s.native.JsonMethods._
+import org.json4s.native.Serialization.read
 
 import scala.collection.JavaConverters._
 import scala.util.{Failure, Success, Try}
@@ -35,7 +37,7 @@ trait ConverterService {
   val converterService: ConverterService
 
   class ConverterService extends LazyLogging {
-    implicit val formats = DefaultFormats
+    implicit val formats: Formats = SearchableLanguageFormats.JSonFormats
 
     def getLanguageFromHit(result: SearchHit): Option[String] = {
       val sortedInnerHits = result.innerHits.toList.filter(ih => ih._2.total > 0).sortBy{
@@ -70,11 +72,13 @@ trait ConverterService {
     }
 
     def hitAsArticleSummaryV2(hitString: String, language: String): ArticleSummaryV2 = {
-      val hit = parse(hitString)
-      val titles = (hit \ "title").extract[Map[String, String]].map(title => ArticleTitle(title._2, title._1)).toSeq
-      val introductions = (hit \ "introduction").extract[Map[String, String]].map(title => ArticleIntroduction(title._2, title._1)).toSeq
-      val metaDescriptions = (hit \ "metaDescription").extract[Map[String, String]].map(title => ArticleMetaDescription(title._2, title._1)).toSeq
-      val visualElements = (hit \ "visualElement").extract[Map[String, String]].map(title => VisualElement(title._2, title._1)).toSeq
+
+      val searchableArticle = read[SearchableArticle](hitString)
+
+      val titles = searchableArticle.title.languageValues.map(lv => ArticleTitle(lv.value, lv.lang))
+      val introductions = searchableArticle.introduction.languageValues.map(lv => ArticleIntroduction(lv.value, lv.lang))
+      val metaDescriptions = searchableArticle.metaDescription.languageValues.map(lv => ArticleMetaDescription(lv.value, lv.lang))
+      val visualElements = searchableArticle.visualElement.languageValues.map(lv => VisualElement(lv.value, lv.lang))
 
       val supportedLanguages = getSupportedLanguages(titles, visualElements, introductions)
 
@@ -84,14 +88,14 @@ trait ConverterService {
       val metaDescription = findByLanguageOrBestEffort(metaDescriptions, language).map(toApiArticleMetaDescription)
 
       ArticleSummaryV2(
-        (hit \ "id").extract[Long],
+        searchableArticle.id,
         title,
         visualElement,
         introduction,
         metaDescription,
-        ApplicationUrl.get + (hit \ "id").extract[String],
-        (hit \ "license").extract[String],
-        (hit \ "articleType").extract[String],
+        ApplicationUrl.get + searchableArticle.id.toString,
+        searchableArticle.license,
+        searchableArticle.articleType,
         supportedLanguages
       )
     }
