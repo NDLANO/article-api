@@ -129,7 +129,7 @@ trait ArticleSearchService {
         Failure(FallbackTitleSortUnsupportedException())
       } else {
 
-        val hl = highlight("*")
+        val hl = highlight("*").postTag("").preTag("").fragmentSize(0).order("score")
 
         val searchToExec =
           search(searchIndex)

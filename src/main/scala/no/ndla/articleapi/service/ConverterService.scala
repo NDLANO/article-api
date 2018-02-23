@@ -39,6 +39,11 @@ trait ConverterService {
   class ConverterService extends LazyLogging {
     implicit val formats: Formats = SearchableLanguageFormats.JSonFormats
 
+    /**
+      * Attempts to extract language that hit from highlights in elasticsearch response.
+      * @param result Elasticsearch hit.
+      * @return Language if found.
+      */
     def getLanguageFromHit(result: SearchHit): Option[String] = {
       val sortedInnerHits = result.innerHits.toList.filter(ih => ih._2.total > 0).sortBy{
         case (_, hit) => hit.max_score
@@ -71,6 +76,14 @@ trait ConverterService {
       }
     }
 
+    /**
+      * Returns article summary from json string returned by elasticsearch.
+      * Will always return summary, even if language does not exist in hitString.
+      * Language will be prioritized according to [[findByLanguageOrBestEffort]].
+      * @param hitString Json string returned from elasticsearch for one article.
+      * @param language Language to extract from the hitString.
+      * @return Article summary extracted from hitString in specified language.
+      */
     def hitAsArticleSummaryV2(hitString: String, language: String): ArticleSummaryV2 = {
 
       val searchableArticle = read[SearchableArticle](hitString)

@@ -26,7 +26,14 @@ case class SearchableLanguageValues(languageValues: Seq[LV[String]]) {
 }
 
 object SearchableLanguageValues {
-  def apply[T](name: String, jsonObject: JObject): SearchableLanguageValues = {
+  /**
+    * Apply method to create SearchableLanguageValues object from jsonObject for fields with name.
+    * Fields are should be named "name.language" in the jsonObject
+    * @param name Name of the field without language.
+    * @param jsonObject Parent object containing all fields.
+    * @return SearchableLanguageValues object containing every Language with name name.
+    */
+  def apply(name: String, jsonObject: JObject): SearchableLanguageValues = {
     val languageValues = jsonObject.obj.flatMap{
       case (key, value: JString) =>
         val split = key.split('.')
@@ -47,7 +54,14 @@ case class SearchableLanguageList(languageValues: Seq[LV[Seq[String]]]) {
 }
 
 object SearchableLanguageList {
-  def apply[T](name: String, jsonObject: JObject): SearchableLanguageList = {
+  /**
+    * Apply method to create SearchableLanguageList object from jsonObject for fields with name.
+    * Fields are should be named "name.language" in the jsonObject
+    * @param name Name of the field without language.
+    * @param jsonObject Parent object containing all fields.
+    * @return SearchableLanguageList object containing every Language with name name.
+    */
+  def apply(name: String, jsonObject: JObject): SearchableLanguageList = {
     val languageValues = jsonObject.obj.flatMap{
       case (key, value: JArray) =>
         val split = key.split('.')

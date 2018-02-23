@@ -21,6 +21,7 @@ import no.ndla.articleapi.integration.Elastic4sClient
 import no.ndla.articleapi.model.domain.{Content, ReindexResult}
 import no.ndla.articleapi.repository.Repository
 import no.ndla.articleapi.model.domain.Language.languageAnalyzers
+import no.ndla.mapping.ISO639
 
 import scala.util.{Failure, Success, Try}
 
@@ -210,8 +211,8 @@ trait IndexService {
     protected def generateLanguageSupportedFieldList(fieldName: String, keepRaw: Boolean = false): Seq[FieldDefinition] = {
       keepRaw match {
         //TODO: Attempt to disable fielddata where possible
-        case true => languageAnalyzers.map(langAnalyzer => textField(s"$fieldName.${langAnalyzer.lang}").fielddata(true).analyzer(langAnalyzer.analyzer).fields(keywordField("raw")))
-        case false => languageAnalyzers.map(langAnalyzer => textField(s"$fieldName.${langAnalyzer.lang}").fielddata(true).analyzer(langAnalyzer.analyzer))
+        case true => languageAnalyzers.map(langAnalyzer => textField(s"$fieldName.${langAnalyzer.lang}").fielddata(false).analyzer(langAnalyzer.analyzer).fields(keywordField("raw")))
+        case false => languageAnalyzers.map(langAnalyzer => textField(s"$fieldName.${langAnalyzer.lang}").fielddata(false).analyzer(langAnalyzer.analyzer))
       }
     }
   }

@@ -52,6 +52,7 @@ trait ArticleIndexService {
         ).flatMap {
           case l: List[FieldDefinition] => l
           case e: FieldDefinition => List(e)
+          case _ => None
         }
       )
     }
