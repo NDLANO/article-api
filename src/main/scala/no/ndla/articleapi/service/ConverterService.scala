@@ -20,6 +20,7 @@ import no.ndla.articleapi.model.domain.Language._
 import no.ndla.articleapi.model.domain._
 import no.ndla.articleapi.model.search.{SearchableArticle, SearchableLanguageFormats}
 import no.ndla.articleapi.repository.ArticleRepository
+import no.ndla.mapping.ISO639
 import no.ndla.mapping.License.getLicense
 import no.ndla.network.ApplicationUrl
 import no.ndla.validation.{EmbedTagRules, HtmlTagRules, ResourceType, TagAttributes}
@@ -45,34 +46,25 @@ trait ConverterService {
       * @return Language if found.
       */
     def getLanguageFromHit(result: SearchHit): Option[String] = {
-      val sortedInnerHits = result.innerHits.toList.filter(ih => ih._2.total > 0).sortBy{
-        case (_, hit) => hit.max_score
-      }.reverse
+      def keyToLanguage(keys: Iterable[String]): Option[String] = {
+        val langs = keys.toList.flatMap(key => key.split('.').toList match {
+          case _ :: language :: _ => Some(language)
+          case _ => None
+        }).toList
 
-      val matchLanguage = sortedInnerHits.headOption.flatMap{
-        case (_, innerHit) =>
-          innerHit.hits.sortBy(hit => hit.score).reverse.headOption.flatMap(hit => {
-            hit.highlight.headOption.map(hl => hl._1.split('.').last)
-          })
+        langs.sortBy(lang => {
+          ISO639.languagePriority.reverse.indexOf(lang)
+        }).lastOption
       }
+
+      val highlightKeys: Option[Map[String, _]] = Option(result.highlight)
+      val matchLanguage = keyToLanguage(highlightKeys.getOrElse(Map()).keys)
 
       matchLanguage match {
         case Some(lang) =>
           Some(lang)
         case _ =>
-          val title = result.sourceAsMap.get("title")
-          val titleMap = title.map(tm => {
-            tm.asInstanceOf[Map[String, _]]
-          })
-
-          val languages = titleMap.map(title => title.keySet.toList)
-
-          languages.flatMap(languageList => {
-            languageList.sortBy(lang => {
-              val languagePriority = Language.languageAnalyzers.map(la => la.lang).reverse
-              languagePriority.indexOf(lang)
-            }).lastOption
-          })
+          keyToLanguage(result.sourceAsMap.keys)
       }
     }
 
