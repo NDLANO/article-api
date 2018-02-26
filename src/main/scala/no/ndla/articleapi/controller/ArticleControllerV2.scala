@@ -17,6 +17,8 @@ import no.ndla.articleapi.service.search.ArticleSearchService
 import no.ndla.articleapi.service.{ConverterService, ReadService, WriteService}
 import no.ndla.articleapi.validation.ContentValidator
 import org.json4s.{DefaultFormats, Formats}
+import org.scalatra.swagger.{ResponseMessage, Swagger, SwaggerSupport}
+import org.scalatra._
 import org.scalatra.NotFound
 import org.scalatra.swagger._
 import org.scalatra.util.NotNothing
@@ -48,7 +50,7 @@ trait ArticleControllerV2 {
     private val sort = Param("sort",
       """The sorting used on results.
              The following are supported: relevance, -relevance, title, -title, lastUpdated, -lastUpdated, id, -id.
-             Default is by -relevance (desc) when query is set, and title (asc) when query is empty.""".stripMargin)
+             Default is by -relevance (desc) when query is set, and id (asc) when query is empty.""".stripMargin)
     private val pageNo = Param("page","The page number of the search hits to display.")
     private val pageSize = Param("page-size","The number of search hits to display for each page.")
     private val articleId = Param("article_id","Id of the article that is to be fecthed")
@@ -90,8 +92,16 @@ trait ArticleControllerV2 {
       }
     }
 
-    private def search(query: Option[String], sort: Option[Sort.Value], language: String, license: Option[String], page: Int, pageSize: Int, idList: List[Long], articleTypesFilter: Seq[String]) = {
-      query match {
+    private def search(query: Option[String],
+                       sort: Option[Sort.Value],
+                       language: String,
+                       license: Option[String],
+                       page: Int,
+                       pageSize: Int,
+                       idList: List[Long],
+                       articleTypesFilter: Seq[String],
+                       fallback: Boolean) = {
+      val result = query match {
         case Some(q) => articleSearchService.matchingQuery(
           query = q,
           withIdIn = idList,
@@ -100,7 +110,8 @@ trait ArticleControllerV2 {
           page = page,
           pageSize = if (idList.isEmpty) pageSize else idList.size,
           sort = sort.getOrElse(Sort.ByRelevanceDesc),
-          if (articleTypesFilter.isEmpty) ArticleType.all else articleTypesFilter
+          if (articleTypesFilter.isEmpty) ArticleType.all else articleTypesFilter,
+          fallback = fallback
         )
 
         case None => articleSearchService.all(
@@ -109,9 +120,15 @@ trait ArticleControllerV2 {
           license = license,
           page = page,
           pageSize = if (idList.isEmpty) pageSize else idList.size,
-          sort = sort.getOrElse(Sort.ByTitleAsc),
-          if (articleTypesFilter.isEmpty) ArticleType.all else articleTypesFilter
+          sort = sort.getOrElse(Sort.ByIdAsc),
+          if (articleTypesFilter.isEmpty) ArticleType.all else articleTypesFilter,
+          fallback = fallback
         )
+      }
+
+      result match {
+        case Success(searchResult) => searchResult
+        case Failure(ex) => errorHandler(ex)
       }
     }
 
@@ -142,8 +159,9 @@ trait ArticleControllerV2 {
       val page = intOrDefault(this.pageNo.paramName, 1)
       val idList = paramAsListOfLong(this.articleIds.paramName)
       val articleTypesFilter = paramAsListOfString(this.articleTypes.paramName)
+      val fallback = booleanOrDefault(this.fallback.paramName, default = false)
 
-      search(query, sort, language, license, page, pageSize, idList, articleTypesFilter)
+      search(query, sort, language, license, page, pageSize, idList, articleTypesFilter, fallback)
     }
 
     val getAllArticlesPost =
@@ -168,8 +186,9 @@ trait ArticleControllerV2 {
       val page = searchParams.page.getOrElse(1)
       val idList = searchParams.idList
       val articleTypesFilter = searchParams.articleTypes
+      val fallback = searchParams.fallback.getOrElse(false)
 
-      search(query, sort, language, license, page, pageSize, idList, articleTypesFilter)
+      search(query, sort, language, license, page, pageSize, idList, articleTypesFilter, fallback)
     }
 
     val getArticleById =

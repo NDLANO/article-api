@@ -19,5 +19,5 @@ case class Concept(@(ApiModelProperty@field)(description = "The unique id of the
                    @(ApiModelProperty@field)(description = "Describes the copyright information for the concept") copyright: Option[Copyright],
                    @(ApiModelProperty@field)(description = "When the concept was created") created: Date,
                    @(ApiModelProperty@field)(description = "When the concept was last updated") updated: Date,
-                   @(ApiModelProperty@field)(description = "All available languages of the current concept") supportedLanguages: Set[String]
+                   @(ApiModelProperty@field)(description = "All available languages of the current concept") supportedLanguages: Seq[String]
                   )

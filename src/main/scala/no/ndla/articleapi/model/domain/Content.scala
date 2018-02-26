@@ -85,9 +85,7 @@ case class Concept(id: Option[Long],
                    content: Seq[ConceptContent],
                    copyright: Option[Copyright],
                    created: Date,
-                   updated: Date) extends Content {
-  lazy val supportedLanguages: Set[String] = (content union title).map(_.language).toSet
-}
+                   updated: Date) extends Content
 
 object Concept extends SQLSyntaxSupport[Concept] {
   implicit val formats = org.json4s.DefaultFormats

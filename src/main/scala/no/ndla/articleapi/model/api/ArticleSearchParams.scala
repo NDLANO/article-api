@@ -11,5 +11,6 @@ case class ArticleSearchParams(@(ApiModelProperty@field)(description = "The sear
                                @(ApiModelProperty@field)(description = "The number of search hits to display for each page.") pageSize: Option[Int],
                                @(ApiModelProperty@field)(description = "Return only articles that have one of the provided ids") idList: List[Long],
                                @(ApiModelProperty@field)(description = "Return only articles of specific type(s)") articleTypes: List[String],
-                               @(ApiModelProperty@field)(description = "The sorting used on results. Default is by -relevance.") sort: Option[String]
+                               @(ApiModelProperty@field)(description = "The sorting used on results. Default is by -relevance.") sort: Option[String],
+                               @(ApiModelProperty@field)(description = "Return all matched articles whether they exist on selected language or not.") fallback: Option[Boolean]
 )

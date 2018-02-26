@@ -8,14 +8,16 @@
 
 package no.ndla.articleapi.controller
 
-import no.ndla.articleapi.model.api.{NewConcept, UpdatedConcept}
+import no.ndla.articleapi.model.api._
+import no.ndla.articleapi.model.api.FallbackTitleSortUnsupportedException
+import no.ndla.articleapi.model.domain.Sort
 import no.ndla.articleapi.{ArticleSwagger, TestData, TestEnvironment, UnitSuite}
 import org.json4s.native.Serialization.write
 import org.mockito.Mockito._
 import org.mockito.Matchers._
 import org.scalatra.test.scalatest.ScalatraFunSuite
 
-import scala.util.Success
+import scala.util.{Failure, Success}
 
 class ConceptControllerTest extends UnitSuite with TestEnvironment with ScalatraFunSuite {
   implicit val formats = org.json4s.DefaultFormats
@@ -30,14 +32,14 @@ class ConceptControllerTest extends UnitSuite with TestEnvironment with Scalatra
   val lang = "nb"
 
   test("/<concept_id> should return 200 if the cover was found") {
-    when(readService.conceptWithId(1, lang)).thenReturn(Some(TestData.sampleApiConcept))
+    when(readService.conceptWithId(1, lang, fallback = false)).thenReturn(Success(TestData.sampleApiConcept))
     get(s"/test/$conceptId?language=$lang") {
       status should equal(200)
     }
   }
 
   test("/<concept_id> should return 404 if the article was not found") {
-    when(readService.conceptWithId(conceptId, lang)).thenReturn(None)
+    when(readService.conceptWithId(conceptId, lang, fallback = false)).thenReturn(Failure(NotFoundException("nope")))
 
     get(s"/test/$conceptId?language=$lang") {
       status should equal(404)
@@ -48,6 +50,17 @@ class ConceptControllerTest extends UnitSuite with TestEnvironment with Scalatra
     get(s"/test/one") {
       status should equal(400)
     }
+  }
+
+  test("/ search fallback titlesort error test") {
+    val searchMock = mock[ConceptSummary]
+    when(conceptSearchService.all(any[List[Long]], any[String], any[Int], any[Int], any[Sort.Value], any[Boolean]))
+      .thenReturn(Failure(FallbackTitleSortUnsupportedException(Error.FALLBACK_TITLE_SORT)))
+
+    get("/test/", "ids" -> "1,2,3,4", "page-size" -> "10", "language" -> "nb", "fallback" -> "true", "sort" -> "title") {
+      status should equal(501)
+    }
+
   }
 
 }

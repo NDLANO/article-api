@@ -78,7 +78,7 @@ trait ConverterService {
 
       val supportedLanguages = getSupportedLanguages(titles, visualElements, introductions)
 
-      val title = findByLanguageOrBestEffort(titles, language).map(toApiArticleTitle).getOrElse(api.ArticleTitle("", DefaultLanguage))
+      val title = findByLanguageOrBestEffort(titles, language).map(toApiArticleTitle).getOrElse(api.ArticleTitle("", UnknownLanguage))
       val visualElement = findByLanguageOrBestEffort(visualElements, language).map(toApiVisualElement)
       val introduction = findByLanguageOrBestEffort(introductions, language).map(toApiArticleIntroduction)
       val metaDescription = findByLanguageOrBestEffort(metaDescriptions, language).map(toApiArticleMetaDescription)
@@ -424,19 +424,28 @@ trait ConverterService {
 
     def createLinkToOldNdla(nodeId: String): String = s"//red.ndla.no/node/$nodeId"
 
-    def toApiConcept(concept: Concept, language: String): api.Concept = {
-      val title = findByLanguageOrBestEffort(concept.title, language).map(toApiConceptTitle).getOrElse(api.ConceptTitle("", Language.DefaultLanguage))
-      val content = findByLanguageOrBestEffort(concept.content, language).map(toApiConceptContent).getOrElse(api.ConceptContent("", Language.DefaultLanguage))
-
-      api.Concept(
-        concept.id.get,
-        title,
-        content,
-        concept.copyright.map(toApiCopyright),
-        concept.created,
-        concept.updated,
-        concept.supportedLanguages
+    def toApiConcept(concept: Concept, language: String, fallback: Boolean): Try[api.Concept] = {
+      val supportedLanguages = getSupportedLanguages(
+        concept.title, concept.content
       )
+
+      if (supportedLanguages.contains(language) || language == AllLanguages || fallback) {
+        val title = findByLanguageOrBestEffort(concept.title, language).map(toApiConceptTitle).getOrElse(api.ConceptTitle("", Language.UnknownLanguage))
+        val content = findByLanguageOrBestEffort(concept.content, language).map(toApiConceptContent).getOrElse(api.ConceptContent("", Language.UnknownLanguage))
+
+        Success(api.Concept(
+          concept.id.get,
+          title,
+          content,
+          concept.copyright.map(toApiCopyright),
+          concept.created,
+          concept.updated,
+          supportedLanguages
+        ))
+      } else {
+        Failure(NotFoundException(s"The concept with id ${concept.id.get} and language $language was not found", supportedLanguages))
+      }
+
     }
 
     def toApiConceptTitle(title: ConceptTitle): api.ConceptTitle = api.ConceptTitle(title.title, title.language)
