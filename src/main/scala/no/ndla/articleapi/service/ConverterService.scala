@@ -47,12 +47,12 @@ trait ConverterService {
       */
     def getLanguageFromHit(result: SearchHit): Option[String] = {
       def keyToLanguage(keys: Iterable[String]): Option[String] = {
-        val langs = keys.toList.flatMap(key => key.split('.').toList match {
+        val keyLanguages = keys.toList.flatMap(key => key.split('.').toList match {
           case _ :: language :: _ => Some(language)
           case _ => None
-        }).toList
+        })
 
-        langs.sortBy(lang => {
+        keyLanguages.sortBy(lang => {
           ISO639.languagePriority.reverse.indexOf(lang)
         }).lastOption
       }

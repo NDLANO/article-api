@@ -95,12 +95,12 @@ case class SearchableArticle(
   license: String,
   authors: Seq[String],
   articleType: String,
-  defaultTitle: Option[String]
+  defaultTitle: Option[String] //TODO: Consider removing? Might be replaced by painless sorting
 )
 
 case class SearchableConcept(
   id: Long,
   title: SearchableLanguageValues,
   content: SearchableLanguageValues,
-  defaultTitle: Option[String]
+  defaultTitle: Option[String] //TODO: Consider removing? Might be replaced by painless sorting
 )

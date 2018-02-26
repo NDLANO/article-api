@@ -290,7 +290,7 @@ class ConceptSearchServiceTest extends UnitSuite with TestEnvironment {
     val title = "Batmen er på vift med en bil"
     val content = "Bilde av en <strong>bil</strong> flaggermusmann som vifter med vingene <em>bil</em>."
     val supportedLanguages = Set("nb")
-    val hitString = s"""{"id":$id,"title":{"nb":"$title"},"content":{"nb":"$content"},"defaultTitle":"$title"}"""
+    val hitString = s"""{"id":$id,"title":{"nb":"$title"},"content":{"nb":"$content"},"defaultTitle":"$title"}""" //TODO: rewrite test to new mapping format
 
     val result = conceptSearchService.hitToApiModel(hitString, "nb")
 

@@ -129,13 +129,12 @@ trait ArticleSearchService {
         Failure(FallbackTitleSortUnsupportedException())
       } else {
 
-        val hl = highlight("*").postTag("").preTag("").fragmentSize(0).order("score")
-
         val searchToExec =
           search(searchIndex)
             .size(numResults)
             .from(startAt)
-            .query(filteredSearch).highlighting(hl) // TODO: Innerhits / Highlighting
+            .query(filteredSearch)
+            .highlighting(highlight("*"))
             .sortBy(getSortDefinition(sort, searchLanguage))
 
         val json = e4sClient.httpClient.show(searchToExec) // TODO: remove
