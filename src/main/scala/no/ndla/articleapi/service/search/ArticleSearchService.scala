@@ -129,15 +129,13 @@ trait ArticleSearchService {
         Failure(FallbackTitleSortUnsupportedException())
       } else {
 
-        val searchToExec =
-          search(searchIndex)
-            .size(numResults)
-            .from(startAt)
-            .query(filteredSearch)
-            .highlighting(highlight("*"))
-            .sortBy(getSortDefinition(sort, searchLanguage))
+        val searchToExec = search(searchIndex)
+          .size(numResults)
+          .from(startAt)
+          .query(filteredSearch)
+          .highlighting(highlight("*"))
+          .sortBy(getSortDefinition(sort, searchLanguage))
 
-        val json = e4sClient.httpClient.show(searchToExec) // TODO: remove
         e4sClient.execute(searchToExec) match {
           case Success(response) =>
             Success(SearchResultV2(
@@ -166,4 +164,5 @@ trait ArticleSearchService {
     }
 
   }
+
 }

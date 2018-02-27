@@ -121,19 +121,17 @@ trait ConceptSearchService {
       if (requestedResultWindow > ArticleApiProperties.ElasticSearchIndexMaxResultWindow) {
         logger.info(s"Max supported results are ${ArticleApiProperties.ElasticSearchIndexMaxResultWindow}, user requested $requestedResultWindow")
         Failure(ResultWindowTooLargeException())
-      } else if (fallback && (sort == Sort.ByTitleAsc || sort == Sort.ByTitleDesc)){
+      } else if (fallback && (sort == Sort.ByTitleAsc || sort == Sort.ByTitleDesc)) {
         logger.info("User attempted to sort by title when using fallback parameter")
         Failure(FallbackTitleSortUnsupportedException())
       } else {
 
-        val searchToExec =
-          search(searchIndex)
-            .size(numResults)
-            .from(startAt)
-            .query(filteredSearch)
-            .sortBy(getSortDefinition(sort, searchLanguage))
-            .highlighting(highlight("*"))
-        val json = e4sClient.httpClient.show(searchToExec) // TODO: remove
+        val searchToExec = search(searchIndex)
+          .size(numResults)
+          .from(startAt)
+          .query(filteredSearch)
+          .sortBy(getSortDefinition(sort, searchLanguage))
+          .highlighting(highlight("*"))
 
         e4sClient.execute(searchToExec) match {
           case Success(response) =>
@@ -141,7 +139,7 @@ trait ConceptSearchService {
               response.result.totalHits,
               page,
               numResults,
-              if(language == "*") Language.AllLanguages else language,
+              if (language == "*") Language.AllLanguages else language,
               getHits(response.result, language, fallback)
             ))
           case Failure(ex) => errorHandler(ex)
@@ -163,4 +161,5 @@ trait ConceptSearchService {
     }
 
   }
+
 }
