@@ -38,22 +38,18 @@ trait ArticleIndexService {
       mapping(documentType).fields(
         List(
           intField("id"),
-          generateLanguageSupportedFieldList("title", keepRaw = true),
-          generateLanguageSupportedFieldList("content"),
-          generateLanguageSupportedFieldList("visualElement"),
-          generateLanguageSupportedFieldList("introduction"),
-          generateLanguageSupportedFieldList("metaDescription"),
-          generateLanguageSupportedFieldList("tags"),
           keywordField("defaultTitle"),
           dateField("lastUpdated"),
           keywordField("license"),
           textField("authors").fielddata(true),
           textField("articleType").analyzer("keyword")
-        ).flatMap {
-          case l: List[FieldDefinition] => l
-          case e: FieldDefinition => List(e)
-          case _ => None
-        }
+        ) ++
+          generateLanguageSupportedFieldList("title", keepRaw = true) ++
+          generateLanguageSupportedFieldList("content") ++
+          generateLanguageSupportedFieldList("visualElement") ++
+          generateLanguageSupportedFieldList("introduction") ++
+          generateLanguageSupportedFieldList("metaDescription") ++
+          generateLanguageSupportedFieldList("tags")
       )
     }
   }

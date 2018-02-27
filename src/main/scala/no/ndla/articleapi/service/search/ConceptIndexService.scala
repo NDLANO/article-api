@@ -38,15 +38,12 @@ trait ConceptIndexService {
       mapping(documentType).fields(
         List(
           intField("id"),
-          generateLanguageSupportedFieldList("title", keepRaw = true),
-          generateLanguageSupportedFieldList("content"),
           keywordField("defaultTitle")
-        ).flatMap {
-          case l: List[FieldDefinition] => l
-          case e: FieldDefinition => List(e)
-          case _ => None
-        }
+        ) ++
+          generateLanguageSupportedFieldList("title", keepRaw = true) ++
+          generateLanguageSupportedFieldList("content")
       )
     }
   }
+
 }
