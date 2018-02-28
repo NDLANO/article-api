@@ -102,6 +102,8 @@ trait SearchService {
       (startAt, numResults)
     }
 
+    protected def scheduleIndexDocuments(): Unit
+
     protected def errorHandler[U](failure: Throwable): Failure[U] = {
       failure match {
         case e: NdlaSearchException =>
@@ -117,8 +119,6 @@ trait SearchService {
         case t: Throwable => Failure(t)
       }
     }
-
-    protected def scheduleIndexDocuments(): Unit
 
   }
 }

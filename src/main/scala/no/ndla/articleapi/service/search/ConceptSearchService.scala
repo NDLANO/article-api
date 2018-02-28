@@ -17,7 +17,7 @@ import com.typesafe.scalalogging.LazyLogging
 import no.ndla.articleapi.ArticleApiProperties
 import no.ndla.articleapi.integration.Elastic4sClient
 import no.ndla.articleapi.model.api
-import no.ndla.articleapi.model.api.{FallbackTitleSortUnsupportedException, ResultWindowTooLargeException}
+import no.ndla.articleapi.model.api.ResultWindowTooLargeException
 import no.ndla.articleapi.model.domain._
 import no.ndla.articleapi.model.search.{SearchableConcept, SearchableLanguageFormats}
 import no.ndla.articleapi.service.ConverterService
@@ -121,10 +121,7 @@ trait ConceptSearchService {
       if (requestedResultWindow > ArticleApiProperties.ElasticSearchIndexMaxResultWindow) {
         logger.info(s"Max supported results are ${ArticleApiProperties.ElasticSearchIndexMaxResultWindow}, user requested $requestedResultWindow")
         Failure(ResultWindowTooLargeException())
-      } else if (fallback && (sort == Sort.ByTitleAsc || sort == Sort.ByTitleDesc)) {
-        logger.info("User attempted to sort by title when using fallback parameter")
-        Failure(FallbackTitleSortUnsupportedException())
-      } else {
+      }  else {
 
         val searchToExec = search(searchIndex)
           .size(numResults)

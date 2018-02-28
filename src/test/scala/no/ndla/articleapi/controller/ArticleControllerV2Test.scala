@@ -75,14 +75,4 @@ class ArticleControllerV2Test extends UnitSuite with TestEnvironment with Scalat
     }
   }
 
-  test("GET / should return different errors based on error") {
-    val searchMock = mock[SearchResultV2]
-    when(articleSearchService.all(any[List[Long]], any[String], any[Option[String]], any[Int], any[Int], any[Sort.Value], any[Seq[String]], any[Boolean]))
-      .thenReturn(Failure(FallbackTitleSortUnsupportedException(Error.FALLBACK_TITLE_SORT)))
-
-    get("/test/", "ids" -> "1,2,3,4", "page-size" -> "10", "language" -> "nb", "fallback" -> "true", "sort" -> "title") {
-      status should equal(501)
-    }
-  }
-
 }

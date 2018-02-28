@@ -31,7 +31,6 @@ object Error {
   val ACCESS_DENIED = "ACCESS DENIED"
   val WINDOW_TOO_LARGE = "RESULT_WINDOW_TOO_LARGE"
   val DATABASE_UNAVAILABLE = "DATABASE_UNAVAILABLE"
-  val FALLBACK_TITLE_SORT = "TITLE_SORTING"
 
   val VALIDATION_DESCRIPTION = "Validation Error"
   val GENERIC_DESCRIPTION = s"Ooops. Something we didn't anticipate occured. We have logged the error, and will look into it. But feel free to contact ${ArticleApiProperties.ContactEmail} if the error persists."
@@ -39,7 +38,6 @@ object Error {
   val RESOURCE_OUTDATED_DESCRIPTION = "The resource is outdated. Please try fetching before submitting again."
   val WINDOW_TOO_LARGE_DESCRIPTION = s"The result window is too large. Fetching pages above ${ArticleApiProperties.ElasticSearchIndexMaxResultWindow} results are unsupported."
   val DATABASE_UNAVAILABLE_DESCRIPTION = s"Database seems to be unavailable, retrying connection."
-  val FALLBACK_TITLE_SORT_DESCRIPTION = "Sorting by title when using the fallback parameter is unsupported."
 
 
   val GenericError = Error(GENERIC, GENERIC_DESCRIPTION)
@@ -54,4 +52,3 @@ class ImportExceptions(val message: String, val errors: Seq[Throwable]) extends 
 class OptimisticLockException(message: String = Error.RESOURCE_OUTDATED_DESCRIPTION) extends RuntimeException(message)
 class ConfigurationException(message: String) extends RuntimeException(message)
 case class ResultWindowTooLargeException(message: String = Error.WINDOW_TOO_LARGE_DESCRIPTION) extends RuntimeException(message)
-case class FallbackTitleSortUnsupportedException(message: String = Error.FALLBACK_TITLE_SORT_DESCRIPTION) extends RuntimeException(message)

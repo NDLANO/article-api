@@ -124,9 +124,6 @@ trait ArticleSearchService {
       if (requestedResultWindow > ArticleApiProperties.ElasticSearchIndexMaxResultWindow) {
         logger.info(s"Max supported results are ${ArticleApiProperties.ElasticSearchIndexMaxResultWindow}, user requested $requestedResultWindow")
         Failure(ResultWindowTooLargeException())
-      } else if (fallback && (sort == Sort.ByTitleAsc || sort == Sort.ByTitleDesc)) {
-        logger.info("User attempted to sort by title when using fallback parameter")
-        Failure(FallbackTitleSortUnsupportedException())
       } else {
 
         val searchToExec = search(searchIndex)
