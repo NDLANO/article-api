@@ -15,7 +15,7 @@ import com.typesafe.scalalogging.LazyLogging
 import no.ndla.articleapi.ArticleApiProperties
 import no.ndla.articleapi.integration.Elastic4sClient
 import no.ndla.articleapi.model.api
-import no.ndla.articleapi.model.api.{FallbackTitleSortUnsupportedException, ResultWindowTooLargeException, SearchResultV2}
+import no.ndla.articleapi.model.api.{ResultWindowTooLargeException, SearchResultV2}
 import no.ndla.articleapi.model.domain._
 import no.ndla.articleapi.service.ConverterService
 import no.ndla.network.ApplicationUrl
