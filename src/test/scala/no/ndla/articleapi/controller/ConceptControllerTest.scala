@@ -9,7 +9,6 @@
 package no.ndla.articleapi.controller
 
 import no.ndla.articleapi.model.api._
-import no.ndla.articleapi.model.api.FallbackTitleSortUnsupportedException
 import no.ndla.articleapi.model.domain.Sort
 import no.ndla.articleapi.{ArticleSwagger, TestData, TestEnvironment, UnitSuite}
 import org.json4s.native.Serialization.write
@@ -50,17 +49,6 @@ class ConceptControllerTest extends UnitSuite with TestEnvironment with Scalatra
     get(s"/test/one") {
       status should equal(400)
     }
-  }
-
-  test("/ search fallback titlesort error test") {
-    val searchMock = mock[ConceptSummary]
-    when(conceptSearchService.all(any[List[Long]], any[String], any[Int], any[Int], any[Sort.Value], any[Boolean]))
-      .thenReturn(Failure(FallbackTitleSortUnsupportedException(Error.FALLBACK_TITLE_SORT)))
-
-    get("/test/", "ids" -> "1,2,3,4", "page-size" -> "10", "language" -> "nb", "fallback" -> "true", "sort" -> "title") {
-      status should equal(501)
-    }
-
   }
 
 }

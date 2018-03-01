@@ -17,13 +17,16 @@ import com.typesafe.scalalogging.LazyLogging
 import no.ndla.articleapi.ArticleApiProperties
 import no.ndla.articleapi.integration.Elastic4sClient
 import no.ndla.articleapi.model.api
-import no.ndla.articleapi.model.api.{FallbackTitleSortUnsupportedException, ResultWindowTooLargeException}
+import no.ndla.articleapi.model.api.ResultWindowTooLargeException
 import no.ndla.articleapi.model.domain._
+import no.ndla.articleapi.model.search.{SearchableConcept, SearchableLanguageFormats}
 import no.ndla.articleapi.service.ConverterService
 import org.elasticsearch.ElasticsearchException
 import org.elasticsearch.index.IndexNotFoundException
 import org.json4s.{DefaultFormats, _}
 import org.json4s.native.JsonMethods._
+import org.json4s.native.Serialization.read
+import no.ndla.articleapi.model.domain.Language.getSupportedLanguages
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.{ExecutionContext, Future}
@@ -38,17 +41,19 @@ trait ConceptSearchService {
     override val searchIndex: String = ArticleApiProperties.ConceptSearchIndex
 
     override def hitToApiModel(hitString: String, language: String): api.ConceptSummary = {
-      val hit = parse(hitString)
-      val titles = (hit \ "title").extract[Map[String, String]].map(title => ConceptTitle(title._2, title._1)).toSeq
-      val contents = (hit \ "content").extract[Map[String, String]].map(content => ConceptContent(content._2, content._1)).toSeq
+      implicit val formats: Formats = SearchableLanguageFormats.JSonFormats
+      val searchableConcept = read[SearchableConcept](hitString)
 
-      val supportedLanguages = (titles union contents).map(_.language).toSet
+      val titles = searchableConcept.title.languageValues.map(lv => ConceptTitle(lv.value, lv.lang))
+      val contents = searchableConcept.content.languageValues.map(lv => ConceptContent(lv.value, lv.lang))
+
+      val supportedLanguages = getSupportedLanguages(titles, contents)
 
       val title = Language.findByLanguageOrBestEffort(titles, language).map(converterService.toApiConceptTitle).getOrElse(api.ConceptTitle("", Language.UnknownLanguage))
       val concept = Language.findByLanguageOrBestEffort(contents, language).map(converterService.toApiConceptContent).getOrElse(api.ConceptContent("", Language.UnknownLanguage))
 
       api.ConceptSummary(
-        (hit \ "id").extract[Long],
+        searchableConcept.id,
         title,
         concept,
         supportedLanguages
@@ -75,14 +80,12 @@ trait ConceptSearchService {
       val titleSearch = simpleStringQuery(query).field(s"title.$language", 2)
       val contentSearch = simpleStringQuery(query).field(s"content.$language", 1)
 
-      val hi = highlight("*").preTag("").postTag("").numberOfFragments(0)
-
       val fullQuery = boolQuery()
         .must(
           boolQuery()
             .should(
-              nestedQuery("title", titleSearch).scoreMode(ScoreMode.Avg).inner(innerHits("title").highlighting(hi)),
-              nestedQuery("content", contentSearch).scoreMode(ScoreMode.Avg).inner(innerHits("content").highlighting(hi))
+              titleSearch,
+              contentSearch
             )
         )
 
@@ -106,7 +109,7 @@ trait ConceptSearchService {
         case lang =>
           fallback match {
             case true => (None, "*")
-            case false => (Some(nestedQuery("title", existsQuery(s"title.$lang")).scoreMode(ScoreMode.Avg)), lang)
+            case false => (Some(existsQuery(s"title.$lang")), lang)
           }
       }
 
@@ -118,19 +121,22 @@ trait ConceptSearchService {
       if (requestedResultWindow > ArticleApiProperties.ElasticSearchIndexMaxResultWindow) {
         logger.info(s"Max supported results are ${ArticleApiProperties.ElasticSearchIndexMaxResultWindow}, user requested $requestedResultWindow")
         Failure(ResultWindowTooLargeException())
-      } else if (fallback && (sort == Sort.ByTitleAsc || sort == Sort.ByTitleDesc)){
-        logger.info("User attempted to sort by title when using fallback parameter")
-        Failure(FallbackTitleSortUnsupportedException())
-      } else {
-        e4sClient.execute{
-          search(searchIndex).size(numResults).from(startAt).query(filteredSearch).sortBy(getSortDefinition(sort, searchLanguage))
-        } match {
+      }  else {
+
+        val searchToExec = search(searchIndex)
+          .size(numResults)
+          .from(startAt)
+          .query(filteredSearch)
+          .sortBy(getSortDefinition(sort, searchLanguage))
+          .highlighting(highlight("*"))
+
+        e4sClient.execute(searchToExec) match {
           case Success(response) =>
             Success(api.ConceptSearchResult(
               response.result.totalHits,
               page,
               numResults,
-              if(language == "*") Language.AllLanguages else language,
+              if (language == "*") Language.AllLanguages else language,
               getHits(response.result, language, fallback)
             ))
           case Failure(ex) => errorHandler(ex)
@@ -152,4 +158,5 @@ trait ConceptSearchService {
     }
 
   }
+
 }

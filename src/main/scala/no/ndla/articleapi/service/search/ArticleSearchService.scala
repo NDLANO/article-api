@@ -15,7 +15,7 @@ import com.typesafe.scalalogging.LazyLogging
 import no.ndla.articleapi.ArticleApiProperties
 import no.ndla.articleapi.integration.Elastic4sClient
 import no.ndla.articleapi.model.api
-import no.ndla.articleapi.model.api.{FallbackTitleSortUnsupportedException, ResultWindowTooLargeException, SearchResultV2}
+import no.ndla.articleapi.model.api.{ResultWindowTooLargeException, SearchResultV2}
 import no.ndla.articleapi.model.domain._
 import no.ndla.articleapi.service.ConverterService
 import no.ndla.network.ApplicationUrl
@@ -73,17 +73,15 @@ trait ArticleSearchService {
       val contentSearch = simpleStringQuery(query).field(s"content.$language", 1)
       val tagSearch = simpleStringQuery(query).field(s"tags.$language", 1)
 
-      val hi = highlight("*").preTag("").postTag("").numberOfFragments(0)
-
       val fullQuery = boolQuery()
         .must(
           boolQuery()
             .should(
-              nestedQuery("title", titleSearch).scoreMode(ScoreMode.Avg).inner(innerHits("title").highlighting(hi)),
-              nestedQuery("introduction", introSearch).scoreMode(ScoreMode.Avg).inner(innerHits("introduction").highlighting(hi)),
-              nestedQuery("metaDescription", metaSearch).scoreMode(ScoreMode.Avg).inner(innerHits("metaDescription").highlighting(hi)),
-              nestedQuery("content", contentSearch).scoreMode(ScoreMode.Avg).inner(innerHits("content").highlighting(hi)),
-              nestedQuery("tags", tagSearch).scoreMode(ScoreMode.Avg).inner(innerHits("tags").highlighting(hi))
+              titleSearch,
+              introSearch,
+              metaSearch,
+              contentSearch,
+              tagSearch
             )
         )
 
@@ -114,7 +112,7 @@ trait ArticleSearchService {
         case lang =>
           fallback match {
             case true => (None, "*")
-            case false => (Some(nestedQuery("title", existsQuery(s"title.$lang")).scoreMode(ScoreMode.Avg)), lang)
+            case false => (Some(existsQuery(s"title.$lang")), lang)
           }
       }
 
@@ -126,13 +124,16 @@ trait ArticleSearchService {
       if (requestedResultWindow > ArticleApiProperties.ElasticSearchIndexMaxResultWindow) {
         logger.info(s"Max supported results are ${ArticleApiProperties.ElasticSearchIndexMaxResultWindow}, user requested $requestedResultWindow")
         Failure(ResultWindowTooLargeException())
-      } else if (fallback && (sort == Sort.ByTitleAsc || sort == Sort.ByTitleDesc)) {
-        logger.info("User attempted to sort by title when using fallback parameter")
-        Failure(FallbackTitleSortUnsupportedException())
       } else {
-        e4sClient.execute{
-          search(searchIndex).size(numResults).from(startAt).query(filteredSearch).sortBy(getSortDefinition(sort, searchLanguage))
-        } match {
+
+        val searchToExec = search(searchIndex)
+          .size(numResults)
+          .from(startAt)
+          .query(filteredSearch)
+          .highlighting(highlight("*"))
+          .sortBy(getSortDefinition(sort, searchLanguage))
+
+        e4sClient.execute(searchToExec) match {
           case Success(response) =>
             Success(SearchResultV2(
               response.result.totalHits,
@@ -160,4 +161,5 @@ trait ArticleSearchService {
     }
 
   }
+
 }
