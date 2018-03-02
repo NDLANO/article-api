@@ -12,7 +12,7 @@ package no.ndla.articleapi.repository
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.articleapi.ArticleApiProperties
 import no.ndla.articleapi.integration.DataSource
-import no.ndla.articleapi.model.api.OptimisticLockException
+import no.ndla.articleapi.model.api.{NotFoundException, OptimisticLockException}
 import no.ndla.articleapi.model.domain.{Article, ArticleIds, ArticleTag}
 import org.json4s.native.JsonMethods._
 import org.json4s.native.Serialization.write
@@ -139,7 +139,14 @@ trait ArticleRepository {
       }
     }
 
-    def delete(articleId: Long)(implicit session: DBSession = AutoSession) = sql"delete from ${Article.table} where id = $articleId".update().apply
+    def delete(articleId: Long)(implicit session: DBSession = AutoSession): Try[Long] = {
+      val numRows = sql"delete from ${Article.table} where id = $articleId".update().apply
+      if (numRows == 1) {
+        Success(articleId)
+      } else {
+        Failure(NotFoundException(s"Article with id $articleId does not exist"))
+      }
+    }
 
     def withId(articleId: Long): Option[Article] = articleWhere(sqls"ar.id=${articleId.toInt}")
 

@@ -10,6 +10,7 @@ package no.ndla.articleapi.repository
 
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.articleapi.integration.DataSource
+import no.ndla.articleapi.model.api.NotFoundException
 import no.ndla.articleapi.model.domain.Concept
 import org.json4s.Formats
 import org.postgresql.util.PGobject
@@ -117,8 +118,15 @@ trait ConceptRepository {
     def exists(externalId: String): Boolean =
       getIdFromExternalId(externalId).isDefined
 
-    def delete(id: Long)(implicit session: DBSession = AutoSession) =
-      sql"delete from ${Concept.table} where id = $id".update().apply
+    def delete(id: Long)(implicit session: DBSession = AutoSession) = {
+      val numRows = sql"delete from ${Concept.table} where id = $id".update().apply
+
+      if (numRows == 1) {
+        Success(id)
+      } else {
+        Failure(NotFoundException(s"Concept with id $id does not exist"))
+      }
+    }
 
     override def minMaxId(implicit session: DBSession = AutoSession): (Long, Long) = {
       sql"select coalesce(MIN(id),0) as mi, coalesce(MAX(id),0) as ma from ${Concept.table}".map(rs => {
