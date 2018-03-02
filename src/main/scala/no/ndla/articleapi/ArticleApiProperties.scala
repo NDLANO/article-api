@@ -40,7 +40,7 @@ object ArticleApiProperties extends LazyLogging {
 
   val AttachmentStorageName = s"$Environment.article-attachments.ndla"
 
-  val SearchServer: String = propOrElse("SEARCH_SERVER", "http://search-article-api.ndla-local")
+  val SearchServer: String = propOrElse("SEARCH_SERVER", "http://search-multi.ndla-local")
   val SearchRegion: String = propOrElse("SEARCH_REGION", "eu-central-1")
   val RunWithSignedSearchRequests: Boolean = propOrElse("RUN_WITH_SIGNED_SEARCH_REQUESTS", "true").toBoolean
   val ArticleSearchIndex: String = propOrElse("SEARCH_INDEX_NAME", "articles")
