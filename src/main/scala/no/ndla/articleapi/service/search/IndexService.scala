@@ -186,7 +186,7 @@ trait IndexService {
     def cleanupIndexes(indexName: String = searchIndex): Try[String] = {
       e4sClient.execute(getAliases()) match {
         case Success(s) =>
-          val indexes = s.result.mappings.filter(_._1.name.startsWith(searchIndex))
+          val indexes = s.result.mappings.filter(_._1.name.startsWith(indexName))
           val unreferencedIndexes = indexes.filter(_._2.isEmpty).map(_._1.name).toList
           val (aliasTarget, aliasIndexesToDelete) = indexes.filter(_._2.nonEmpty).map(_._1.name) match {
             case head :: tail =>

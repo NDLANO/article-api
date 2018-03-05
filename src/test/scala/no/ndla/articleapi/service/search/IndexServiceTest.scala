@@ -18,6 +18,15 @@ class IndexServiceTest extends UnitSuite with TestEnvironment {
     override val searchIndex = s"${testIndexPrefix}_article"
   }
 
+  private def deleteIndexesThatStartWith(startsWith: String): Unit = {
+    val Success(result) = e4sClient.execute(getAliases())
+    val toDelete = result.result.mappings.filter(_._1.name.startsWith(startsWith)).map(_._1.name)
+
+    if(toDelete.nonEmpty) {
+      e4sClient.execute(deleteIndex(toDelete))
+    }
+  }
+
   test("That cleanupIndexes does not delete others indexes") {
     val image1Name = s"${testIndexPrefix}_image_1"
     val article1Name = s"${testIndexPrefix}_article_1"
@@ -45,6 +54,6 @@ class IndexServiceTest extends UnitSuite with TestEnvironment {
   }
 
   override def afterAll =  {
-    articleIndexService.cleanupIndexes(testIndexPrefix)
+    deleteIndexesThatStartWith(testIndexPrefix)
   }
 }
