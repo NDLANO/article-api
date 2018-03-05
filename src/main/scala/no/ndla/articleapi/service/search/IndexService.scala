@@ -57,7 +57,6 @@ trait IndexService {
           numIndexed <- sendToElastic(indexName)
           aliasTarget <- getAliasTarget
           _ <- updateAliasTarget(aliasTarget, indexName)
-          _ <- deleteIndexWithName(aliasTarget)
         } yield numIndexed
 
         operations match {
@@ -197,15 +196,22 @@ trait IndexService {
               ("", List.empty)
           }
 
-          e4sClient.execute {
-            deleteIndex(unreferencedIndexes ++ aliasIndexesToDelete)
-          } match {
-            case Success(_) =>
-              logger.info(s"Successfully deleted unreferenced and redundant indexes.")
-              Success(aliasTarget)
-            case Failure(ex) =>
-              logger.error("Could not delete unreferenced and redundant indexes.")
-              Failure(ex)
+          val toDelete = unreferencedIndexes ++ aliasIndexesToDelete
+
+          if (toDelete.isEmpty){
+            logger.info("No indexes to be deleted.")
+            Success(aliasTarget)
+          } else {
+            e4sClient.execute {
+              deleteIndex(toDelete)
+            } match {
+              case Success(_) =>
+                logger.info(s"Successfully deleted unreferenced and redundant indexes.")
+                Success(aliasTarget)
+              case Failure(ex) =>
+                logger.error("Could not delete unreferenced and redundant indexes.")
+                Failure(ex)
+            }
           }
         case Failure(ex) =>
           logger.warn("Could not fetch aliases after updating alias.")
