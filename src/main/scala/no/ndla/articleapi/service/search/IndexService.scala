@@ -110,18 +110,18 @@ trait IndexService {
       }
     }
 
-    def deleteDocument(contentId: Long): Try[_] = {
+    def deleteDocument(contentId: Long): Try[Long] = {
       for {
         _ <- getAliasTarget.map {
           case Some(index) => Success(index)
           case None => createIndexWithGeneratedName.map(newIndex => updateAliasTarget(None, newIndex))
         }
-        deleted <- {
+        _ <- {
           e4sClient.execute {
             delete(s"$contentId").from(searchIndex / documentType)
           }
         }
-      } yield deleted
+      } yield contentId
     }
 
     def createIndexWithGeneratedName: Try[String] = createIndexWithName(searchIndex + "_" + getTimestamp)

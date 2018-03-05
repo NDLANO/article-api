@@ -123,12 +123,28 @@ trait InternController {
       }
     }
 
+    delete("/article/:id/") {
+      authRole.assertHasWritePermission()
+      writeService.deleteArticle(long("id")) match {
+        case Success(a) => a
+        case Failure(ex) => errorHandler(ex)
+      }
+    }
+
     post("/concept/:id") {
       authRole.assertHasWritePermission()
       val id = long("id")
       val concept = extract[Concept](request.body)
 
       writeService.updateConcept(id, concept) match {
+        case Success(c) => c
+        case Failure(ex) => errorHandler(ex)
+      }
+    }
+
+    delete("/concept/:id/") {
+      authRole.assertHasWritePermission()
+      writeService.deleteConcept(long("id")) match {
         case Success(c) => c
         case Failure(ex) => errorHandler(ex)
       }
