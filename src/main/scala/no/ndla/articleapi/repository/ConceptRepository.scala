@@ -106,6 +106,11 @@ trait ConceptRepository {
       }
     }
 
+    def getConceptsByPage(pageSize: Int, offset: Int)(implicit session: DBSession = AutoSession): Seq[Concept] = {
+      val co = Concept.syntax("co")
+      sql"select ${co.result.*} from ${Concept.as(co)} where document is not NULL offset $offset limit $pageSize".map(Concept(co)).list.apply()
+    }
+
     def withId(id: Long): Option[Concept] =
       conceptWhere(sqls"co.id=${id.toInt}")
 

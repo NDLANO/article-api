@@ -22,7 +22,7 @@ import no.ndla.articleapi.service.search.{ArticleIndexService, ConceptIndexServi
 import no.ndla.articleapi.validation.ContentValidator
 import no.ndla.validation.ValidationException
 import org.json4s.{DefaultFormats, Formats}
-import org.scalatra.{InternalServerError, NotFound, Ok}
+import org.scalatra.{BadRequest, InternalServerError, NotFound, Ok}
 
 import scala.concurrent._
 import scala.concurrent.duration.Duration
@@ -101,6 +101,22 @@ trait InternController {
       val fallback = booleanOrDefault("fallback", default = false)
 
       readService.getArticlesByPage(pageNo, pageSize, lang, fallback)
+    }
+
+    get("/dump/:content_type") {
+      val pageNo = intOrDefault("page", 1)
+      val pageSize = intOrDefault("page-size", 250)
+
+      val contentType = paramOrNone("content_type")
+
+      contentType match {
+        case Some("article") =>
+          readService.getArticleDomainDump(pageNo, pageSize)
+        case Some("concept") =>
+          readService.getConceptDomainDump(pageNo, pageSize)
+        case _ =>
+          BadRequest("Type not supported\n")
+      }
     }
 
     post("/validate/article") {
