@@ -12,6 +12,7 @@ package no.ndla.articleapi.service.search
 import java.text.SimpleDateFormat
 import java.util.Calendar
 
+import com.sksamuel.elastic4s.alias.AliasActionDefinition
 import com.typesafe.scalalogging.LazyLogging
 import com.sksamuel.elastic4s.http.ElasticDsl._
 import com.sksamuel.elastic4s.indexes.IndexDefinition
@@ -56,7 +57,6 @@ trait IndexService {
           numIndexed <- sendToElastic(indexName)
           aliasTarget <- getAliasTarget
           _ <- updateAliasTarget(aliasTarget, indexName)
-          _ <- deleteIndexWithName(aliasTarget)
         } yield numIndexed
 
         operations match {
@@ -70,16 +70,13 @@ trait IndexService {
     }
 
     def sendToElastic(indexName: String): Try[Int] = {
-      var numIndexed = 0
       getRanges.map(ranges => {
-        ranges.foreach(range => {
-          val numberInBulk = indexDocuments(repository.documentsWithIdBetween(range._1, range._2), indexName)
-          numberInBulk match {
-            case Success(num) => numIndexed += num
-            case Failure(f) => return Failure(f)
-          }
-        })
-        numIndexed
+        ranges.map(range => {
+          indexDocuments(repository.documentsWithIdBetween(range._1, range._2), indexName)
+        }).map({
+          case Success(s) => s
+          case Failure(ex) => return Failure(ex)
+        }).sum
       })
     }
 
@@ -159,16 +156,68 @@ trait IndexService {
       if (!indexWithNameExists(newIndexName).getOrElse(false)) {
         Failure(new IllegalArgumentException(s"No such index: $newIndexName"))
       } else {
-        oldIndexName match {
-          case None =>
-            e4sClient.execute(addAlias(searchIndex).on(newIndexName))
-          case Some(oldIndex) =>
-            e4sClient.execute {
-              removeAlias(searchIndex).on(oldIndex)
-              addAlias(searchIndex).on(newIndexName)
-            }
+        val actions = oldIndexName match {
+        case None =>
+          List[AliasActionDefinition](addAlias(searchIndex).on(newIndexName))
+        case Some(oldIndex) =>
+          List[AliasActionDefinition](
+            removeAlias(searchIndex).on(oldIndex),
+            addAlias(searchIndex).on(newIndexName))
         }
+
+        e4sClient.execute(aliases(actions)) match {
+          case Success(_) =>
+            logger.info("Alias target updated successfully, deleting other indexes.")
+            cleanupIndexes()
+          case Failure(ex) =>
+            logger.error("Could not update alias target.")
+            Failure(ex)
+        }
+
       }
+    }
+
+    /**
+      * Deletes every index that is not in use by this indexService.
+      * Only indexes starting with indexName are deleted.
+      * @param indexName Start of index names that is deleted if not aliased.
+      * @return Name of aliasTarget.
+      */
+    def cleanupIndexes(indexName: String = searchIndex): Try[String] = {
+      e4sClient.execute(getAliases()) match {
+        case Success(s) =>
+          val indexes = s.result.mappings.filter(_._1.name.startsWith(indexName))
+          val unreferencedIndexes = indexes.filter(_._2.isEmpty).map(_._1.name).toList
+          val (aliasTarget, aliasIndexesToDelete) = indexes.filter(_._2.nonEmpty).map(_._1.name) match {
+            case head :: tail =>
+              (head, tail)
+            case _ =>
+              logger.warn("No alias found, when attempting to clean up indexes.")
+              ("", List.empty)
+          }
+
+          val toDelete = unreferencedIndexes ++ aliasIndexesToDelete
+
+          if (toDelete.isEmpty){
+            logger.info("No indexes to be deleted.")
+            Success(aliasTarget)
+          } else {
+            e4sClient.execute {
+              deleteIndex(toDelete)
+            } match {
+              case Success(_) =>
+                logger.info(s"Successfully deleted unreferenced and redundant indexes.")
+                Success(aliasTarget)
+              case Failure(ex) =>
+                logger.error("Could not delete unreferenced and redundant indexes.")
+                Failure(ex)
+            }
+          }
+        case Failure(ex) =>
+          logger.warn("Could not fetch aliases after updating alias.")
+          Failure(ex)
+      }
+
     }
 
     def deleteIndexWithName(optIndexName: Option[String]): Try[_] = {

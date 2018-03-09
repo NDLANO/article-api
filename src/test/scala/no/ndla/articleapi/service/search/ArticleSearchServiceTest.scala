@@ -159,7 +159,7 @@ class ArticleSearchServiceTest extends UnitSuite with TestEnvironment {
   }
 
   override def afterAll() = {
-    articleIndexService.deleteIndexWithName(Some(ArticleApiProperties.ArticleSearchIndex))
+    articleIndexService.cleanupIndexes(ArticleApiProperties.ArticleSearchIndex)
   }
 
   test("That getStartAtAndNumResults returns SEARCH_MAX_PAGE_SIZE for value greater than SEARCH_MAX_PAGE_SIZE") {
