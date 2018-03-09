@@ -10,5 +10,6 @@ case class ConceptSearchParams(@(ApiModelProperty@field)(description = "The sear
                                @(ApiModelProperty@field)(description = "The page number of the search hits to display.") page: Option[Int],
                                @(ApiModelProperty@field)(description = "The number of search hits to display for each page.") pageSize: Option[Int],
                                @(ApiModelProperty@field)(description = "Return only articles that have one of the provided ids") idList: List[Long],
-                               @(ApiModelProperty@field)(description = "The sorting used on results. Default is by -relevance.") sort: Option[String]
+                               @(ApiModelProperty@field)(description = "The sorting used on results. Default is by -relevance.") sort: Option[String],
+                               @(ApiModelProperty@field)(description = "Return all matched concepts whether they exist on selected language or not.") fallback: Option[Boolean]
 )

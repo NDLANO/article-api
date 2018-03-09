@@ -51,7 +51,7 @@ object TestData {
     api.ArticleTitle("title", "nb"),
     api.ArticleContentV2("content", "nb"),
     api.Copyright(api.License("by", Some("Creative Commons Attribution 2.0 Generic"), Some("https://creativecommons.org/licenses/by/2.0/")), "", List(), List(), List(), None, None, None),
-    api.ArticleTag(Seq(), "nb"),
+    api.ArticleTag(Seq("tag"), "nb"),
     Seq(),
     None,
     Some(api.ArticleMetaImage(s"${externalApiUrls("raw-image")}/11", "nb")),
@@ -88,7 +88,7 @@ object TestData {
     Seq(ArticleTitle("title", "nb")),
     Seq(ArticleContent("content", "nb")),
     Copyright("by", "", Seq(), Seq(), Seq(), None, None, None),
-    Seq(),
+    Seq(ArticleTag(Seq("tag"), "nb")),
     Seq(),
     Seq(),
     Seq(),
@@ -233,7 +233,7 @@ object TestData {
     Some(api.Copyright(api.License("publicdomain", None, None), "", Seq(), Seq(), Seq(), None, None, None)),
     DateTime.now().minusDays(4).toDate,
     DateTime.now().minusDays(2).toDate,
-    Set("nb")
+    Seq("nb")
   )
 
   val sampleNewConcept = NewConcept(

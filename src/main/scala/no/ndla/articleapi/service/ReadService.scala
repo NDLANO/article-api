@@ -32,10 +32,10 @@ trait ReadService {
     def getInternalIdByExternalId(externalId: Long): Option[api.ArticleIdV2] =
       articleRepository.getIdFromExternalId(externalId.toString).map(api.ArticleIdV2)
 
-    def withIdV2(id: Long, language: String): Try[api.ArticleV2] = {
+    def withIdV2(id: Long, language: String, fallback: Boolean = false): Try[api.ArticleV2] = {
       articleRepository.withId(id).map(addUrlsOnEmbedResources) match {
         case None => Failure(NotFoundException(s"The article with id $id was not found"))
-        case Some(article) => converterService.toApiArticleV2(article, language)
+        case Some(article) => converterService.toApiArticleV2(article, language, fallback)
       }
     }
 
@@ -54,10 +54,10 @@ trait ReadService {
         .map(tags => api.ArticleTag(tags.getNMostFrequent(n), searchLanguage))
     }
 
-    def getArticlesByPage(pageNo: Int, pageSize: Int, lang: String): api.ArticleDump = {
+    def getArticlesByPage(pageNo: Int, pageSize: Int, lang: String, fallback: Boolean = false): api.ArticleDump = {
       val (safePageNo, safePageSize) = (max(pageNo, 1), max(pageSize, 0))
       val results = articleRepository.getArticlesByPage(safePageSize, (safePageNo - 1) * safePageSize)
-        .flatMap(article => converterService.toApiArticleV2(article, lang).toOption)
+        .flatMap(article => converterService.toApiArticleV2(article, lang, fallback).toOption)
 
       api.ArticleDump(articleRepository.articleCount, pageNo, pageSize, lang, results)
     }
@@ -96,8 +96,11 @@ trait ReadService {
       def getNMostFrequent(n: Int): Seq[String] = mostFrequentOccorencesDec.slice(0, n)
     }
 
-    def conceptWithId(id: Long, language: String): Option[api.Concept] =
-      conceptRepository.withId(id).map(concept => converterService.toApiConcept(concept, language))
+    def conceptWithId(id: Long, language: String, fallback: Boolean): Try[api.Concept] =
+      conceptRepository.withId(id) match {
+        case None => Failure(NotFoundException(s"The concept with id $id was not found"))
+        case Some(concept) => converterService.toApiConcept(concept, language, fallback)
+      }
 
     def getContentByExternalId(externalId: String): Option[Content] =
       articleRepository.withExternalId(externalId) orElse conceptRepository.withExternalId(externalId)

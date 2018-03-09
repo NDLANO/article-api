@@ -13,6 +13,7 @@ import javax.servlet.http.HttpServletRequest
 
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.articleapi.ArticleApiProperties.{CorrelationIdHeader, CorrelationIdKey}
+import no.ndla.articleapi.ComponentRegistry
 import no.ndla.articleapi.model.api.{AccessDeniedException, Error, ImportException, ImportExceptions, NotFoundException, OptimisticLockException, ResultWindowTooLargeException, ValidationError}
 import no.ndla.articleapi.model.domain.emptySomeToNone
 import no.ndla.network.{ApplicationUrl, AuthUser, CorrelationID}
@@ -21,6 +22,7 @@ import org.apache.logging.log4j.ThreadContext
 import org.elasticsearch.index.IndexNotFoundException
 import org.json4s.native.Serialization.read
 import org.json4s.{DefaultFormats, Formats}
+import org.postgresql.util.PSQLException
 import org.scalatra.json.NativeJsonSupport
 import org.scalatra.{BadRequest, InternalServerError, NotFound, ScalatraServlet, _}
 
@@ -49,10 +51,13 @@ abstract class NdlaController extends ScalatraServlet with NativeJsonSupport wit
     case a: AccessDeniedException => Forbidden(body = Error(Error.ACCESS_DENIED, a.getMessage))
     case v: ValidationException => BadRequest(body=ValidationError(messages=v.errors))
     case _: IndexNotFoundException => InternalServerError(body=Error.IndexMissingError)
-    case NotFoundException(message, List()) => NotFound(body=Error(Error.NOT_FOUND, message))
+    case NotFoundException(message, sl) if sl.isEmpty => NotFound(body=Error(Error.NOT_FOUND, message))
     case NotFoundException(message, supportedLanguages) => NotFound(body=Error(Error.NOT_FOUND, message, supportedLanguages = Some(supportedLanguages)))
     case o: OptimisticLockException => Conflict(body=Error(Error.RESOURCE_OUTDATED, o.getMessage))
     case rw: ResultWindowTooLargeException => UnprocessableEntity(body=Error(Error.WINDOW_TOO_LARGE, rw.getMessage))
+    case _: PSQLException =>
+      ComponentRegistry.connectToDatabase()
+      InternalServerError(Error(Error.DATABASE_UNAVAILABLE, Error.DATABASE_UNAVAILABLE_DESCRIPTION))
     case t: Throwable =>
       logger.error(Error.GenericError.toString, t)
       InternalServerError(body=Error.GenericError)
@@ -114,6 +119,8 @@ abstract class NdlaController extends ScalatraServlet with NativeJsonSupport wit
       case Success(data) => data
     }
   }
+
+  case class Param(paramName:String, description:String)
 
 }
 

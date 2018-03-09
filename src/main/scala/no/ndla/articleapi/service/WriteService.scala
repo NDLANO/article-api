@@ -26,7 +26,9 @@ trait WriteService {
     with ArticleIndexService
     with Clock
     with User
-    with ReadService =>
+    with ReadService
+    with ArticleIndexService
+    with ConceptIndexService =>
   val writeService: WriteService
 
   class WriteService {
@@ -70,6 +72,18 @@ trait WriteService {
         domainConcept <- conceptRepository.updateConceptFromDraftApi(concept.copy(id=Some(id)))
         _ <- conceptIndexService.indexDocument(domainConcept)
       } yield domainConcept
+    }
+
+    def deleteArticle(id: Long): Try[api.ArticleIdV2] = {
+      articleRepository.delete(id)
+        .flatMap(articleIndexService.deleteDocument)
+        .map(api.ArticleIdV2)
+    }
+
+    def deleteConcept(id: Long): Try[api.ArticleIdV2] = {
+      conceptRepository.delete(id)
+        .flatMap(conceptIndexService.deleteDocument)
+        .map(api.ArticleIdV2)
     }
 
   }

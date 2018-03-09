@@ -9,7 +9,7 @@
 
 package no.ndla.articleapi.controller
 
-import java.util.concurrent.TimeUnit
+import java.util.concurrent.{Executors, TimeUnit}
 
 import no.ndla.articleapi.auth.{Role, User}
 import no.ndla.articleapi.model.api.{ArticleIdV2, UpdatedConcept}
@@ -24,7 +24,6 @@ import no.ndla.validation.ValidationException
 import org.json4s.{DefaultFormats, Formats}
 import org.scalatra.{InternalServerError, NotFound, Ok}
 
-import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent._
 import scala.concurrent.duration.Duration
 import scala.util.{Failure, Success}
@@ -47,6 +46,7 @@ trait InternController {
     protected implicit override val jsonFormats: Formats = DefaultFormats
 
     post("/index") {
+      implicit val ec = ExecutionContext.fromExecutorService(Executors.newSingleThreadExecutor)
       val indexResults = for {
         articleIndex <- Future { articleIndexService.indexDocuments }
         conceptIndex <- Future { conceptIndexService.indexDocuments }
@@ -98,8 +98,9 @@ trait InternController {
       val pageNo = intOrDefault("page", 1)
       val pageSize = intOrDefault("page-size", 250)
       val lang = paramOrDefault("language", Language.AllLanguages)
+      val fallback = booleanOrDefault("fallback", default = false)
 
-      readService.getArticlesByPage(pageNo, pageSize, lang)
+      readService.getArticlesByPage(pageNo, pageSize, lang, fallback)
     }
 
     post("/validate/article") {
@@ -122,12 +123,28 @@ trait InternController {
       }
     }
 
+    delete("/article/:id/") {
+      authRole.assertHasWritePermission()
+      writeService.deleteArticle(long("id")) match {
+        case Success(a) => a
+        case Failure(ex) => errorHandler(ex)
+      }
+    }
+
     post("/concept/:id") {
       authRole.assertHasWritePermission()
       val id = long("id")
       val concept = extract[Concept](request.body)
 
       writeService.updateConcept(id, concept) match {
+        case Success(c) => c
+        case Failure(ex) => errorHandler(ex)
+      }
+    }
+
+    delete("/concept/:id/") {
+      authRole.assertHasWritePermission()
+      writeService.deleteConcept(long("id")) match {
         case Success(c) => c
         case Failure(ex) => errorHandler(ex)
       }
