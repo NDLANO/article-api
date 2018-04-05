@@ -187,7 +187,7 @@ trait ConverterService {
       val authorsExcludingOrigin = authors.filterNot(x => x.name != origin && x.`type` == "opphavsmann")
       val creators = authorsExcludingOrigin.map(toNewAuthorType).filter(a => creatorTypes.contains(a.`type`.toLowerCase))
       // Filters out processor authors with type `editorial` during import process since /`editorial` exists both in processors and creators.
-      val processors = authorsExcludingOrigin.map(toNewAuthorType).filter(a => processorTypes.contains(a.`type`.toLowerCase)).filterNot(a => a.`type`.toLowerCase == "editorial")
+      val processors = authorsExcludingOrigin.map(toNewAuthorType).filter(a => processorTypes.contains(a.`type`.toLowerCase))
       val rightsholders = authorsExcludingOrigin.map(toNewAuthorType).filter(a => rightsholderTypes.contains(a.`type`.toLowerCase))
       Copyright(oldToNewLicenseKey(license), origin, creators, processors, rightsholders, None, None, None)
     }
