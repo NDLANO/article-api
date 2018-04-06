@@ -103,20 +103,11 @@ trait InternController {
       readService.getArticlesByPage(pageNo, pageSize, lang, fallback)
     }
 
-    get("/dump/:content_type") {
+    get("/dump/article") {
       val pageNo = intOrDefault("page", 1)
       val pageSize = intOrDefault("page-size", 250)
 
-      val contentType = paramOrNone("content_type")
-
-      contentType match {
-        case Some("article") =>
-          readService.getArticleDomainDump(pageNo, pageSize)
-        case Some("concept") =>
-          readService.getConceptDomainDump(pageNo, pageSize)
-        case _ =>
-          BadRequest("Type not supported\n")
-      }
+      readService.getArticleDomainDump(pageNo, pageSize)
     }
 
     post("/validate/article") {
