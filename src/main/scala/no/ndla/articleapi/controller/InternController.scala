@@ -95,6 +95,7 @@ trait InternController {
     }
 
     get("/articles") {
+      // Dumps Api articles
       val pageNo = intOrDefault("page", 1)
       val pageSize = intOrDefault("page-size", 250)
       val lang = paramOrDefault("language", Language.AllLanguages)
@@ -104,6 +105,7 @@ trait InternController {
     }
 
     get("/dump/article") {
+      // Dumps Domain articles
       val pageNo = intOrDefault("page", 1)
       val pageSize = intOrDefault("page-size", 250)
 
