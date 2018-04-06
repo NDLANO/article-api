@@ -22,7 +22,7 @@ import no.ndla.articleapi.service.search.{ArticleIndexService, ConceptIndexServi
 import no.ndla.articleapi.validation.ContentValidator
 import no.ndla.validation.ValidationException
 import org.json4s.{DefaultFormats, Formats}
-import org.scalatra.{InternalServerError, NotFound, Ok}
+import org.scalatra.{BadRequest, InternalServerError, NotFound, Ok}
 
 import scala.concurrent._
 import scala.concurrent.duration.Duration
@@ -95,12 +95,21 @@ trait InternController {
     }
 
     get("/articles") {
+      // Dumps Api articles
       val pageNo = intOrDefault("page", 1)
       val pageSize = intOrDefault("page-size", 250)
       val lang = paramOrDefault("language", Language.AllLanguages)
       val fallback = booleanOrDefault("fallback", default = false)
 
       readService.getArticlesByPage(pageNo, pageSize, lang, fallback)
+    }
+
+    get("/dump/article") {
+      // Dumps Domain articles
+      val pageNo = intOrDefault("page", 1)
+      val pageSize = intOrDefault("page-size", 250)
+
+      readService.getArticleDomainDump(pageNo, pageSize)
     }
 
     post("/validate/article") {
