@@ -69,8 +69,8 @@ object ArticleApiProperties extends LazyLogging {
   val nodeTypeH5P: String = "h5p_content"
   val supportedContentTypes = Set("fagstoff", "oppgave", "veiledning", "aktualitet", "emneartikkel", nodeTypeBegrep, nodeTypeVideo, nodeTypeH5P)
 
-  val oldCreatorTypes = List("opphavsmann", "fotograf", "kunstner", "redaksjonelt", "forfatter", "manusforfatter", "innleser", "oversetter", "regissør", "illustratør", "medforfatter", "komponist")
-  val creatorTypes = List("originator", "photographer", "artist", "editorial", "writer", "scriptwriter", "reader", "translator", "director", "illustrator", "cowriter", "composer")
+  val oldCreatorTypes = List("opphavsmann", "fotograf", "kunstner", "forfatter", "manusforfatter", "innleser", "oversetter", "regissør", "illustratør", "medforfatter", "komponist")
+  val creatorTypes = List("originator", "photographer", "artist", "writer", "scriptwriter", "reader", "translator", "director", "illustrator", "cowriter", "composer")
 
   val oldProcessorTypes = List("bearbeider", "tilrettelegger", "redaksjonelt", "språklig", "ide", "sammenstiller", "korrektur")
   val processorTypes = List("processor", "facilitator", "editorial", "linguistic", "idea", "compiler", "correction")
