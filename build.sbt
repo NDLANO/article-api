@@ -35,7 +35,7 @@ lazy val article_api = (project in file(".")).
     libraryDependencies ++= Seq(
       "ndla" %% "network" % "0.29",
       "ndla" %% "mapping" % "0.7",
-      "ndla" %% "validation" % "0.16",
+      "ndla" %% "validation" % "0.17",
       "joda-time" % "joda-time" % "2.8.2",
       "org.scalatra" %% "scalatra" % Scalatraversion,
       "org.eclipse.jetty" % "jetty-webapp" % Jettyversion % "container;compile",
@@ -61,7 +61,7 @@ lazy val article_api = (project in file(".")).
       "org.elasticsearch" % "elasticsearch" % ElasticsearchVersion,
       "org.apache.lucene" % "lucene-test-framework" % "6.4.1" % "test",
       "org.scalatest" %% "scalatest" % ScalaTestVersion % "test",
-      "org.jsoup" % "jsoup" % "1.10.3",
+      "org.jsoup" % "jsoup" % "1.11.2",
       "org.mockito" % "mockito-all" % MockitoVersion % "test",
       "org.flywaydb" % "flyway-core" % "4.0",
       "com.netaporter" %% "scala-uri" % "0.4.16"
