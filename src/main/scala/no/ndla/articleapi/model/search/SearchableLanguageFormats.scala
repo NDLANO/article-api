@@ -55,6 +55,7 @@ class SearchableArticleSerializer extends CustomSerializer[SearchableArticle](_ 
       visualElement = SearchableLanguageValues("visualElement", obj),
       introduction = SearchableLanguageValues("introduction", obj),
       metaDescription = SearchableLanguageValues("metaDescription", obj),
+      metaImage = SearchableLanguageValues("metaImage", obj),
       tags = SearchableLanguageList("tags", obj),
       lastUpdated = (obj \ "lastUpdated").extract[Date],
       license = (obj \ "license").extract[String],
@@ -72,6 +73,7 @@ class SearchableArticleSerializer extends CustomSerializer[SearchableArticle](_ 
         article.visualElement.toJsonField("visualElement"),
         article.introduction.toJsonField("introduction"),
         article.metaDescription.toJsonField("metaDescription"),
+        article.metaImage.toJsonField("metaImage"),
         article.tags.toJsonField("tags")
       ).flatMap {
         case l: Seq[JField] => l
