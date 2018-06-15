@@ -4,12 +4,12 @@ val Scalaversion = "2.12.2"
 val Scalatraversion = "2.5.1"
 val ScalaLoggingVersion = "3.5.0"
 val Log4JVersion = "2.9.1"
-val Jettyversion = "9.2.10.v20150310"
+val Jettyversion = "9.4.10.v20180503"
 val AwsSdkversion = "1.11.46"
 val ScalaTestVersion = "3.0.1"
 val MockitoVersion = "1.10.19"
 val Elastic4sVersion = "6.1.4"
-val JacksonVersion = "2.9.4"
+val JacksonVersion = "2.9.5"
 val ElasticsearchVersion = "6.0.1"
 
 val appProperties = settingKey[Properties]("The application properties")
@@ -61,7 +61,7 @@ lazy val article_api = (project in file(".")).
       "org.elasticsearch" % "elasticsearch" % ElasticsearchVersion,
       "org.apache.lucene" % "lucene-test-framework" % "6.4.1" % "test",
       "org.scalatest" %% "scalatest" % ScalaTestVersion % "test",
-      "org.jsoup" % "jsoup" % "1.10.3",
+      "org.jsoup" % "jsoup" % "1.11.2",
       "org.mockito" % "mockito-all" % MockitoVersion % "test",
       "org.flywaydb" % "flyway-core" % "4.0",
       "com.netaporter" %% "scala-uri" % "0.4.16"

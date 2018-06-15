@@ -15,6 +15,7 @@ class SearchableArticleSerializerTest extends UnitSuite with TestEnvironment {
     visualElement = SearchableLanguageValues(Seq(LanguageValue("nb", "visueltelement"), LanguageValue("en", "visualelement"))),
     introduction = SearchableLanguageValues(List(LanguageValue("nb", "ingress"), LanguageValue("en", "introduction"))),
     metaDescription = SearchableLanguageValues(List(LanguageValue("nb", "meta beskrivelse"), LanguageValue("en", "meta description"))),
+    metaImage = SearchableLanguageValues(List(LanguageValue("nb", "1"))),
     tags = SearchableLanguageList(List(LanguageValue("nb", List("m", "e", "r", "k")), LanguageValue("en", List("t", "a", "g", "s")))),
     lastUpdated = new DateTime(2018, 2, 22, 13, 0, 51, DateTimeZone.UTC).toDate,
     license = "by-sa",
@@ -43,6 +44,7 @@ class SearchableArticleSerializerTest extends UnitSuite with TestEnvironment {
       |  "introduction.en":"introduction",
       |  "metaDescription.nb":"meta beskrivelse",
       |  "metaDescription.en":"meta description",
+      |  "metaImage.nb":"1",
       |  "tags.nb":[
       |    "m",
       |    "e",

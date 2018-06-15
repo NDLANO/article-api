@@ -83,6 +83,7 @@ trait ConverterService {
       val titles = searchableArticle.title.languageValues.map(lv => ArticleTitle(lv.value, lv.lang))
       val introductions = searchableArticle.introduction.languageValues.map(lv => ArticleIntroduction(lv.value, lv.lang))
       val metaDescriptions = searchableArticle.metaDescription.languageValues.map(lv => ArticleMetaDescription(lv.value, lv.lang))
+      val metaImages = searchableArticle.metaImage.languageValues.map(lv => ArticleMetaImage(lv.value, lv.lang))
       val visualElements = searchableArticle.visualElement.languageValues.map(lv => VisualElement(lv.value, lv.lang))
 
       val supportedLanguages = getSupportedLanguages(titles, visualElements, introductions)
@@ -91,6 +92,8 @@ trait ConverterService {
       val visualElement = findByLanguageOrBestEffort(visualElements, language).map(toApiVisualElement)
       val introduction = findByLanguageOrBestEffort(introductions, language).map(toApiArticleIntroduction)
       val metaDescription = findByLanguageOrBestEffort(metaDescriptions, language).map(toApiArticleMetaDescription)
+      val metaImage = findByLanguageOrBestEffort(metaImages, language).map(toApiArticleMetaImage)
+      val lastUpdated = searchableArticle.lastUpdated
 
       ArticleSummaryV2(
         searchableArticle.id,
@@ -98,9 +101,11 @@ trait ConverterService {
         visualElement,
         introduction,
         metaDescription,
+        metaImage,
         ApplicationUrl.get + searchableArticle.id.toString,
         searchableArticle.license,
         searchableArticle.articleType,
+        lastUpdated,
         supportedLanguages
       )
     }
@@ -427,6 +432,10 @@ trait ConverterService {
 
     def toApiArticleMetaDescription(metaDescription: ArticleMetaDescription): api.ArticleMetaDescription = {
       api.ArticleMetaDescription(metaDescription.content, metaDescription.language)
+    }
+
+    def toApiArticleMetaImage(metaImage: ArticleMetaImage): api.ArticleMetaImage = {
+      api.ArticleMetaImage(s"${externalApiUrls("raw-image")}/${metaImage.imageId}", metaImage.language)
     }
 
     def createLinkToOldNdla(nodeId: String): String = s"//red.ndla.no/node/$nodeId"
