@@ -90,6 +90,7 @@ case class SearchableArticle(
   visualElement: SearchableLanguageValues,
   introduction: SearchableLanguageValues,
   metaDescription: SearchableLanguageValues,
+  metaImage: SearchableLanguageValues,
   tags: SearchableLanguageList,
   lastUpdated: Date,
   license: String,
