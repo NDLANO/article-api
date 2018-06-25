@@ -129,11 +129,11 @@ class ArticleSearchConverterServiceTest extends UnitSuite with TestEnvironment {
   }
 
   private def languageValueWithLang(languageValues: SearchableLanguageValues, lang: String = "unknown"): String = {
-    languageValues.languageValues.find(_.lang == lang).get.value
+    languageValues.languageValues.find(_.language == lang).get.value
   }
 
   private def languageListWithLang(languageList: SearchableLanguageList, lang: String = "unknown"): Seq[String] = {
-    languageList.languageValues.find(_.lang == lang).get.value
+    languageList.languageValues.find(_.language == lang).get.value
   }
 
   private def titleForLang(titles: Seq[ArticleTitle], lang: String = "unknown"): String = {

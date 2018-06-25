@@ -17,6 +17,7 @@ import no.ndla.articleapi.ArticleApiProperties
 import no.ndla.articleapi.model.domain.Article
 import no.ndla.articleapi.model.search.{SearchableArticle, SearchableLanguageFormats}
 import no.ndla.articleapi.repository.{ArticleRepository, Repository}
+import org.json4s.DefaultFormats
 import org.json4s.native.Serialization.write
 
 trait ArticleIndexService {

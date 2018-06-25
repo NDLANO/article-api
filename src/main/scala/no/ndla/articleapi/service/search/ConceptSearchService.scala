@@ -11,7 +11,6 @@ package no.ndla.articleapi.service.search
 import java.util.concurrent.Executors
 
 import com.sksamuel.elastic4s.http.ElasticDsl._
-import com.sksamuel.elastic4s.searches.ScoreMode
 import com.sksamuel.elastic4s.searches.queries.BoolQueryDefinition
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.articleapi.ArticleApiProperties
@@ -28,7 +27,6 @@ import org.json4s.native.JsonMethods._
 import org.json4s.native.Serialization.read
 import no.ndla.articleapi.model.domain.Language.getSupportedLanguages
 
-import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.{Failure, Success, Try}
 
@@ -37,15 +35,15 @@ trait ConceptSearchService {
   val conceptSearchService: ConceptSearchService
 
   class ConceptSearchService extends LazyLogging with SearchService[api.ConceptSummary] {
-    implicit val formats = DefaultFormats
+    implicit val formats: Formats = SearchableLanguageFormats.JSonFormats
     override val searchIndex: String = ArticleApiProperties.ConceptSearchIndex
 
     override def hitToApiModel(hitString: String, language: String): api.ConceptSummary = {
-      implicit val formats: Formats = SearchableLanguageFormats.JSonFormats
+      val parsed = parse(hitString)
       val searchableConcept = read[SearchableConcept](hitString)
 
-      val titles = searchableConcept.title.languageValues.map(lv => ConceptTitle(lv.value, lv.lang))
-      val contents = searchableConcept.content.languageValues.map(lv => ConceptContent(lv.value, lv.lang))
+      val titles = searchableConcept.title.languageValues.map(lv => ConceptTitle(lv.value, lv.language))
+      val contents = searchableConcept.content.languageValues.map(lv => ConceptContent(lv.value, lv.language))
 
       val supportedLanguages = getSupportedLanguages(titles, contents)
 

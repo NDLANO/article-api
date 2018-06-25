@@ -78,13 +78,14 @@ trait ConverterService {
       */
     def hitAsArticleSummaryV2(hitString: String, language: String): ArticleSummaryV2 = {
 
+      implicit val formats: Formats = SearchableLanguageFormats.JSonFormats
       val searchableArticle = read[SearchableArticle](hitString)
 
-      val titles = searchableArticle.title.languageValues.map(lv => ArticleTitle(lv.value, lv.lang))
-      val introductions = searchableArticle.introduction.languageValues.map(lv => ArticleIntroduction(lv.value, lv.lang))
-      val metaDescriptions = searchableArticle.metaDescription.languageValues.map(lv => ArticleMetaDescription(lv.value, lv.lang))
-      val metaImages = searchableArticle.metaImage.languageValues.map(lv => ArticleMetaImage(lv.value, lv.lang))
-      val visualElements = searchableArticle.visualElement.languageValues.map(lv => VisualElement(lv.value, lv.lang))
+      val titles = searchableArticle.title.languageValues.map(lv => ArticleTitle(lv.value, lv.language))
+      val introductions = searchableArticle.introduction.languageValues.map(lv => ArticleIntroduction(lv.value, lv.language))
+      val metaDescriptions = searchableArticle.metaDescription.languageValues.map(lv => ArticleMetaDescription(lv.value, lv.language))
+      val metaImages = searchableArticle.metaImage.languageValues.map(lv => ArticleMetaImage(lv.value, lv.language))
+      val visualElements = searchableArticle.visualElement.languageValues.map(lv => VisualElement(lv.value, lv.language))
 
       val supportedLanguages = getSupportedLanguages(titles, visualElements, introductions)
 
@@ -105,7 +106,7 @@ trait ConverterService {
         ApplicationUrl.get + searchableArticle.id.toString,
         searchableArticle.license,
         searchableArticle.articleType,
-        lastUpdated,
+        lastUpdated.toDate,
         supportedLanguages
       )
     }
