@@ -17,7 +17,7 @@ import no.ndla.articleapi.model.api.NotFoundException
 import no.ndla.articleapi.model.domain._
 import no.ndla.articleapi.model.domain.Language._
 import no.ndla.articleapi.repository.{ArticleRepository, ConceptRepository}
-import no.ndla.validation.TagAttributes
+import no.ndla.validation.{ResourceType, TagAttributes}
 import org.jsoup.nodes.Element
 
 import scala.math.max
@@ -81,13 +81,24 @@ trait ReadService {
       jsoupDocumentToString(doc)
     }
 
-    private def addUrlOnEmbedTag(embedTag: Element) = {
-      val resourceIdAttrName = TagAttributes.DataResource_Id.toString
-      embedTag.hasAttr(resourceIdAttrName) match {
-        case false =>
-        case true =>
-          val (resourceType, id) = (embedTag.attr(s"${TagAttributes.DataResource}"), embedTag.attr(resourceIdAttrName))
-          embedTag.attr(s"${TagAttributes.DataUrl}", s"${externalApiUrls(resourceType)}/$id")
+    private def addUrlOnEmbedTag(embedTag: Element): Unit = {
+      val typeAndPathOption = embedTag.attr(TagAttributes.DataResource.toString) match {
+        case resourceType if resourceType == ResourceType.File.toString &&
+            embedTag.hasAttr(TagAttributes.DataPath.toString) =>
+
+          val path = embedTag.attr(TagAttributes.DataPath.toString)
+          Some((resourceType, path))
+        case resourceType if embedTag.hasAttr(TagAttributes.DataResource_Id.toString) =>
+          val id = embedTag.attr(TagAttributes.DataResource_Id.toString)
+          Some((resourceType, id))
+        case _ =>
+          None
+      }
+
+      typeAndPathOption match {
+        case Some((resourceType, path)) =>
+          embedTag.attr(s"${TagAttributes.DataUrl}", s"${externalApiUrls(resourceType)}/$path")
+        case _ =>
       }
     }
 

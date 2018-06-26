@@ -116,7 +116,7 @@ trait ConverterService {
       val newLicense = licenses.getOrElse(license, license)
 
       if (getLicense(newLicense).isEmpty) {
-        throw new ImportException(s"License $license is not supported.")
+        throw ImportException(s"License $license is not supported.")
       }
       newLicense
     }

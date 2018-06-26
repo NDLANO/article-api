@@ -62,6 +62,16 @@ class ReadServiceTest extends UnitSuite with TestEnvironment {
     readService.addUrlOnResource(articleContent3.content) should equal(articleContent3.content)
   }
 
+  test("addUrlOnResource adds url attribute on file embeds") {
+    val filePath = "files/lel/fileste.pdf"
+    val content =
+      s"""<$ResourceHtmlEmbedTag $resourceAttr="${ResourceType.File}" ${TagAttributes.DataPath}="$filePath" ${TagAttributes.Title}="This fancy pdf">"""
+    val expectedResult =
+      s"""<$ResourceHtmlEmbedTag $resourceAttr="${ResourceType.File}" ${TagAttributes.DataPath}="$filePath" ${TagAttributes.Title}="This fancy pdf" $urlAttr="http://api-gateway.ndla-local/$filePath">"""
+    val result = readService.addUrlOnResource(content)
+    result should equal(expectedResult)
+  }
+
   test("addIdAndUrlOnResource adds urls on all content translations in an article") {
     val article = TestData.sampleArticleWithByNcSa.copy(content = Seq(articleContent1, articleContent2))
     val article1ExpectedResult = articleContent1.copy(content =
