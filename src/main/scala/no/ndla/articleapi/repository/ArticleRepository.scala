@@ -228,6 +228,15 @@ trait ArticleRepository {
       sql"select ${ar.result.*} from ${Article.as(ar)} where ar.document is not NULL and $whereClause".map(Article(ar)).list.apply()
     }
 
+    def getArticleIdsFromExternalId(externalId: String)(implicit session: DBSession = ReadOnlyAutoSession): Option[ArticleIds] = {
+      val ar = Article.syntax("ar")
+      sql"select id, external_id from ${Article.as(ar)} where $externalId=ANY(ar.external_id)".map(rs =>
+        ArticleIds(
+          rs.long("id"),
+          rs.array("external_id").getArray.asInstanceOf[Array[String]].toList
+        )).single.apply
+    }
+
   }
 
 }

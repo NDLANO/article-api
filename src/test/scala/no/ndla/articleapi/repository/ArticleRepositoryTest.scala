@@ -101,4 +101,12 @@ class ArticleRepositoryTest extends IntegrationSuite with TestEnvironment {
     repository.delete(inserted2)
   }
 
+  test("getArticleIdsFromExternalId should return ArticleIds object with externalIds") {
+    val externalIds = Seq("1", "6010", "6011", "5084", "763", "8881", "1919")
+    val inserted = repository.insertWithExternalIds(sampleArticle, externalIds, Seq.empty)
+
+    repository.getArticleIdsFromExternalId("6011").get.externalId should be(externalIds)
+    repository.delete(inserted.id.get)
+  }
+
 }

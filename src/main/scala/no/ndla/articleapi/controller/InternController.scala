@@ -80,6 +80,14 @@ trait InternController {
       }
     }
 
+    get("/external_ids/:external_id") {
+      val externalId = params("external_id")
+      articleRepository.getArticleIdsFromExternalId(externalId) match {
+        case Some(idObject) => idObject
+        case None => NotFound()
+      }
+    }
+
     post("/id/article/allocate/?") {
       authRole.assertHasDraftWritePermission()
 
