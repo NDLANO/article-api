@@ -12,7 +12,7 @@ package object domain {
     lang.filter(_.nonEmpty)
   }
 
-  case class ArticleIds(articleId: Long, externalId: Option[String])
+  case class ArticleIds(articleId: Long, externalId: List[String])
 
   def getByLanguage[T](entries: Seq[LanguageField[T]], language: String): Option[T] =
     entries.find(_.language == language).map(_.value)

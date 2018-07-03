@@ -52,7 +52,7 @@ class ArticleRepositoryTest extends IntegrationSuite with TestEnvironment {
 
   test("updateWithExternalId does not update revision number") {
     val externalId = "123"
-    val articleId = repository.insertWithExternalIds(sampleArticle, externalId, Seq("52")).id.get
+    val articleId = repository.insertWithExternalIds(sampleArticle, Seq(externalId), Seq("52")).id.get
 
     val firstUpdate = repository.updateWithExternalId(sampleArticle, externalId)
     val secondUpdate = repository.updateWithExternalId(sampleArticle.copy(title = Seq(ArticleTitle("new title", "en"))), externalId)
@@ -69,7 +69,7 @@ class ArticleRepositoryTest extends IntegrationSuite with TestEnvironment {
 
   test("updateWithExternalId returns a Failure if article has been updated on new platform") {
     val externalId = "123"
-    val article = repository.insertWithExternalIds(sampleArticle, externalId, Seq("52"))
+    val article = repository.insertWithExternalIds(sampleArticle, Seq(externalId), Seq("52"))
 
     repository.updateArticle(sampleArticle.copy(id=article.id))
     val result = repository.updateWithExternalId(sampleArticle.copy(id=article.id), externalId)
@@ -80,12 +80,25 @@ class ArticleRepositoryTest extends IntegrationSuite with TestEnvironment {
 
   test("getAllIds returns a list with all ids in the database") {
     val externalIds = (100 to 150).map(_.toString)
-    val ids = externalIds.map(exId => repository.insertWithExternalIds(sampleArticle, exId, Seq("52")).id.get)
-    val expected = ids.zip(externalIds).map { case (id, exId) => ArticleIds(id, Some(exId)) }
+    val ids = externalIds.map(exId => repository.insertWithExternalIds(sampleArticle, Seq(exId), Seq("52")).id.get)
+    val expected = ids.zip(externalIds).map { case (id, exId) => ArticleIds(id, List(exId)) }.toList
 
     repository.getAllIds should equal(expected)
 
     ids.foreach(repository.delete)
+  }
+
+  test("getIdFromExternalId works with all ids") {
+    val inserted1 = repository.insertWithExternalIds(sampleArticle, Seq("6000","10"), Seq("52")).id.get
+    val inserted2 = repository.insertWithExternalIds(sampleArticle, Seq("6001","11"), Seq("52")).id.get
+
+    repository.getIdFromExternalId("6000").get should be(inserted1)
+    repository.getIdFromExternalId("6001").get should be(inserted2)
+    repository.getIdFromExternalId("10").get should be(inserted1)
+    repository.getIdFromExternalId("11").get should be(inserted2)
+
+    repository.delete(inserted1)
+    repository.delete(inserted2)
   }
 
 }

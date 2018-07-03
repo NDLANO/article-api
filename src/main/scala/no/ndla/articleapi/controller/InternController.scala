@@ -83,14 +83,14 @@ trait InternController {
     post("/id/article/allocate/?") {
       authRole.assertHasDraftWritePermission()
 
-      val externalId = paramOrNone("external-id")
+      val externalId = paramAsListOfString("external-id")
       val externalSubjectId = paramAsListOfString("external-subject-id")
       ArticleIdV2(writeService.allocateArticleId(externalId, externalSubjectId.toSet))
     }
 
     post("/id/concept/allocate/?") {
       authRole.assertHasDraftWritePermission()
-      val externalId = paramOrNone("external-id")
+      val externalId = paramAsListOfString("external-id")
       ArticleIdV2(writeService.allocateConceptId(externalId))
     }
 

@@ -37,7 +37,7 @@ trait ArticleRepository {
       val articleId: Long = sql"insert into ${Article.table} (document, revision) values (${dataObject}, $startRevision)".updateAndReturnGeneratedKey().apply
 
       logger.info(s"Inserted new article: $articleId")
-      article.copy(id=Some(articleId), revision=Some(startRevision))
+      article.copy(id = Some(articleId), revision = Some(startRevision))
     }
 
     def updateArticle(article: Article)(implicit session: DBSession = AutoSession): Try[Article] = {
@@ -54,7 +54,7 @@ trait ArticleRepository {
         Failure(new OptimisticLockException)
       } else {
         logger.info(s"Updated article ${article.id}")
-        Success(article.copy(revision=Some(newRevision)))
+        Success(article.copy(revision = Some(newRevision)))
       }
     }
 
@@ -77,15 +77,19 @@ trait ArticleRepository {
       }
     }
 
-    def insertWithExternalIds(article: Article, externalId: String, externalSubjectId: Seq[String])(implicit session: DBSession = AutoSession): Article = {
+    def insertWithExternalIds(article: Article, externalId: Seq[String], externalSubjectId: Seq[String])(implicit session: DBSession = AutoSession): Article = {
       val dataObject = new PGobject()
       dataObject.setType("jsonb")
       dataObject.setValue(write(article))
 
-      val articleId: Long = sql"insert into ${Article.table} (external_id, external_subject_id, document) values (${externalId}, ARRAY[${externalSubjectId}]::text[], ${dataObject})".updateAndReturnGeneratedKey().apply
+      val articleId: Long =
+        sql"""
+             insert into ${Article.table} (external_id, external_subject_id, document)
+             values (ARRAY[${externalId}]::text[], ARRAY[${externalSubjectId}]::text[], ${dataObject})
+          """.updateAndReturnGeneratedKey().apply
 
       logger.info(s"Inserted article $externalId: $articleId")
-      article.copy(id=Some(articleId))
+      article.copy(id = Some(articleId))
     }
 
     def updateWithExternalId(article: Article, externalId: String)(implicit session: DBSession = AutoSession): Try[Article] = {
@@ -94,10 +98,10 @@ trait ArticleRepository {
       dataObject.setValue(write(article))
 
       val expectedArticleRevision = 1
-      Try(sql"update ${Article.table} set document=${dataObject} where external_id=${externalId} and revision=$expectedArticleRevision".updateAndReturnGeneratedKey().apply) match {
+      Try(sql"update ${Article.table} set document=${dataObject} where ${externalId} = any (external_id) and revision=$expectedArticleRevision".updateAndReturnGeneratedKey().apply) match {
         case Success(articleId) =>
           logger.info(s"Updated article with external_id=$externalId, id=$articleId")
-          Success(article.copy(id=Some(articleId)))
+          Success(article.copy(id = Some(articleId)))
         case Failure(_) =>
           val message = "The revision stored in the database is newer than the one being updated. Please use the latest version from database when updating."
 
@@ -114,12 +118,18 @@ trait ArticleRepository {
       articleId
     }
 
-    def allocateArticleIdWithExternal(externalId: String, externalSubjectId: Set[String])(implicit session: DBSession = AutoSession): Long = {
+    def allocateArticleIdWithExternalIds(externalId: List[String], externalSubjectId: Set[String])(implicit session: DBSession = AutoSession): Long = {
       val startRevision = 0
 
-      val articleId: Long = sql"insert into ${Article.table} (external_id, external_subject_id, revision) values (${externalId}, ARRAY[${externalSubjectId}]::text[], $startRevision)".updateAndReturnGeneratedKey().apply
+      val articleId: Long =
+        sql"""
+             insert into ${Article.table} (external_id, external_subject_id, revision)
+             values (ARRAY[${externalId}]::text[], ARRAY[${externalSubjectId}]::text[], $startRevision)
+          """
+          .updateAndReturnGeneratedKey()
+          .apply
 
-      logger.info(s"Allocated id for article $articleId (external id $externalId)")
+      logger.info(s"Allocated id for article $articleId (external ids ${externalId.mkString(",")})")
       articleId
     }
 
@@ -132,7 +142,7 @@ trait ArticleRepository {
       Try(sql"update ${Article.table} set document=${dataObject}, revision=$startRevision where external_id=${externalId}".updateAndReturnGeneratedKey().apply) match {
         case Success(articleId) =>
           logger.info(s"Updated article with external_id=$externalId, id=$articleId. Revision reset to 1")
-          Success(article.copy(id=Some(articleId)))
+          Success(article.copy(id = Some(articleId)))
         case Failure(ex) =>
           logger.warn(s"Failed to update article with external id $externalId: ${ex.getMessage}")
           Failure(ex)
@@ -150,20 +160,26 @@ trait ArticleRepository {
 
     def withId(articleId: Long): Option[Article] = articleWhere(sqls"ar.id=${articleId.toInt}")
 
-    def withExternalId(externalId: String): Option[Article] = articleWhere(sqls"ar.external_id=$externalId")
+    def withExternalId(externalId: String): Option[Article] = articleWhere(sqls"$externalId = any (ar.external_id)")
 
     def exists(externalId: String): Boolean = getIdFromExternalId(externalId).isDefined
 
     def getIdFromExternalId(externalId: String)(implicit session: DBSession = AutoSession): Option[Long] = {
-      sql"select id from ${Article.table} where external_id=${externalId}".map(rs => rs.long("id")).single.apply()
+      sql"select id from ${Article.table} where ${externalId} = any(external_id)".map(rs => rs.long("id")).single.apply()
     }
 
-    def getExternalIdFromId(id: Long)(implicit session: DBSession = AutoSession): Option[String] = {
-      sql"select external_id from ${Article.table} where id=${id.toInt}".map(rs => rs.string("external_id")).single.apply()
+    def getExternalIdsFromId(id: Long)(implicit session: DBSession = AutoSession): List[String] = {
+      sql"select external_id from ${Article.table} where id=${id.toInt}".map(rs =>
+        rs.array("external_id").getArray.asInstanceOf[Array[String]].toList
+      ).single.apply.getOrElse(List.empty)
     }
 
     def getAllIds(implicit session: DBSession = AutoSession): Seq[ArticleIds] = {
-      sql"select id, external_id from ${Article.table}".map(rs => ArticleIds(rs.long("id"), rs.stringOpt("external_id"))).list.apply
+      sql"select id, external_id from ${Article.table}".map(rs =>
+        ArticleIds(
+          rs.long("id"),
+          rs.array("external_id").getArray.asInstanceOf[Array[String]].toList
+        )).list.apply
     }
 
     def articleCount(implicit session: DBSession = AutoSession): Long = {
@@ -213,4 +229,5 @@ trait ArticleRepository {
     }
 
   }
+
 }

@@ -47,7 +47,7 @@ class ReadServiceTest extends UnitSuite with TestEnvironment {
     val article = TestData.sampleArticleWithByNcSa.copy(content = Seq(articleContent1), visualElement = Seq(VisualElement(visualElementBefore, "nb")))
 
     when(articleRepository.withId(1)).thenReturn(Option(article))
-    when(articleRepository.getExternalIdFromId(any[Long])(any[DBSession])).thenReturn(Some("54321"))
+    when(articleRepository.getExternalIdsFromId(any[Long])(any[DBSession])).thenReturn(List("54321"))
 
     val expectedResult = converterService.toApiArticleV2(article.copy(content = Seq(expectedArticleContent1), visualElement = Seq(VisualElement(visualElementAfter, "nb"))), "nb")
     readService.withIdV2(1, "nb") should equal(expectedResult)
