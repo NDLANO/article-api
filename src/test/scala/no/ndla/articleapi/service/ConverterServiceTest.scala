@@ -44,38 +44,38 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
   }
 
   test("toApiArticleV2 converts a domain.Article to an api.ArticleV2") {
-    when(articleRepository.getExternalIdFromId(TestData.articleId)).thenReturn(Some(TestData.externalId))
+    when(articleRepository.getExternalIdsFromId(TestData.articleId)).thenReturn(List(TestData.externalId))
     service.toApiArticleV2(TestData.sampleDomainArticle, "nb") should equal(Success(TestData.apiArticleV2))
   }
 
   test("that toApiArticleV2 returns sorted supportedLanguages") {
-    when(articleRepository.getExternalIdFromId(TestData.articleId)).thenReturn(Some(TestData.externalId))
+    when(articleRepository.getExternalIdsFromId(TestData.articleId)).thenReturn(List(TestData.externalId))
     val result = service.toApiArticleV2(TestData.sampleDomainArticle.copy(title = TestData.sampleDomainArticle.title :+ ArticleTitle("hehe", "unknown")), "nb")
     result.get.supportedLanguages should be(Seq("unknown", "nb"))
   }
 
   test("toApiArticleV2 returns None when language is not supported") {
-    when(articleRepository.getExternalIdFromId(TestData.articleId)).thenReturn(Some(TestData.externalId))
+    when(articleRepository.getExternalIdsFromId(TestData.articleId)).thenReturn(List(TestData.externalId))
     service.toApiArticleV2(TestData.sampleDomainArticle, "someRandomLanguage").isFailure should be(true)
     service.toApiArticleV2(TestData.sampleDomainArticle, "").isFailure should be(true)
   }
 
   test("toApiArticleV2 should always an article if language neutral") {
     val domainArticle = TestData.sampleDomainArticleWithLanguage("unknown")
-    when(articleRepository.getExternalIdFromId(TestData.articleId)).thenReturn(Some(TestData.externalId))
+    when(articleRepository.getExternalIdsFromId(TestData.articleId)).thenReturn(List(TestData.externalId))
     service.toApiArticleV2(domainArticle, "someRandomLanguage").isSuccess should be(true)
   }
 
   test("toApiArticleV2 should return Failure if article does not exist on the language asked for and is not language neutral") {
     val domainArticle = TestData.sampleDomainArticleWithLanguage("en")
-    when(articleRepository.getExternalIdFromId(TestData.articleId)).thenReturn(Some(TestData.externalId))
+    when(articleRepository.getExternalIdsFromId(TestData.articleId)).thenReturn(List(TestData.externalId))
     service.toApiArticleV2(domainArticle, "someRandomLanguage").isFailure should be(true)
   }
 
   test("toApiArticleV2 converts a domain.Article to an api.ArticleV2 with Agreement Copyright") {
-    when(articleRepository.getExternalIdFromId(TestData.articleId)).thenReturn(Some(TestData.externalId))
-    val from = DateTime.now().minusDays(5).toDate()
-    val to = DateTime.now().plusDays(10).toDate()
+    when(articleRepository.getExternalIdsFromId(TestData.articleId)).thenReturn(List(TestData.externalId))
+    val from = DateTime.now().minusDays(5).toDate
+    val to = DateTime.now().plusDays(10).toDate
     val agreementCopyright = api.Copyright(
       api.License("gnu", Some("gpl"), None),
       "http://tjohei.com/",
@@ -104,13 +104,13 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
   }
 
   test("that toApiArticleV2 returns none if article does not exist on language, and fallback is not specified") {
-    when(articleRepository.getExternalIdFromId(TestData.articleId)).thenReturn(Some(TestData.externalId))
+    when(articleRepository.getExternalIdsFromId(TestData.articleId)).thenReturn(List(TestData.externalId))
     val result = service.toApiArticleV2(TestData.sampleDomainArticle, "en")
     result.isFailure should be (true)
   }
 
   test("That toApiArticleV2 returns article on existing language if fallback is specified even if selected language does not exist") {
-    when(articleRepository.getExternalIdFromId(TestData.articleId)).thenReturn(Some(TestData.externalId))
+    when(articleRepository.getExternalIdsFromId(TestData.articleId)).thenReturn(List(TestData.externalId))
     val result = service.toApiArticleV2(TestData.sampleDomainArticle, "en", fallback = true)
     result.get.title.language should be("nb")
     result.get.title.title should be(TestData.sampleDomainArticle.title.head.title)

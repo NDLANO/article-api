@@ -322,8 +322,9 @@ trait ConverterService {
       RequiredLibrary(requiredLibs.mediaType, requiredLibs.name, requiredLibs.url)
     }
 
-    private def getLinkToOldNdla(id: Long): Option[String] = {
-      articleRepository.getExternalIdFromId(id).map(createLinkToOldNdla)
+    private def getMainNidUrlToOldNdla(id: Long): Option[String] = {
+      // First nid in externalId's should always be mainNid after import.
+      articleRepository.getExternalIdsFromId(id).map(createLinkToOldNdla).headOption
     }
 
     private def removeUnknownEmbedTagAttributes(html: String): String = {
@@ -354,7 +355,7 @@ trait ConverterService {
 
         Success(api.ArticleV2(
           article.id.get,
-          article.id.flatMap(getLinkToOldNdla),
+          article.id.flatMap(getMainNidUrlToOldNdla),
           article.revision.get,
           title,
           articleContent,

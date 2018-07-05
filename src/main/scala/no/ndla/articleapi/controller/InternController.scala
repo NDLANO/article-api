@@ -80,18 +80,26 @@ trait InternController {
       }
     }
 
+    get("/external_ids/:external_id") {
+      val externalId = params("external_id")
+      articleRepository.getArticleIdsFromExternalId(externalId) match {
+        case Some(idObject) => idObject
+        case None => NotFound()
+      }
+    }
+
     post("/id/article/allocate/?") {
       authRole.assertHasDraftWritePermission()
 
-      val externalId = paramOrNone("external-id")
+      val externalIds = paramAsListOfString("external-id")
       val externalSubjectId = paramAsListOfString("external-subject-id")
-      ArticleIdV2(writeService.allocateArticleId(externalId, externalSubjectId.toSet))
+      ArticleIdV2(writeService.allocateArticleId(externalIds, externalSubjectId.toSet))
     }
 
     post("/id/concept/allocate/?") {
       authRole.assertHasDraftWritePermission()
-      val externalId = paramOrNone("external-id")
-      ArticleIdV2(writeService.allocateConceptId(externalId))
+      val externalIds = paramAsListOfString("external-id")
+      ArticleIdV2(writeService.allocateConceptId(externalIds))
     }
 
     get("/articles") {
