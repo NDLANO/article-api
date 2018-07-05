@@ -1,118 +1,67 @@
+/*
+ * Part of NDLA article_api.
+ * Copyright (C) 2018 NDLA
+ *
+ * See LICENSE
+ */
+
 package no.ndla.articleapi.model.search
 
-import java.util.Date
-import org.json4s.JsonAST.{JArray, JField, JObject, JString}
-import org.json4s.{CustomSerializer, Extraction, MappingException}
-import org.json4s._
+import java.text.SimpleDateFormat
+import java.util.TimeZone
 
+import org.json4s.JsonAST.{JField, JObject, JString}
+import org.json4s.{CustomSerializer, DefaultFormats, Extraction, Formats}
 
-object LanguagelessSearchableArticle {
+class SearchableLanguageValuesSerializer
+    extends CustomSerializer[SearchableLanguageValues](_ =>
+      ({
+        case obj: JObject =>
+          implicit val formats: Formats = SearchableLanguageFormats.JSonFormats
 
-  case class LanguagelessSearchableArticle(
-                                            id: Long,
-                                            lastUpdated: Date,
-                                            license: String,
-                                            authors: Seq[String],
-                                            articleType: String,
-                                            defaultTitle: Option[String]
-                                          )
+          val langs = obj.values.keys
+            .flatMap(l => {
+              (obj \ l).extract[Option[String]].map(o => LanguageValue(l, o))
+            })
+            .toSeq
 
-  def apply(searchableArticle: SearchableArticle): LanguagelessSearchableArticle = {
-    LanguagelessSearchableArticle(
-      searchableArticle.id,
-      searchableArticle.lastUpdated,
-      searchableArticle.license,
-      searchableArticle.authors,
-      searchableArticle.articleType,
-      searchableArticle.defaultTitle
-    )
-  }
-}
+          SearchableLanguageValues(langs)
+      }, {
+        case searchableLanguageValues: SearchableLanguageValues =>
+          val langValues = searchableLanguageValues.languageValues.map(lv => {
+            JField(lv.language, JString(lv.value))
+          })
+          JObject(langValues: _*)
+      }))
 
+class SearchableLanguageListSerializer
+    extends CustomSerializer[SearchableLanguageList](_ =>
+      ({
+        case obj: JObject =>
+          implicit val formats: Formats = SearchableLanguageFormats.JSonFormats
 
-object LanguagelessSearchableConcept {
+          val langs = obj.values.keys
+            .flatMap(l => {
+              (obj \ l).extract[Option[Seq[String]]].map(o => LanguageValue(l, o))
+            })
+            .toSeq
 
-  case class LanguagelessSearchableConcept(
-                                            id: Long,
-                                            defaultTitle: Option[String]
-                                          )
+          SearchableLanguageList(langs)
+      }, {
+        case searchableLanguageList: SearchableLanguageList =>
+          implicit val formats: Formats = SearchableLanguageFormats.JSonFormats
+          val langValues = searchableLanguageList.languageValues.map(lv => {
+            val tags = Extraction.decompose(lv.value)
+            JField(lv.language, tags)
+          })
+          JObject(langValues: _*)
 
-  def apply(searchableConcept: SearchableConcept): LanguagelessSearchableConcept = {
-    LanguagelessSearchableConcept(
-      searchableConcept.id,
-      searchableConcept.defaultTitle
-    )
-  }
-}
-
-class SearchableArticleSerializer extends CustomSerializer[SearchableArticle](_ => ( {
-  case obj: JObject =>
-    implicit val formats = org.json4s.DefaultFormats
-    SearchableArticle(
-      id = (obj \ "id").extract[Long],
-      title = SearchableLanguageValues("title", obj),
-      content = SearchableLanguageValues("content", obj),
-      visualElement = SearchableLanguageValues("visualElement", obj),
-      introduction = SearchableLanguageValues("introduction", obj),
-      metaDescription = SearchableLanguageValues("metaDescription", obj),
-      metaImage = SearchableLanguageValues("metaImage", obj),
-      tags = SearchableLanguageList("tags", obj),
-      lastUpdated = (obj \ "lastUpdated").extract[Date],
-      license = (obj \ "license").extract[String],
-      authors = (obj \ "authors").extract[Seq[String]],
-      articleType = (obj \ "articleType").extract[String],
-      defaultTitle = (obj \ "defaultTitle").extract[Option[String]]
-    )
-}, {
-  case article: SearchableArticle =>
-    implicit val formats = org.json4s.DefaultFormats
-    val languageFields =
-      List(
-        article.title.toJsonField("title"),
-        article.content.toJsonField("content"),
-        article.visualElement.toJsonField("visualElement"),
-        article.introduction.toJsonField("introduction"),
-        article.metaDescription.toJsonField("metaDescription"),
-        article.metaImage.toJsonField("metaImage"),
-        article.tags.toJsonField("tags")
-      ).flatMap {
-        case l: Seq[JField] => l
-        case _ => Seq.empty
-      }
-    val partialSearchableArticle = LanguagelessSearchableArticle(article)
-    val partialJObject = Extraction.decompose(partialSearchableArticle)
-    partialJObject.merge(JObject(languageFields: _*))
-}))
-
-class SearchableConceptSerializer extends CustomSerializer[SearchableConcept](_ => ( {
-  case obj: JObject =>
-    implicit val formats = org.json4s.DefaultFormats
-    SearchableConcept(
-      id = (obj \ "id").extract[Long],
-      title = SearchableLanguageValues("title", obj),
-      content = SearchableLanguageValues("content", obj),
-      defaultTitle = (obj \ "defaultTitle").extract[Option[String]]
-    )
-}, {
-  case concept: SearchableConcept =>
-    implicit val formats = org.json4s.DefaultFormats
-    val languageFields =
-      List(
-        concept.title.toJsonField("title"),
-        concept.content.toJsonField("content")
-      ).flatMap {
-        case l: Seq[JField] => l
-        case _ => Seq.empty
-      }
-
-    val partialSearchableConcept = LanguagelessSearchableConcept(concept)
-    val partialJObject = Extraction.decompose(partialSearchableConcept)
-    partialJObject.merge(JObject(languageFields: _*))
-}))
+      }))
 
 object SearchableLanguageFormats {
   val JSonFormats: Formats =
     org.json4s.DefaultFormats +
-      new SearchableArticleSerializer +
-      new SearchableConceptSerializer
+      new SearchableLanguageValuesSerializer +
+      new SearchableLanguageListSerializer ++
+      org.json4s.ext.JodaTimeSerializers.all
 }

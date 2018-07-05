@@ -88,7 +88,8 @@ object ArticleApiProperties extends LazyLogging {
   val externalApiUrls = Map(
     ResourceType.Image.toString -> s"$Domain/image-api/v2/images",
     "raw-image" -> s"$Domain/image-api/raw/id",
-    ResourceType.Audio.toString -> s"$Domain/audio-api/v1/audio"
+    ResourceType.Audio.toString -> s"$Domain/audio-api/v1/audio",
+    ResourceType.File.toString -> Domain
   )
 
   val NDLABrightcoveAccountId: String = prop("NDLA_BRIGHTCOVE_ACCOUNT_ID")

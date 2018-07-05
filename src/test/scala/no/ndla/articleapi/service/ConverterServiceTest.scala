@@ -207,7 +207,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     val license = "publicdomain"
     val articleType = "topic-article"
     val supportedLanguages = Seq("nb", "en")
-    val hitString = s"""{"visualElement.en":"$visualElement","introduction.nb":"$introduction","metaDescription.nb":"$metaDescription","lastUpdated":"2017-12-29T07:18:27Z","tags.nb":["baldur"],"license":"$license","id":$id,"authors":[],"content.nb":"Bilde av Baldurs mareritt om Ragnarok.","defaultTitle":"Baldur har mareritt","title.nb":"Baldur har mareritt","articleType":"$articleType"}"""
+    val hitString = s"""{  "visualElement": {    "en": "$visualElement"  },  "introduction": {    "nb": "$introduction"  }, "metaImage": {"nb":"1"}, "tags": {"nb": ["test"]},  "metaDescription": {    "nb": "$metaDescription"  },  "lastUpdated": "2017-12-29T07:18:27Z",  "tags.nb": [    "baldur"  ],  "license": "$license",  "id": $id,  "authors": [],  "content": {    "nb": "Bilde av Baldurs mareritt om Ragnarok."  },  "defaultTitle": "Baldur har mareritt",  "title": {    "nb": "Baldur har mareritt"  },  "articleType": "$articleType"}"""
 
     val result = service.hitAsArticleSummaryV2(hitString, "nb")
 

@@ -62,6 +62,16 @@ class ReadServiceTest extends UnitSuite with TestEnvironment {
     readService.addUrlOnResource(articleContent3.content) should equal(articleContent3.content)
   }
 
+  test("addUrlOnResource adds url attribute on file embeds") {
+    val filePath = "files/lel/fileste.pdf"
+    val content =
+      s"""<div data-type="file"><$ResourceHtmlEmbedTag $resourceAttr="${ResourceType.File}" ${TagAttributes.DataPath}="$filePath" ${TagAttributes.Title}="This fancy pdf"><$ResourceHtmlEmbedTag $resourceAttr="${ResourceType.File}" ${TagAttributes.DataPath}="$filePath" ${TagAttributes.Title}="This fancy pdf"></div>"""
+    val expectedResult =
+      s"""<div data-type="file"><$ResourceHtmlEmbedTag $resourceAttr="${ResourceType.File}" ${TagAttributes.DataPath}="$filePath" ${TagAttributes.Title}="This fancy pdf" $urlAttr="http://api-gateway.ndla-local/$filePath"><$ResourceHtmlEmbedTag $resourceAttr="${ResourceType.File}" ${TagAttributes.DataPath}="$filePath" ${TagAttributes.Title}="This fancy pdf" $urlAttr="http://api-gateway.ndla-local/$filePath"></div>"""
+    val result = readService.addUrlOnResource(content)
+    result should equal(expectedResult)
+  }
+
   test("addIdAndUrlOnResource adds urls on all content translations in an article") {
     val article = TestData.sampleArticleWithByNcSa.copy(content = Seq(articleContent1, articleContent2))
     val article1ExpectedResult = articleContent1.copy(content =
@@ -88,5 +98,18 @@ class ReadServiceTest extends UnitSuite with TestEnvironment {
     occList.getNMostFrequent(2) should equal(Seq("tag", "is"))
     occList.getNMostFrequent(3) should equal(Seq("tag", "is", "17. Mai"))
     occList.getNMostFrequent(4) should equal(Seq("tag", "is", "17. Mai", "lol"))
+  }
+
+  test("addUrlOnEmbedTag converts single file embeds to anchor tags") {
+    val filePath = "files/lel/fileste.pdf"
+    val url = s"http://api-gateway.ndla-local/$filePath"
+    val title = "This fancy pdf"
+    val urlText = "Is this real url text?"
+    val content =
+      s"""<$ResourceHtmlEmbedTag ${TagAttributes.DataAlt}="$urlText" $resourceAttr="${ResourceType.File}" ${TagAttributes.DataPath}="$filePath" ${TagAttributes.DataTitle}="$title">"""
+    val expectedResult =
+      s"""<a href="$url" title="$title">$urlText</a>"""
+    val result = readService.addUrlOnResource(content)
+    result should equal(expectedResult)
   }
 }

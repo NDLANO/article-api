@@ -14,6 +14,7 @@ import no.ndla.articleapi.model.domain._
 import no.ndla.articleapi.model.search._
 import no.ndla.articleapi.service.ConverterService
 import no.ndla.network.ApplicationUrl
+import org.joda.time.DateTime
 import org.jsoup.Jsoup
 
 trait SearchConverterService {
@@ -39,7 +40,7 @@ trait SearchConverterService {
         metaImage = SearchableLanguageValues(articleWithAgreement.metaImage.map(meta => LanguageValue(meta.language, meta.imageId))),
         content = SearchableLanguageValues(articleWithAgreement.content.map(article => LanguageValue(article.language, Jsoup.parseBodyFragment(article.content).text()))),
         tags = SearchableLanguageList(articleWithAgreement.tags.map(tag => LanguageValue(tag.language, tag.tags))),
-        lastUpdated = articleWithAgreement.updated,
+        lastUpdated = new DateTime(articleWithAgreement.updated),
         license = articleWithAgreement.copyright.license,
         authors = articleWithAgreement.copyright.creators.map(_.name) ++ articleWithAgreement.copyright.processors.map(_.name) ++ articleWithAgreement.copyright.rightsholders.map(_.name),
         articleType = articleWithAgreement.articleType,
@@ -50,9 +51,9 @@ trait SearchConverterService {
     def asArticleSummary(searchableArticle: SearchableArticle): ArticleSummary = {
       ArticleSummary(
         id = searchableArticle.id,
-        title = searchableArticle.title.languageValues.map(lv => ArticleTitle(lv.value, lv.lang)),
-        visualElement = searchableArticle.visualElement.languageValues.map(lv => VisualElement(lv.value, lv.lang)),
-        introduction = searchableArticle.introduction.languageValues.map(lv => ArticleIntroduction(lv.value, lv.lang)),
+        title = searchableArticle.title.languageValues.map(lv => ArticleTitle(lv.value, lv.language)),
+        visualElement = searchableArticle.visualElement.languageValues.map(lv => VisualElement(lv.value, lv.language)),
+        introduction = searchableArticle.introduction.languageValues.map(lv => ArticleIntroduction(lv.value, lv.language)),
         url = createUrlToArticle(searchableArticle.id),
         license = searchableArticle.license)
     }
