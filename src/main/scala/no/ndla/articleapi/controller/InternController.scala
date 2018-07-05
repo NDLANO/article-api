@@ -131,10 +131,11 @@ trait InternController {
 
     post("/article/:id") {
       authRole.assertHasWritePermission()
+      val externalIds = paramAsListOfLong("external-id")
       val article = extract[Article](request.body)
       val id = long("id")
 
-      writeService.updateArticle(article.copy(id=Some(id))) match {
+      writeService.updateArticle(article.copy(id=Some(id)), externalIds) match {
         case Success(a) => a
         case Failure(ex) => errorHandler(ex)
       }

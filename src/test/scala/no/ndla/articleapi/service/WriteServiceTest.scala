@@ -41,10 +41,6 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     when(contentValidator.validateArticle(any[Article], any[Boolean])).thenAnswer((invocation: InvocationOnMock) =>
       Success(invocation.getArgumentAt(0, classOf[Article]))
     )
-    when(articleRepository.updateArticle(any[Article])(any[DBSession])).thenAnswer((invocation: InvocationOnMock) => {
-      val arg = invocation.getArgumentAt(0, classOf[Article])
-      Try(arg.copy(revision = Some(arg.revision.get + 1)))
-    })
   }
 
   test("allocateArticleId should reuse existing id if external id already exists") {

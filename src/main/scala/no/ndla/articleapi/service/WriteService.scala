@@ -41,10 +41,10 @@ trait WriteService {
       }
     }
 
-    def updateArticle(article: Article): Try[Article] = {
+    def updateArticle(article: Article, externalIds: List[Long]): Try[Article] = {
       for {
         _ <- contentValidator.validateArticle(article, allowUnknownLanguage = true)
-        domainArticle <- articleRepository.updateArticleFromDraftApi(article)
+        domainArticle <- articleRepository.updateArticleFromDraftApi(article, externalIds.map(_.toString))
         _ <- articleIndexService.indexDocument(domainArticle)
       } yield domainArticle
     }

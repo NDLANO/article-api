@@ -38,7 +38,6 @@ class InternControllerTest extends UnitSuite with TestEnvironment with ScalatraF
     val invalidArticle = """{"revision": 1, "title": [{"language": "nb", "titlee": "lol"]}"""
     post("/validate/article", body=invalidArticle) {
       status should equal (400)
-      verify(articleRepository, times(0)).newArticle(any[Article])(any[DBSession])
     }
   }
 
@@ -46,7 +45,6 @@ class InternControllerTest extends UnitSuite with TestEnvironment with ScalatraF
     when(contentValidator.validateArticle(any[Article], any[Boolean])).thenReturn(Success(TestData.sampleArticleWithByNcSa))
     post("/validate/article", body=write(TestData.sampleArticleWithByNcSa)) {
       status should equal (200)
-      verify(articleRepository, times(0)).newArticle(any[Article])(any[DBSession])
     }
   }
 
