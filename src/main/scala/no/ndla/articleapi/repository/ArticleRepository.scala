@@ -77,7 +77,7 @@ trait ArticleRepository {
       }
     }
 
-    def insertWithExternalIds(article: Article, externalId: Seq[String], externalSubjectId: Seq[String])(implicit session: DBSession = AutoSession): Article = {
+    def insertWithExternalIds(article: Article, externalIds: Seq[String], externalSubjectId: Seq[String])(implicit session: DBSession = AutoSession): Article = {
       val dataObject = new PGobject()
       dataObject.setType("jsonb")
       dataObject.setValue(write(article))
@@ -85,10 +85,10 @@ trait ArticleRepository {
       val articleId: Long =
         sql"""
              insert into ${Article.table} (external_id, external_subject_id, document)
-             values (ARRAY[${externalId}]::text[], ARRAY[${externalSubjectId}]::text[], ${dataObject})
+             values (ARRAY[${externalIds}]::text[], ARRAY[${externalSubjectId}]::text[], ${dataObject})
           """.updateAndReturnGeneratedKey().apply
 
-      logger.info(s"Inserted article $externalId: $articleId")
+      logger.info(s"Inserted article $externalIds: $articleId")
       article.copy(id = Some(articleId))
     }
 
@@ -118,18 +118,18 @@ trait ArticleRepository {
       articleId
     }
 
-    def allocateArticleIdWithExternalIds(externalId: List[String], externalSubjectId: Set[String])(implicit session: DBSession = AutoSession): Long = {
+    def allocateArticleIdWithExternalIds(externalIds: List[String], externalSubjectId: Set[String])(implicit session: DBSession = AutoSession): Long = {
       val startRevision = 0
 
       val articleId: Long =
         sql"""
              insert into ${Article.table} (external_id, external_subject_id, revision)
-             values (ARRAY[${externalId}]::text[], ARRAY[${externalSubjectId}]::text[], $startRevision)
+             values (ARRAY[${externalIds}]::text[], ARRAY[${externalSubjectId}]::text[], $startRevision)
           """
           .updateAndReturnGeneratedKey()
           .apply
 
-      logger.info(s"Allocated id for article $articleId (external ids ${externalId.mkString(",")})")
+      logger.info(s"Allocated id for article $articleId (external ids ${externalIds.mkString(",")})")
       articleId
     }
 

@@ -26,7 +26,7 @@ trait ConceptRepository {
   class ConceptRepository extends LazyLogging with Repository[Concept] {
     implicit val formats: Formats = org.json4s.DefaultFormats + Concept.JSonSerializer
 
-    def insertWithExternalIds(concept: Concept, externalId: List[String])(implicit session: DBSession = AutoSession): Concept = {
+    def insertWithExternalIds(concept: Concept, externalIds: List[String])(implicit session: DBSession = AutoSession): Concept = {
       val dataObject = new PGobject()
       dataObject.setType("jsonb")
       dataObject.setValue(write(concept))
@@ -34,7 +34,7 @@ trait ConceptRepository {
       val conceptId: Long =
         sql"""
              insert into ${Concept.table} (document, external_id)
-             values ($dataObject, ARRAY[$externalId]::text[])
+             values ($dataObject, ARRAY[$externalIds]::text[])
           """.updateAndReturnGeneratedKey.apply
 
       logger.info(s"Inserted new concept: $conceptId")
@@ -49,18 +49,18 @@ trait ConceptRepository {
       articleId
     }
 
-    def allocateConceptIdWithExternalIds(externalId: List[String])(implicit session: DBSession = AutoSession): Long = {
+    def allocateConceptIdWithExternalIds(externalIds: List[String])(implicit session: DBSession = AutoSession): Long = {
       val startRevision = 0
 
       val conceptId: Long =
         sql"""
             insert into ${Concept.table} (external_id, revision)
-            values (ARRAY[$externalId]::text[], $startRevision)
+            values (ARRAY[$externalIds]::text[], $startRevision)
           """
           .updateAndReturnGeneratedKey()
           .apply
 
-      logger.info(s"Allocated id for concept $conceptId (external id $externalId)")
+      logger.info(s"Allocated id for concept $conceptId (external id $externalIds)")
       conceptId
     }
 

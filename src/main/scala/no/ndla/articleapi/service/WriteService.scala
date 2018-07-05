@@ -49,18 +49,18 @@ trait WriteService {
       } yield domainArticle
     }
 
-    def allocateArticleId(externalId: List[String], externalSubjectIds: Set[String] = Set.empty): Long = {
+    def allocateArticleId(externalIds: List[String], externalSubjectIds: Set[String] = Set.empty): Long = {
       val repo = articleRepository
-      externalId match {
+      externalIds match {
         case Nil => repo.allocateArticleId
         case mainNid :: restOfNids => repo.getIdFromExternalId(mainNid)
           .getOrElse(repo.allocateArticleIdWithExternalIds(mainNid :: restOfNids, externalSubjectIds))
       }
     }
 
-    def allocateConceptId(externalId: List[String]): Long = {
+    def allocateConceptId(externalIds: List[String]): Long = {
       val repo = conceptRepository
-      externalId match {
+      externalIds match {
         case Nil => repo.allocateConceptId
         case mainNid :: restOfNids => repo.getIdFromExternalId(mainNid)
           .getOrElse(repo.allocateConceptIdWithExternalIds(mainNid :: restOfNids))
