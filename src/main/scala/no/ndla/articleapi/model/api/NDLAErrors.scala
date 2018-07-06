@@ -49,6 +49,5 @@ case class ImportException(message: String) extends RuntimeException(message)
 
 class AccessDeniedException(message: String) extends RuntimeException(message)
 class ImportExceptions(val message: String, val errors: Seq[Throwable]) extends RuntimeException(message)
-class OptimisticLockException(message: String = Error.RESOURCE_OUTDATED_DESCRIPTION) extends RuntimeException(message)
 class ConfigurationException(message: String) extends RuntimeException(message)
 case class ResultWindowTooLargeException(message: String = Error.WINDOW_TOO_LARGE_DESCRIPTION) extends RuntimeException(message)

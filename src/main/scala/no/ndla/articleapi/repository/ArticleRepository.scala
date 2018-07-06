@@ -12,7 +12,7 @@ package no.ndla.articleapi.repository
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.articleapi.ArticleApiProperties
 import no.ndla.articleapi.integration.DataSource
-import no.ndla.articleapi.model.api.{NotFoundException, OptimisticLockException}
+import no.ndla.articleapi.model.api.NotFoundException
 import no.ndla.articleapi.model.domain.{Article, ArticleIds, ArticleTag}
 import org.json4s.native.JsonMethods._
 import org.json4s.native.Serialization.write
@@ -40,9 +40,9 @@ trait ArticleRepository {
           logger.info(s"Updated article ${article.id}")
           Success(article)
         case Success(_) =>
-          val message = s"Found revision mismatch when attempting to update article ${article.id}"
+          val message = s"No article with id ${article.id} exists!"
           logger.info(message)
-          Failure(new OptimisticLockException)
+          Failure(NotFoundException(message))
         case Failure(ex) => Failure(ex)
       }
     }
