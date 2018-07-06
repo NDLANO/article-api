@@ -1,32 +1,50 @@
+/*
+ * Part of NDLA article_api.
+ * Copyright (C) 2018 NDLA
+ *
+ * See LICENSE
+ *
+ */
+
 package no.ndla.articleapi.repository
 
+
+import java.net.Socket
 import no.ndla.articleapi.model.api.NotFoundException
 import no.ndla.articleapi.model.domain
 import no.ndla.articleapi.model.domain.ArticleIds
-import no.ndla.articleapi.{DBMigrator, IntegrationSuite, TestData, TestEnvironment}
+import no.ndla.articleapi._
 import scalikejdbc.{ConnectionPool, DataSourceConnectionPool}
 
 import scala.util.{Failure, Success, Try}
 
 class ArticleRepositoryTest extends IntegrationSuite with TestEnvironment {
-  var repository: ArticleRepository = _
+  var repository: ArticleRepository = new ArticleRepository
 
-  val sampleArticle = TestData.sampleArticleWithByNcSa
+  lazy val sampleArticle = TestData.sampleArticleWithByNcSa
+
+  def serverIsListenning: Boolean = {
+    Try(new Socket(ArticleApiProperties.MetaServer, ArticleApiProperties.MetaPort)) match {
+      case Success(c) =>
+        c.close()
+        true
+      case _ => false
+    }
+  }
 
   def databaseIsAvailable: Boolean = Try(repository.articleCount).isSuccess
 
-  override def beforeEach() = {
-    repository = new ArticleRepository()
-  }
-
-  override def beforeAll() = {
+  override def beforeAll(): Unit = {
     ConnectionPool.singleton(new DataSourceConnectionPool(getDataSource))
-    if (databaseIsAvailable)
+    if (serverIsListenning) {
       DBMigrator.migrate(ConnectionPool.dataSource())
+    }
   }
 
   override def afterEach(): Unit = {
-    repository.getAllIds.foreach(articleId => repository.delete(articleId.articleId))
+    if (databaseIsAvailable) {
+      repository.getAllIds().foreach(articleId => repository.delete(articleId.articleId))
+    }
   }
 
   test("getAllIds returns a list with all ids in the database") {
