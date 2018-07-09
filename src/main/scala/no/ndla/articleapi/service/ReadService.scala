@@ -99,7 +99,7 @@ trait ReadService {
       val typeAndPathOption = embedTag.attr(TagAttributes.DataResource.toString) match {
         case resourceType if resourceType == ResourceType.File.toString && embedTag.hasAttr(TagAttributes.DataPath.toString) =>
 
-          if(embedTag.parent().attr(TagAttributes.DataType.toString) != ResourceType.File.toString) {
+          if (embedTag.parent().attr(TagAttributes.DataType.toString) != ResourceType.File.toString) {
             convertFileEmbedToAnchor(embedTag)
             None
           } else {
@@ -147,6 +147,10 @@ trait ReadService {
 
     def getConceptIdByExternalId(externalId: String): Option[Long] =
       conceptRepository.getIdFromExternalId(externalId)
+
+    def getArticleIdsByExternalId(externalId: String): Option[api.ArticleIds] =
+      articleRepository.getArticleIdsFromExternalId(externalId).map(converterService.toApiArticleIds)
+
   }
 
 }

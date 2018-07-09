@@ -470,5 +470,7 @@ trait ConverterService {
 
     def toApiConceptContent(title: ConceptContent): api.ConceptContent = api.ConceptContent(title.content, title.language)
 
+    def toApiArticleIds(ids: ArticleIds): api.ArticleIds = api.ArticleIds(ids.articleId, ids.externalId)
+
   }
 }
