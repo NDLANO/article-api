@@ -12,13 +12,12 @@ package no.ndla.articleapi.controller
 import no.ndla.articleapi.ArticleApiProperties
 import no.ndla.articleapi.auth.{Role, User}
 import no.ndla.articleapi.model.api._
-import no.ndla.articleapi.model.domain.{ArticleType, Language, Sort}
+import no.ndla.articleapi.model.domain.{ArticleType, Language, Sort, ArticleIds}
 import no.ndla.articleapi.service.search.ArticleSearchService
 import no.ndla.articleapi.service.{ConverterService, ReadService, WriteService}
 import no.ndla.articleapi.validation.ContentValidator
 import org.json4s.{DefaultFormats, Formats}
 import org.scalatra.swagger.{ResponseMessage, Swagger, SwaggerSupport}
-import org.scalatra._
 import org.scalatra.NotFound
 import org.scalatra.swagger._
 import org.scalatra.util.NotNothing
@@ -65,7 +64,7 @@ trait ArticleControllerV2 {
     private def asPathParam[T: Manifest: NotNothing](param: Param) = pathParam[T](param.paramName).description(param.description)
 
 
-    val getTags =
+    val getTags: SwaggerSupportSyntax.OperationBuilder =
       (apiOperation[ArticleTag]("getTags")
         summary "Fetch tags used in articles"
         notes "Retrieves a list of all previously used tags in articles"
@@ -132,7 +131,7 @@ trait ArticleControllerV2 {
       }
     }
 
-    val getAllArticles =
+    val getAllArticles: SwaggerSupportSyntax.OperationBuilder =
       (apiOperation[List[SearchResultV2]]("getAllArticles")
         summary "Find articles"
         notes "Shows all articles. You can search it too."
@@ -164,7 +163,7 @@ trait ArticleControllerV2 {
       search(query, sort, language, license, page, pageSize, idList, articleTypesFilter, fallback)
     }
 
-    val getAllArticlesPost =
+    val getAllArticlesPost: SwaggerSupportSyntax.OperationBuilder =
       (apiOperation[List[SearchResultV2]]("getAllArticlesPost")
         summary "Find articles"
         notes "Shows all articles. You can search it too."
@@ -191,7 +190,7 @@ trait ArticleControllerV2 {
       search(query, sort, language, license, page, pageSize, idList, articleTypesFilter, fallback)
     }
 
-    val getArticleById =
+    val getArticleById: SwaggerSupportSyntax.OperationBuilder =
       (apiOperation[List[ArticleV2]]("getArticleById")
         summary "Fetch specified article"
         notes "Shows the article for the specified id."
@@ -215,7 +214,7 @@ trait ArticleControllerV2 {
       }
     }
 
-    val getInternalIdByExternalId =
+    val getInternalIdByExternalId: SwaggerSupportSyntax.OperationBuilder =
       (apiOperation[ArticleIdV2]("getInternalIdByExternalId")
         summary "Get id of article corresponding to specified deprecated node id"
         notes "Get internal id of article for a specified ndla_node_id"
@@ -231,6 +230,25 @@ trait ArticleControllerV2 {
       readService.getInternalIdByExternalId(externalId) match {
         case Some(id) => id
         case None => NotFound(body = Error(Error.NOT_FOUND, s"No article with id $externalId"))
+      }
+    }
+
+    val getExternalIdsByExternalId: SwaggerSupportSyntax.OperationBuilder =
+      (apiOperation[ArticleIds]("getExternalIdsByExternalId")
+        summary "Get all ids related to article corresponding to specified deprecated node id"
+        notes "Get internal id as well as all deprecated ndla_node_ids of article for a specified ndla_node_id"
+        parameters(
+        asHeaderParam[Option[String]](correlationId),
+        asPathParam[Long](deprecatedNodeId)
+      )
+        authorizations "oauth2"
+        responseMessages(response404, response500))
+
+    get("/external_ids/:deprecated_node_id", operation(getExternalIdsByExternalId)) {
+      val externalId = params(this.deprecatedNodeId.paramName)
+      readService.getArticleIdsByExternalId(externalId) match {
+        case Some(idObject) => idObject
+        case None => NotFound()
       }
     }
   }
