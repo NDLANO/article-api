@@ -87,17 +87,26 @@ trait ArticleRepository {
       sql"select id from ${Article.table} where ${externalId} = any(external_id)".map(rs => rs.long("id")).single.apply()
     }
 
+    private def externalIdsFromResultSet(wrappedResultSet: WrappedResultSet): List[String] = {
+      Option(wrappedResultSet.array("external_id"))
+        .map(_.getArray.asInstanceOf[Array[String]])
+        .getOrElse(Array.empty)
+        .toList
+    }
+
     def getExternalIdsFromId(id: Long)(implicit session: DBSession = AutoSession): List[String] = {
-      sql"select external_id from ${Article.table} where id=${id.toInt}".map(rs =>
-        rs.array("external_id").getArray.asInstanceOf[Array[String]].toList
-      ).single.apply.getOrElse(List.empty)
+      sql"select external_id from ${Article.table} where id=${id.toInt}"
+        .map(externalIdsFromResultSet)
+        .single
+        .apply
+        .getOrElse(List.empty)
     }
 
     def getAllIds(implicit session: DBSession = AutoSession): Seq[ArticleIds] = {
       sql"select id, external_id from ${Article.table}".map(rs =>
         ArticleIds(
           rs.long("id"),
-          rs.array("external_id").getArray.asInstanceOf[Array[String]].toList
+          externalIdsFromResultSet(rs)
         )).list.apply
     }
 
