@@ -99,4 +99,20 @@ class ArticleRepositoryTest extends IntegrationSuite with TestEnvironment {
     res.message should equal (s"No article with id Some(123) exists!")
   }
 
+  test("Fetching external ids works as expected") {
+    assume(databaseIsAvailable, "Database is unavailable")
+
+    val externalIds = List("1", "2", "3")
+    val idWithExternals = repository.allocateArticleIdWithExternalIds(externalIds, Set.empty)
+    val idWithoutExternals = repository.allocateArticleId()
+
+    val result1 = repository.getExternalIdsFromId(idWithExternals)
+    result1 should be(externalIds)
+    val result2 = repository.getExternalIdsFromId(idWithoutExternals)
+    result2 should be(List.empty)
+
+    repository.delete(idWithExternals)
+    repository.delete(idWithoutExternals)
+  }
+
 }
