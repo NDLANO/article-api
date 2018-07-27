@@ -32,7 +32,7 @@ trait ContentValidator {
       val validationErrors = article.content.flatMap(c => validateArticleContent(c, allowUnknownLanguage)) ++
         article.introduction.flatMap(i => validateIntroduction(i, allowUnknownLanguage)) ++
         article.metaDescription.flatMap(m => validateMetaDescription(m, allowUnknownLanguage)) ++
-        article.title.flatMap(t => validateTitle(t, allowUnknownLanguage)) ++
+        article.title.flatMap(t => validateTitle(t.title, t.language, allowUnknownLanguage)) ++
         validateCopyright(article.copyright) ++
         validateTags(article.tags, allowUnknownLanguage) ++
         article.requiredLibraries.flatMap(validateRequiredLibrary) ++
@@ -51,7 +51,7 @@ trait ContentValidator {
 
     def validateConcept(concept: Concept, allowUnknownLanguage: Boolean): Try[Concept] = {
       val validationErrors = concept.content.flatMap(c => validateConceptContent(c, allowUnknownLanguage)) ++
-        concept.title.flatMap(t => validateTitle(t, allowUnknownLanguage))
+        concept.title.flatMap(t => validateTitle(t.title, t.language, allowUnknownLanguage))
 
       if (validationErrors.isEmpty) {
         Success(concept)
@@ -60,7 +60,7 @@ trait ContentValidator {
       }
     }
 
-    private def validateNonEmpty(field: String, values: Seq[LanguageField[_]]): Option[ValidationMessage] = {
+    private def validateNonEmpty(field: String, values: Seq[LanguageField]): Option[ValidationMessage] = {
       if (values.isEmpty) {
         Some(ValidationMessage(field, "Field must contain at least one entry"))
       } else
@@ -117,10 +117,10 @@ trait ContentValidator {
         validateLanguage("metaDescription.language", content.language, allowUnknownLanguage)
     }
 
-    private def validateTitle(content: LanguageField[String], allowUnknownLanguage: Boolean): Seq[ValidationMessage] = {
-      val field = s"title.${content.language}"
-      NoHtmlValidator.validate(field, content.value).toList ++
-        validateLanguage("title.language", content.language, allowUnknownLanguage)
+    private def validateTitle(value: String, language: String, allowUnknownLanguage: Boolean): Seq[ValidationMessage] = {
+      val field = s"title.$language"
+      NoHtmlValidator.validate(field, value).toList ++
+        validateLanguage("title.language", language, allowUnknownLanguage)
     }
 
     private def validateCopyright(copyright: Copyright): Seq[ValidationMessage] = {

@@ -12,6 +12,6 @@ import org.scalatra.swagger.annotations.{ApiModel, ApiModelProperty}
 
 import scala.annotation.meta.field
 
-case class ArticleMetaDescription(content: String, language: String) extends LanguageField[String] {
-  override def value: String = content
+case class ArticleMetaDescription(content: String, language: String) extends LanguageField {
+  override def isEmpty: Boolean = content.isEmpty
 }

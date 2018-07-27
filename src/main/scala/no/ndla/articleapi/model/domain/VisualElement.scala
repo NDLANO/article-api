@@ -9,6 +9,6 @@
 
 package no.ndla.articleapi.model.domain
 
-case class VisualElement(resource: String, language: String) extends LanguageField[String] {
-  override def value: String = resource
+case class VisualElement(resource: String, language: String) extends LanguageField {
+  override def isEmpty: Boolean = resource.isEmpty
 }

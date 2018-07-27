@@ -84,7 +84,7 @@ trait ConverterService {
       val titles = searchableArticle.title.languageValues.map(lv => ArticleTitle(lv.value, lv.language))
       val introductions = searchableArticle.introduction.languageValues.map(lv => ArticleIntroduction(lv.value, lv.language))
       val metaDescriptions = searchableArticle.metaDescription.languageValues.map(lv => ArticleMetaDescription(lv.value, lv.language))
-      val metaImages = searchableArticle.metaImage.languageValues.map(lv => ArticleMetaImage(lv.value, lv.language))
+      val metaImages = searchableArticle.metaImage.languageValues.map(lv => ArticleMetaImage(lv.value, "", lv.language)) // TODO: Alttext should be in search as well
       val visualElements = searchableArticle.visualElement.languageValues.map(lv => VisualElement(lv.value, lv.language))
 
       val supportedLanguages = getSupportedLanguages(titles, visualElements, introductions)
@@ -170,15 +170,15 @@ trait ConverterService {
         visualElement = mergeLanguageFields(toMergeInto.visualElement, updatedApiArticle.visualElement.map(c => converterService.toDomainVisualElementV2(Some(c), lang)).getOrElse(Seq())),
         introduction = mergeLanguageFields(toMergeInto.introduction, updatedApiArticle.introduction.map(i => converterService.toDomainIntroductionV2(Some(i), lang)).getOrElse(Seq())),
         metaDescription = mergeLanguageFields(toMergeInto.metaDescription, updatedApiArticle.metaDescription.map(m => converterService.toDomainMetaDescriptionV2(Some(m), lang)).getOrElse(Seq())),
-        metaImage = mergeLanguageFields(toMergeInto.metaImage, updatedApiArticle.metaImageId.map(m => toDomainMetaImage(m, lang)).toSeq),
+        metaImage = mergeLanguageFields(toMergeInto.metaImage, updatedApiArticle.metaImage.map(m => toDomainMetaImage(m.id, m.alt, lang)).toSeq),
         updated = clock.now(),
         updatedBy = authUser.userOrClientid()
       )
     }
 
-    private[service] def mergeLanguageFields[A <: LanguageField[String]](existing: Seq[A], updated: Seq[A]): Seq[A] = {
+    private[service] def mergeLanguageFields[A <: LanguageField](existing: Seq[A], updated: Seq[A]): Seq[A] = {
       val toKeep = existing.filterNot(item => updated.map(_.language).contains(item.language))
-      (toKeep ++ updated).filterNot(_.value.isEmpty)
+      (toKeep ++ updated).filterNot(_.isEmpty)
     }
 
     private def mergeTags(existing: Seq[ArticleTag], updated: Seq[ArticleTag]): Seq[ArticleTag] = {
@@ -215,7 +215,7 @@ trait ConverterService {
         visualElement=toDomainVisualElementV2(newArticle.visualElement, newArticle.language),
         introduction=toDomainIntroductionV2(newArticle.introduction, newArticle.language),
         metaDescription=toDomainMetaDescriptionV2(newArticle.metaDescription, newArticle.language),
-        metaImage=newArticle.metaImageId.map(imageId => toDomainMetaImage(imageId, newArticle.language)).toSeq,
+        metaImage=newArticle.metaImage.map(meta => toDomainMetaImage(meta.id, meta.alt, newArticle.language)).toSeq,
         created=clock.now(),
         updated=clock.now(),
         updatedBy=authUser.userOrClientid(),
@@ -294,7 +294,7 @@ trait ConverterService {
 
     def toDomainMetaDescription(meta: api.ArticleMetaDescription): ArticleMetaDescription = ArticleMetaDescription(meta.metaDescription, meta.language)
 
-    def toDomainMetaImage(imageId: String, language: String): ArticleMetaImage = ArticleMetaImage(imageId, language)
+    def toDomainMetaImage(imageId: String, altText: String, language: String): ArticleMetaImage = ArticleMetaImage(imageId, altText, language)
 
     def toDomainMetaDescriptionV2(meta: Option[String], language: String): Seq[ArticleMetaDescription] = {
       if (meta.isEmpty) {
@@ -351,7 +351,7 @@ trait ConverterService {
         val introduction = findByLanguageOrBestEffort(article.introduction, language).map(toApiArticleIntroduction)
         val visualElement = findByLanguageOrBestEffort(article.visualElement, language).map(toApiVisualElement)
         val articleContent = findByLanguageOrBestEffort(article.content, language).map(toApiArticleContentV2).getOrElse(api.ArticleContentV2("", UnknownLanguage))
-        val metaImage = findByLanguageOrBestEffort(article.metaImage, language).map(toApiMetaImage)
+        val metaImage = findByLanguageOrBestEffort(article.metaImage, language).map(toApiArticleMetaImage)
 
         Success(api.ArticleV2(
           article.id.get,
@@ -375,10 +375,6 @@ trait ConverterService {
       } else  {
         Failure(NotFoundException(s"The article with id ${article.id.get} and language $language was not found", supportedLanguages))
       }
-    }
-
-    def toApiMetaImage(metaImage: ArticleMetaImage): api.ArticleMetaImage = {
-      api.ArticleMetaImage(s"${externalApiUrls("raw-image")}/${metaImage.imageId}", metaImage.language)
     }
 
     def toApiArticleTitle(title: ArticleTitle): api.ArticleTitle = {
@@ -437,7 +433,7 @@ trait ConverterService {
     }
 
     def toApiArticleMetaImage(metaImage: ArticleMetaImage): api.ArticleMetaImage = {
-      api.ArticleMetaImage(s"${externalApiUrls("raw-image")}/${metaImage.imageId}", metaImage.language)
+      api.ArticleMetaImage(s"${externalApiUrls("raw-image")}/${metaImage.imageId}", metaImage.altText, metaImage.language)
     }
 
     def createLinkToOldNdla(nodeId: String): String = s"//red.ndla.no/node/$nodeId"

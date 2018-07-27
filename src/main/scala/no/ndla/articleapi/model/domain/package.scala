@@ -13,7 +13,4 @@ package object domain {
   }
 
   case class ArticleIds(articleId: Long, externalId: List[String])
-
-  def getByLanguage[T](entries: Seq[LanguageField[T]], language: String): Option[T] =
-    entries.find(_.language == language).map(_.value)
 }

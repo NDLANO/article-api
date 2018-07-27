@@ -7,6 +7,6 @@
 
 package no.ndla.articleapi.model.domain
 
-case class ArticleMetaImage(imageId: String, language: String) extends LanguageField[String] {
-  override def value: String = imageId
+case class ArticleMetaImage(imageId: String, altText: String, language: String) extends LanguageField {
+  override def isEmpty: Boolean = imageId.isEmpty && altText.isEmpty
 }
