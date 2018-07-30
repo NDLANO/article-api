@@ -50,7 +50,6 @@ trait ArticleIndexService {
           generateLanguageSupportedFieldList("visualElement") ++
           generateLanguageSupportedFieldList("introduction") ++
           generateLanguageSupportedFieldList("metaDescription") ++
-          generateLanguageSupportedFieldList("metaImage") ++
           generateLanguageSupportedFieldList("tags")
       )
     }

@@ -1,9 +1,10 @@
 package no.ndla.articleapi.model.search
 
 import no.ndla.articleapi._
+import no.ndla.articleapi.model.domain.ArticleMetaImage
 import org.joda.time.{DateTime, DateTimeZone}
 import org.json4s.Formats
-import org.json4s.native.Serialization.{writePretty, read}
+import org.json4s.native.Serialization.{read, writePretty}
 
 class SearchableArticleSerializerTest extends UnitSuite with TestEnvironment {
   implicit val formats: Formats = SearchableLanguageFormats.JSonFormats
@@ -15,7 +16,7 @@ class SearchableArticleSerializerTest extends UnitSuite with TestEnvironment {
     visualElement = SearchableLanguageValues(Vector(LanguageValue("nb", "visueltelement"), LanguageValue("en", "visualelement"))),
     introduction = SearchableLanguageValues(Vector(LanguageValue("nb", "ingress"), LanguageValue("en", "introduction"))),
     metaDescription = SearchableLanguageValues(Vector(LanguageValue("nb", "meta beskrivelse"), LanguageValue("en", "meta description"))),
-    metaImage = SearchableLanguageValues(Vector(LanguageValue("nb", "1"))),
+    metaImage = Vector(ArticleMetaImage("nb", "alt", "1")),
     tags = SearchableLanguageList(Vector(LanguageValue("nb", List("m", "e", "r", "k")), LanguageValue("en", List("t", "a", "g", "s")))),
     lastUpdated = new DateTime(2018, 2, 22, 14, 0, 51, DateTimeZone.UTC).withMillisOfSecond(0),
     license = "by-sa",

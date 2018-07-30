@@ -11,12 +11,11 @@ package no.ndla.articleapi.service.search
 import java.nio.file.{Files, Path}
 
 import com.sksamuel.elastic4s.embedded.LocalNode
-import no.ndla.articleapi.integration.{Elastic4sClientFactory, NdlaE4sClient}
+import no.ndla.articleapi.integration.NdlaE4sClient
 import no.ndla.articleapi.model.domain._
 import no.ndla.articleapi._
 import no.ndla.articleapi.model.api
 import no.ndla.articleapi.ArticleApiProperties.DefaultPageSize
-import no.ndla.tag.IntegrationTest
 import org.joda.time.DateTime
 
 import scala.util.Success
@@ -455,7 +454,7 @@ class ArticleSearchServiceTest extends UnitSuite with TestEnvironment {
     ))
   }
 
-  def blockUntil(predicate: () => Boolean) = {
+  def blockUntil(predicate: () => Boolean): Unit = {
     var backoff = 0
     var done = false
 

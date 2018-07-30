@@ -84,7 +84,8 @@ trait ConverterService {
       val titles = searchableArticle.title.languageValues.map(lv => ArticleTitle(lv.value, lv.language))
       val introductions = searchableArticle.introduction.languageValues.map(lv => ArticleIntroduction(lv.value, lv.language))
       val metaDescriptions = searchableArticle.metaDescription.languageValues.map(lv => ArticleMetaDescription(lv.value, lv.language))
-      val metaImages = searchableArticle.metaImage.languageValues.map(lv => ArticleMetaImage(lv.value, "", lv.language)) // TODO: Alttext should be in search as well
+      val metaImages = searchableArticle.metaImage.map(
+        image => ArticleMetaImage(image.imageId, image.altText, image.language))
       val visualElements = searchableArticle.visualElement.languageValues.map(lv => VisualElement(lv.value, lv.language))
 
       val supportedLanguages = getSupportedLanguages(titles, visualElements, introductions)

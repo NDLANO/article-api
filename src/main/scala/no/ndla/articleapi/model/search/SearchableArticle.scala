@@ -8,6 +8,7 @@
 
 package no.ndla.articleapi.model.search
 
+import no.ndla.articleapi.model.domain.ArticleMetaImage
 import org.joda.time.DateTime
 
 case class SearchableArticle(
@@ -17,7 +18,7 @@ case class SearchableArticle(
   visualElement: SearchableLanguageValues,
   introduction: SearchableLanguageValues,
   metaDescription: SearchableLanguageValues,
-  metaImage: SearchableLanguageValues,
+  metaImage: Seq[ArticleMetaImage],
   tags: SearchableLanguageList,
   lastUpdated: DateTime,
   license: String,
