@@ -9,21 +9,24 @@
 
 package no.ndla.articleapi.service.search
 
+import java.nio.file.{Files, Path}
+
+import com.sksamuel.elastic4s.embedded.LocalNode
 import no.ndla.articleapi.ArticleApiProperties.DefaultPageSize
 import no.ndla.articleapi._
-import no.ndla.articleapi.integration.Elastic4sClientFactory
+import no.ndla.articleapi.integration.{Elastic4sClientFactory, NdlaE4sClient}
 import no.ndla.articleapi.model.domain._
 import no.ndla.tag.IntegrationTest
 import org.joda.time.DateTime
 
 import scala.util.Success
 
-@IntegrationTest
 class ConceptSearchServiceTest extends UnitSuite with TestEnvironment {
+  val tmpDir: Path = Files.createTempDirectory(this.getClass.getName)
+  val localNodeSettings: Map[String, String] = LocalNode.requiredSettings(this.getClass.getName, tmpDir.toString)
+  val localNode = LocalNode(localNodeSettings)
 
-  val esPort = 9200
-
-  override val e4sClient = Elastic4sClientFactory.getClient(searchServer = s"http://localhost:$esPort")
+  override val e4sClient = NdlaE4sClient(localNode.http(true))
 
   override val conceptSearchService = new ConceptSearchService
   override val conceptIndexService = new ConceptIndexService
