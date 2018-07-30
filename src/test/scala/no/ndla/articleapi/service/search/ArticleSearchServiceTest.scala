@@ -14,6 +14,7 @@ import com.sksamuel.elastic4s.embedded.LocalNode
 import no.ndla.articleapi.integration.{Elastic4sClientFactory, NdlaE4sClient}
 import no.ndla.articleapi.model.domain._
 import no.ndla.articleapi._
+import no.ndla.articleapi.model.api
 import no.ndla.articleapi.ArticleApiProperties.DefaultPageSize
 import no.ndla.tag.IntegrationTest
 import org.joda.time.DateTime
@@ -45,7 +46,8 @@ class ArticleSearchServiceTest extends UnitSuite with TestEnvironment {
     content = List(ArticleContent("Bilde av en <strong>bil</strong> flaggermusmann som vifter med vingene <em>bil</em>.", "nb")),
     tags = List(ArticleTag(List("fugl"), "nb")),
     created = today.minusDays(4).toDate,
-    updated = today.minusDays(3).toDate)
+    updated = today.minusDays(3).toDate,
+    metaImage = List(ArticleMetaImage("5555", "Alt text is here friend", "nb")))
   val article2 = TestData.sampleArticleWithPublicDomain.copy(
     id = Option(2),
     title = List(ArticleTitle("Pingvinen er ute og går", "nb")),
@@ -443,6 +445,14 @@ class ArticleSearchServiceTest extends UnitSuite with TestEnvironment {
     search.results(1).title.language should equal("en")
     search.results(2).id should equal(11)
     search.results(2).title.language should equal("en")
+  }
+
+  test("That metaImage altText is included in the search") {
+    val Success(search) = articleSearchService.all(List(1), "nb", None, 1, 10, Sort.ByIdAsc, Seq.empty, fallback = true)
+    search.totalCount should be(1)
+    search.results.head.metaImage should be(Some(
+      api.ArticleMetaImage("http://api-gateway.ndla-local/image-api/raw/id/5555", "Alt text is here friend", "nb")
+    ))
   }
 
   def blockUntil(predicate: () => Boolean) = {
