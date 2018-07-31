@@ -1,6 +1,6 @@
 import java.util.Properties
 
-val Scalaversion = "2.12.2"
+val Scalaversion = "2.12.6"
 val Scalatraversion = "2.5.1"
 val ScalaLoggingVersion = "3.5.0"
 val Log4JVersion = "2.11.0"
@@ -80,6 +80,25 @@ assembly / assemblyMergeStrategy := {
     val oldStrategy = (assembly/ assemblyMergeStrategy).value
     oldStrategy(x)
 }
+
+val checkfmt = taskKey[Boolean]("check for code style errors")
+checkfmt := {
+  val noErrorsInMainFiles = (Compile / scalafmtCheck).value
+  val noErrorsInTestFiles = (Test / scalafmtCheck).value
+  val noErrorsInBuildFiles = (Compile / scalafmtSbtCheck).value
+
+  noErrorsInMainFiles && noErrorsInTestFiles && noErrorsInBuildFiles
+}
+
+Test / test := (Test / test).dependsOn(Test / checkfmt).value
+
+val fmt = taskKey[Unit]("Automatically apply code style fixes")
+fmt := {
+  (Compile / scalafmt).value
+  (Test / scalafmt).value
+  (Compile / scalafmtSbt).value
+}
+
 
 // Don't run Integration tests in default run on Travis as there is no elasticsearch localhost:9200 there yet.
 // NB this line will unfortunalty override runs on your local commandline so that
