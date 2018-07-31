@@ -43,7 +43,12 @@ trait ArticleIndexService {
           dateField("lastUpdated"),
           keywordField("license"),
           textField("authors").fielddata(true),
-          textField("articleType").analyzer("keyword")
+          textField("articleType").analyzer("keyword"),
+          nestedField("metaImage").fields(
+            keywordField("imageId"),
+            keywordField("altText"),
+            keywordField("language")
+          )
         ) ++
           generateLanguageSupportedFieldList("title", keepRaw = true) ++
           generateLanguageSupportedFieldList("content") ++
