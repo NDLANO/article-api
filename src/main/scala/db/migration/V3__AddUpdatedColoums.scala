@@ -40,7 +40,10 @@ class V3__AddUpdatedColoums extends JdbcMigration {
   }
 
   def allArticles(offset: Long)(implicit session: DBSession) = {
-    sql"select id, document from contentdata where document is not NULL order by id limit 1000 offset ${offset}".map(rs => V3_DBArticleMetaInformation(rs.long("id"), rs.string("document"))).list.apply()
+    sql"select id, document from contentdata where document is not NULL order by id limit 1000 offset ${offset}"
+      .map(rs => V3_DBArticleMetaInformation(rs.long("id"), rs.string("document")))
+      .list
+      .apply()
   }
 
   def convertArticleUpdate(articleMeta: V3_DBArticleMetaInformation) = {
@@ -51,7 +54,6 @@ class V3__AddUpdatedColoums extends JdbcMigration {
 
     articleMeta.copy(document = compact(render(mergedDoc)))
   }
-
 
   def update(articleMeta: V3_DBArticleMetaInformation)(implicit session: DBSession) = {
     val dataObject = new PGobject()

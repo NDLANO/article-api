@@ -56,8 +56,7 @@ class V12__MoveRelatedContentEmbedsToDivs extends JdbcMigration {
       .apply()
   }
 
-  def allArticles(offset: Long)(
-      implicit session: DBSession): Seq[(Long, String)] = {
+  def allArticles(offset: Long)(implicit session: DBSession): Seq[(Long, String)] = {
     sql"select id, document from contentdata where document is not null order by id limit 1000 offset ${offset}"
       .map(rs => {
         (rs.long("id"), rs.string("document"))
@@ -115,8 +114,7 @@ class V12__MoveRelatedContentEmbedsToDivs extends JdbcMigration {
     compact(render(newArticle))
   }
 
-  def updateArticle(document: String, id: Long)(
-      implicit session: DBSession): Int = {
+  def updateArticle(document: String, id: Long)(implicit session: DBSession): Int = {
     val dataObject = new PGobject()
     dataObject.setType("jsonb")
     dataObject.setValue(document)

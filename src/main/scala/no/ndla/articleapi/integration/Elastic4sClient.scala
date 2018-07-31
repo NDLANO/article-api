@@ -28,25 +28,31 @@ trait Elastic4sClient {
 }
 
 case class NdlaE4sClient(httpClient: HttpClient) {
+
   def execute[T, U](request: T)(implicit exec: HttpExecutable[T, U]): Try[RequestSuccess[U]] = {
-    val response = Await.ready(httpClient.execute {
-      request
-    }, Duration.Inf).value.get
+    val response = Await
+      .ready(httpClient.execute {
+        request
+      }, Duration.Inf)
+      .value
+      .get
 
     response match {
-      case Success(either) => either match {
-        case Right(result) => Success(result)
-        case Left(requestFailure) => Failure(NdlaSearchException(requestFailure))
-      }
+      case Success(either) =>
+        either match {
+          case Right(result)        => Success(result)
+          case Left(requestFailure) => Failure(NdlaSearchException(requestFailure))
+        }
       case Failure(ex) => Failure(ex)
     }
   }
 }
 
 object Elastic4sClientFactory {
+
   def getClient(searchServer: String = ArticleApiProperties.SearchServer): NdlaE4sClient = {
     ArticleApiProperties.RunWithSignedSearchRequests match {
-      case true => NdlaE4sClient(getSigningClient(searchServer))
+      case true  => NdlaE4sClient(getSigningClient(searchServer))
       case false => NdlaE4sClient(getNonSigningClient(searchServer))
     }
   }

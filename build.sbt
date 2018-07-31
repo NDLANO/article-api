@@ -26,9 +26,9 @@ lazy val commonSettings = Seq(
   scalaVersion := Scalaversion
 )
 
-lazy val article_api = (project in file(".")).
-  settings(commonSettings: _*).
-  settings(
+lazy val article_api = (project in file("."))
+  .settings(commonSettings: _*)
+  .settings(
     name := "article-api",
     javacOptions ++= Seq("-source", "1.8", "-target", "1.8"),
     scalacOptions := Seq("-target:jvm-1.8", "-unchecked", "-deprecation", "-feature"),
@@ -43,8 +43,8 @@ lazy val article_api = (project in file(".")).
       "javax.servlet" % "javax.servlet-api" % "3.1.0" % "container;provided;test",
       "org.scalatra" %% "scalatra-json" % Scalatraversion,
       "org.scalatra" %% "scalatra-scalatest" % Scalatraversion % "test",
-      "org.json4s"   %% "json4s-native" % "3.5.0",
-      "org.scalatra" %% "scalatra-swagger"  % Scalatraversion,
+      "org.json4s" %% "json4s-native" % "3.5.0",
+      "org.scalatra" %% "scalatra-swagger" % Scalatraversion,
       "com.typesafe.scala-logging" %% "scala-logging" % ScalaLoggingVersion,
       "org.apache.logging.log4j" % "log4j-api" % Log4JVersion,
       "org.apache.logging.log4j" % "log4j-core" % Log4JVersion,
@@ -67,17 +67,19 @@ lazy val article_api = (project in file(".")).
       "org.flywaydb" % "flyway-core" % "4.0",
       "com.netaporter" %% "scala-uri" % "0.4.16"
     )
-  ).enablePlugins(DockerPlugin).enablePlugins(JettyPlugin)
+  )
+  .enablePlugins(DockerPlugin)
+  .enablePlugins(JettyPlugin)
 
 assembly / assemblyJarName := "article-api.jar"
 assembly / mainClass := Some("no.ndla.articleapi.JettyLauncher")
 assembly / assemblyMergeStrategy := {
-  case "mime.types" => MergeStrategy.filterDistinctLines
-  case PathList("org", "joda", "convert", "ToString.class")  => MergeStrategy.first
-  case PathList("org", "joda", "convert", "FromString.class")  => MergeStrategy.first
-  case PathList("org", "joda", "time", "base", "BaseDateTime.class")  => MergeStrategy.first
+  case "mime.types"                                                  => MergeStrategy.filterDistinctLines
+  case PathList("org", "joda", "convert", "ToString.class")          => MergeStrategy.first
+  case PathList("org", "joda", "convert", "FromString.class")        => MergeStrategy.first
+  case PathList("org", "joda", "time", "base", "BaseDateTime.class") => MergeStrategy.first
   case x =>
-    val oldStrategy = (assembly/ assemblyMergeStrategy).value
+    val oldStrategy = (assembly / assemblyMergeStrategy).value
     oldStrategy(x)
 }
 
@@ -99,7 +101,6 @@ fmt := {
   (Compile / scalafmtSbt).value
 }
 
-
 // Don't run Integration tests in default run on Travis as there is no elasticsearch localhost:9200 there yet.
 // NB this line will unfortunalty override runs on your local commandline so that
 // sbt "test-only -- -n no.ndla.tag.IntegrationTest"
@@ -111,7 +112,7 @@ Test / testOptions += Tests.Argument("-l", "no.ndla.tag.IntegrationTest")
 docker := (docker dependsOn assembly).value
 
 docker / dockerfile := {
-  val artifact = (assembly  / assemblyOutputPath).value
+  val artifact = (assembly / assemblyOutputPath).value
   val artifactTargetPath = s"/app/${artifact.name}"
   new Dockerfile {
     from("openjdk:8-jre-alpine")
@@ -122,12 +123,14 @@ docker / dockerfile := {
 }
 
 docker / imageNames := Seq(
-  ImageName(
-    namespace = Some(organization.value),
-    repository = name.value,
-    tag = Some(System.getProperty("docker.tag", "SNAPSHOT")))
+  ImageName(namespace = Some(organization.value),
+            repository = name.value,
+            tag = Some(System.getProperty("docker.tag", "SNAPSHOT")))
 )
 
 Test / parallelExecution := false
 
-resolvers ++= scala.util.Properties.envOrNone("NDLA_RELEASES").map(repo => "Release Sonatype Nexus Repository Manager" at repo).toSeq
+resolvers ++= scala.util.Properties
+  .envOrNone("NDLA_RELEASES")
+  .map(repo => "Release Sonatype Nexus Repository Manager" at repo)
+  .toSeq

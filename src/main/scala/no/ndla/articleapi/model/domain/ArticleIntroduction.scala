@@ -11,4 +11,3 @@ package no.ndla.articleapi.model.domain
 case class ArticleIntroduction(introduction: String, language: String) extends LanguageField {
   override def isEmpty: Boolean = introduction.isEmpty
 }
-

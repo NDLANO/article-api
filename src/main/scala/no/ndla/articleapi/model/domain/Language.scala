@@ -34,20 +34,20 @@ object Language {
   val supportedLanguages = languageAnalyzers.map(_.lang)
 
   def findByLanguageOrBestEffort[P <: LanguageField](sequence: Seq[P], language: String): Option[P] = {
-    sequence.find(_.language == language).orElse(
-      sequence.sortBy(lf =>
-        ISO639.languagePriority.reverse.indexOf(lf.language)).lastOption)
+    sequence
+      .find(_.language == language)
+      .orElse(sequence.sortBy(lf => ISO639.languagePriority.reverse.indexOf(lf.language)).lastOption)
   }
 
   def languageOrUnknown(language: Option[String]): String = {
     language.filter(_.nonEmpty) match {
       case Some(x) => x
-      case None => UnknownLanguage
+      case None    => UnknownLanguage
     }
   }
 
   def getSupportedLanguages(sequences: Seq[LanguageField]*): Seq[String] = {
-    sequences.flatMap(_.map(_.language)).distinct.sortBy{lang =>
+    sequences.flatMap(_.map(_.language)).distinct.sortBy { lang =>
       ISO639.languagePriority.indexOf(lang)
     }
   }

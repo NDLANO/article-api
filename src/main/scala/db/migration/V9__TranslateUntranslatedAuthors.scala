@@ -52,9 +52,12 @@ class V9__TranslateUntranslatedAuthors extends JdbcMigration {
   }
 
   def allArticles(offset: Long)(implicit session: DBSession): Seq[(Long, Int, String)] = {
-    sql"select id, revision, document from contentdata where document is not null order by id limit 1000 offset ${offset}".map(rs => {
-      (rs.long("id"), rs.int("revision"), rs.string("document"))
-    }).list.apply()
+    sql"select id, revision, document from contentdata where document is not null order by id limit 1000 offset ${offset}"
+      .map(rs => {
+        (rs.long("id"), rs.int("revision"), rs.string("document"))
+      })
+      .list
+      .apply()
   }
 
   def toNewAuthorType(author: V8_Author): V8_Author = {
@@ -62,11 +65,13 @@ class V9__TranslateUntranslatedAuthors extends JdbcMigration {
     val processorMap = (oldProcessorTypes zip processorTypes).toMap.withDefaultValue(None)
     val rightsholderMap = (oldRightsholderTypes zip rightsholderTypes).toMap.withDefaultValue(None)
 
-    (creatorMap(author.`type`.toLowerCase), processorMap(author.`type`.toLowerCase), rightsholderMap(author.`type`.toLowerCase)) match {
+    (creatorMap(author.`type`.toLowerCase),
+     processorMap(author.`type`.toLowerCase),
+     rightsholderMap(author.`type`.toLowerCase)) match {
       case (t: String, _, _) => V8_Author(t.capitalize, author.name)
       case (_, t: String, _) => V8_Author(t.capitalize, author.name)
       case (_, _, t: String) => V8_Author(t.capitalize, author.name)
-      case (_, _, _) => V8_Author(author.`type`, author.name)
+      case (_, _, _)         => V8_Author(author.`type`, author.name)
     }
   }
 
@@ -92,4 +97,3 @@ class V9__TranslateUntranslatedAuthors extends JdbcMigration {
   }
 
 }
-

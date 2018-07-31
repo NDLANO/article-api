@@ -25,8 +25,8 @@ trait ContentValidator {
   val contentValidator: ContentValidator
 
   class ContentValidator(allowEmptyLanguageField: Boolean) {
-    private val NoHtmlValidator = new TextValidator(allowHtml=false)
-    private val HtmlValidator = new TextValidator(allowHtml=true)
+    private val NoHtmlValidator = new TextValidator(allowHtml = false)
+    private val HtmlValidator = new TextValidator(allowHtml = true)
 
     def validateArticle(article: Article, allowUnknownLanguage: Boolean): Try[Article] = {
       val validationErrors = article.content.flatMap(c => validateArticleContent(c, allowUnknownLanguage)) ++
@@ -69,12 +69,17 @@ trait ContentValidator {
 
     private def validateArticleType(articleType: String): Seq[ValidationMessage] = {
       ArticleType.valueOf(articleType) match {
-        case None => Seq(ValidationMessage("articleType", s"$articleType is not a valid article type. Valid options are ${ArticleType.all.mkString(",")}"))
+        case None =>
+          Seq(
+            ValidationMessage(
+              "articleType",
+              s"$articleType is not a valid article type. Valid options are ${ArticleType.all.mkString(",")}"))
         case _ => Seq.empty
       }
     }
 
-    private def validateArticleContent(content: ArticleContent, allowUnknownLanguage: Boolean): Seq[ValidationMessage] = {
+    private def validateArticleContent(content: ArticleContent,
+                                       allowUnknownLanguage: Boolean): Seq[ValidationMessage] = {
       val field = s"content.${content.language}"
       HtmlValidator.validate(field, content.content).toList ++
         rootElementContainsOnlySectionBlocks(field, content.content) ++
@@ -89,11 +94,15 @@ trait ContentValidator {
         case true => None
         case false =>
           val illegalTags = topLevelTags.filterNot(_ == legalTopLevelTag).mkString(",")
-          Some(ValidationMessage(field, s"An article must consist of one or more <section> blocks. Illegal tag(s) are $illegalTags "))
+          Some(
+            ValidationMessage(
+              field,
+              s"An article must consist of one or more <section> blocks. Illegal tag(s) are $illegalTags "))
       }
     }
 
-    private def validateConceptContent(content: ConceptContent, allowUnknownLanguage: Boolean): Seq[ValidationMessage] = {
+    private def validateConceptContent(content: ConceptContent,
+                                       allowUnknownLanguage: Boolean): Seq[ValidationMessage] = {
       val field = s"content.${content.language}"
       NoHtmlValidator.validate(field, content.content).toList ++
         validateLanguage("content.language", content.language, allowUnknownLanguage)
@@ -105,19 +114,23 @@ trait ContentValidator {
         validateLanguage("visualElement.language", content.language, allowUnknownLanguage)
     }
 
-    private def validateIntroduction(content: ArticleIntroduction, allowUnknownLanguage: Boolean): Seq[ValidationMessage] = {
+    private def validateIntroduction(content: ArticleIntroduction,
+                                     allowUnknownLanguage: Boolean): Seq[ValidationMessage] = {
       val field = s"introduction.${content.language}"
       NoHtmlValidator.validate(field, content.introduction).toList ++
         validateLanguage("introduction.language", content.language, allowUnknownLanguage)
     }
 
-    private def validateMetaDescription(content: ArticleMetaDescription, allowUnknownLanguage: Boolean): Seq[ValidationMessage] = {
+    private def validateMetaDescription(content: ArticleMetaDescription,
+                                        allowUnknownLanguage: Boolean): Seq[ValidationMessage] = {
       val field = s"metaDescription.${content.language}"
       NoHtmlValidator.validate(field, content.content).toList ++
         validateLanguage("metaDescription.language", content.language, allowUnknownLanguage)
     }
 
-    private def validateTitle(value: String, language: String, allowUnknownLanguage: Boolean): Seq[ValidationMessage] = {
+    private def validateTitle(value: String,
+                              language: String,
+                              allowUnknownLanguage: Boolean): Seq[ValidationMessage] = {
       val field = s"title.$language"
       NoHtmlValidator.validate(field, value).toList ++
         validateLanguage("title.language", language, allowUnknownLanguage)
@@ -127,8 +140,10 @@ trait ContentValidator {
       val licenseMessage = validateLicense(copyright.license)
       val contributorsMessages =
         copyright.creators.flatMap(a => validateAuthor(a, "copyright.creators", ArticleApiProperties.creatorTypes)) ++
-        copyright.processors.flatMap(a => validateAuthor(a, "copyright.processors", ArticleApiProperties.processorTypes)) ++
-        copyright.rightsholders.flatMap(a => validateAuthor(a, "copyright.rightsholders", ArticleApiProperties.rightsholderTypes))
+          copyright.processors.flatMap(a =>
+            validateAuthor(a, "copyright.processors", ArticleApiProperties.processorTypes)) ++
+          copyright.rightsholders.flatMap(a =>
+            validateAuthor(a, "copyright.rightsholders", ArticleApiProperties.rightsholderTypes))
       val originMessage = NoHtmlValidator.validate("copyright.origin", copyright.origin)
       val agreementMessage = validateAgreement(copyright)
 
@@ -139,8 +154,8 @@ trait ContentValidator {
       copyright.agreementId match {
         case Some(id) =>
           draftApiClient.agreementExists(id) match {
-            case false => Seq (ValidationMessage ("copyright.agreement", s"Agreement with id $id does not exist") )
-            case _ => Seq()
+            case false => Seq(ValidationMessage("copyright.agreement", s"Agreement with id $id does not exist"))
+            case _     => Seq()
           }
         case _ => Seq()
       }
@@ -149,7 +164,7 @@ trait ContentValidator {
     private def validateLicense(license: String): Seq[ValidationMessage] = {
       getLicense(license) match {
         case None => Seq(ValidationMessage("license.license", s"$license is not a valid license"))
-        case _ => Seq()
+        case _    => Seq()
       }
     }
 
@@ -160,7 +175,7 @@ trait ContentValidator {
     }
 
     def validateAuthorType(fieldPath: String, `type`: String, allowedTypes: Seq[String]): Option[ValidationMessage] = {
-      if(allowedTypes.contains(`type`.toLowerCase)) {
+      if (allowedTypes.contains(`type`.toLowerCase)) {
         None
       } else {
         Some(ValidationMessage(fieldPath, s"Author is of illegal type. Must be one of ${allowedTypes.mkString(", ")}"))
@@ -177,7 +192,10 @@ trait ContentValidator {
     private def validateRequiredLibrary(requiredLibrary: RequiredLibrary): Option[ValidationMessage] = {
       val permittedLibraries = Seq(NDLABrightcoveVideoScriptUrl, H5PResizerScriptUrl) ++ NRKVideoScriptUrl
       permittedLibraries.contains(requiredLibrary.url) match {
-        case false => Some(ValidationMessage("requiredLibraries.url", s"${requiredLibrary.url} is not a permitted script. Allowed scripts are: ${permittedLibraries.mkString(",")}"))
+        case false =>
+          Some(ValidationMessage(
+            "requiredLibraries.url",
+            s"${requiredLibrary.url} is not a permitted script. Allowed scripts are: ${permittedLibraries.mkString(",")}"))
         case true => None
       }
     }
@@ -185,20 +203,23 @@ trait ContentValidator {
     private def validateMetaImageId(meta: ArticleMetaImage): Option[ValidationMessage] = {
       def isAllDigits(x: String) = x forall Character.isDigit
       isAllDigits(meta.imageId) match {
-        case true => None
+        case true  => None
         case false => Some(ValidationMessage("metaImageId", "Meta image ID must be a number"))
       }
     }
 
-    private def validateLanguage(fieldPath: String, languageCode: String, allowUnknownLanguage: Boolean): Option[ValidationMessage] = {
+    private def validateLanguage(fieldPath: String,
+                                 languageCode: String,
+                                 allowUnknownLanguage: Boolean): Option[ValidationMessage] = {
       languageCode.nonEmpty && languageCodeSupported6391(languageCode, allowUnknownLanguage) match {
-        case true => None
+        case true  => None
         case false => Some(ValidationMessage(fieldPath, s"Language '$languageCode' is not a supported value."))
       }
     }
 
     private def languageCodeSupported6391(languageCode: String, allowUnknownLanguage: Boolean): Boolean = {
-      val languageCodes = get6391CodeFor6392CodeMappings.values.toSeq ++ (if (allowUnknownLanguage) Seq("unknown") else Seq.empty)
+      val languageCodes = get6391CodeFor6392CodeMappings.values.toSeq ++ (if (allowUnknownLanguage) Seq("unknown")
+                                                                          else Seq.empty)
       languageCodes.contains(languageCode)
     }
   }

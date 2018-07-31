@@ -9,9 +9,7 @@ package db.migration
 
 import no.ndla.articleapi.{TestEnvironment, UnitSuite}
 
-class V12__MoveRelatedContentEmbedsToDivsTest
-    extends UnitSuite
-    with TestEnvironment {
+class V12__MoveRelatedContentEmbedsToDivsTest extends UnitSuite with TestEnvironment {
   val migration = new V12__MoveRelatedContentEmbedsToDivs
 
   test("migration should move embeds to divs") {

@@ -6,15 +6,13 @@
  *
  */
 
-
 package no.ndla.articleapi
 
 import org.scalatest._
 import org.scalatest.mockito.MockitoSugar
 
-
 abstract class UnitSuite
-  extends FunSuite
+    extends FunSuite
     with Matchers
     with OptionValues
     with Inside

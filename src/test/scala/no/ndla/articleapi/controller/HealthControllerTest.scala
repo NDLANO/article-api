@@ -18,7 +18,7 @@ class HealthControllerTest extends UnitSuite with TestEnvironment with ScalatraF
 
   test("That /health returns 200 ok") {
     get("/") {
-      status should equal (200)
+      status should equal(200)
     }
   }
 

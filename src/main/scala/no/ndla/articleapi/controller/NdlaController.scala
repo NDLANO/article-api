@@ -6,7 +6,6 @@
  *
  */
 
-
 package no.ndla.articleapi.controller
 
 import javax.servlet.http.HttpServletRequest
@@ -14,7 +13,15 @@ import javax.servlet.http.HttpServletRequest
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.articleapi.ArticleApiProperties.{CorrelationIdHeader, CorrelationIdKey}
 import no.ndla.articleapi.ComponentRegistry
-import no.ndla.articleapi.model.api.{AccessDeniedException, Error, ImportException, ImportExceptions, NotFoundException, ResultWindowTooLargeException, ValidationError}
+import no.ndla.articleapi.model.api.{
+  AccessDeniedException,
+  Error,
+  ImportException,
+  ImportExceptions,
+  NotFoundException,
+  ResultWindowTooLargeException,
+  ValidationError
+}
 import no.ndla.articleapi.model.domain.emptySomeToNone
 import no.ndla.network.{ApplicationUrl, AuthUser, CorrelationID}
 import no.ndla.validation.{ValidationException, ValidationMessage}
@@ -37,7 +44,10 @@ abstract class NdlaController extends ScalatraServlet with NativeJsonSupport wit
     ThreadContext.put(CorrelationIdKey, CorrelationID.get.getOrElse(""))
     ApplicationUrl.set(request)
     AuthUser.set(request)
-    logger.info("{} {}{}", request.getMethod, request.getRequestURI, Option(request.getQueryString).map(s => s"?$s").getOrElse(""))
+    logger.info("{} {}{}",
+                request.getMethod,
+                request.getRequestURI,
+                Option(request.getQueryString).map(s => s"?$s").getOrElse(""))
   }
 
   after() {
@@ -48,26 +58,28 @@ abstract class NdlaController extends ScalatraServlet with NativeJsonSupport wit
   }
 
   error {
-    case a: AccessDeniedException => Forbidden(body = Error(Error.ACCESS_DENIED, a.getMessage))
-    case v: ValidationException => BadRequest(body=ValidationError(messages=v.errors))
-    case _: IndexNotFoundException => InternalServerError(body=Error.IndexMissingError)
-    case NotFoundException(message, sl) if sl.isEmpty => NotFound(body=Error(Error.NOT_FOUND, message))
-    case NotFoundException(message, supportedLanguages) => NotFound(body=Error(Error.NOT_FOUND, message, supportedLanguages = Some(supportedLanguages)))
-    case rw: ResultWindowTooLargeException => UnprocessableEntity(body=Error(Error.WINDOW_TOO_LARGE, rw.getMessage))
+    case a: AccessDeniedException                     => Forbidden(body = Error(Error.ACCESS_DENIED, a.getMessage))
+    case v: ValidationException                       => BadRequest(body = ValidationError(messages = v.errors))
+    case _: IndexNotFoundException                    => InternalServerError(body = Error.IndexMissingError)
+    case NotFoundException(message, sl) if sl.isEmpty => NotFound(body = Error(Error.NOT_FOUND, message))
+    case NotFoundException(message, supportedLanguages) =>
+      NotFound(body = Error(Error.NOT_FOUND, message, supportedLanguages = Some(supportedLanguages)))
+    case rw: ResultWindowTooLargeException => UnprocessableEntity(body = Error(Error.WINDOW_TOO_LARGE, rw.getMessage))
     case _: PSQLException =>
       ComponentRegistry.connectToDatabase()
       InternalServerError(Error(Error.DATABASE_UNAVAILABLE, Error.DATABASE_UNAVAILABLE_DESCRIPTION))
     case t: Throwable =>
       logger.error(Error.GenericError.toString, t)
-      InternalServerError(body=Error.GenericError)
+      InternalServerError(body = Error.GenericError)
   }
-
 
   def long(paramName: String)(implicit request: HttpServletRequest): Long = {
     val paramValue = params(paramName)
     paramValue.forall(_.isDigit) match {
       case true => paramValue.toLong
-      case false => throw new ValidationException(errors=Seq(ValidationMessage(paramName, s"Invalid value for $paramName. Only digits are allowed.")))
+      case false =>
+        throw new ValidationException(
+          errors = Seq(ValidationMessage(paramName, s"Invalid value for $paramName. Only digits are allowed.")))
     }
   }
 
@@ -79,13 +91,14 @@ abstract class NdlaController extends ScalatraServlet with NativeJsonSupport wit
     paramOrNone(paramName).getOrElse(default)
   }
 
-  def intOrNone(paramName: String)(implicit request: HttpServletRequest): Option[Int] = paramOrNone(paramName).flatMap(p => Try(p.toInt).toOption)
+  def intOrNone(paramName: String)(implicit request: HttpServletRequest): Option[Int] =
+    paramOrNone(paramName).flatMap(p => Try(p.toInt).toOption)
 
   def intOrDefault(paramName: String, default: Int): Int = intOrNone(paramName).getOrElse(default)
 
   def paramAsListOfString(paramName: String)(implicit request: HttpServletRequest): List[String] = {
     emptySomeToNone(params.get(paramName)) match {
-      case None => List.empty
+      case None        => List.empty
       case Some(param) => param.split(",").toList.map(_.trim)
     }
   }
@@ -96,7 +109,9 @@ abstract class NdlaController extends ScalatraServlet with NativeJsonSupport wit
       case None => List.empty
       case Some(_) =>
         if (!strings.forall(entry => entry.forall(_.isDigit))) {
-          throw new ValidationException(errors=Seq(ValidationMessage(paramName, s"Invalid value for $paramName. Only (list of) digits are allowed.")))
+          throw new ValidationException(
+            errors =
+              Seq(ValidationMessage(paramName, s"Invalid value for $paramName. Only (list of) digits are allowed.")))
         }
         strings.map(_.toLong)
     }
@@ -114,12 +129,11 @@ abstract class NdlaController extends ScalatraServlet with NativeJsonSupport wit
     } match {
       case Failure(e) =>
         logger.error(e.getMessage, e)
-        throw new ValidationException(errors=Seq(ValidationMessage("body", e.getMessage)))
+        throw new ValidationException(errors = Seq(ValidationMessage("body", e.getMessage)))
       case Success(data) => data
     }
   }
 
-  case class Param(paramName:String, description:String)
+  case class Param(paramName: String, description: String)
 
 }
-

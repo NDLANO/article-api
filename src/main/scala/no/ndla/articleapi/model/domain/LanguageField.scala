@@ -4,4 +4,3 @@ trait LanguageField {
   def language: String
   def isEmpty: Boolean
 }
-

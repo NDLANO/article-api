@@ -50,9 +50,12 @@ class V11__MoveCreatorsToProcessors extends JdbcMigration {
   }
 
   def allArticles(offset: Long)(implicit session: DBSession): Seq[(Long, String)] = {
-    sql"select id, document from contentdata where document is not null order by id limit 1000 offset ${offset}".map(rs => {
-      (rs.long("id"), rs.string("document"))
-    }).list.apply()
+    sql"select id, document from contentdata where document is not null order by id limit 1000 offset ${offset}"
+      .map(rs => {
+        (rs.long("id"), rs.string("document"))
+      })
+      .list
+      .apply()
   }
 
   private def convertCopyright(copyright: V11_Copyright): JValue = {
@@ -70,7 +73,7 @@ class V11__MoveCreatorsToProcessors extends JdbcMigration {
 
     val newArticle = oldArticle.mapField {
       case ("copyright", copyright: JObject) => "copyright" -> convertCopyright(copyright.extract[V11_Copyright])
-      case x => x
+      case x                                 => x
     }
     compact(render(newArticle))
   }
@@ -93,4 +96,3 @@ class V11__MoveCreatorsToProcessors extends JdbcMigration {
                            validFrom: Option[Date],
                            validTo: Option[Date])
 }
-

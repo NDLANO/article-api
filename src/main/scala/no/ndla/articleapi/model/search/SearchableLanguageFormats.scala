@@ -59,6 +59,7 @@ class SearchableLanguageListSerializer
       }))
 
 object SearchableLanguageFormats {
+
   val JSonFormats: Formats =
     org.json4s.DefaultFormats +
       new SearchableLanguageValuesSerializer +

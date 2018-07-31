@@ -27,20 +27,23 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
   val service = new WriteService()
 
   val articleId = 13
-  val article: Article = TestData.sampleArticleWithPublicDomain.copy(id = Some(articleId), created = yesterday, updated = yesterday)
+
+  val article: Article =
+    TestData.sampleArticleWithPublicDomain.copy(id = Some(articleId), created = yesterday, updated = yesterday)
 
   override def beforeEach() = {
     Mockito.reset(articleIndexService, articleRepository)
 
     when(articleRepository.withId(articleId)).thenReturn(Option(article))
-    when(articleIndexService.indexDocument(any[Article])).thenAnswer((invocation: InvocationOnMock) => Try(invocation.getArgumentAt(0, article.getClass)))
-    when(readService.addUrlsOnEmbedResources(any[Article])).thenAnswer((invocation: InvocationOnMock) => invocation.getArgumentAt(0, article.getClass))
+    when(articleIndexService.indexDocument(any[Article])).thenAnswer((invocation: InvocationOnMock) =>
+      Try(invocation.getArgumentAt(0, article.getClass)))
+    when(readService.addUrlsOnEmbedResources(any[Article])).thenAnswer((invocation: InvocationOnMock) =>
+      invocation.getArgumentAt(0, article.getClass))
     when(articleRepository.getExternalIdsFromId(any[Long])(any[DBSession])).thenReturn(List("1234"))
     when(authUser.userOrClientid()).thenReturn("ndalId54321")
     when(clock.now()).thenReturn(today)
     when(contentValidator.validateArticle(any[Article], any[Boolean])).thenAnswer((invocation: InvocationOnMock) =>
-      Success(invocation.getArgumentAt(0, classOf[Article]))
-    )
+      Success(invocation.getArgumentAt(0, classOf[Article])))
   }
 
   test("allocateArticleId should reuse existing id if external id already exists") {
@@ -53,7 +56,8 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     val id = 1122: Long
     val external = "12312313"
     when(articleRepository.getIdFromExternalId(any[String])(any[DBSession])).thenReturn(None)
-    when(articleRepository.allocateArticleIdWithExternalIds(any[List[String]], any[Set[String]])(any[DBSession])).thenReturn(id)
+    when(articleRepository.allocateArticleIdWithExternalIds(any[List[String]], any[Set[String]])(any[DBSession]))
+      .thenReturn(id)
     service.allocateArticleId(List(external), Set.empty) should equal(id)
     verify(articleRepository, times(0)).allocateArticleId()
     verify(articleRepository, times(1)).allocateArticleIdWithExternalIds(List(external), Set.empty)
@@ -86,6 +90,5 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     verify(conceptRepository, times(1)).allocateConceptId()
     verify(conceptRepository, times(0)).allocateConceptIdWithExternalIds(List(external))
   }
-
 
 }

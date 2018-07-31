@@ -8,7 +8,7 @@
 
 package no.ndla.articleapi.model.domain
 
-object Sort  extends Enumeration {
+object Sort extends Enumeration {
   val ByRelevanceDesc = Value("-relevance")
   val ByRelevanceAsc = Value("relevance")
   val ByTitleDesc = Value("-title")
@@ -18,8 +18,6 @@ object Sort  extends Enumeration {
   val ByIdDesc = Value("-id")
   val ByIdAsc = Value("id")
 
-
   def valueOf(s: String): Option[Sort.Value] = Sort.values.find(_.toString == s)
 
 }
-

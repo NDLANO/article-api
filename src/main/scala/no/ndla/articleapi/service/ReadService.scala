@@ -30,19 +30,21 @@ trait ReadService {
   val readService: ReadService
 
   class ReadService {
+
     def getInternalIdByExternalId(externalId: Long): Option[api.ArticleIdV2] =
       articleRepository.getIdFromExternalId(externalId.toString).map(api.ArticleIdV2)
 
     def withIdV2(id: Long, language: String, fallback: Boolean = false): Try[api.ArticleV2] = {
       articleRepository.withId(id).map(addUrlsOnEmbedResources) match {
-        case None => Failure(NotFoundException(s"The article with id $id was not found"))
+        case None          => Failure(NotFoundException(s"The article with id $id was not found"))
         case Some(article) => converterService.toApiArticleV2(article, language, fallback)
       }
     }
 
     private[service] def addUrlsOnEmbedResources(article: Article): Article = {
       val articleWithUrls = article.content.map(content => content.copy(content = addUrlOnResource(content.content)))
-      val visualElementWithUrls = article.visualElement.map(visual => visual.copy(resource = addUrlOnResource(visual.resource)))
+      val visualElementWithUrls =
+        article.visualElement.map(visual => visual.copy(resource = addUrlOnResource(visual.resource)))
 
       article.copy(content = articleWithUrls, visualElement = visualElementWithUrls)
     }
@@ -51,13 +53,15 @@ trait ReadService {
       val tagUsageMap = getTagUsageMap()
       val searchLanguage = getSearchLanguage(language, supportedLanguages)
 
-      tagUsageMap.get(searchLanguage)
+      tagUsageMap
+        .get(searchLanguage)
         .map(tags => api.ArticleTag(tags.getNMostFrequent(n), searchLanguage))
     }
 
     def getArticlesByPage(pageNo: Int, pageSize: Int, lang: String, fallback: Boolean = false): api.ArticleDump = {
       val (safePageNo, safePageSize) = (max(pageNo, 1), max(pageSize, 0))
-      val results = articleRepository.getArticlesByPage(safePageSize, (safePageNo - 1) * safePageSize)
+      val results = articleRepository
+        .getArticlesByPage(safePageSize, (safePageNo - 1) * safePageSize)
         .flatMap(article => converterService.toApiArticleV2(article, lang, fallback).toOption)
 
       api.ArticleDump(articleRepository.articleCount, pageNo, pageSize, lang, results)
@@ -71,7 +75,9 @@ trait ReadService {
     }
 
     val getTagUsageMap = MemoizeAutoRenew(() => {
-      articleRepository.allTags.map(languageTags => languageTags.language -> new MostFrequentOccurencesList(languageTags.tags)).toMap
+      articleRepository.allTags
+        .map(languageTags => languageTags.language -> new MostFrequentOccurencesList(languageTags.tags))
+        .toMap
     })
 
     private[service] def addUrlOnResource(content: String): String = {
@@ -97,8 +103,8 @@ trait ReadService {
 
     private def addUrlOnEmbedTag(embedTag: Element): Unit = {
       val typeAndPathOption = embedTag.attr(TagAttributes.DataResource.toString) match {
-        case resourceType if resourceType == ResourceType.File.toString && embedTag.hasAttr(TagAttributes.DataPath.toString) =>
-
+        case resourceType
+            if resourceType == ResourceType.File.toString && embedTag.hasAttr(TagAttributes.DataPath.toString) =>
           if (embedTag.parent().attr(TagAttributes.DataType.toString) != ResourceType.File.toString) {
             convertFileEmbedToAnchor(embedTag)
             None
@@ -125,7 +131,8 @@ trait ReadService {
       // Create a map where the key is a list entry, and the value is the number of occurences of this entry in the list
       private[this] val listToNumOccurencesMap: Map[String, Int] = list.groupBy(identity).mapValues(_.size)
       // Create an inverse of the map 'listToNumOccurencesMap': the key is number of occurences, and the value is a list of all entries that occured that many times
-      private[this] val numOccurencesToListMap: Map[Int, Set[String]] = listToNumOccurencesMap.groupBy(x => x._2).mapValues(_.keySet)
+      private[this] val numOccurencesToListMap: Map[Int, Set[String]] =
+        listToNumOccurencesMap.groupBy(x => x._2).mapValues(_.keySet)
       // Build a list sorted by the most frequent words to the least frequent words
       private[this] val mostFrequentOccorencesDec = numOccurencesToListMap.keys.toSeq.sorted
         .foldRight(Seq[String]())((current, result) => result ++ numOccurencesToListMap(current))
@@ -135,7 +142,7 @@ trait ReadService {
 
     def conceptWithId(id: Long, language: String, fallback: Boolean): Try[api.Concept] =
       conceptRepository.withId(id) match {
-        case None => Failure(NotFoundException(s"The concept with id $id was not found"))
+        case None          => Failure(NotFoundException(s"The concept with id $id was not found"))
         case Some(concept) => converterService.toApiConcept(concept, language, fallback)
       }
 

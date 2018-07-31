@@ -6,7 +6,6 @@
  *
  */
 
-
 package no.ndla.articleapi.service.search
 
 import com.sksamuel.elastic4s.http.ElasticDsl._

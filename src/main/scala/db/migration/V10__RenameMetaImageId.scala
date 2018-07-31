@@ -47,9 +47,12 @@ class V10__RenameMetaImageId extends JdbcMigration {
   }
 
   def allArticles(offset: Long)(implicit session: DBSession): Seq[(Long, String)] = {
-    sql"select id, document from contentdata where document is not null order by id limit 1000 offset ${offset}".map(rs => {
-      (rs.long("id"), rs.string("document"))
-    }).list.apply()
+    sql"select id, document from contentdata where document is not null order by id limit 1000 offset ${offset}"
+      .map(rs => {
+        (rs.long("id"), rs.string("document"))
+      })
+      .list
+      .apply()
   }
 
   def convertArticleUpdate(document: String): String = {
@@ -75,4 +78,3 @@ class V10__RenameMetaImageId extends JdbcMigration {
   }
 
 }
-

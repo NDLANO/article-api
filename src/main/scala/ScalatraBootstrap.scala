@@ -6,10 +6,15 @@
  *
  */
 
-
 import javax.servlet.ServletContext
 
-import no.ndla.articleapi.ComponentRegistry.{internController, articleControllerV2, resourcesApp, healthController, conceptController}
+import no.ndla.articleapi.ComponentRegistry.{
+  internController,
+  articleControllerV2,
+  resourcesApp,
+  healthController,
+  conceptController
+}
 import no.ndla.articleapi.ArticleSwagger
 import org.scalatra.LifeCycle
 

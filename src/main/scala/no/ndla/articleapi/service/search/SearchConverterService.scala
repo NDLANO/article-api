@@ -26,23 +26,31 @@ trait SearchConverterService {
     def asSearchableArticle(ai: Article): SearchableArticle = {
       val articleWithAgreement = converterService.withAgreementCopyright(ai)
 
-      val defaultTitle = articleWithAgreement.title.sortBy(title => {
-        val languagePriority = Language.languageAnalyzers.map(la => la.lang).reverse
-        languagePriority.indexOf(title.language)
-      }).lastOption
+      val defaultTitle = articleWithAgreement.title
+        .sortBy(title => {
+          val languagePriority = Language.languageAnalyzers.map(la => la.lang).reverse
+          languagePriority.indexOf(title.language)
+        })
+        .lastOption
 
       SearchableArticle(
         id = articleWithAgreement.id.get,
-        title = SearchableLanguageValues(articleWithAgreement.title.map(title => LanguageValue(title.language, title.title))),
-        visualElement = SearchableLanguageValues(articleWithAgreement.visualElement.map(visual => LanguageValue(visual.language, visual.resource))),
-        introduction = SearchableLanguageValues(articleWithAgreement.introduction.map(intro => LanguageValue(intro.language, intro.introduction))),
-        metaDescription = SearchableLanguageValues(articleWithAgreement.metaDescription.map(meta => LanguageValue(meta.language, meta.content))),
+        title =
+          SearchableLanguageValues(articleWithAgreement.title.map(title => LanguageValue(title.language, title.title))),
+        visualElement = SearchableLanguageValues(
+          articleWithAgreement.visualElement.map(visual => LanguageValue(visual.language, visual.resource))),
+        introduction = SearchableLanguageValues(
+          articleWithAgreement.introduction.map(intro => LanguageValue(intro.language, intro.introduction))),
+        metaDescription = SearchableLanguageValues(
+          articleWithAgreement.metaDescription.map(meta => LanguageValue(meta.language, meta.content))),
         metaImage = articleWithAgreement.metaImage,
-        content = SearchableLanguageValues(articleWithAgreement.content.map(article => LanguageValue(article.language, Jsoup.parseBodyFragment(article.content).text()))),
+        content = SearchableLanguageValues(articleWithAgreement.content.map(article =>
+          LanguageValue(article.language, Jsoup.parseBodyFragment(article.content).text()))),
         tags = SearchableLanguageList(articleWithAgreement.tags.map(tag => LanguageValue(tag.language, tag.tags))),
         lastUpdated = new DateTime(articleWithAgreement.updated),
         license = articleWithAgreement.copyright.license,
-        authors = articleWithAgreement.copyright.creators.map(_.name) ++ articleWithAgreement.copyright.processors.map(_.name) ++ articleWithAgreement.copyright.rightsholders.map(_.name),
+        authors = articleWithAgreement.copyright.creators.map(_.name) ++ articleWithAgreement.copyright.processors
+          .map(_.name) ++ articleWithAgreement.copyright.rightsholders.map(_.name),
         articleType = articleWithAgreement.articleType,
         defaultTitle = defaultTitle.map(t => t.title)
       )
@@ -53,9 +61,11 @@ trait SearchConverterService {
         id = searchableArticle.id,
         title = searchableArticle.title.languageValues.map(lv => ArticleTitle(lv.value, lv.language)),
         visualElement = searchableArticle.visualElement.languageValues.map(lv => VisualElement(lv.value, lv.language)),
-        introduction = searchableArticle.introduction.languageValues.map(lv => ArticleIntroduction(lv.value, lv.language)),
+        introduction =
+          searchableArticle.introduction.languageValues.map(lv => ArticleIntroduction(lv.value, lv.language)),
         url = createUrlToArticle(searchableArticle.id),
-        license = searchableArticle.license)
+        license = searchableArticle.license
+      )
     }
 
     def createUrlToArticle(id: Long): String = {
@@ -64,10 +74,12 @@ trait SearchConverterService {
 
     def asSearchableConcept(c: Concept): SearchableConcept = {
 
-      val defaultTitle = c.title.sortBy(title => {
-        val languagePriority = Language.languageAnalyzers.map(la => la.lang).reverse
-        languagePriority.indexOf(title.language)
-      }).lastOption
+      val defaultTitle = c.title
+        .sortBy(title => {
+          val languagePriority = Language.languageAnalyzers.map(la => la.lang).reverse
+          languagePriority.indexOf(title.language)
+        })
+        .lastOption
 
       SearchableConcept(
         c.id.get,

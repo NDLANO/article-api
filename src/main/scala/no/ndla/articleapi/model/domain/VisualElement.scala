@@ -6,7 +6,6 @@
  *
  */
 
-
 package no.ndla.articleapi.model.domain
 
 case class VisualElement(resource: String, language: String) extends LanguageField {

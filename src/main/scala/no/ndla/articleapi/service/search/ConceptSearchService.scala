@@ -47,8 +47,14 @@ trait ConceptSearchService {
 
       val supportedLanguages = getSupportedLanguages(titles, contents)
 
-      val title = Language.findByLanguageOrBestEffort(titles, language).map(converterService.toApiConceptTitle).getOrElse(api.ConceptTitle("", Language.UnknownLanguage))
-      val concept = Language.findByLanguageOrBestEffort(contents, language).map(converterService.toApiConceptContent).getOrElse(api.ConceptContent("", Language.UnknownLanguage))
+      val title = Language
+        .findByLanguageOrBestEffort(titles, language)
+        .map(converterService.toApiConceptTitle)
+        .getOrElse(api.ConceptTitle("", Language.UnknownLanguage))
+      val concept = Language
+        .findByLanguageOrBestEffort(contents, language)
+        .map(converterService.toApiConceptContent)
+        .getOrElse(api.ConceptContent("", Language.UnknownLanguage))
 
       api.ConceptSummary(
         searchableConcept.id,
@@ -87,7 +93,6 @@ trait ConceptSearchService {
             )
         )
 
-
       executeSearch(withIdIn, language, sort, page, pageSize, fullQuery, fallback)
     }
 
@@ -106,7 +111,7 @@ trait ConceptSearchService {
           (None, "*")
         case lang =>
           fallback match {
-            case true => (None, "*")
+            case true  => (None, "*")
             case false => (Some(existsQuery(s"title.$lang")), lang)
           }
       }
@@ -117,9 +122,10 @@ trait ConceptSearchService {
       val (startAt, numResults) = getStartAtAndNumResults(page, pageSize)
       val requestedResultWindow = pageSize * page
       if (requestedResultWindow > ArticleApiProperties.ElasticSearchIndexMaxResultWindow) {
-        logger.info(s"Max supported results are ${ArticleApiProperties.ElasticSearchIndexMaxResultWindow}, user requested $requestedResultWindow")
+        logger.info(
+          s"Max supported results are ${ArticleApiProperties.ElasticSearchIndexMaxResultWindow}, user requested $requestedResultWindow")
         Failure(ResultWindowTooLargeException())
-      }  else {
+      } else {
 
         val searchToExec = search(searchIndex)
           .size(numResults)
@@ -130,13 +136,14 @@ trait ConceptSearchService {
 
         e4sClient.execute(searchToExec) match {
           case Success(response) =>
-            Success(api.ConceptSearchResult(
-              response.result.totalHits,
-              page,
-              numResults,
-              if (language == "*") Language.AllLanguages else language,
-              getHits(response.result, language, fallback)
-            ))
+            Success(
+              api.ConceptSearchResult(
+                response.result.totalHits,
+                page,
+                numResults,
+                if (language == "*") Language.AllLanguages else language,
+                getHits(response.result, language, fallback)
+              ))
           case Failure(ex) => errorHandler(ex)
         }
       }
@@ -150,7 +157,9 @@ trait ConceptSearchService {
 
       f.failed.foreach(t => logger.warn("Unable to create index: " + t.getMessage, t))
       f.foreach {
-        case Success(reindexResult) => logger.info(s"Completed indexing of ${reindexResult.totalIndexed} documents in ${reindexResult.millisUsed} ms.")
+        case Success(reindexResult) =>
+          logger.info(
+            s"Completed indexing of ${reindexResult.totalIndexed} documents in ${reindexResult.millisUsed} ms.")
         case Failure(ex) => logger.warn(ex.getMessage, ex)
       }
     }

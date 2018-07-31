@@ -6,7 +6,6 @@
  *
  */
 
-
 package no.ndla.articleapi.integration
 
 trait DataSource {

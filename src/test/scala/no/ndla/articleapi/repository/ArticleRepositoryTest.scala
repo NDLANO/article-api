@@ -8,7 +8,6 @@
 
 package no.ndla.articleapi.repository
 
-
 import java.net.Socket
 import no.ndla.articleapi.model.api.NotFoundException
 import no.ndla.articleapi.model.domain
@@ -58,8 +57,8 @@ class ArticleRepositoryTest extends IntegrationSuite with TestEnvironment {
 
   test("getIdFromExternalId works with all ids") {
     assume(databaseIsAvailable, "Database is unavailable")
-    val inserted1 = repository.allocateArticleIdWithExternalIds(List("6000","10"), Set("52"))
-    val inserted2 = repository.allocateArticleIdWithExternalIds(List("6001","11"), Set("52"))
+    val inserted1 = repository.allocateArticleIdWithExternalIds(List("6000", "10"), Set("52"))
+    val inserted2 = repository.allocateArticleIdWithExternalIds(List("6001", "11"), Set("52"))
 
     repository.getIdFromExternalId("6000").get should be(inserted1)
     repository.getIdFromExternalId("6001").get should be(inserted2)
@@ -80,14 +79,15 @@ class ArticleRepositoryTest extends IntegrationSuite with TestEnvironment {
     assume(databaseIsAvailable, "Database is unavailable")
 
     val externalIds = List("123", "456")
-    val sampleArticle: domain.Article = TestData.sampleDomainArticle.copy(id = Some(repository.allocateArticleId()), revision = Some(42))
+    val sampleArticle: domain.Article =
+      TestData.sampleDomainArticle.copy(id = Some(repository.allocateArticleId()), revision = Some(42))
 
     sampleArticle.created.setTime(0)
     sampleArticle.created.setTime(0)
     val Success((res: domain.Article)) = repository.updateArticleFromDraftApi(sampleArticle, externalIds)
 
-    res.id.isDefined should be (true)
-    repository.withId(res.id.get).get should be (sampleArticle)
+    res.id.isDefined should be(true)
+    repository.withId(res.id.get).get should be(sampleArticle)
   }
 
   test("updateArticleFromDraftApi fail if trying to update an article which does not exist") {
@@ -95,8 +95,8 @@ class ArticleRepositoryTest extends IntegrationSuite with TestEnvironment {
 
     val externalIds = List("123", "456")
     val sampleArticle: domain.Article = TestData.sampleDomainArticle.copy(id = Some(123), revision = Some(42))
-    val Failure ((res: NotFoundException)) = repository.updateArticleFromDraftApi(sampleArticle, externalIds)
-    res.message should equal (s"No article with id Some(123) exists!")
+    val Failure((res: NotFoundException)) = repository.updateArticleFromDraftApi(sampleArticle, externalIds)
+    res.message should equal(s"No article with id Some(123) exists!")
   }
 
   test("Fetching external ids works as expected") {

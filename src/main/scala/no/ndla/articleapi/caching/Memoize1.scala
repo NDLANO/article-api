@@ -6,7 +6,6 @@
  *
  */
 
-
 package no.ndla.articleapi.caching
 
 import java.util.concurrent.{ScheduledThreadPoolExecutor, TimeUnit}
@@ -18,7 +17,7 @@ class Memoize[R](maxCacheAgeMs: Long, f: () => R, autoRefreshCache: Boolean) ext
     def isExpired: Boolean = lastUpdated + maxCacheAgeMs <= System.currentTimeMillis()
   }
 
-  private[this] var cache :Option[CacheValue] = None
+  private[this] var cache: Option[CacheValue] = None
 
   private def renewCache: Unit = {
     cache = Some(CacheValue(f(), System.currentTimeMillis()))
@@ -34,7 +33,7 @@ class Memoize[R](maxCacheAgeMs: Long, f: () => R, autoRefreshCache: Boolean) ext
 
   def apply(): R = {
     cache match {
-      case Some(cachedValue) if autoRefreshCache => cachedValue.value
+      case Some(cachedValue) if autoRefreshCache       => cachedValue.value
       case Some(cachedValue) if !cachedValue.isExpired => cachedValue.value
       case _ =>
         renewCache

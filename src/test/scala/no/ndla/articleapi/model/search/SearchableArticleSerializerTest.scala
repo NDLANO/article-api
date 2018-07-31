@@ -13,11 +13,14 @@ class SearchableArticleSerializerTest extends UnitSuite with TestEnvironment {
     id = 10.toLong,
     title = SearchableLanguageValues(Vector(LanguageValue("nb", "tittel"), LanguageValue("en", "title"))),
     content = SearchableLanguageValues(Vector(LanguageValue("nb", "innhold"), LanguageValue("en", "content"))),
-    visualElement = SearchableLanguageValues(Vector(LanguageValue("nb", "visueltelement"), LanguageValue("en", "visualelement"))),
+    visualElement =
+      SearchableLanguageValues(Vector(LanguageValue("nb", "visueltelement"), LanguageValue("en", "visualelement"))),
     introduction = SearchableLanguageValues(Vector(LanguageValue("nb", "ingress"), LanguageValue("en", "introduction"))),
-    metaDescription = SearchableLanguageValues(Vector(LanguageValue("nb", "meta beskrivelse"), LanguageValue("en", "meta description"))),
+    metaDescription = SearchableLanguageValues(
+      Vector(LanguageValue("nb", "meta beskrivelse"), LanguageValue("en", "meta description"))),
     metaImage = Vector(ArticleMetaImage("nb", "alt", "1")),
-    tags = SearchableLanguageList(Vector(LanguageValue("nb", List("m", "e", "r", "k")), LanguageValue("en", List("t", "a", "g", "s")))),
+    tags = SearchableLanguageList(
+      Vector(LanguageValue("nb", List("m", "e", "r", "k")), LanguageValue("en", List("t", "a", "g", "s")))),
     lastUpdated = new DateTime(2018, 2, 22, 14, 0, 51, DateTimeZone.UTC).withMillisOfSecond(0),
     license = "by-sa",
     authors = Seq("Jonas Natty"),

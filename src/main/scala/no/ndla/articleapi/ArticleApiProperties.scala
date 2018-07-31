@@ -6,7 +6,6 @@
  *
  */
 
-
 package no.ndla.articleapi
 
 import com.typesafe.scalalogging.LazyLogging
@@ -67,12 +66,36 @@ object ArticleApiProperties extends LazyLogging {
   val nodeTypeBegrep: String = "begrep"
   val nodeTypeVideo: String = "video"
   val nodeTypeH5P: String = "h5p_content"
-  val supportedContentTypes = Set("fagstoff", "oppgave", "veiledning", "aktualitet", "emneartikkel", nodeTypeBegrep, nodeTypeVideo, nodeTypeH5P)
 
-  val oldCreatorTypes = List("opphavsmann", "fotograf", "kunstner", "forfatter", "manusforfatter", "innleser", "oversetter", "regissør", "illustratør", "medforfatter", "komponist")
-  val creatorTypes = List("originator", "photographer", "artist", "writer", "scriptwriter", "reader", "translator", "director", "illustrator", "cowriter", "composer")
+  val supportedContentTypes =
+    Set("fagstoff", "oppgave", "veiledning", "aktualitet", "emneartikkel", nodeTypeBegrep, nodeTypeVideo, nodeTypeH5P)
 
-  val oldProcessorTypes = List("bearbeider", "tilrettelegger", "redaksjonelt", "språklig", "ide", "sammenstiller", "korrektur")
+  val oldCreatorTypes = List("opphavsmann",
+                             "fotograf",
+                             "kunstner",
+                             "forfatter",
+                             "manusforfatter",
+                             "innleser",
+                             "oversetter",
+                             "regissør",
+                             "illustratør",
+                             "medforfatter",
+                             "komponist")
+
+  val creatorTypes = List("originator",
+                          "photographer",
+                          "artist",
+                          "writer",
+                          "scriptwriter",
+                          "reader",
+                          "translator",
+                          "director",
+                          "illustrator",
+                          "cowriter",
+                          "composer")
+
+  val oldProcessorTypes =
+    List("bearbeider", "tilrettelegger", "redaksjonelt", "språklig", "ide", "sammenstiller", "korrektur")
   val processorTypes = List("processor", "facilitator", "editorial", "linguistic", "idea", "compiler", "correction")
 
   val oldRightsholderTypes = List("rettighetshaver", "forlag", "distributør", "leverandør")
@@ -97,13 +120,14 @@ object ArticleApiProperties extends LazyLogging {
 
   val H5PResizerScriptUrl = "//ndla.no/sites/all/modules/h5p/library/js/h5p-resizer.js"
 
-  val NDLABrightcoveVideoScriptUrl = s"//players.brightcove.net/$NDLABrightcoveAccountId/${NDLABrightcovePlayerId}_default/index.min.js"
+  val NDLABrightcoveVideoScriptUrl =
+    s"//players.brightcove.net/$NDLABrightcoveAccountId/${NDLABrightcovePlayerId}_default/index.min.js"
   val NRKVideoScriptUrl = Seq("//www.nrk.no/serum/latest/js/video_embed.js", "//nrk.no/serum/latest/js/video_embed.js")
 
   lazy val secrets: Map[String, Option[String]] = readSecrets(SecretsFile) match {
-     case Success(values) => values
-     case Failure(exception) => throw new RuntimeException(s"Unable to load remote secrets from $SecretsFile", exception)
-   }
+    case Success(values)    => values
+    case Failure(exception) => throw new RuntimeException(s"Unable to load remote secrets from $SecretsFile", exception)
+  }
 
   def booleanProp(key: String): Boolean = prop(key).toBoolean
 
@@ -117,7 +141,7 @@ object ArticleApiProperties extends LazyLogging {
       case None =>
         envOrNone(key) match {
           case Some(env) => env
-          case None => default
+          case None      => default
         }
     }
   }
