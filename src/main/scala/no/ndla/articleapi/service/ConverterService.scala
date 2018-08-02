@@ -92,7 +92,7 @@ trait ConverterService {
       val visualElements =
         searchableArticle.visualElement.languageValues.map(lv => VisualElement(lv.value, lv.language))
 
-      val supportedLanguages = getSupportedLanguages(titles, visualElements, introductions)
+      val supportedLanguages = getSupportedLanguages(titles, visualElements, introductions, metaImages)
 
       val title = findByLanguageOrBestEffort(titles, language)
         .map(toApiArticleTitle)
@@ -378,7 +378,8 @@ trait ConverterService {
         article.introduction,
         article.metaDescription,
         article.tags,
-        article.content
+        article.content,
+        article.metaImage
       )
       val isLanguageNeutral = supportedLanguages.contains(UnknownLanguage) && supportedLanguages.length == 1
 

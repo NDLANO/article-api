@@ -296,7 +296,7 @@ object TestData {
       Seq(),
       Seq(),
       Seq(ArticleMetaDescription("meta description", lang)),
-      Seq(ArticleMetaImage("11", "alt", "nb")),
+      Seq(ArticleMetaImage("11", "alt", lang)),
       today,
       today,
       "ndalId54321",
