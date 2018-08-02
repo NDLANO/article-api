@@ -192,7 +192,7 @@ trait ArticleRepository {
           rs =>
             ArticleIds(
               rs.long("id"),
-              rs.array("external_id").getArray.asInstanceOf[Array[String]].toList
+              externalIdsFromResultSet(rs)
           ))
         .single
         .apply
