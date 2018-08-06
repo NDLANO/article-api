@@ -11,8 +11,10 @@ package no.ndla.articleapi.validation
 import no.ndla.articleapi.ArticleApiProperties.H5PResizerScriptUrl
 import no.ndla.articleapi.model.domain._
 import no.ndla.articleapi.{TestData, TestEnvironment, UnitSuite}
-import no.ndla.validation.ValidationException
+import no.ndla.validation.{ValidationException, ValidationMessage}
 import org.mockito.Mockito._
+
+import scala.util.Failure
 
 class ContentValidatorTest extends UnitSuite with TestEnvironment {
   override val contentValidator = new ContentValidator(allowEmptyLanguageField = false)
@@ -223,6 +225,17 @@ class ContentValidatorTest extends UnitSuite with TestEnvironment {
     val article = TestData.sampleArticleWithByNcSa.copy(
       copyright = TestData.sampleArticleWithByNcSa.copyright.copy(agreementId = Some(10)))
     contentValidator.validateArticle(article, allowUnknownLanguage = false).isSuccess should be(false)
+  }
+
+  test("validation should fail if metaImage altText contains html") {
+    val article =
+      TestData.sampleArticleWithByNcSa.copy(metaImage = Seq(ArticleMetaImage("1234", "<b>Ikke krutte god<b>", "nb")))
+    val Failure(res1: ValidationException) = contentValidator.validateArticle(article, true)
+    res1.errors should be(
+      Seq(ValidationMessage("metaImage.alt", "The content contains illegal html-characters. No HTML is allowed")))
+
+    val article2 = TestData.sampleArticleWithByNcSa.copy(metaImage = Seq(ArticleMetaImage("1234", "Krutte god", "nb")))
+    contentValidator.validateArticle(article2, true).isSuccess should be(true)
   }
 
 }
