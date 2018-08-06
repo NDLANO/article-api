@@ -20,11 +20,9 @@ trait User {
     def userOrClientid(): String = {
       if (AuthUser.get.isDefined) {
         AuthUser.get.get
-      }
-      else if (AuthUser.getClientId.isDefined) {
+      } else if (AuthUser.getClientId.isDefined) {
         AuthUser.getClientId.get
-      }
-      else throw new AccessDeniedException("User id or Client id required to perform this operation")
+      } else throw new AccessDeniedException("User id or Client id required to perform this operation")
     }
 
   }

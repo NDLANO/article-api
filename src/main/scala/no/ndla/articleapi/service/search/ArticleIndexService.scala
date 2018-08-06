@@ -6,7 +6,6 @@
  *
  */
 
-
 package no.ndla.articleapi.service.search
 
 import com.sksamuel.elastic4s.http.ElasticDsl._
@@ -43,14 +42,18 @@ trait ArticleIndexService {
           dateField("lastUpdated"),
           keywordField("license"),
           textField("authors").fielddata(true),
-          textField("articleType").analyzer("keyword")
+          textField("articleType").analyzer("keyword"),
+          nestedField("metaImage").fields(
+            keywordField("imageId"),
+            keywordField("altText"),
+            keywordField("language")
+          )
         ) ++
           generateLanguageSupportedFieldList("title", keepRaw = true) ++
           generateLanguageSupportedFieldList("content") ++
           generateLanguageSupportedFieldList("visualElement") ++
           generateLanguageSupportedFieldList("introduction") ++
           generateLanguageSupportedFieldList("metaDescription") ++
-          generateLanguageSupportedFieldList("metaImage") ++
           generateLanguageSupportedFieldList("tags")
       )
     }

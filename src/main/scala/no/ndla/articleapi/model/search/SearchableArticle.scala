@@ -8,27 +8,28 @@
 
 package no.ndla.articleapi.model.search
 
+import no.ndla.articleapi.model.domain.ArticleMetaImage
 import org.joda.time.DateTime
 
 case class SearchableArticle(
-  id: Long,
-  title: SearchableLanguageValues,
-  content: SearchableLanguageValues,
-  visualElement: SearchableLanguageValues,
-  introduction: SearchableLanguageValues,
-  metaDescription: SearchableLanguageValues,
-  metaImage: SearchableLanguageValues,
-  tags: SearchableLanguageList,
-  lastUpdated: DateTime,
-  license: String,
-  authors: Seq[String],
-  articleType: String,
-  defaultTitle: Option[String]
+    id: Long,
+    title: SearchableLanguageValues,
+    content: SearchableLanguageValues,
+    visualElement: SearchableLanguageValues,
+    introduction: SearchableLanguageValues,
+    metaDescription: SearchableLanguageValues,
+    metaImage: Seq[ArticleMetaImage],
+    tags: SearchableLanguageList,
+    lastUpdated: DateTime,
+    license: String,
+    authors: Seq[String],
+    articleType: String,
+    defaultTitle: Option[String]
 )
 
 case class SearchableConcept(
-  id: Long,
-  title: SearchableLanguageValues,
-  content: SearchableLanguageValues,
-  defaultTitle: Option[String]
+    id: Long,
+    title: SearchableLanguageValues,
+    content: SearchableLanguageValues,
+    defaultTitle: Option[String]
 )

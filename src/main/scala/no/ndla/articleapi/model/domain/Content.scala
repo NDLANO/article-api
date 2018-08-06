@@ -35,15 +35,16 @@ case class Article(id: Option[Long],
                    created: Date,
                    updated: Date,
                    updatedBy: String,
-                   articleType: String) extends Content
-
+                   articleType: String)
+    extends Content
 
 object Article extends SQLSyntaxSupport[Article] {
   implicit val formats = org.json4s.DefaultFormats
   override val tableName = "contentdata"
   override val schemaName = Some(ArticleApiProperties.MetaSchema)
 
-  def apply(lp: SyntaxProvider[Article])(rs:WrappedResultSet): Article = apply(lp.resultName)(rs)
+  def apply(lp: SyntaxProvider[Article])(rs: WrappedResultSet): Article = apply(lp.resultName)(rs)
+
   def apply(lp: ResultName[Article])(rs: WrappedResultSet): Article = {
     val meta = read[Article](rs.string(lp.c("document")))
     Article(
@@ -75,9 +76,11 @@ object ArticleType extends Enumeration {
   val TopicArticle = Value("topic-article")
 
   def all = ArticleType.values.map(_.toString).toSeq
-  def valueOf(s:String): Option[ArticleType.Value] = ArticleType.values.find(_.toString == s)
+  def valueOf(s: String): Option[ArticleType.Value] = ArticleType.values.find(_.toString == s)
+
   def valueOfOrError(s: String): ArticleType.Value =
-    valueOf(s).getOrElse(throw new ValidationException(errors = List(ValidationMessage("articleType", s"'$s' is not a valid article type. Valid options are ${all.mkString(",")}."))))
+    valueOf(s).getOrElse(throw new ValidationException(errors = List(
+      ValidationMessage("articleType", s"'$s' is not a valid article type. Valid options are ${all.mkString(",")}."))))
 }
 
 case class Concept(id: Option[Long],
@@ -85,14 +88,16 @@ case class Concept(id: Option[Long],
                    content: Seq[ConceptContent],
                    copyright: Option[Copyright],
                    created: Date,
-                   updated: Date) extends Content
+                   updated: Date)
+    extends Content
 
 object Concept extends SQLSyntaxSupport[Concept] {
   implicit val formats = org.json4s.DefaultFormats
   override val tableName = "conceptdata"
   override val schemaName = Some(ArticleApiProperties.MetaSchema)
 
-  def apply(lp: SyntaxProvider[Concept])(rs:WrappedResultSet): Concept = apply(lp.resultName)(rs)
+  def apply(lp: SyntaxProvider[Concept])(rs: WrappedResultSet): Concept = apply(lp.resultName)(rs)
+
   def apply(lp: ResultName[Concept])(rs: WrappedResultSet): Concept = {
     val meta = read[Concept](rs.string(lp.c("document")))
     Concept(

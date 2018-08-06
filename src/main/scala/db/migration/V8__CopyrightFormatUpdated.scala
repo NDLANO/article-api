@@ -52,9 +52,12 @@ class V8__CopyrightFormatUpdated extends JdbcMigration {
   }
 
   def allArticles(offset: Long)(implicit session: DBSession): Seq[(Long, Int, String)] = {
-    sql"select id, revision, document from contentdata where document is not null order by id limit 1000 offset ${offset}".map(rs => {
-      (rs.long("id"), rs.int("revision"), rs.string("document"))
-    }).list.apply()
+    sql"select id, revision, document from contentdata where document is not null order by id limit 1000 offset ${offset}"
+      .map(rs => {
+        (rs.long("id"), rs.int("revision"), rs.string("document"))
+      })
+      .list
+      .apply()
   }
 
   def toNewAuthorType(author: V6_Author): V8_Author = {
@@ -62,11 +65,13 @@ class V8__CopyrightFormatUpdated extends JdbcMigration {
     val processorMap = (oldProcessorTypes zip processorTypes).toMap.withDefaultValue(None)
     val rightsholderMap = (oldRightsholderTypes zip rightsholderTypes).toMap.withDefaultValue(None)
 
-    (creatorMap(author.`type`.toLowerCase), processorMap(author.`type`.toLowerCase), rightsholderMap(author.`type`.toLowerCase)) match {
+    (creatorMap(author.`type`.toLowerCase),
+     processorMap(author.`type`.toLowerCase),
+     rightsholderMap(author.`type`.toLowerCase)) match {
       case (t: String, None, None) => V8_Author(t.capitalize, author.name)
       case (None, t: String, None) => V8_Author(t.capitalize, author.name)
       case (None, None, t: String) => V8_Author(t.capitalize, author.name)
-      case (_, _, _) => V8_Author(author.`type`, author.name)
+      case (_, _, _)               => V8_Author(author.`type`, author.name)
     }
   }
 
@@ -75,22 +80,35 @@ class V8__CopyrightFormatUpdated extends JdbcMigration {
     val articlev8 = read[V7_Article](document)
 
     // If entry contains V7 features -> Don't update.
-    if(articlev8.copyright.creators.nonEmpty ||
-      articlev8.copyright.processors.nonEmpty ||
-      articlev8.copyright.rightsholders.nonEmpty ||
-      articlev8.copyright.validFrom.nonEmpty ||
-      articlev8.copyright.validTo.nonEmpty) {
+    if (articlev8.copyright.creators.nonEmpty ||
+        articlev8.copyright.processors.nonEmpty ||
+        articlev8.copyright.rightsholders.nonEmpty ||
+        articlev8.copyright.validFrom.nonEmpty ||
+        articlev8.copyright.validTo.nonEmpty) {
 
       articlev8.copy(id = None, revision = Some(revision))
     } else {
-      val creators = articlev6.copyright.authors.filter(a => oldCreatorTypes.contains(a.`type`.toLowerCase)).map(toNewAuthorType)
+      val creators =
+        articlev6.copyright.authors.filter(a => oldCreatorTypes.contains(a.`type`.toLowerCase)).map(toNewAuthorType)
       // Filters out processor authors with old type `redaksjonelt` during import process since `redaksjonelt` exists both in processors and creators.
-      val processors = articlev6.copyright.authors.filter(a => oldProcessorTypes.contains(a.`type`.toLowerCase)).filterNot(a => a.`type`.toLowerCase == "redaksjonelt").map(toNewAuthorType)
-      val rightsholders = articlev6.copyright.authors.filter(a => oldRightsholderTypes.contains(a.`type`.toLowerCase)).map(toNewAuthorType)
+      val processors = articlev6.copyright.authors
+        .filter(a => oldProcessorTypes.contains(a.`type`.toLowerCase))
+        .filterNot(a => a.`type`.toLowerCase == "redaksjonelt")
+        .map(toNewAuthorType)
+      val rightsholders = articlev6.copyright.authors
+        .filter(a => oldRightsholderTypes.contains(a.`type`.toLowerCase))
+        .map(toNewAuthorType)
       articlev8.copy(
         id = Some(id),
         revision = Some(revision),
-        copyright = V7_Copyright(articlev6.copyright.license, articlev6.copyright.origin, creators, processors, rightsholders, None, None, None)
+        copyright = V7_Copyright(articlev6.copyright.license,
+                                 articlev6.copyright.origin,
+                                 creators,
+                                 processors,
+                                 rightsholders,
+                                 None,
+                                 None,
+                                 None)
       )
     }
 
@@ -114,9 +132,21 @@ case class V8_ArticleIntroduction(introduction: String, language: Option[String]
 case class V8_ArticleMetaDescription(content: String, language: Option[String])
 case class V8_RequiredLibrary(mediaType: String, name: String, url: String)
 case class V8_Author(`type`: String, name: String)
-case class V8_FootNoteItem(title: String, `type`: String, year: String, edition: String, publisher: String, authors: Seq[String])
+case class V8_FootNoteItem(title: String,
+                           `type`: String,
+                           year: String,
+                           edition: String,
+                           publisher: String,
+                           authors: Seq[String])
 
-case class V7_Copyright(license: String, origin: String, creators: Seq[V8_Author], processors: Seq[V8_Author], rightsholders: Seq[V8_Author], agreement: Option[Long], validFrom: Option[Date], validTo: Option[Date])
+case class V7_Copyright(license: String,
+                        origin: String,
+                        creators: Seq[V8_Author],
+                        processors: Seq[V8_Author],
+                        rightsholders: Seq[V8_Author],
+                        agreement: Option[Long],
+                        validFrom: Option[Date],
+                        validTo: Option[Date])
 case class V7_Article(id: Option[Long],
                       revision: Option[Int],
                       title: Seq[V8_ArticleTitle],
@@ -132,4 +162,3 @@ case class V7_Article(id: Option[Long],
                       updated: Date,
                       updatedBy: String,
                       articleType: String)
-

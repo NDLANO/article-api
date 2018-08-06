@@ -22,7 +22,8 @@ trait DraftApiClient {
   val draftApiClient: DraftApiClient
 
   class DraftApiClient {
-    private val draftApiGetAgreementEndpoint = s"http://${ArticleApiProperties.DraftHost}/draft-api/v1/agreements/:agreement_id"
+    private val draftApiGetAgreementEndpoint =
+      s"http://${ArticleApiProperties.DraftHost}/draft-api/v1/agreements/:agreement_id"
 
     def agreementExists(agreementId: Long): Boolean = getAgreementCopyright(agreementId).nonEmpty
 
@@ -31,7 +32,7 @@ trait DraftApiClient {
       val request: HttpRequest = Http(s"$draftApiGetAgreementEndpoint".replace(":agreement_id", agreementId.toString))
       ndlaClient.fetchWithForwardedAuth[Agreement](request).toOption match {
         case Some(a) => Some(a.copyright)
-        case _ => None
+        case _       => None
       }
     }
   }
@@ -43,5 +44,4 @@ case class Agreement(id: Long,
                      copyright: api.Copyright,
                      created: Date,
                      updated: Date,
-                     updatedBy: String
-                    )
+                     updatedBy: String)

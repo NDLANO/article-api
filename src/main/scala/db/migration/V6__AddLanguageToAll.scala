@@ -53,26 +53,30 @@ class V6__AddLanguageToAll extends JdbcMigration {
   }
 
   def allArticles(offset: Long)(implicit session: DBSession): Seq[V6_Article] = {
-    sql"select id, revision, document from contentdata where document is not NULL order by id limit 1000 offset ${offset}".map(rs => {
-      val meta = read[V6_Article](rs.string("document"))
-      meta.copy(
-        id = Some(rs.long("id")),
-        revision = Some(rs.int("revision")))
+    sql"select id, revision, document from contentdata where document is not NULL order by id limit 1000 offset ${offset}"
+      .map(rs => {
+        val meta = read[V6_Article](rs.string("document"))
+        meta.copy(id = Some(rs.long("id")), revision = Some(rs.int("revision")))
 
-    }).list.apply()
+      })
+      .list
+      .apply()
   }
 
   def convertArticleUpdate(articleMeta: V6_Article): V6_Article = {
     articleMeta.copy(
       title = articleMeta.title.map(t => V6_ArticleTitle(t.title, Some(Language.languageOrUnknown(t.language)))),
-      content = articleMeta.content.map(c => V6_ArticleContent(c.content, c.footNotes, Some(Language.languageOrUnknown(c.language)))),
+      content = articleMeta.content.map(c =>
+        V6_ArticleContent(c.content, c.footNotes, Some(Language.languageOrUnknown(c.language)))),
       tags = articleMeta.tags.map(t => V6_ArticleTag(t.tags, Some(Language.languageOrUnknown(t.language)))),
-      visualElement = articleMeta.visualElement.map(v => V6_VisualElement(v.resource, Some(Language.languageOrUnknown(v.language)))),
-      introduction = articleMeta.introduction.map(i => V6_ArticleIntroduction(i.introduction, Some(Language.languageOrUnknown(i.language)))),
-      metaDescription = articleMeta.metaDescription.map(m => V6_ArticleMetaDescription(m.content, Some(Language.languageOrUnknown(m.language))))
+      visualElement =
+        articleMeta.visualElement.map(v => V6_VisualElement(v.resource, Some(Language.languageOrUnknown(v.language)))),
+      introduction = articleMeta.introduction.map(i =>
+        V6_ArticleIntroduction(i.introduction, Some(Language.languageOrUnknown(i.language)))),
+      metaDescription = articleMeta.metaDescription.map(m =>
+        V6_ArticleMetaDescription(m.content, Some(Language.languageOrUnknown(m.language))))
     )
   }
-
 
   def updateArticle(articleMeta: V6_Article)(implicit session: DBSession) = {
     val dataObject = new PGobject()
@@ -103,11 +107,14 @@ class V6__AddLanguageToAll extends JdbcMigration {
   }
 
   def allConcepts(offset: Long)(implicit session: DBSession): Seq[V6_Concept] = {
-    sql"select id, document from conceptdata order by id limit 1000 offset ${offset}".map(rs => {
-      val meta = read[V6_Concept](rs.string("document"))
-      meta.copy(id = Some(rs.long("id")))
+    sql"select id, document from conceptdata order by id limit 1000 offset ${offset}"
+      .map(rs => {
+        val meta = read[V6_Concept](rs.string("document"))
+        meta.copy(id = Some(rs.long("id")))
 
-    }).list.apply()
+      })
+      .list
+      .apply()
   }
 
   def convertConceptUpdate(concept: V6_Concept): V6_Concept = {
@@ -136,7 +143,12 @@ case class V6_ArticleMetaDescription(content: String, language: Option[String])
 case class V6_RequiredLibrary(mediaType: String, name: String, url: String)
 case class V6_Copyright(license: String, origin: String, authors: Seq[V6_Author])
 case class V6_Author(`type`: String, name: String)
-case class V6_FootNoteItem(title: String, `type`: String, year: String, edition: String, publisher: String, authors: Seq[String])
+case class V6_FootNoteItem(title: String,
+                           `type`: String,
+                           year: String,
+                           edition: String,
+                           publisher: String,
+                           authors: Seq[String])
 
 case class V6_Article(id: Option[Long],
                       revision: Option[Int],
@@ -155,11 +167,10 @@ case class V6_Article(id: Option[Long],
                       articleType: String)
 
 case class V6_Concept(id: Option[Long],
-                   title: Seq[V6_ConceptTitle],
-                   content: Seq[V6_ConceptContent],
-                   authors: Seq[V6_Author],
-                   created: Date,
-                   updated: Date)
+                      title: Seq[V6_ConceptTitle],
+                      content: Seq[V6_ConceptContent],
+                      authors: Seq[V6_Author],
+                      created: Date,
+                      updated: Date)
 case class V6_ConceptTitle(title: String, language: Option[String])
 case class V6_ConceptContent(content: String, language: Option[String])
-

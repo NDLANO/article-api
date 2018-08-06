@@ -6,7 +6,6 @@
  *
  */
 
-
 package no.ndla.articleapi.service.search
 
 import java.text.SimpleDateFormat
@@ -41,7 +40,7 @@ trait IndexService {
       for {
         _ <- getAliasTarget.map {
           case Some(index) => Success(index)
-          case None => createIndexWithGeneratedName.map(newIndex => updateAliasTarget(None, newIndex))
+          case None        => createIndexWithGeneratedName.map(newIndex => updateAliasTarget(None, newIndex))
         }
         _ <- e4sClient.execute {
           createIndexRequest(imported, searchIndex)
@@ -76,7 +75,7 @@ trait IndexService {
           val numberInBulk = indexDocuments(repository.documentsWithIdBetween(range._1, range._2), indexName)
           numberInBulk match {
             case Success(num) => numIndexed += num
-            case Failure(f) => return Failure(f)
+            case Failure(f)   => return Failure(f)
           }
         })
         numIndexed
@@ -86,15 +85,18 @@ trait IndexService {
     def getRanges: Try[List[(Long, Long)]] = {
       Try {
         val (minId, maxId) = repository.minMaxId
-        Seq.range(minId, maxId + 1).grouped(ArticleApiProperties.IndexBulkSize).map(group => (group.head, group.last)).toList
+        Seq
+          .range(minId, maxId + 1)
+          .grouped(ArticleApiProperties.IndexBulkSize)
+          .map(group => (group.head, group.last))
+          .toList
       }
     }
 
     def indexDocuments(contents: Seq[D], indexName: String): Try[Int] = {
       if (contents.isEmpty) {
         Success(0)
-      }
-      else {
+      } else {
         val response = e4sClient.execute {
           bulk(contents.map(content => {
             createIndexRequest(content, indexName)
@@ -114,7 +116,7 @@ trait IndexService {
       for {
         _ <- getAliasTarget.map {
           case Some(index) => Success(index)
-          case None => createIndexWithGeneratedName.map(newIndex => updateAliasTarget(None, newIndex))
+          case None        => createIndexWithGeneratedName.map(newIndex => updateAliasTarget(None, newIndex))
         }
         _ <- {
           e4sClient.execute {
@@ -137,7 +139,7 @@ trait IndexService {
         }
 
         response match {
-          case Success(_) => Success(indexName)
+          case Success(_)  => Success(indexName)
           case Failure(ex) => Failure(ex)
         }
       }
@@ -193,8 +195,8 @@ trait IndexService {
 
       response match {
         case Success(resp) if resp.status != 404 => Success(true)
-        case Success(_) => Success(false)
-        case Failure(ex) => Failure(ex)
+        case Success(_)                          => Success(false)
+        case Failure(ex)                         => Failure(ex)
       }
     }
 
@@ -208,10 +210,19 @@ trait IndexService {
       *                  Usually used for sorting, aggregations or scripts.
       * @return Sequence of FieldDefinitions for a field.
       */
-    protected def generateLanguageSupportedFieldList(fieldName: String, keepRaw: Boolean = false): Seq[FieldDefinition] = {
+    protected def generateLanguageSupportedFieldList(fieldName: String,
+                                                     keepRaw: Boolean = false): Seq[FieldDefinition] = {
       keepRaw match {
-        case true => languageAnalyzers.map(langAnalyzer => textField(s"$fieldName.${langAnalyzer.lang}").fielddata(false).analyzer(langAnalyzer.analyzer).fields(keywordField("raw")))
-        case false => languageAnalyzers.map(langAnalyzer => textField(s"$fieldName.${langAnalyzer.lang}").fielddata(false).analyzer(langAnalyzer.analyzer))
+        case true =>
+          languageAnalyzers.map(
+            langAnalyzer =>
+              textField(s"$fieldName.${langAnalyzer.lang}")
+                .fielddata(false)
+                .analyzer(langAnalyzer.analyzer)
+                .fields(keywordField("raw")))
+        case false =>
+          languageAnalyzers.map(langAnalyzer =>
+            textField(s"$fieldName.${langAnalyzer.lang}").fielddata(false).analyzer(langAnalyzer.analyzer))
       }
     }
   }

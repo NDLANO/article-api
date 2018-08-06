@@ -26,7 +26,8 @@ trait ConceptRepository {
   class ConceptRepository extends LazyLogging with Repository[Concept] {
     implicit val formats: Formats = org.json4s.DefaultFormats + Concept.JSonSerializer
 
-    def insertWithExternalIds(concept: Concept, externalIds: List[String])(implicit session: DBSession = AutoSession): Concept = {
+    def insertWithExternalIds(concept: Concept, externalIds: List[String])(
+        implicit session: DBSession = AutoSession): Concept = {
       val dataObject = new PGobject()
       dataObject.setType("jsonb")
       dataObject.setValue(write(concept))
@@ -44,7 +45,8 @@ trait ConceptRepository {
     def allocateConceptId()(implicit session: DBSession = AutoSession): Long = {
       val startRevision = 0
 
-      val articleId: Long = sql"insert into ${Concept.table} (revision) values ($startRevision)".updateAndReturnGeneratedKey().apply
+      val articleId: Long =
+        sql"insert into ${Concept.table} (revision) values ($startRevision)".updateAndReturnGeneratedKey().apply
       logger.info(s"Allocated id for concept $articleId")
       articleId
     }
@@ -64,12 +66,14 @@ trait ConceptRepository {
       conceptId
     }
 
-    def updateWithExternalId(concept: Concept, externalId: String)(implicit session: DBSession = AutoSession): Try[Concept] = {
+    def updateWithExternalId(concept: Concept, externalId: String)(
+        implicit session: DBSession = AutoSession): Try[Concept] = {
       val dataObject = new PGobject()
       dataObject.setType("jsonb")
       dataObject.setValue(write(concept))
 
-      Try(sql"update ${Concept.table} set document=${dataObject} where ${externalId} = any (external_id)".updateAndReturnGeneratedKey.apply) match {
+      Try(
+        sql"update ${Concept.table} set document=${dataObject} where ${externalId} = any (external_id)".updateAndReturnGeneratedKey.apply) match {
         case Success(id) => Success(concept.copy(id = Some(id)))
         case Failure(ex) =>
           logger.warn(s"Failed to update concept with external id $externalId: ${ex.getMessage}")
@@ -97,7 +101,8 @@ trait ConceptRepository {
       dataObject.setType("jsonb")
       dataObject.setValue(write(concept))
 
-      val conceptId: Long = sql"insert into ${Concept.table} (document) values (${dataObject})".updateAndReturnGeneratedKey.apply
+      val conceptId: Long =
+        sql"insert into ${Concept.table} (document) values (${dataObject})".updateAndReturnGeneratedKey.apply
 
       logger.info(s"Inserted new concept: $conceptId")
       concept.copy(id = Some(conceptId))
@@ -123,7 +128,10 @@ trait ConceptRepository {
       conceptWhere(sqls"$externalId = any (co.external_id)")
 
     def getIdFromExternalId(externalId: String)(implicit session: DBSession = AutoSession): Option[Long] =
-      sql"select id from ${Concept.table} where ${externalId} = any(external_id)".map(rs => rs.long("id")).single.apply()
+      sql"select id from ${Concept.table} where ${externalId} = any(external_id)"
+        .map(rs => rs.long("id"))
+        .single
+        .apply()
 
     def exists(externalId: String): Boolean =
       getIdFromExternalId(externalId).isDefined
@@ -139,25 +147,36 @@ trait ConceptRepository {
     }
 
     override def minMaxId(implicit session: DBSession = AutoSession): (Long, Long) = {
-      sql"select coalesce(MIN(id),0) as mi, coalesce(MAX(id),0) as ma from ${Concept.table}".map(rs => {
-        (rs.long("mi"), rs.long("ma"))
-      }).single().apply() match {
+      sql"select coalesce(MIN(id),0) as mi, coalesce(MAX(id),0) as ma from ${Concept.table}"
+        .map(rs => {
+          (rs.long("mi"), rs.long("ma"))
+        })
+        .single()
+        .apply() match {
         case Some(minmax) => minmax
-        case None => (0L, 0L)
+        case None         => (0L, 0L)
       }
     }
 
     override def documentsWithIdBetween(min: Long, max: Long): List[Concept] =
       conceptsWhere(sqls"co.id between $min and $max")
 
-    private def conceptWhere(whereClause: SQLSyntax)(implicit session: DBSession = ReadOnlyAutoSession): Option[Concept] = {
+    private def conceptWhere(whereClause: SQLSyntax)(
+        implicit session: DBSession = ReadOnlyAutoSession): Option[Concept] = {
       val co = Concept.syntax("co")
-      sql"select ${co.result.*} from ${Concept.as(co)} where co.document is not NULL and $whereClause".map(Concept(co)).single.apply()
+      sql"select ${co.result.*} from ${Concept.as(co)} where co.document is not NULL and $whereClause"
+        .map(Concept(co))
+        .single
+        .apply()
     }
 
-    private def conceptsWhere(whereClause: SQLSyntax)(implicit session: DBSession = ReadOnlyAutoSession): List[Concept] = {
+    private def conceptsWhere(whereClause: SQLSyntax)(
+        implicit session: DBSession = ReadOnlyAutoSession): List[Concept] = {
       val co = Concept.syntax("co")
-      sql"select ${co.result.*} from ${Concept.as(co)} where co.document is not NULL and $whereClause".map(Concept(co)).list.apply()
+      sql"select ${co.result.*} from ${Concept.as(co)} where co.document is not NULL and $whereClause"
+        .map(Concept(co))
+        .list
+        .apply()
     }
 
   }

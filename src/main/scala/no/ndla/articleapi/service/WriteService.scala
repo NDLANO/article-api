@@ -32,6 +32,7 @@ trait WriteService {
   val writeService: WriteService
 
   class WriteService {
+
     def validateAndConvertUpdatedArticle(articleId: Long, updatedApiArticle: UpdatedArticleV2): Try[Article] = {
       articleRepository.withId(articleId) match {
         case None => Failure(NotFoundException(s"Article with id $articleId does not exist"))
@@ -53,8 +54,10 @@ trait WriteService {
       val repo = articleRepository
       externalIds match {
         case Nil => repo.allocateArticleId
-        case mainNid :: restOfNids => repo.getIdFromExternalId(mainNid)
-          .getOrElse(repo.allocateArticleIdWithExternalIds(mainNid :: restOfNids, externalSubjectIds))
+        case mainNid :: restOfNids =>
+          repo
+            .getIdFromExternalId(mainNid)
+            .getOrElse(repo.allocateArticleIdWithExternalIds(mainNid :: restOfNids, externalSubjectIds))
       }
     }
 
@@ -62,27 +65,31 @@ trait WriteService {
       val repo = conceptRepository
       externalIds match {
         case Nil => repo.allocateConceptId
-        case mainNid :: restOfNids => repo.getIdFromExternalId(mainNid)
-          .getOrElse(repo.allocateConceptIdWithExternalIds(mainNid :: restOfNids))
+        case mainNid :: restOfNids =>
+          repo
+            .getIdFromExternalId(mainNid)
+            .getOrElse(repo.allocateConceptIdWithExternalIds(mainNid :: restOfNids))
       }
     }
 
     def updateConcept(id: Long, concept: Concept): Try[Concept] = {
       for {
         _ <- contentValidator.validateConcept(concept, allowUnknownLanguage = true)
-        domainConcept <- conceptRepository.updateConceptFromDraftApi(concept.copy(id=Some(id)))
+        domainConcept <- conceptRepository.updateConceptFromDraftApi(concept.copy(id = Some(id)))
         _ <- conceptIndexService.indexDocument(domainConcept)
       } yield domainConcept
     }
 
     def deleteArticle(id: Long): Try[api.ArticleIdV2] = {
-      articleRepository.delete(id)
+      articleRepository
+        .delete(id)
         .flatMap(articleIndexService.deleteDocument)
         .map(api.ArticleIdV2)
     }
 
     def deleteConcept(id: Long): Try[api.ArticleIdV2] = {
-      conceptRepository.delete(id)
+      conceptRepository
+        .delete(id)
         .flatMap(conceptIndexService.deleteDocument)
         .map(api.ArticleIdV2)
     }

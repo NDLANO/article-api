@@ -6,7 +6,6 @@
  *
  */
 
-
 package no.ndla.articleapi.controller
 
 import no.ndla.articleapi.ArticleApiProperties
@@ -25,7 +24,13 @@ import org.scalatra.util.NotNothing
 import scala.util.{Failure, Success}
 
 trait ArticleControllerV2 {
-  this: ReadService with WriteService with ArticleSearchService with ConverterService with Role with User with ContentValidator =>
+  this: ReadService
+    with WriteService
+    with ArticleSearchService
+    with ConverterService
+    with Role
+    with User
+    with ContentValidator =>
   val articleControllerV2: ArticleControllerV2
 
   class ArticleControllerV2(implicit val swagger: Swagger) extends NdlaController with SwaggerSupport {
@@ -42,37 +47,45 @@ trait ArticleControllerV2 {
     val response404 = ResponseMessage(404, "Not found", Some("Error"))
     val response500 = ResponseMessage(500, "Unknown error", Some("Error"))
 
-    private val correlationId = Param("X-Correlation-ID","User supplied correlation-id. May be omitted.")
-    private val query = Param("query","Return only articles with content matching the specified query.")
+    private val correlationId = Param("X-Correlation-ID", "User supplied correlation-id. May be omitted.")
+    private val query = Param("query", "Return only articles with content matching the specified query.")
     private val language = Param("language", "The ISO 639-1 language code describing language.")
-    private val license = Param("license","Return only results with provided license.")
-    private val sort = Param("sort",
+    private val license = Param("license", "Return only results with provided license.")
+    private val sort = Param(
+      "sort",
       """The sorting used on results.
              The following are supported: relevance, -relevance, title, -title, lastUpdated, -lastUpdated, id, -id.
-             Default is by -relevance (desc) when query is set, and id (asc) when query is empty.""".stripMargin)
-    private val pageNo = Param("page","The page number of the search hits to display.")
-    private val pageSize = Param("page-size","The number of search hits to display for each page.")
-    private val articleId = Param("article_id","Id of the article that is to be fecthed")
+             Default is by -relevance (desc) when query is set, and id (asc) when query is empty.""".stripMargin
+    )
+    private val pageNo = Param("page", "The page number of the search hits to display.")
+    private val pageSize = Param("page-size", "The number of search hits to display for each page.")
+    private val articleId = Param("article_id", "Id of the article that is to be fecthed")
     private val size = Param("size", "Limit the number of results to this many elements")
-    private val articleTypes = Param("articleTypes", "Return only articles of specific type(s). To provide multiple types, separate by comma (,).")
-    private val articleIds = Param("ids","Return only articles that have one of the provided ids. To provide multiple ids, separate by comma (,).")
+    private val articleTypes = Param(
+      "articleTypes",
+      "Return only articles of specific type(s). To provide multiple types, separate by comma (,).")
+    private val articleIds = Param(
+      "ids",
+      "Return only articles that have one of the provided ids. To provide multiple ids, separate by comma (,).")
     private val deprecatedNodeId = Param("deprecated_node_id", "Id of deprecated NDLA node")
     private val fallback = Param("fallback", "Fallback to existing language if language is specified.")
 
-    private def asQueryParam[T: Manifest: NotNothing](param: Param) = queryParam[T](param.paramName).description(param.description)
-    private def asHeaderParam[T: Manifest: NotNothing](param: Param) = headerParam[T](param.paramName).description(param.description)
-    private def asPathParam[T: Manifest: NotNothing](param: Param) = pathParam[T](param.paramName).description(param.description)
-
+    private def asQueryParam[T: Manifest: NotNothing](param: Param) =
+      queryParam[T](param.paramName).description(param.description)
+    private def asHeaderParam[T: Manifest: NotNothing](param: Param) =
+      headerParam[T](param.paramName).description(param.description)
+    private def asPathParam[T: Manifest: NotNothing](param: Param) =
+      pathParam[T](param.paramName).description(param.description)
 
     val getTags: SwaggerSupportSyntax.OperationBuilder =
       (apiOperation[ArticleTag]("getTags")
         summary "Fetch tags used in articles"
         notes "Retrieves a list of all previously used tags in articles"
-        parameters(
+        parameters (
           asHeaderParam[Option[String]](correlationId),
           asQueryParam[Option[Int]](size),
           asQueryParam[Option[String]](language)
-        )
+      )
         responseMessages response500
         authorizations "oauth2")
 
@@ -81,7 +94,7 @@ trait ArticleControllerV2 {
       val language = paramOrDefault(this.language.paramName, Language.AllLanguages)
       val size = intOrDefault(this.size.paramName, defaultSize) match {
         case tooSmall if tooSmall < 1 => defaultSize
-        case x => x
+        case x                        => x
       }
       val tags = readService.getNMostUsedTags(size, language)
       if (tags.isEmpty) {
@@ -101,33 +114,35 @@ trait ArticleControllerV2 {
                        articleTypesFilter: Seq[String],
                        fallback: Boolean) = {
       val result = query match {
-        case Some(q) => articleSearchService.matchingQuery(
-          query = q,
-          withIdIn = idList,
-          searchLanguage = language,
-          license = license,
-          page = page,
-          pageSize = if (idList.isEmpty) pageSize else idList.size,
-          sort = sort.getOrElse(Sort.ByRelevanceDesc),
-          if (articleTypesFilter.isEmpty) ArticleType.all else articleTypesFilter,
-          fallback = fallback
-        )
+        case Some(q) =>
+          articleSearchService.matchingQuery(
+            query = q,
+            withIdIn = idList,
+            searchLanguage = language,
+            license = license,
+            page = page,
+            pageSize = if (idList.isEmpty) pageSize else idList.size,
+            sort = sort.getOrElse(Sort.ByRelevanceDesc),
+            if (articleTypesFilter.isEmpty) ArticleType.all else articleTypesFilter,
+            fallback = fallback
+          )
 
-        case None => articleSearchService.all(
-          withIdIn = idList,
-          language = language,
-          license = license,
-          page = page,
-          pageSize = if (idList.isEmpty) pageSize else idList.size,
-          sort = sort.getOrElse(Sort.ByIdAsc),
-          if (articleTypesFilter.isEmpty) ArticleType.all else articleTypesFilter,
-          fallback = fallback
-        )
+        case None =>
+          articleSearchService.all(
+            withIdIn = idList,
+            language = language,
+            license = license,
+            page = page,
+            pageSize = if (idList.isEmpty) pageSize else idList.size,
+            sort = sort.getOrElse(Sort.ByIdAsc),
+            if (articleTypesFilter.isEmpty) ArticleType.all else articleTypesFilter,
+            fallback = fallback
+          )
       }
 
       result match {
         case Success(searchResult) => searchResult
-        case Failure(ex) => errorHandler(ex)
+        case Failure(ex)           => errorHandler(ex)
       }
     }
 
@@ -135,19 +150,19 @@ trait ArticleControllerV2 {
       (apiOperation[List[SearchResultV2]]("getAllArticles")
         summary "Find articles"
         notes "Shows all articles. You can search it too."
-        parameters(
-        asHeaderParam[Option[String]](correlationId),
-        asQueryParam[Option[String]](articleTypes),
-        asQueryParam[Option[String]](query),
-        asQueryParam[Option[String]](articleIds),
-        asQueryParam[Option[String]](language),
-        asQueryParam[Option[String]](license),
-        asQueryParam[Option[Int]](pageNo),
-        asQueryParam[Option[Int]](pageSize),
-        asQueryParam[Option[String]](sort)
+        parameters (
+          asHeaderParam[Option[String]](correlationId),
+          asQueryParam[Option[String]](articleTypes),
+          asQueryParam[Option[String]](query),
+          asQueryParam[Option[String]](articleIds),
+          asQueryParam[Option[String]](language),
+          asQueryParam[Option[String]](license),
+          asQueryParam[Option[Int]](pageNo),
+          asQueryParam[Option[Int]](pageSize),
+          asQueryParam[Option[String]](sort)
       )
         authorizations "oauth2"
-        responseMessages(response500))
+        responseMessages (response500))
 
     get("/", operation(getAllArticles)) {
       val query = paramOrNone(this.query.paramName)
@@ -167,12 +182,12 @@ trait ArticleControllerV2 {
       (apiOperation[List[SearchResultV2]]("getAllArticlesPost")
         summary "Find articles"
         notes "Shows all articles. You can search it too."
-        parameters(
+        parameters (
           asHeaderParam[Option[String]](correlationId),
           bodyParam[ArticleSearchParams]
-        )
+      )
         authorizations "oauth2"
-        responseMessages(response400, response500))
+        responseMessages (response400, response500))
 
     post("/search/", operation(getAllArticlesPost)) {
       val searchParams = extract[ArticleSearchParams](request.body)
@@ -194,14 +209,14 @@ trait ArticleControllerV2 {
       (apiOperation[List[ArticleV2]]("getArticleById")
         summary "Fetch specified article"
         notes "Shows the article for the specified id."
-        parameters(
-        asHeaderParam[Option[String]](correlationId),
-        asPathParam[Long](articleId),
-        asQueryParam[Option[String]](language),
-        asQueryParam[Option[Boolean]](fallback)
+        parameters (
+          asHeaderParam[Option[String]](correlationId),
+          asPathParam[Long](articleId),
+          asQueryParam[Option[String]](language),
+          asQueryParam[Option[Boolean]](fallback)
       )
         authorizations "oauth2"
-        responseMessages(response404, response500))
+        responseMessages (response404, response500))
 
     get("/:article_id", operation(getArticleById)) {
       val articleId = long(this.articleId.paramName)
@@ -210,7 +225,7 @@ trait ArticleControllerV2 {
 
       readService.withIdV2(articleId, language, fallback) match {
         case Success(article) => article
-        case Failure(ex) => errorHandler(ex)
+        case Failure(ex)      => errorHandler(ex)
       }
     }
 
@@ -218,18 +233,18 @@ trait ArticleControllerV2 {
       (apiOperation[ArticleIdV2]("getInternalIdByExternalId")
         summary "Get id of article corresponding to specified deprecated node id"
         notes "Get internal id of article for a specified ndla_node_id"
-        parameters(
-        asHeaderParam[Option[String]](correlationId),
-        asPathParam[Long](deprecatedNodeId)
+        parameters (
+          asHeaderParam[Option[String]](correlationId),
+          asPathParam[Long](deprecatedNodeId)
       )
         authorizations "oauth2"
-        responseMessages(response404, response500))
+        responseMessages (response404, response500))
 
     get("/external_id/:deprecated_node_id", operation(getInternalIdByExternalId)) {
       val externalId = long(this.deprecatedNodeId.paramName)
       readService.getInternalIdByExternalId(externalId) match {
         case Some(id) => id
-        case None => NotFound(body = Error(Error.NOT_FOUND, s"No article with id $externalId"))
+        case None     => NotFound(body = Error(Error.NOT_FOUND, s"No article with id $externalId"))
       }
     }
 
@@ -237,18 +252,18 @@ trait ArticleControllerV2 {
       (apiOperation[ArticleIds]("getExternalIdsByExternalId")
         summary "Get all ids related to article corresponding to specified deprecated node id"
         notes "Get internal id as well as all deprecated ndla_node_ids of article for a specified ndla_node_id"
-        parameters(
-        asHeaderParam[Option[String]](correlationId),
-        asPathParam[Long](deprecatedNodeId)
+        parameters (
+          asHeaderParam[Option[String]](correlationId),
+          asPathParam[Long](deprecatedNodeId)
       )
         authorizations "oauth2"
-        responseMessages(response404, response500))
+        responseMessages (response404, response500))
 
     get("/external_ids/:deprecated_node_id", operation(getExternalIdsByExternalId)) {
       val externalId = params(this.deprecatedNodeId.paramName)
       readService.getArticleIdsByExternalId(externalId) match {
         case Some(idObject) => idObject
-        case None => NotFound()
+        case None           => NotFound()
       }
     }
   }

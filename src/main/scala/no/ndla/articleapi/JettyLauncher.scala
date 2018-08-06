@@ -6,7 +6,6 @@
  *
  */
 
-
 package no.ndla.articleapi
 
 import com.typesafe.scalalogging.LazyLogging
@@ -16,8 +15,8 @@ import org.scalatra.servlet.ScalatraListener
 
 import scala.io.Source
 
-
 object JettyLauncher extends LazyLogging {
+
   def buildMostUsedTagsCache: Unit = {
     ComponentRegistry.readService.getTagUsageMap()
   }

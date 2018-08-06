@@ -6,7 +6,6 @@
  *
  */
 
-
 package no.ndla.articleapi.controller
 
 import java.util.concurrent.{Executors, TimeUnit}
@@ -52,11 +51,11 @@ trait InternController {
         conceptIndex <- Future { conceptIndexService.indexDocuments }
       } yield (articleIndex, conceptIndex)
 
-
       Await.result(indexResults, Duration(10, TimeUnit.MINUTES)) match {
         case (Success(articleResult), Success(conceptResult)) =>
           val indexTime = math.max(articleResult.millisUsed, conceptResult.millisUsed)
-          val result = s"Completed indexing of ${articleResult.totalIndexed} articles and ${conceptResult.totalIndexed} concepts in $indexTime ms."
+          val result =
+            s"Completed indexing of ${articleResult.totalIndexed} articles and ${conceptResult.totalIndexed} concepts in $indexTime ms."
           logger.info(result)
           Ok(result)
         case (Failure(articleFail), _) =>
@@ -76,7 +75,7 @@ trait InternController {
       val externalId = params("external_id")
       articleRepository.getIdFromExternalId(externalId) match {
         case Some(id) => id
-        case None => NotFound()
+        case None     => NotFound()
       }
     }
 
@@ -115,9 +114,9 @@ trait InternController {
     post("/validate/article") {
       val article = extract[Article](request.body)
       contentValidator.validateArticle(article, allowUnknownLanguage = true) match {
-        case Success(_) => article
+        case Success(_)                       => article
         case Failure(ex: ValidationException) => ex.errors
-        case Failure(ex) => errorHandler(ex)
+        case Failure(ex)                      => errorHandler(ex)
       }
     }
 
@@ -127,8 +126,8 @@ trait InternController {
       val article = extract[Article](request.body)
       val id = long("id")
 
-      writeService.updateArticle(article.copy(id=Some(id)), externalIds) match {
-        case Success(a) => a
+      writeService.updateArticle(article.copy(id = Some(id)), externalIds) match {
+        case Success(a)  => a
         case Failure(ex) => errorHandler(ex)
       }
     }
@@ -136,7 +135,7 @@ trait InternController {
     delete("/article/:id/") {
       authRole.assertHasWritePermission()
       writeService.deleteArticle(long("id")) match {
-        case Success(a) => a
+        case Success(a)  => a
         case Failure(ex) => errorHandler(ex)
       }
     }
@@ -147,7 +146,7 @@ trait InternController {
       val concept = extract[Concept](request.body)
 
       writeService.updateConcept(id, concept) match {
-        case Success(c) => c
+        case Success(c)  => c
         case Failure(ex) => errorHandler(ex)
       }
     }
@@ -155,7 +154,7 @@ trait InternController {
     delete("/concept/:id/") {
       authRole.assertHasWritePermission()
       writeService.deleteConcept(long("id")) match {
-        case Success(c) => c
+        case Success(c)  => c
         case Failure(ex) => errorHandler(ex)
       }
     }

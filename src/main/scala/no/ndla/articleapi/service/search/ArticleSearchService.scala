@@ -6,7 +6,6 @@
  *
  */
 
-
 package no.ndla.articleapi.service.search
 
 import java.util.concurrent.Executors
@@ -98,11 +97,12 @@ trait ArticleSearchService {
                       articleTypes: Seq[String],
                       fallback: Boolean): Try[SearchResultV2] = {
 
-      val articleTypesFilter = if (articleTypes.nonEmpty) Some(constantScoreQuery(termsQuery("articleType", articleTypes))) else None
+      val articleTypesFilter =
+        if (articleTypes.nonEmpty) Some(constantScoreQuery(termsQuery("articleType", articleTypes))) else None
       val idFilter = if (withIdIn.isEmpty) None else Some(idsQuery(withIdIn))
 
       val licenseFilter = license match {
-        case None => Some(noCopyright)
+        case None      => Some(noCopyright)
         case Some(lic) => Some(termQuery("license", lic))
       }
 
@@ -111,7 +111,7 @@ trait ArticleSearchService {
           (None, "*")
         case lang =>
           fallback match {
-            case true => (None, "*")
+            case true  => (None, "*")
             case false => (Some(existsQuery(s"title.$lang")), lang)
           }
       }
@@ -122,7 +122,8 @@ trait ArticleSearchService {
       val (startAt, numResults) = getStartAtAndNumResults(page, pageSize)
       val requestedResultWindow = pageSize * page
       if (requestedResultWindow > ArticleApiProperties.ElasticSearchIndexMaxResultWindow) {
-        logger.info(s"Max supported results are ${ArticleApiProperties.ElasticSearchIndexMaxResultWindow}, user requested $requestedResultWindow")
+        logger.info(
+          s"Max supported results are ${ArticleApiProperties.ElasticSearchIndexMaxResultWindow}, user requested $requestedResultWindow")
         Failure(ResultWindowTooLargeException())
       } else {
 
@@ -135,13 +136,14 @@ trait ArticleSearchService {
 
         e4sClient.execute(searchToExec) match {
           case Success(response) =>
-            Success(SearchResultV2(
-              response.result.totalHits,
-              page,
-              numResults,
-              if (language == "*") Language.AllLanguages else language,
-              getHits(response.result, language, fallback)
-            ))
+            Success(
+              SearchResultV2(
+                response.result.totalHits,
+                page,
+                numResults,
+                if (language == "*") Language.AllLanguages else language,
+                getHits(response.result, language, fallback)
+              ))
           case Failure(ex) => errorHandler(ex)
         }
       }
@@ -155,7 +157,9 @@ trait ArticleSearchService {
 
       f.failed.foreach(t => logger.warn("Unable to create index: " + t.getMessage, t))
       f.foreach {
-        case Success(reindexResult) => logger.info(s"Completed indexing of ${reindexResult.totalIndexed} documents in ${reindexResult.millisUsed} ms.")
+        case Success(reindexResult) =>
+          logger.info(
+            s"Completed indexing of ${reindexResult.totalIndexed} documents in ${reindexResult.millisUsed} ms.")
         case Failure(ex) => logger.warn(ex.getMessage, ex)
       }
     }

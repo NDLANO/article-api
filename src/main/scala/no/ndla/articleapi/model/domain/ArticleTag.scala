@@ -12,6 +12,6 @@ import org.scalatra.swagger.annotations.{ApiModel, ApiModelProperty}
 
 import scala.annotation.meta.field
 
-case class ArticleTag(tags: Seq[String],  language: String) extends LanguageField[Seq[String]] {
-  override def value: Seq[String] = tags
+case class ArticleTag(tags: Seq[String], language: String) extends LanguageField {
+  override def isEmpty: Boolean = tags.isEmpty
 }

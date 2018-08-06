@@ -1,10 +1,6 @@
 package no.ndla.articleapi.model.domain
 
-trait WithLanguage {
+trait LanguageField {
   def language: String
-}
-
-trait LanguageField[T] extends WithLanguage {
-  def value: T
-  def language: String
+  def isEmpty: Boolean
 }
