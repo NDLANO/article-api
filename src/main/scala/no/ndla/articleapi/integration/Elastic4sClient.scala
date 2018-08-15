@@ -63,7 +63,7 @@ object Elastic4sClientFactory {
 
   private object RequestConfigCallbackWithTimeout extends RequestConfigCallback {
     override def customizeRequestConfig(requestConfigBuilder: RequestConfig.Builder): RequestConfig.Builder = {
-      val elasticSearchRequestTimeoutMs = 10000
+      val elasticSearchRequestTimeoutMs = 1000 * 60
       requestConfigBuilder.setConnectionRequestTimeout(elasticSearchRequestTimeoutMs)
     }
   }
