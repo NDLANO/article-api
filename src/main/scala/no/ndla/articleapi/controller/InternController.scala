@@ -140,6 +140,14 @@ trait InternController {
       }
     }
 
+    post("/article/:id/unpublish/") {
+      authRole.assertHasWritePermission()
+      writeService.unpublishArticle(long("id")) match {
+        case Success(a)  => a
+        case Failure(ex) => errorHandler(ex)
+      }
+    }
+
     post("/concept/:id") {
       authRole.assertHasWritePermission()
       val id = long("id")
