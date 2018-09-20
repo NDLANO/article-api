@@ -8,16 +8,20 @@
 
 package no.ndla.articleapi
 
+import java.util
+
 import com.typesafe.scalalogging.LazyLogging
+import javax.servlet.DispatcherType
+import net.bull.javamelody.{MonitoringFilter, Parameter, ReportServlet, SessionListener}
 import org.eclipse.jetty.server.Server
-import org.eclipse.jetty.servlet.{DefaultServlet, ServletContextHandler}
+import org.eclipse.jetty.servlet.{DefaultServlet, FilterHolder, ServletContextHandler}
 import org.scalatra.servlet.ScalatraListener
 
 import scala.io.Source
 
 object JettyLauncher extends LazyLogging {
 
-  def buildMostUsedTagsCache: Unit = {
+  def buildMostUsedTagsCache(): Unit = {
     ComponentRegistry.readService.getTagUsageMap()
   }
 
@@ -30,7 +34,7 @@ object JettyLauncher extends LazyLogging {
 
     val startMillis = System.currentTimeMillis()
 
-    buildMostUsedTagsCache
+    buildMostUsedTagsCache()
     logger.info(s"Built tags cache in ${System.currentTimeMillis() - startMillis} ms.")
 
     val context = new ServletContextHandler()
@@ -39,13 +43,25 @@ object JettyLauncher extends LazyLogging {
     context.addServlet(classOf[DefaultServlet], "/")
     context.setInitParameter("org.eclipse.jetty.servlet.Default.dirAllowed", "false")
 
+    context.addServlet(classOf[ReportServlet], "/monitoring")
+    context.addEventListener(new SessionListener)
+    val monitoringFilter = new FilterHolder(new MonitoringFilter())
+    monitoringFilter.setInitParameter(Parameter.APPLICATION_NAME.getCode, ArticleApiProperties.ApplicationName)
+    ArticleApiProperties.Environment match {
+      case "local" => None
+      case _ =>
+        monitoringFilter.setInitParameter(Parameter.CLOUDWATCH_NAMESPACE.getCode,
+                                          "NDLA/APP".replace("APP", ArticleApiProperties.ApplicationName))
+    }
+    context.addFilter(monitoringFilter, "/*", util.EnumSet.of(DispatcherType.REQUEST, DispatcherType.ASYNC))
+
     val server = new Server(ArticleApiProperties.ApplicationPort)
     server.setHandler(context)
-    server.start
+    server.start()
 
     val startTime = System.currentTimeMillis() - startMillis
     logger.info(s"Started at port ${ArticleApiProperties.ApplicationPort} in $startTime ms.")
 
-    server.join
+    server.join()
   }
 }

@@ -52,6 +52,7 @@ lazy val article_api = (project in file("."))
       "org.scalikejdbc" %% "scalikejdbc" % "3.1.0",
       "org.postgresql" % "postgresql" % "9.4-1201-jdbc4",
       "com.amazonaws" % "aws-java-sdk-s3" % AwsSdkversion,
+      "com.amazonaws" % "aws-java-sdk-cloudwatch" % AwsSdkversion,
       "org.scalaj" %% "scalaj-http" % "2.3.0",
       "org.elasticsearch" % "elasticsearch" % ElasticsearchVersion,
       "com.sksamuel.elastic4s" %% "elastic4s-core" % Elastic4sVersion,
@@ -63,6 +64,9 @@ lazy val article_api = (project in file("."))
 //      "org.apache.lucene" % "lucene-test-framework" % "6.4.1" % "test",
       "org.scalatest" %% "scalatest" % ScalaTestVersion % "test",
       "org.jsoup" % "jsoup" % "1.11.2",
+      "log4j" % "log4j" % "1.2.16",
+      "net.bull.javamelody" % "javamelody-core" % "1.73.1",
+      "org.jrobin" % "jrobin" % "1.5.9",
       "org.mockito" % "mockito-all" % MockitoVersion % "test",
       "org.flywaydb" % "flyway-core" % "4.0",
       "com.netaporter" %% "scala-uri" % "0.4.16"
@@ -116,7 +120,7 @@ docker / dockerfile := {
   val artifactTargetPath = s"/app/${artifact.name}"
   new Dockerfile {
     from("openjdk:8-jre-alpine")
-
+    run("apk", "--no-cache", "add", "ttf-dejavu")
     add(artifact, artifactTargetPath)
     entryPoint("java", "-Dorg.scalatra.environment=production", "-jar", artifactTargetPath)
   }
