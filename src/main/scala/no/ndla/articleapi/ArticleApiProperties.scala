@@ -18,6 +18,7 @@ import scala.util.Properties._
 import scala.util.{Failure, Success}
 
 object ArticleApiProperties extends LazyLogging {
+  val ApplicationName = "article-api"
   val Auth0LoginEndpoint = "https://ndla.eu.auth0.com/authorize"
   val RoleWithWriteAccess = "articles:write"
   val DraftRoleWithWriteAccess = "drafts:write"
