@@ -81,6 +81,14 @@ class ContentValidatorTest extends UnitSuite with TestEnvironment {
     contentValidator.validateArticle(article, allowUnknownLanguage = false).isSuccess should be(true)
   }
 
+  test("validateArticle should fail if the title exceeds 256 bytes") {
+    val article = TestData.sampleArticleWithByNcSa.copy(title = Seq(ArticleTitle("A" * 257, "nb")))
+    val Failure(ex: ValidationException) = contentValidator.validateArticle(article, false)
+
+    ex.errors.length should be(1)
+    ex.errors.head.message should be("This field exceeds the maximum permitted length of 256 characters")
+  }
+
   test("Validation should fail if content contains other tags than section on root") {
     val article = TestData.sampleArticleWithByNcSa.copy(content = Seq(ArticleContent("<h1>lolol</h1>", "nb")))
     val result = contentValidator.validateArticle(article, allowUnknownLanguage = false)
