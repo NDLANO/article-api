@@ -72,6 +72,15 @@ trait ArticleRepository {
       articleId
     }
 
+    def unpublish(articleId: Long)(implicit session: DBSession = AutoSession): Try[Long] = {
+      val numRows = sql"update ${Article.table} set document=null where id=$articleId".update().apply
+      if (numRows == 1) {
+        Success(articleId)
+      } else {
+        Failure(NotFoundException(s"Article with id $articleId does not exist"))
+      }
+    }
+
     def delete(articleId: Long)(implicit session: DBSession = AutoSession): Try[Long] = {
       val numRows = sql"delete from ${Article.table} where id = $articleId".update().apply
       if (numRows == 1) {

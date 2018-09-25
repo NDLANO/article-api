@@ -80,6 +80,13 @@ trait WriteService {
       } yield domainConcept
     }
 
+    def unpublishArticle(id: Long): Try[api.ArticleIdV2] = {
+      articleRepository
+        .unpublish(id)
+        .flatMap(articleIndexService.deleteDocument)
+        .map(api.ArticleIdV2)
+    }
+
     def deleteArticle(id: Long): Try[api.ArticleIdV2] = {
       articleRepository
         .delete(id)
