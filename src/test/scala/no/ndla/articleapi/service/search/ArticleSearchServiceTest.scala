@@ -16,6 +16,7 @@ import no.ndla.articleapi.model.domain._
 import no.ndla.articleapi._
 import no.ndla.articleapi.model.api
 import no.ndla.articleapi.ArticleApiProperties.DefaultPageSize
+import no.ndla.mapping.License.{CC_BY_NC_SA, PublicDomain, Copyrighted}
 import org.joda.time.DateTime
 
 import scala.util.Success
@@ -33,13 +34,34 @@ class ArticleSearchServiceTest extends UnitSuite with TestEnvironment {
   override val searchConverterService = new SearchConverterService
 
   val byNcSa =
-    Copyright("by-nc-sa", "Gotham City", List(Author("Forfatter", "DC Comics")), List(), List(), None, None, None)
+    Copyright(CC_BY_NC_SA.toString,
+              "Gotham City",
+              List(Author("Forfatter", "DC Comics")),
+              List(),
+              List(),
+              None,
+              None,
+              None)
 
   val publicDomain =
-    Copyright("publicdomain", "Metropolis", List(Author("Forfatter", "Bruce Wayne")), List(), List(), None, None, None)
+    Copyright(PublicDomain.toString,
+              "Metropolis",
+              List(Author("Forfatter", "Bruce Wayne")),
+              List(),
+              List(),
+              None,
+              None,
+              None)
 
   val copyrighted =
-    Copyright("copyrighted", "New York", List(Author("Forfatter", "Clark Kent")), List(), List(), None, None, None)
+    Copyright(Copyrighted.toString,
+              "New York",
+              List(Author("Forfatter", "Clark Kent")),
+              List(),
+              List(),
+              None,
+              None,
+              None)
 
   val today = DateTime.now()
 
@@ -337,7 +359,7 @@ class ArticleSearchServiceTest extends UnitSuite with TestEnvironment {
   test("That all filtering on license only returns documents with given license") {
     val Success(results) = articleSearchService.all(List(),
                                                     Language.DefaultLanguage,
-                                                    Some("publicdomain"),
+                                                    Some(PublicDomain.toString),
                                                     1,
                                                     10,
                                                     Sort.ByTitleAsc,
@@ -498,7 +520,7 @@ class ArticleSearchServiceTest extends UnitSuite with TestEnvironment {
     val Success(results) = articleSearchService.matchingQuery("supermann",
                                                               List(),
                                                               "nb",
-                                                              Some("copyrighted"),
+                                                              Some(Copyrighted.toString),
                                                               1,
                                                               10,
                                                               Sort.ByTitleAsc,
@@ -609,7 +631,7 @@ class ArticleSearchServiceTest extends UnitSuite with TestEnvironment {
   test("Search for all languages should return all languages if copyrighted") {
     val Success(search) = articleSearchService.all(List(),
                                                    Language.AllLanguages,
-                                                   Some("copyrighted"),
+                                                   Some(Copyrighted.toString),
                                                    1,
                                                    100,
                                                    Sort.ByTitleAsc,

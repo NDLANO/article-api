@@ -14,14 +14,30 @@ import no.ndla.articleapi.ArticleApiProperties._
 import no.ndla.validation.EmbedTagRules.ResourceHtmlEmbedTag
 import no.ndla.articleapi.model.api
 import no.ndla.articleapi.model.api.{NewConcept, UpdatedConcept}
+import no.ndla.mapping.License
 import org.joda.time.{DateTime, DateTimeZone}
 
 object TestData {
-  private val publicDomainCopyright = Copyright("publicdomain", "", List(), List(), List(), None, None, None)
+  private val publicDomainCopyright =
+    Copyright(License.PublicDomain.toString, "", List(), List(), List(), None, None, None)
   private val byNcSaCopyright =
-    Copyright("by-nc-sa", "Gotham City", List(Author("Writer", "DC Comics")), List(), List(), None, None, None)
+    Copyright(License.CC_BY_NC_SA.toString,
+              "Gotham City",
+              List(Author("Writer", "DC Comics")),
+              List(),
+              List(),
+              None,
+              None,
+              None)
   private val copyrighted =
-    Copyright("copyrighted", "New York", List(Author("Writer", "Clark Kent")), List(), List(), None, None, None)
+    Copyright(License.Copyrighted.toString,
+              "New York",
+              List(Author("Writer", "Clark Kent")),
+              List(),
+              List(),
+              None,
+              None,
+              None)
   private val today = new DateTime().toDate
 
   val (articleId, externalId) = (1, "751234")
@@ -60,9 +76,9 @@ object TestData {
     api.ArticleTitle("title", "nb"),
     api.ArticleContentV2("content", "nb"),
     api.Copyright(
-      api.License("by",
-                  Some("Creative Commons Attribution 2.0 Generic"),
-                  Some("https://creativecommons.org/licenses/by/2.0/")),
+      api.License("CC-BY-4.0",
+                  Some("Creative Commons Attribution 4.0 International"),
+                  Some("https://creativecommons.org/licenses/by/4.0/")),
       "",
       List(),
       List(),
@@ -107,7 +123,7 @@ object TestData {
     Option(2),
     Seq(ArticleTitle("title", "nb")),
     Seq(ArticleContent("content", "nb")),
-    Copyright("by", "", Seq(), Seq(), Seq(), None, None, None),
+    Copyright("CC-BY-4.0", "", Seq(), Seq(), Seq(), None, None, None),
     Seq(ArticleTag(Seq("tag"), "nb")),
     Seq(),
     Seq(),
