@@ -150,43 +150,45 @@ class ContentValidatorTest extends UnitSuite with TestEnvironment {
 
   test("validateArticle does not throw an exception on an article with a valid license") {
     val article =
-      TestData.sampleArticleWithByNcSa.copy(copyright = Copyright("by-sa", "", Seq(), Seq(), Seq(), None, None, None))
+      TestData.sampleArticleWithByNcSa.copy(
+        copyright = Copyright("CC-BY-SA-4.0", "", Seq(), Seq(), Seq(), None, None, None))
     contentValidator.validateArticle(article, allowUnknownLanguage = false).isSuccess should be(true)
   }
 
   test("validateArticle throws an exception on an article with html in copyright origin") {
     val article = TestData.sampleArticleWithByNcSa.copy(
-      copyright = Copyright("by-sa", "<h1>origin</h1>", Seq(), Seq(), Seq(), None, None, None))
+      copyright = Copyright("CC-BY-SA-4.0", "<h1>origin</h1>", Seq(), Seq(), Seq(), None, None, None))
     contentValidator.validateArticle(article, allowUnknownLanguage = false).isFailure should be(true)
   }
 
   test("validateArticle does not throw an exception on an article with plain text in copyright origin") {
     val article =
-      TestData.sampleArticleWithByNcSa.copy(copyright = Copyright("by-sa", "", Seq(), Seq(), Seq(), None, None, None))
+      TestData.sampleArticleWithByNcSa.copy(
+        copyright = Copyright("CC-BY-SA-4.0", "", Seq(), Seq(), Seq(), None, None, None))
     contentValidator.validateArticle(article, allowUnknownLanguage = false).isSuccess should be(true)
   }
 
   test("validateArticle does not throw an exception on an article with plain text in authors field") {
     val article = TestData.sampleArticleWithByNcSa.copy(
-      copyright = Copyright("by-sa", "", Seq(Author("Writer", "John Doe")), Seq(), Seq(), None, None, None))
+      copyright = Copyright("CC-BY-SA-4.0", "", Seq(Author("Writer", "John Doe")), Seq(), Seq(), None, None, None))
     contentValidator.validateArticle(article, allowUnknownLanguage = false).isSuccess should be(true)
   }
 
   test("validateArticle throws an exception on an article with html in authors field") {
     val article = TestData.sampleArticleWithByNcSa.copy(
-      copyright = Copyright("by-sa", "", Seq(Author("Writer", "<h1>john</h1>")), Seq(), Seq(), None, None, None))
+      copyright = Copyright("CC-BY-SA", "", Seq(Author("Writer", "<h1>john</h1>")), Seq(), Seq(), None, None, None))
     contentValidator.validateArticle(article, allowUnknownLanguage = false).isFailure should be(true)
   }
 
   test("validateArticle does not throw an exception on an article with correct author type") {
     val article = TestData.sampleArticleWithByNcSa.copy(
-      copyright = Copyright("by-sa", "", Seq(Author("Writer", "John Doe")), Seq(), Seq(), None, None, None))
+      copyright = Copyright("CC-BY-SA-4.0", "", Seq(Author("Writer", "John Doe")), Seq(), Seq(), None, None, None))
     contentValidator.validateArticle(article, allowUnknownLanguage = false).isSuccess should be(true)
   }
 
   test("validateArticle throws an exception on an article with invalid author type") {
     val article = TestData.sampleArticleWithByNcSa.copy(
-      copyright = Copyright("by-sa", "", Seq(Author("invalid", "John Doe")), Seq(), Seq(), None, None, None))
+      copyright = Copyright("CC-BY-SA-4.0", "", Seq(Author("invalid", "John Doe")), Seq(), Seq(), None, None, None))
     val result = contentValidator.validateArticle(article, allowUnknownLanguage = false)
     result.isSuccess should be(false)
     result.failed.get.asInstanceOf[ValidationException].errors.length should be(1)

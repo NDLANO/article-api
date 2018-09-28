@@ -119,7 +119,7 @@ trait ConverterService {
     }
 
     private[service] def oldToNewLicenseKey(license: String): String = {
-      val licenses = Map("nolaw" -> "cc0", "noc" -> "pd")
+      val licenses = Map("nolaw" -> "CC0-1.0", "noc" -> "PD")
       val newLicense = licenses.getOrElse(license, license)
 
       if (getLicense(newLicense).isEmpty) {
@@ -453,7 +453,7 @@ trait ConverterService {
 
     def toApiLicense(shortLicense: String): api.License = {
       getLicense(shortLicense) match {
-        case Some(l) => api.License(l.license, Option(l.description), l.url)
+        case Some(l) => api.License(l.license.toString, Option(l.description), l.url)
         case None    => api.License("unknown", None, None)
       }
     }

@@ -39,10 +39,10 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
   }
 
   test("toApiLicense converts a short license string to a license object with description and url") {
-    service.toApiLicense("by") should equal(
-      api.License("by",
-                  Some("Creative Commons Attribution 2.0 Generic"),
-                  Some("https://creativecommons.org/licenses/by/2.0/")))
+    service.toApiLicense("CC-BY-4.0") should equal(
+      api.License("CC-BY-4.0",
+                  Some("Creative Commons Attribution 4.0 International"),
+                  Some("https://creativecommons.org/licenses/by/4.0/")))
   }
 
   test("toApiArticleV2 converts a domain.Article to an api.ArticleV2") {
@@ -148,12 +148,12 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
   }
 
   test("That oldToNewLicenseKey converts correctly") {
-    service.oldToNewLicenseKey("nolaw") should be("cc0")
-    service.oldToNewLicenseKey("noc") should be("pd")
+    service.oldToNewLicenseKey("nolaw") should be("CC0-1.0")
+    service.oldToNewLicenseKey("noc") should be("PD")
   }
 
   test("That oldToNewLicenseKey does not convert an license that should not be converted") {
-    service.oldToNewLicenseKey("by-sa") should be("by-sa")
+    service.oldToNewLicenseKey("CC-BY-SA-4.0") should be("CC-BY-SA-4.0")
   }
 
   test("That mergeLanguageFields returns original list when updated is empty") {
@@ -246,7 +246,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
       Author("Språklig", "F")
     )
 
-    val copyright = service.toDomainCopyright("by-sa", authors)
+    val copyright = service.toDomainCopyright("CC-BY-SA-4.0", authors)
     copyright.creators should contain(Author("Originator", "A"))
     copyright.processors should contain(Author("Editorial", "B"))
     copyright.processors should contain(Author("Editorial", "C"))

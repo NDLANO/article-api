@@ -26,6 +26,7 @@ import org.elasticsearch.search.fetch.subphase.highlight.HighlightBuilder
 import com.sksamuel.elastic4s.http.ElasticDsl._
 import com.sksamuel.elastic4s.searches.ScoreMode
 import com.sksamuel.elastic4s.searches.queries.BoolQueryDefinition
+import no.ndla.mapping.License
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.collection.JavaConverters._
@@ -37,7 +38,7 @@ trait ArticleSearchService {
   val articleSearchService: ArticleSearchService
 
   class ArticleSearchService extends LazyLogging with SearchService[api.ArticleSummaryV2] {
-    private val noCopyright = boolQuery().not(termQuery("license", "copyrighted"))
+    private val noCopyright = boolQuery().not(termQuery("license", License.Copyrighted.toString))
 
     override val searchIndex: String = ArticleApiProperties.ArticleSearchIndex
 
