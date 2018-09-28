@@ -9,7 +9,12 @@
 package no.ndla.articleapi.validation
 
 import no.ndla.articleapi.ArticleApiProperties
-import no.ndla.articleapi.ArticleApiProperties.{H5PResizerScriptUrl, NDLABrightcoveVideoScriptUrl, NRKVideoScriptUrl}
+import no.ndla.articleapi.ArticleApiProperties.{
+  H5PResizerScriptUrl,
+  NDLABrightcoveVideoScriptUrl,
+  NRKVideoScriptUrl,
+  MinimumAllowedTags
+}
 import no.ndla.articleapi.integration.DraftApiClient
 import no.ndla.articleapi.model.domain._
 import no.ndla.mapping.ISO639.get6391CodeFor6392CodeMappings
@@ -28,19 +33,20 @@ trait ContentValidator {
     private val NoHtmlValidator = new TextValidator(allowHtml = false)
     private val HtmlValidator = new TextValidator(allowHtml = true)
 
-    def validateArticle(article: Article, allowUnknownLanguage: Boolean): Try[Article] = {
+    def validateArticle(article: Article, allowUnknownLanguage: Boolean, isImported: Boolean = false): Try[Article] = {
       val validationErrors = article.content.flatMap(c => validateArticleContent(c, allowUnknownLanguage)) ++
         article.introduction.flatMap(i => validateIntroduction(i, allowUnknownLanguage)) ++
         article.metaDescription.flatMap(m => validateMetaDescription(m, allowUnknownLanguage)) ++
         article.title.flatMap(t => validateTitle(t.title, t.language, allowUnknownLanguage)) ++
         validateCopyright(article.copyright) ++
-        validateTags(article.tags, allowUnknownLanguage) ++
+        validateTags(article.tags, allowUnknownLanguage, isImported) ++
         article.requiredLibraries.flatMap(validateRequiredLibrary) ++
         article.metaImage.flatMap(validateMetaImage) ++
         article.visualElement.flatMap(v => validateVisualElement(v, allowUnknownLanguage)) ++
         validateArticleType(article.articleType) ++
         validateNonEmpty("content", article.content) ++
-        validateNonEmpty("title", article.title)
+        validateNonEmpty("title", article.title) ++
+        validateNonEmpty("metaDescription", article.metaDescription)
 
       if (validationErrors.isEmpty) {
         Success(article)
@@ -61,7 +67,7 @@ trait ContentValidator {
     }
 
     private def validateNonEmpty(field: String, values: Seq[LanguageField]): Option[ValidationMessage] = {
-      if (values.isEmpty) {
+      if (values.isEmpty || values.forall(_.isEmpty)) {
         Some(ValidationMessage(field, "Field must contain at least one entry"))
       } else
         None
@@ -182,11 +188,19 @@ trait ContentValidator {
       }
     }
 
-    private def validateTags(tags: Seq[ArticleTag], allowUnknownLanguage: Boolean): Seq[ValidationMessage] = {
+    private def validateTags(tags: Seq[ArticleTag],
+                             allowUnknownLanguage: Boolean,
+                             isImported: Boolean): Seq[ValidationMessage] = {
+
+      val amountErrors = Some(
+        ValidationMessage("tags",
+                          s"Invalid amount of tags. Articles needs $MinimumAllowedTags or more tags to be valid."))
+        .filter(_ => !isImported && tags.flatMap(_.tags).size < MinimumAllowedTags)
+
       tags.flatMap(tagList => {
         tagList.tags.flatMap(NoHtmlValidator.validate("tags.tags", _)).toList :::
           validateLanguage("tags.language", tagList.language, allowUnknownLanguage).toList
-      })
+      }) ++ amountErrors
     }
 
     private def validateRequiredLibrary(requiredLibrary: RequiredLibrary): Option[ValidationMessage] = {
