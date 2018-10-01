@@ -46,7 +46,8 @@ trait ContentValidator {
         validateArticleType(article.articleType) ++
         validateNonEmpty("content", article.content) ++
         validateNonEmpty("title", article.title) ++
-        validateNonEmpty("metaDescription", article.metaDescription)
+        validateNonEmpty("metaDescription", article.metaDescription) ++
+        validateNonEmpty("tags", article.tags)
 
       if (validationErrors.isEmpty) {
         Success(article)
@@ -192,13 +193,17 @@ trait ContentValidator {
                              allowUnknownLanguage: Boolean,
                              isImported: Boolean): Seq[ValidationMessage] = {
 
-      val amountErrors = Some(
-        ValidationMessage("tags",
-                          s"Invalid amount of tags. Articles needs $MinimumAllowedTags or more tags to be valid."))
-        .filter(_ => !isImported && tags.flatMap(_.tags).size < MinimumAllowedTags)
+      // Since quite a few articles from old system has less than 3 tags we skip validation here for imported until we are done importing.
+      val amountErrors = tags.groupBy(_.language).flatMap {
+        case (lang, tagsForLang) =>
+          Some(
+            ValidationMessage(s"tags.$lang",
+                              s"Invalid amount of tags. Articles needs $MinimumAllowedTags or more tags to be valid."))
+            .filter(_ => !isImported && tagsForLang.flatMap(_.tags).size < MinimumAllowedTags)
+      }
 
       tags.flatMap(tagList => {
-        tagList.tags.flatMap(NoHtmlValidator.validate("tags.tags", _)).toList :::
+        tagList.tags.flatMap(NoHtmlValidator.validate(s"tags.${tagList.language}", _)).toList :::
           validateLanguage("tags.language", tagList.language, allowUnknownLanguage).toList
       }) ++ amountErrors
     }
