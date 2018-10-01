@@ -279,13 +279,20 @@ class ContentValidatorTest extends UnitSuite with TestEnvironment {
   }
 
   test("imported articles should pass validation for amount of tags") {
-    val res = contentValidator.validateArticle(
+    val res0 = contentValidator.validateArticle(
       TestData.sampleArticleWithByNcSa.copy(
         tags = Seq(ArticleTag(Seq("a"), "en"), ArticleTag(Seq("a"), "nb"), ArticleTag(Seq("a", "b", "c"), "nn"))),
       allowUnknownLanguage = true,
       isImported = true
     )
-    res.isSuccess should be(true)
+    res0.isSuccess should be(true)
+
+    val res1 = contentValidator.validateArticle(
+      TestData.sampleArticleWithByNcSa.copy(tags = Seq(ArticleTag(Seq("a"), "en"))),
+      allowUnknownLanguage = true,
+      isImported = true
+    )
+    res1.isSuccess should be(true)
 
     val Failure(res2: ValidationException) =
       contentValidator.validateArticle(
