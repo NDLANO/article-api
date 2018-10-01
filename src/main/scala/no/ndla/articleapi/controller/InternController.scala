@@ -112,8 +112,9 @@ trait InternController {
     }
 
     post("/validate/article") {
+      val importValidate = booleanOrDefault("import_validate", default = false)
       val article = extract[Article](request.body)
-      contentValidator.validateArticle(article, allowUnknownLanguage = true) match {
+      contentValidator.validateArticle(article, allowUnknownLanguage = true, isImported = importValidate) match {
         case Success(_)                       => article
         case Failure(ex: ValidationException) => ex.errors
         case Failure(ex)                      => errorHandler(ex)
