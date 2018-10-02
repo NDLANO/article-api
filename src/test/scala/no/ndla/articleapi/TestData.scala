@@ -106,7 +106,7 @@ object TestData {
     Seq(ArticleTitle("test", "en")),
     Seq(ArticleContent("<section><div>test</div></section>", "en")),
     publicDomainCopyright,
-    Seq(),
+    Seq(ArticleTag(Seq("a", "b", "c"), "en")),
     Seq(),
     Seq(VisualElement("image", "en")),
     Seq(ArticleIntroduction("This is an introduction", "en")),

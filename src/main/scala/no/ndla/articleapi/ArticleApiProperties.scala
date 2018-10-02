@@ -64,6 +64,8 @@ object ArticleApiProperties extends LazyLogging {
   val DraftHost: String = propOrElse("DRAFT_API_HOST", "draft-api.ndla-local")
   val ApiClientsCacheAgeInMs: Long = 1000 * 60 * 60 // 1 hour caching
 
+  val MinimumAllowedTags = 3
+
   val nodeTypeBegrep: String = "begrep"
   val nodeTypeVideo: String = "video"
   val nodeTypeH5P: String = "h5p_content"

@@ -14,7 +14,7 @@ import no.ndla.articleapi.{TestData, TestEnvironment, UnitSuite}
 import no.ndla.validation.{ValidationException, ValidationMessage}
 import org.mockito.Mockito._
 
-import scala.util.Failure
+import scala.util.{Failure, Success}
 
 class ContentValidatorTest extends UnitSuite with TestEnvironment {
   override val contentValidator = new ContentValidator(allowEmptyLanguageField = false)
@@ -248,4 +248,71 @@ class ContentValidatorTest extends UnitSuite with TestEnvironment {
     contentValidator.validateArticle(article2, true).isSuccess should be(true)
   }
 
+  test("validation should fail if not imported and tags are < 3") {
+    val Failure(res0: ValidationException) = contentValidator.validateArticle(
+      TestData.sampleArticleWithByNcSa.copy(tags = Seq(ArticleTag(Seq("a", "b"), "nb"))),
+      allowUnknownLanguage = true
+    )
+
+    res0.errors should be(
+      Seq(ValidationMessage("tags.nb", s"Invalid amount of tags. Articles needs 3 or more tags to be valid.")))
+
+    val Failure(res1: ValidationException) =
+      contentValidator.validateArticle(
+        TestData.sampleArticleWithByNcSa.copy(
+          tags = Seq(ArticleTag(Seq("a", "b", "c"), "nb"), ArticleTag(Seq("a", "b"), "en"))),
+        allowUnknownLanguage = true
+      )
+
+    res1.errors should be(
+      Seq(ValidationMessage("tags.en", s"Invalid amount of tags. Articles needs 3 or more tags to be valid.")))
+
+    val Failure(res2: ValidationException) =
+      contentValidator.validateArticle(
+        TestData.sampleArticleWithByNcSa.copy(
+          tags = Seq(ArticleTag(Seq("a"), "en"), ArticleTag(Seq("a"), "nb"), ArticleTag(Seq("a", "b", "c"), "nn"))),
+        allowUnknownLanguage = true
+      )
+    res2.errors should be(
+      Seq(
+        ValidationMessage("tags.en", s"Invalid amount of tags. Articles needs 3 or more tags to be valid."),
+        ValidationMessage("tags.nb", s"Invalid amount of tags. Articles needs 3 or more tags to be valid.")
+      ))
+
+    val res3 =
+      contentValidator.validateArticle(
+        TestData.sampleArticleWithByNcSa.copy(
+          tags = Seq(ArticleTag(Seq("a", "b", "c"), "nb"), ArticleTag(Seq("a", "b", "c"), "nn"))),
+        allowUnknownLanguage = true
+      )
+    res3.isSuccess should be(true)
+  }
+
+  test("imported articles should pass validation for amount of tags") {
+    val res0 = contentValidator.validateArticle(
+      TestData.sampleArticleWithByNcSa.copy(
+        tags = Seq(ArticleTag(Seq("a"), "en"), ArticleTag(Seq("a"), "nb"), ArticleTag(Seq("a", "b", "c"), "nn"))),
+      allowUnknownLanguage = true,
+      isImported = true
+    )
+    res0.isSuccess should be(true)
+
+    val res1 = contentValidator.validateArticle(
+      TestData.sampleArticleWithByNcSa.copy(tags = Seq(ArticleTag(Seq("a"), "en"))),
+      allowUnknownLanguage = true,
+      isImported = true
+    )
+    res1.isSuccess should be(true)
+
+    val Failure(res2: ValidationException) =
+      contentValidator.validateArticle(
+        TestData.sampleArticleWithByNcSa.copy(tags = Seq(ArticleTag(Seq("<strong>a</strong>", "b", "c"), "nn"))),
+        allowUnknownLanguage = true,
+        isImported = true
+      )
+    res2.errors should be(
+      Seq(
+        ValidationMessage("tags.nn", s"The content contains illegal html-characters. No HTML is allowed")
+      ))
+  }
 }
