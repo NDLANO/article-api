@@ -91,15 +91,6 @@ class ArticleRepositoryTest extends IntegrationSuite with TestEnvironment {
     repository.withId(res.id.get).get should be(sampleArticle)
   }
 
-  test("updateArticleFromDraftApi fail if trying to update an article which does not exist") {
-    assume(databaseIsAvailable, "Database is unavailable")
-
-    val externalIds = List("123", "456")
-    val sampleArticle: domain.Article = TestData.sampleDomainArticle.copy(id = Some(123), revision = Some(42))
-    val Failure((res: NotFoundException)) = repository.updateArticleFromDraftApi(sampleArticle, externalIds)
-    res.message should equal(s"No article with id Some(123) exists!")
-  }
-
   test("Fetching external ids works as expected") {
     assume(databaseIsAvailable, "Database is unavailable")
 
