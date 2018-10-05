@@ -9,6 +9,7 @@
 package no.ndla.articleapi.repository
 
 import java.net.Socket
+
 import no.ndla.articleapi.model.api.NotFoundException
 import no.ndla.articleapi.model.domain
 import no.ndla.articleapi.model.domain.ArticleIds
@@ -22,7 +23,7 @@ class ArticleRepositoryTest extends IntegrationSuite with TestEnvironment {
 
   lazy val sampleArticle = TestData.sampleArticleWithByNcSa
 
-  def serverIsListenning: Boolean = {
+  def serverIsListening: Boolean = {
     Try(new Socket(ArticleApiProperties.MetaServer, ArticleApiProperties.MetaPort)) match {
       case Success(c) =>
         c.close()
@@ -35,7 +36,7 @@ class ArticleRepositoryTest extends IntegrationSuite with TestEnvironment {
 
   override def beforeAll(): Unit = {
     ConnectionPool.singleton(new DataSourceConnectionPool(getDataSource))
-    if (serverIsListenning) {
+    if (serverIsListening) {
       DBMigrator.migrate(ConnectionPool.dataSource())
     }
   }
@@ -90,15 +91,6 @@ class ArticleRepositoryTest extends IntegrationSuite with TestEnvironment {
     repository.withId(res.id.get).get should be(sampleArticle)
   }
 
-  test("updateArticleFromDraftApi fail if trying to update an article which does not exist") {
-    assume(databaseIsAvailable, "Database is unavailable")
-
-    val externalIds = List("123", "456")
-    val sampleArticle: domain.Article = TestData.sampleDomainArticle.copy(id = Some(123), revision = Some(42))
-    val Failure((res: NotFoundException)) = repository.updateArticleFromDraftApi(sampleArticle, externalIds)
-    res.message should equal(s"No article with id Some(123) exists!")
-  }
-
   test("Fetching external ids works as expected") {
     assume(databaseIsAvailable, "Database is unavailable")
 
@@ -113,6 +105,16 @@ class ArticleRepositoryTest extends IntegrationSuite with TestEnvironment {
 
     repository.delete(idWithExternals)
     repository.delete(idWithoutExternals)
+  }
+
+  test("updating with a valid article with a that is not in database will be recreated") {
+    assume(databaseIsAvailable, "Database is unavailable")
+    val article = TestData.sampleDomainArticle.copy(id = Some(110))
+
+    val x = repository.updateArticleFromDraftApi(article, List.empty)
+    x.isSuccess should be(true)
+
+    repository.delete(x.get.id.get)
   }
 
 }

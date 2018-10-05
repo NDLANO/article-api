@@ -40,9 +40,16 @@ trait ArticleRepository {
           logger.info(s"Updated article ${article.id}")
           Success(article)
         case Success(_) =>
-          val message = s"No article with id ${article.id} exists!"
-          logger.info(message)
-          Failure(NotFoundException(message))
+          logger.error(s"No article with id ${article.id} exists, recreating...")
+          Try {
+            sql"""
+                  insert into ${Article.table} (id, document, external_id, revision)
+                  values (${article.id}, $dataObject, ARRAY[$externalIds]::text[], ${article.revision})
+              """.updateAndReturnGeneratedKey().apply
+          } match {
+            case Success(_)  => Success(article)
+            case Failure(ex) => Failure(ex)
+          }
         case Failure(ex) => Failure(ex)
       }
     }
