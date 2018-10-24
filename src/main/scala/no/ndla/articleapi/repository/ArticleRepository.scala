@@ -93,7 +93,8 @@ trait ArticleRepository {
       if (numRows == 1) {
         Success(articleId)
       } else {
-        Failure(NotFoundException(s"Article with id $articleId does not exist"))
+        // Article with id $articleId does not exist.
+        Success(articleId)
       }
     }
 
