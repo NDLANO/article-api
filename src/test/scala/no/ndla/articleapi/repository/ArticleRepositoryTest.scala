@@ -117,4 +117,12 @@ class ArticleRepositoryTest extends IntegrationSuite with TestEnvironment {
     repository.delete(x.get.id.get)
   }
 
+  test("deleting article should ignore missing articles") {
+    assume(databaseIsAvailable, "Database is unavailable")
+    val article = TestData.sampleDomainArticle.copy(id = Some(Integer.MAX_VALUE))
+
+    val deletedId = repository.delete(article.id.get)
+    deletedId.get should be(Integer.MAX_VALUE)
+  }
+
 }
