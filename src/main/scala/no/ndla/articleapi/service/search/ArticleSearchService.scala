@@ -10,6 +10,8 @@ package no.ndla.articleapi.service.search
 
 import java.util.concurrent.Executors
 
+import com.sksamuel.elastic4s.http.ElasticDsl._
+import com.sksamuel.elastic4s.searches.queries.BoolQuery
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.articleapi.ArticleApiProperties
 import no.ndla.articleapi.integration.Elastic4sClient
@@ -17,19 +19,8 @@ import no.ndla.articleapi.model.api
 import no.ndla.articleapi.model.api.{ResultWindowTooLargeException, SearchResultV2}
 import no.ndla.articleapi.model.domain._
 import no.ndla.articleapi.service.ConverterService
-import no.ndla.network.ApplicationUrl
-import org.elasticsearch.ElasticsearchException
-import org.elasticsearch.index.IndexNotFoundException
-import org.elasticsearch.index.query._
-import org.elasticsearch.search.builder.SearchSourceBuilder
-import org.elasticsearch.search.fetch.subphase.highlight.HighlightBuilder
-import com.sksamuel.elastic4s.http.ElasticDsl._
-import com.sksamuel.elastic4s.searches.ScoreMode
-import com.sksamuel.elastic4s.searches.queries.BoolQueryDefinition
 import no.ndla.mapping.License
 
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.collection.JavaConverters._
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.{Failure, Success, Try}
 
@@ -94,7 +85,7 @@ trait ArticleSearchService {
                       sort: Sort.Value,
                       page: Int,
                       pageSize: Int,
-                      queryBuilder: BoolQueryDefinition,
+                      queryBuilder: BoolQuery,
                       articleTypes: Seq[String],
                       fallback: Boolean): Try[SearchResultV2] = {
 

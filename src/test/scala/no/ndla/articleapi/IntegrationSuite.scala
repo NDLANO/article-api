@@ -8,10 +8,7 @@
 
 package no.ndla.articleapi
 
-import javax.sql.DataSource
-
 import no.ndla.network.secrets.PropertyKeys
-import org.postgresql.ds.PGPoolingDataSource
 
 abstract class IntegrationSuite extends UnitSuite {
 

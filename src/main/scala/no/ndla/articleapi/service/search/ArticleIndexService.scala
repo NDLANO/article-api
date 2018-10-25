@@ -9,7 +9,7 @@
 package no.ndla.articleapi.service.search
 
 import com.sksamuel.elastic4s.http.ElasticDsl._
-import com.sksamuel.elastic4s.indexes.IndexDefinition
+import com.sksamuel.elastic4s.indexes.IndexRequest
 import com.sksamuel.elastic4s.mappings._
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.articleapi.ArticleApiProperties
@@ -29,7 +29,7 @@ trait ArticleIndexService {
     override val searchIndex: String = ArticleApiProperties.ArticleSearchIndex
     override val repository: Repository[Article] = articleRepository
 
-    override def createIndexRequest(domainModel: Article, indexName: String): IndexDefinition = {
+    override def createIndexRequest(domainModel: Article, indexName: String): IndexRequest = {
       val source = write(searchConverterService.asSearchableArticle(domainModel))
       indexInto(indexName / documentType).doc(source).id(domainModel.id.get.toString)
     }

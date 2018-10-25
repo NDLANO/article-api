@@ -11,21 +11,19 @@ package no.ndla.articleapi.service.search
 import java.util.concurrent.Executors
 
 import com.sksamuel.elastic4s.http.ElasticDsl._
-import com.sksamuel.elastic4s.searches.queries.BoolQueryDefinition
+import com.sksamuel.elastic4s.searches.queries.BoolQuery
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.articleapi.ArticleApiProperties
 import no.ndla.articleapi.integration.Elastic4sClient
 import no.ndla.articleapi.model.api
 import no.ndla.articleapi.model.api.ResultWindowTooLargeException
+import no.ndla.articleapi.model.domain.Language.getSupportedLanguages
 import no.ndla.articleapi.model.domain._
 import no.ndla.articleapi.model.search.{SearchableConcept, SearchableLanguageFormats}
 import no.ndla.articleapi.service.ConverterService
-import org.elasticsearch.ElasticsearchException
-import org.elasticsearch.index.IndexNotFoundException
-import org.json4s.{DefaultFormats, _}
+import org.json4s._
 import org.json4s.native.JsonMethods._
 import org.json4s.native.Serialization.read
-import no.ndla.articleapi.model.domain.Language.getSupportedLanguages
 
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.{Failure, Success, Try}
@@ -101,7 +99,7 @@ trait ConceptSearchService {
                       sort: Sort.Value,
                       page: Int,
                       pageSize: Int,
-                      queryBuilder: BoolQueryDefinition,
+                      queryBuilder: BoolQuery,
                       fallback: Boolean): Try[api.ConceptSearchResult] = {
 
       val idFilter = if (withIdIn.isEmpty) None else Some(idsQuery(withIdIn))

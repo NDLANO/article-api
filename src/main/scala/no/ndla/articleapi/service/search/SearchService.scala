@@ -12,7 +12,7 @@ import java.lang.Math.max
 
 import com.sksamuel.elastic4s.http.ElasticDsl._
 import com.sksamuel.elastic4s.http.search.SearchResponse
-import com.sksamuel.elastic4s.searches.sort.{FieldSortDefinition, SortOrder}
+import com.sksamuel.elastic4s.searches.sort.{FieldSort, SortOrder}
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.articleapi.ArticleApiProperties.MaxPageSize
 import no.ndla.articleapi.integration.Elastic4sClient
@@ -21,7 +21,6 @@ import no.ndla.articleapi.model.domain._
 import no.ndla.articleapi.service.ConverterService
 import org.elasticsearch.ElasticsearchException
 import org.elasticsearch.index.IndexNotFoundException
-import org.json4s.native.JsonMethods._
 
 import scala.util.{Failure, Success}
 
@@ -57,7 +56,7 @@ trait SearchService {
       }
     }
 
-    def getSortDefinition(sort: Sort.Value, language: String): FieldSortDefinition = {
+    def getSortDefinition(sort: Sort.Value, language: String): FieldSort = {
       val sortLanguage = language match {
         case domain.Language.NoLanguage => domain.Language.DefaultLanguage
         case _                          => language
