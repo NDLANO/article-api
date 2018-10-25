@@ -10,18 +10,19 @@ package db.migration
 import java.sql.Connection
 
 import no.ndla.articleapi.model.domain.ArticleType
+import org.flywaydb.core.api.migration.{BaseJavaMigration, Context}
 import org.flywaydb.core.api.migration.jdbc.JdbcMigration
 import org.json4s.JsonAST.JString
 import org.json4s.native.JsonMethods.{compact, parse, render}
 import org.postgresql.util.PGobject
 import scalikejdbc._
 
-class V4__AddUpdatedColoums extends JdbcMigration {
+class V4__AddUpdatedColoums extends BaseJavaMigration {
 
   implicit val formats = org.json4s.DefaultFormats
 
-  override def migrate(connection: Connection) = {
-    val db = DB(connection)
+  override def migrate(context: Context) = {
+    val db = DB(context.getConnection)
     db.autoClose(false)
 
     db.withinTx { implicit session =>

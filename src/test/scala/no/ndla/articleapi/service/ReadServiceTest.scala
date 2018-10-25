@@ -15,7 +15,7 @@ import no.ndla.articleapi.model.domain.{ArticleContent, ArticleTag, VisualElemen
 import no.ndla.validation.{TagAttributes, ResourceType}
 import no.ndla.articleapi.{TestData, TestEnvironment, UnitSuite}
 import org.mockito.Mockito._
-import org.mockito.Matchers._
+import org.mockito.ArgumentMatchers._
 import scalikejdbc.DBSession
 
 class ReadServiceTest extends UnitSuite with TestEnvironment {

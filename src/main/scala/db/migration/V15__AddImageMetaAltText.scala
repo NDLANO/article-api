@@ -9,6 +9,7 @@ package db.migration
 
 import java.sql.Connection
 
+import org.flywaydb.core.api.migration.{BaseJavaMigration, Context}
 import org.flywaydb.core.api.migration.jdbc.JdbcMigration
 import org.json4s.Extraction.decompose
 import org.json4s.JsonAST.JArray
@@ -17,11 +18,11 @@ import org.json4s.{DefaultFormats, JValue}
 import org.postgresql.util.PGobject
 import scalikejdbc.{DB, DBSession, _}
 
-class V15__AddImageMetaAltText extends JdbcMigration {
+class V15__AddImageMetaAltText extends BaseJavaMigration {
   implicit val formats: DefaultFormats.type = org.json4s.DefaultFormats
 
-  override def migrate(connection: Connection): Unit = {
-    val db = DB(connection)
+  override def migrate(context: Context): Unit = {
+    val db = DB(context.getConnection)
     db.autoClose(false)
 
     db.withinTx { implicit session =>

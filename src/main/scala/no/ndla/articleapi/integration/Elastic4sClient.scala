@@ -10,7 +10,7 @@ package no.ndla.articleapi.integration
 
 import com.amazonaws.auth.DefaultAWSCredentialsProviderChain
 import com.amazonaws.regions.{Region, Regions}
-import com.netaporter.uri.dsl._
+import io.lemonlabs.uri.dsl._
 import com.sksamuel.elastic4s.ElasticsearchClientUri
 import com.sksamuel.elastic4s.aws._
 import com.sksamuel.elastic4s.http.{HttpClient, HttpExecutable, RequestSuccess}
@@ -87,13 +87,14 @@ object Elastic4sClientFactory {
   }
 
   private def getNonSigningClient(searchServer: String): HttpClient = {
-    val uri = ElasticsearchClientUri(searchServer.host.getOrElse("localhost"), searchServer.port.getOrElse(9200))
+    val uri = ElasticsearchClientUri(searchServer.hostOption.map(_.toString).getOrElse("localhost"),
+                                     searchServer.port.getOrElse(9200))
     HttpClient(uri, requestConfigCallback = RequestConfigCallbackWithTimeout)
   }
 
   private def getSigningClient(searchServer: String): HttpClient = {
     val elasticSearchUri =
-      s"elasticsearch://${searchServer.host.getOrElse("localhost")}:${searchServer.port.getOrElse(80)}?ssl=false"
+      s"elasticsearch://${searchServer.hostOption.map(_.toString).getOrElse("localhost")}:${searchServer.port.getOrElse(80)}?ssl=false"
 
     val awsRegion = Option(Regions.getCurrentRegion).getOrElse(Region.getRegion(Regions.EU_CENTRAL_1)).toString
     setEnv("AWS_DEFAULT_REGION", awsRegion)

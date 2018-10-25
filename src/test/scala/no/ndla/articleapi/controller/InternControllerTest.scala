@@ -15,7 +15,7 @@ import no.ndla.articleapi.{TestData, TestEnvironment, UnitSuite}
 import org.json4s.native.Serialization._
 import org.scalatra.test.scalatest.ScalatraFunSuite
 import org.mockito.Mockito._
-import org.mockito.Matchers._
+import org.mockito.ArgumentMatchers._
 
 import scala.util.{Failure, Success, Try}
 import no.ndla.articleapi.TestData._

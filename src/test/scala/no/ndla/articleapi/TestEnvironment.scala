@@ -9,6 +9,7 @@
 package no.ndla.articleapi
 
 import com.typesafe.scalalogging.LazyLogging
+import com.zaxxer.hikari.HikariDataSource
 import no.ndla.articleapi.auth.{Role, User}
 import no.ndla.articleapi.controller._
 import no.ndla.articleapi.integration._
@@ -58,7 +59,7 @@ trait TestEnvironment
 
   val healthController = mock[HealthController]
 
-  val dataSource = mock[javax.sql.DataSource]
+  val dataSource = mock[HikariDataSource]
   val articleRepository = mock[ArticleRepository]
   val conceptRepository = mock[ConceptRepository]
 

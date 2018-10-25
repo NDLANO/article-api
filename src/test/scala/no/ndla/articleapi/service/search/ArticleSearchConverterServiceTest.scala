@@ -8,15 +8,11 @@
 
 package no.ndla.articleapi.service.search
 
-import java.util.Date
-
 import no.ndla.articleapi.model.domain._
 import no.ndla.articleapi.model.search._
-import no.ndla.articleapi.{TestEnvironment, UnitSuite}
-import no.ndla.articleapi.TestData
+import no.ndla.articleapi.{TestData, TestEnvironment, UnitSuite}
+import org.mockito.ArgumentMatchers._
 import org.mockito.Mockito._
-import org.mockito.Matchers._
-import org.mockito.Mockito
 import org.mockito.invocation.InvocationOnMock
 
 class ArticleSearchConverterServiceTest extends UnitSuite with TestEnvironment {
@@ -56,7 +52,7 @@ class ArticleSearchConverterServiceTest extends UnitSuite with TestEnvironment {
 
   override def beforeAll() = {
     when(converterService.withAgreementCopyright(any[Article])).thenAnswer((invocation: InvocationOnMock) =>
-      invocation.getArgumentAt(0, sampleArticle.getClass()))
+      invocation.getArgument[Article](0))
   }
 
   test("That asSearchableArticle converts titles with correct language") {

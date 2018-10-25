@@ -14,7 +14,7 @@ import no.ndla.articleapi.model.domain._
 import no.ndla.articleapi.{ArticleSwagger, TestData, TestEnvironment, UnitSuite}
 import org.scalatra.test.scalatest.ScalatraFunSuite
 import org.mockito.Mockito._
-import org.mockito.Matchers._
+import org.mockito.ArgumentMatchers._
 import no.ndla.mapping.License.getLicenses
 import org.json4s.native.Serialization.{read, write}
 import scalikejdbc.DBSession
