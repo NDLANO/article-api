@@ -68,6 +68,7 @@ lazy val article_api = (project in file("."))
       "org.jsoup" % "jsoup" % "1.11.3",
       "log4j" % "log4j" % "1.2.16",
       "net.bull.javamelody" % "javamelody-core" % "1.74.0",
+      "org.jrobin" % "jrobin" % "1.5.9", // This is needed for javamelody graphing
       "org.mockito" % "mockito-core" % MockitoVersion % "test",
       "org.flywaydb" % "flyway-core" % FlywayVersion,
       "io.lemonlabs" %% "scala-uri" % "1.3.1"
