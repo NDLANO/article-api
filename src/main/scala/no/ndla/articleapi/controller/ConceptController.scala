@@ -69,7 +69,7 @@ trait ConceptController {
     val getAllConcepts =
       (apiOperation[ConceptSearchResult]("getAllConcepts")
         summary "Find concepts"
-        notes "Shows all concepts. You can search it too."
+        description "Shows all concepts. You can search it too."
         parameters (
           asHeaderParam[Option[String]](correlationId),
           asQueryParam[Option[String]](query),
@@ -98,7 +98,7 @@ trait ConceptController {
     val getAllConceptsPost =
       (apiOperation[ConceptSearchResult]("searchConcepts")
         summary "Find concepts"
-        notes "Shows all concepts. You can search it too."
+        description "Shows all concepts. You can search it too."
         parameters (
           asHeaderParam[Option[String]](correlationId),
           bodyParam[ConceptSearchParams]
@@ -160,7 +160,7 @@ trait ConceptController {
     val getConceptById =
       (apiOperation[String]("getConceptById")
         summary "Fetch specified concept"
-        notes "Shows the concept for the specified id."
+        description "Shows the concept for the specified id."
         parameters (
           asHeaderParam[Option[String]](correlationId),
           asPathParam[Long](conceptId),

@@ -9,6 +9,7 @@
 package no.ndla.articleapi
 
 import com.typesafe.scalalogging.LazyLogging
+import com.zaxxer.hikari.HikariDataSource
 import no.ndla.articleapi.auth.{Role, User}
 import no.ndla.articleapi.controller.{ArticleControllerV2, ConceptController, HealthController, InternController}
 import no.ndla.articleapi.integration._
@@ -50,15 +51,7 @@ object ComponentRegistry
 
   implicit val swagger: ArticleSwagger = new ArticleSwagger
 
-  lazy val dataSource = new PGPoolingDataSource
-  dataSource.setUser(ArticleApiProperties.MetaUserName)
-  dataSource.setPassword(ArticleApiProperties.MetaPassword)
-  dataSource.setDatabaseName(ArticleApiProperties.MetaResource)
-  dataSource.setServerName(ArticleApiProperties.MetaServer)
-  dataSource.setPortNumber(ArticleApiProperties.MetaPort)
-  dataSource.setInitialConnections(ArticleApiProperties.MetaInitialConnections)
-  dataSource.setMaxConnections(ArticleApiProperties.MetaMaxConnections)
-  dataSource.setCurrentSchema(ArticleApiProperties.MetaSchema)
+  override val dataSource: HikariDataSource = DataSource.getHikariDataSource
   connectToDatabase()
 
   lazy val internController = new InternController

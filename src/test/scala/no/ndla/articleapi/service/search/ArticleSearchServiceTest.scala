@@ -11,12 +11,12 @@ package no.ndla.articleapi.service.search
 import java.nio.file.{Files, Path}
 
 import com.sksamuel.elastic4s.embedded.LocalNode
-import no.ndla.articleapi.integration.NdlaE4sClient
+import no.ndla.articleapi.integration.{Elastic4sClientFactory, NdlaE4sClient}
 import no.ndla.articleapi.model.domain._
 import no.ndla.articleapi._
 import no.ndla.articleapi.model.api
 import no.ndla.articleapi.ArticleApiProperties.DefaultPageSize
-import no.ndla.mapping.License.{CC_BY_NC_SA, PublicDomain, Copyrighted}
+import no.ndla.mapping.License.{CC_BY_NC_SA, Copyrighted, PublicDomain}
 import org.joda.time.DateTime
 
 import scala.util.Success
@@ -26,7 +26,7 @@ class ArticleSearchServiceTest extends UnitSuite with TestEnvironment {
   val localNodeSettings: Map[String, String] = LocalNode.requiredSettings(this.getClass.getName, tmpDir.toString)
   val localNode = LocalNode(localNodeSettings)
 
-  override val e4sClient = NdlaE4sClient(localNode.http(true))
+  override val e4sClient = NdlaE4sClient(localNode.client(true))
 
   override val articleSearchService = new ArticleSearchService
   override val articleIndexService = new ArticleIndexService

@@ -14,6 +14,7 @@ import no.ndla.articleapi.model.api.NotFoundException
 import no.ndla.articleapi.model.domain
 import no.ndla.articleapi.model.domain.ArticleIds
 import no.ndla.articleapi._
+import no.ndla.articleapi.integration.DataSource
 import scalikejdbc.{ConnectionPool, DataSourceConnectionPool}
 
 import scala.util.{Failure, Success, Try}
@@ -35,9 +36,10 @@ class ArticleRepositoryTest extends IntegrationSuite with TestEnvironment {
   def databaseIsAvailable: Boolean = Try(repository.articleCount).isSuccess
 
   override def beforeAll(): Unit = {
-    ConnectionPool.singleton(new DataSourceConnectionPool(getDataSource))
+    val ds = DataSource.getHikariDataSource
+    ConnectionPool.singleton(new DataSourceConnectionPool(ds))
     if (serverIsListening) {
-      DBMigrator.migrate(ConnectionPool.dataSource())
+      DBMigrator.migrate(ds)
     }
   }
 

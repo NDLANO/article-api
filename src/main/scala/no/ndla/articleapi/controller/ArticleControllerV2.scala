@@ -80,7 +80,7 @@ trait ArticleControllerV2 {
     val getTags: SwaggerSupportSyntax.OperationBuilder =
       (apiOperation[ArticleTag]("getTags")
         summary "Fetch tags used in articles"
-        notes "Retrieves a list of all previously used tags in articles"
+        description "Retrieves a list of all previously used tags in articles"
         parameters (
           asHeaderParam[Option[String]](correlationId),
           asQueryParam[Option[Int]](size),
@@ -149,7 +149,7 @@ trait ArticleControllerV2 {
     val getAllArticles: SwaggerSupportSyntax.OperationBuilder =
       (apiOperation[List[SearchResultV2]]("getAllArticles")
         summary "Find articles"
-        notes "Shows all articles. You can search it too."
+        description "Shows all articles. You can search it too."
         parameters (
           asHeaderParam[Option[String]](correlationId),
           asQueryParam[Option[String]](articleTypes),
@@ -181,7 +181,7 @@ trait ArticleControllerV2 {
     val getAllArticlesPost: SwaggerSupportSyntax.OperationBuilder =
       (apiOperation[List[SearchResultV2]]("getAllArticlesPost")
         summary "Find articles"
-        notes "Shows all articles. You can search it too."
+        description "Shows all articles. You can search it too."
         parameters (
           asHeaderParam[Option[String]](correlationId),
           bodyParam[ArticleSearchParams]
@@ -208,7 +208,7 @@ trait ArticleControllerV2 {
     val getArticleById: SwaggerSupportSyntax.OperationBuilder =
       (apiOperation[List[ArticleV2]]("getArticleById")
         summary "Fetch specified article"
-        notes "Shows the article for the specified id."
+        description "Shows the article for the specified id."
         parameters (
           asHeaderParam[Option[String]](correlationId),
           asPathParam[Long](articleId),
@@ -232,7 +232,7 @@ trait ArticleControllerV2 {
     val getInternalIdByExternalId: SwaggerSupportSyntax.OperationBuilder =
       (apiOperation[ArticleIdV2]("getInternalIdByExternalId")
         summary "Get id of article corresponding to specified deprecated node id"
-        notes "Get internal id of article for a specified ndla_node_id"
+        description "Get internal id of article for a specified ndla_node_id"
         parameters (
           asHeaderParam[Option[String]](correlationId),
           asPathParam[Long](deprecatedNodeId)
@@ -251,7 +251,7 @@ trait ArticleControllerV2 {
     val getExternalIdsByExternalId: SwaggerSupportSyntax.OperationBuilder =
       (apiOperation[ArticleIds]("getExternalIdsByExternalId")
         summary "Get all ids related to article corresponding to specified deprecated node id"
-        notes "Get internal id as well as all deprecated ndla_node_ids of article for a specified ndla_node_id"
+        description "Get internal id as well as all deprecated ndla_node_ids of article for a specified ndla_node_id"
         parameters (
           asHeaderParam[Option[String]](correlationId),
           asPathParam[Long](deprecatedNodeId)

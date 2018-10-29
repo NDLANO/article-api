@@ -11,7 +11,7 @@ package no.ndla.articleapi.service
 import no.ndla.articleapi.model.domain._
 import no.ndla.articleapi.{TestData, TestEnvironment, UnitSuite}
 import org.joda.time.DateTime
-import org.mockito.Matchers._
+import org.mockito.ArgumentMatchers._
 import org.mockito.Mockito
 import org.mockito.Mockito._
 import org.mockito.invocation.InvocationOnMock
@@ -36,14 +36,14 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
 
     when(articleRepository.withId(articleId)).thenReturn(Option(article))
     when(articleIndexService.indexDocument(any[Article])).thenAnswer((invocation: InvocationOnMock) =>
-      Try(invocation.getArgumentAt(0, article.getClass)))
+      Try(invocation.getArgument[Article](0)))
     when(readService.addUrlsOnEmbedResources(any[Article])).thenAnswer((invocation: InvocationOnMock) =>
-      invocation.getArgumentAt(0, article.getClass))
+      invocation.getArgument[Article](0))
     when(articleRepository.getExternalIdsFromId(any[Long])(any[DBSession])).thenReturn(List("1234"))
     when(authUser.userOrClientid()).thenReturn("ndalId54321")
     when(clock.now()).thenReturn(today)
     when(contentValidator.validateArticle(any[Article], any[Boolean], any[Boolean]))
-      .thenAnswer((invocation: InvocationOnMock) => Success(invocation.getArgumentAt(0, classOf[Article])))
+      .thenAnswer((invocation: InvocationOnMock) => Success(invocation.getArgument[Article](0)))
   }
 
   test("allocateArticleId should reuse existing id if external id already exists") {

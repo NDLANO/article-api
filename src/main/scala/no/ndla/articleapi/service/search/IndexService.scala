@@ -11,16 +11,15 @@ package no.ndla.articleapi.service.search
 import java.text.SimpleDateFormat
 import java.util.Calendar
 
-import com.typesafe.scalalogging.LazyLogging
 import com.sksamuel.elastic4s.http.ElasticDsl._
-import com.sksamuel.elastic4s.indexes.IndexDefinition
+import com.sksamuel.elastic4s.indexes.IndexRequest
 import com.sksamuel.elastic4s.mappings.{FieldDefinition, MappingDefinition}
+import com.typesafe.scalalogging.LazyLogging
 import no.ndla.articleapi.ArticleApiProperties
 import no.ndla.articleapi.integration.Elastic4sClient
+import no.ndla.articleapi.model.domain.Language.languageAnalyzers
 import no.ndla.articleapi.model.domain.{Content, ReindexResult}
 import no.ndla.articleapi.repository.Repository
-import no.ndla.articleapi.model.domain.Language.languageAnalyzers
-import no.ndla.mapping.ISO639
 
 import scala.util.{Failure, Success, Try}
 
@@ -34,7 +33,7 @@ trait IndexService {
 
     def getMapping: MappingDefinition
 
-    def createIndexRequest(domainModel: D, indexName: String): IndexDefinition
+    def createIndexRequest(domainModel: D, indexName: String): IndexRequest
 
     def indexDocument(imported: D): Try[D] = {
       for {
