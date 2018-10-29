@@ -63,6 +63,7 @@ lazy val article_api = (project in file("."))
       "com.sksamuel.elastic4s" %% "elastic4s-core" % Elastic4sVersion,
       "com.sksamuel.elastic4s" %% "elastic4s-http" % Elastic4sVersion,
       "com.sksamuel.elastic4s" %% "elastic4s-aws" % Elastic4sVersion,
+      "com.fasterxml.jackson.core" % "jackson-databind" % JacksonVersion, // Overriding jackson-databind used in elastic4s because of https://snyk.io/vuln/SNYK-JAVA-COMFASTERXMLJACKSONCORE-32111
       "com.sksamuel.elastic4s" %% "elastic4s-embedded" % Elastic4sVersion % "test",
       "org.scalatest" %% "scalatest" % ScalaTestVersion % "test",
       "org.jsoup" % "jsoup" % "1.11.3",
