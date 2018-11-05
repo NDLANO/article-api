@@ -8,7 +8,6 @@
 
 package no.ndla.articleapi.model.api
 
-import no.ndla.articleapi.model.domain.LanguageField
 import org.scalatra.swagger.annotations.{ApiModel, ApiModelProperty}
 
 import scala.annotation.meta.field

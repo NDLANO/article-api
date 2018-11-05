@@ -34,20 +34,16 @@ trait ContentValidator {
     private val HtmlValidator = new TextValidator(allowHtml = true)
 
     def validateArticle(article: Article, allowUnknownLanguage: Boolean, isImported: Boolean = false): Try[Article] = {
-      val validationErrors = article.content.flatMap(c => validateArticleContent(c, allowUnknownLanguage)) ++
+      val validationErrors = validateArticleContent(article.content, allowUnknownLanguage) ++
         article.introduction.flatMap(i => validateIntroduction(i, allowUnknownLanguage)) ++
-        article.metaDescription.flatMap(m => validateMetaDescription(m, allowUnknownLanguage)) ++
-        article.title.flatMap(t => validateTitle(t.title, t.language, allowUnknownLanguage)) ++
+        validateMetaDescription(article.metaDescription, allowUnknownLanguage) ++
+        validateTitle(article.title, allowUnknownLanguage) ++
         validateCopyright(article.copyright) ++
         validateTags(article.tags, allowUnknownLanguage, isImported) ++
         article.requiredLibraries.flatMap(validateRequiredLibrary) ++
         article.metaImage.flatMap(validateMetaImage) ++
         article.visualElement.flatMap(v => validateVisualElement(v, allowUnknownLanguage)) ++
-        validateArticleType(article.articleType) ++
-        validateNonEmpty("content", article.content) ++
-        validateNonEmpty("title", article.title) ++
-        validateNonEmpty("metaDescription", article.metaDescription) ++
-        validateNonEmpty("tags", article.tags)
+        validateArticleType(article.articleType)
 
       if (validationErrors.isEmpty) {
         Success(article)
@@ -58,7 +54,7 @@ trait ContentValidator {
 
     def validateConcept(concept: Concept, allowUnknownLanguage: Boolean): Try[Concept] = {
       val validationErrors = concept.content.flatMap(c => validateConceptContent(c, allowUnknownLanguage)) ++
-        concept.title.flatMap(t => validateTitle(t.title, t.language, allowUnknownLanguage))
+        validateTitle(concept.title, allowUnknownLanguage)
 
       if (validationErrors.isEmpty) {
         Success(concept)
@@ -67,7 +63,7 @@ trait ContentValidator {
       }
     }
 
-    private def validateNonEmpty(field: String, values: Seq[LanguageField]): Option[ValidationMessage] = {
+    private def validateNonEmpty(field: String, values: Seq[LanguageField[_]]): Option[ValidationMessage] = {
       if (values.isEmpty || values.forall(_.isEmpty)) {
         Some(ValidationMessage(field, "Field must contain at least one entry"))
       } else
@@ -85,12 +81,14 @@ trait ContentValidator {
       }
     }
 
-    private def validateArticleContent(content: ArticleContent,
+    private def validateArticleContent(contents: Seq[ArticleContent],
                                        allowUnknownLanguage: Boolean): Seq[ValidationMessage] = {
-      val field = s"content.${content.language}"
-      HtmlValidator.validate(field, content.content).toList ++
-        rootElementContainsOnlySectionBlocks(field, content.content) ++
-        validateLanguage("content.language", content.language, allowUnknownLanguage)
+      contents.flatMap(content => {
+        val field = s"content.${content.language}"
+        HtmlValidator.validate(field, content.content).toList ++
+          rootElementContainsOnlySectionBlocks(field, content.content) ++
+          validateLanguage("content.language", content.language, allowUnknownLanguage)
+      }) ++ validateNonEmpty("content", contents)
     }
 
     def rootElementContainsOnlySectionBlocks(field: String, html: String): Option[ValidationMessage] = {
@@ -128,20 +126,23 @@ trait ContentValidator {
         validateLanguage("introduction.language", content.language, allowUnknownLanguage)
     }
 
-    private def validateMetaDescription(content: ArticleMetaDescription,
+    private def validateMetaDescription(contents: Seq[ArticleMetaDescription],
                                         allowUnknownLanguage: Boolean): Seq[ValidationMessage] = {
-      val field = s"metaDescription.${content.language}"
-      NoHtmlValidator.validate(field, content.content).toList ++
-        validateLanguage("metaDescription.language", content.language, allowUnknownLanguage)
+      contents.flatMap(content => {
+        val field = s"metaDescription.${content.language}"
+        NoHtmlValidator.validate(field, content.content).toList ++
+          validateLanguage("metaDescription.language", content.language, allowUnknownLanguage)
+      }) ++ validateNonEmpty("metaDescription", contents)
     }
 
-    private def validateTitle(value: String,
-                              language: String,
+    private def validateTitle(titles: Seq[LanguageField[String]],
                               allowUnknownLanguage: Boolean): Seq[ValidationMessage] = {
-      val field = s"title.$language"
-      NoHtmlValidator.validate(field, value).toList ++
-        validateLanguage("title.language", language, allowUnknownLanguage) ++
-        validateLength("title", value, 256)
+      titles.flatMap(title => {
+        val field = s"title.$language"
+        NoHtmlValidator.validate(field, title.value).toList ++
+          validateLanguage("title.language", title.language, allowUnknownLanguage) ++
+          validateLength("title", title.value, 256)
+      }) ++ validateNonEmpty("title", titles)
     }
 
     private def validateCopyright(copyright: Copyright): Seq[ValidationMessage] = {
@@ -194,19 +195,22 @@ trait ContentValidator {
                              allowUnknownLanguage: Boolean,
                              isImported: Boolean): Seq[ValidationMessage] = {
 
-      // Since quite a few articles from old system has less than 3 tags we skip validation here for imported until we are done importing.
-      val amountErrors = tags.groupBy(_.language).flatMap {
-        case (lang, tagsForLang) =>
-          Some(
+      // Since quite a few articles from old ndla has fewer than 3 tags we skip validation here for imported articles until we are done importing.
+      val languageTagAmountErrors = tags.groupBy(_.language).flatMap {
+        case (lang, tagsForLang) if !isImported && tagsForLang.flatMap(_.tags).size < MinimumAllowedTags =>
+          Seq(
             ValidationMessage(s"tags.$lang",
                               s"Invalid amount of tags. Articles needs $MinimumAllowedTags or more tags to be valid."))
-            .filter(_ => !isImported && tagsForLang.flatMap(_.tags).size < MinimumAllowedTags)
+        case _ => Seq()
       }
+
+      val noTagsError =
+        if (tags.isEmpty) Seq(ValidationMessage("tags", "The article must have at least one set of tags")) else Seq()
 
       tags.flatMap(tagList => {
         tagList.tags.flatMap(NoHtmlValidator.validate(s"tags.${tagList.language}", _)).toList :::
           validateLanguage("tags.language", tagList.language, allowUnknownLanguage).toList
-      }) ++ amountErrors
+      }) ++ languageTagAmountErrors ++ noTagsError
     }
 
     private def validateRequiredLibrary(requiredLibrary: RequiredLibrary): Option[ValidationMessage] = {

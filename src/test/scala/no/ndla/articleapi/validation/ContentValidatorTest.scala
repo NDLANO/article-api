@@ -315,4 +315,13 @@ class ContentValidatorTest extends UnitSuite with TestEnvironment {
         ValidationMessage("tags.nn", s"The content contains illegal html-characters. No HTML is allowed")
       ))
   }
+
+  test("validation should fail if there are no tags for any languages") {
+    val Failure(res: ValidationException) =
+      contentValidator.validateArticle(TestData.sampleArticleWithByNcSa.copy(tags = Seq()),
+                                       allowUnknownLanguage = false)
+    res.errors.length should be(1)
+    res.errors.head.field should equal("tags")
+    res.errors.head.message should equal("The article must have at least one set of tags")
+  }
 }
