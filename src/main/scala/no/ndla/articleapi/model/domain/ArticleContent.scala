@@ -8,6 +8,7 @@
 
 package no.ndla.articleapi.model.domain
 
-case class ArticleContent(content: String, language: String) extends LanguageField {
+case class ArticleContent(content: String, language: String) extends LanguageField[String] {
   override def isEmpty: Boolean = content.isEmpty
+  override def value: String = content
 }

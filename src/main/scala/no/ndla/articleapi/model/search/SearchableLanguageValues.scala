@@ -9,7 +9,7 @@ package no.ndla.articleapi.model.search
 
 import no.ndla.articleapi.model.domain.LanguageField
 
-case class LanguageValue[T](language: String, value: T) extends LanguageField {
+case class LanguageValue[T](language: String, value: T) extends LanguageField[T] {
   override def isEmpty: Boolean = false
 }
 
