@@ -105,13 +105,8 @@ trait ReadService {
       val typeAndPathOption = embedTag.attr(TagAttributes.DataResource.toString) match {
         case resourceType
             if resourceType == ResourceType.File.toString && embedTag.hasAttr(TagAttributes.DataPath.toString) =>
-          if (embedTag.parent().attr(TagAttributes.DataType.toString) != ResourceType.File.toString) {
-            convertFileEmbedToAnchor(embedTag)
-            None
-          } else {
-            val path = embedTag.attr(TagAttributes.DataPath.toString)
-            Some((resourceType, path))
-          }
+          val path = embedTag.attr(TagAttributes.DataPath.toString)
+          Some((resourceType, path))
 
         case resourceType if embedTag.hasAttr(TagAttributes.DataResource_Id.toString) =>
           val id = embedTag.attr(TagAttributes.DataResource_Id.toString)
