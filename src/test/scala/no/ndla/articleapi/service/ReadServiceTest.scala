@@ -111,17 +111,4 @@ class ReadServiceTest extends UnitSuite with TestEnvironment {
     occList.getNMostFrequent(3) should equal(Seq("tag", "is", "17. Mai"))
     occList.getNMostFrequent(4) should equal(Seq("tag", "is", "17. Mai", "lol"))
   }
-
-  test("addUrlOnEmbedTag converts single file embeds to anchor tags") {
-    val filePath = "files/lel/fileste.pdf"
-    val url = s"http://api-gateway.ndla-local/$filePath"
-    val title = "This fancy pdf"
-    val urlText = "Is this real url text?"
-    val content =
-      s"""<$ResourceHtmlEmbedTag ${TagAttributes.DataAlt}="$urlText" $resourceAttr="${ResourceType.File}" ${TagAttributes.DataPath}="$filePath" ${TagAttributes.DataTitle}="$title">"""
-    val expectedResult =
-      s"""<a href="$url" title="$title">$urlText</a>"""
-    val result = readService.addUrlOnResource(content)
-    result should equal(expectedResult)
-  }
 }
