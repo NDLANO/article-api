@@ -1,4 +1,5 @@
 import java.util.Properties
+import com.itv.scalapact.plugin._
 
 val Scalaversion = "2.12.7"
 val Scalatraversion = "2.6.3"
@@ -30,13 +31,23 @@ lazy val commonSettings = Seq(
   scalaVersion := Scalaversion
 )
 
+import com.itv.scalapact.plugin._
+val pactVersion = "2.3.3"
+
+val pactTestFramework = Seq(
+  "com.itv" %% "scalapact-circe-0-9" % pactVersion % "test",
+  "com.itv" %% "scalapact-http4s-0-18" % pactVersion % "test",
+  "com.itv" %% "scalapact-scalatest" % pactVersion % "test",
+  "com.github.tomakehurst" % "wiremock" % "2.19.0" % "test"
+)
+
 lazy val article_api = (project in file("."))
   .settings(commonSettings: _*)
   .settings(
     name := "article-api",
     javacOptions ++= Seq("-source", "1.8", "-target", "1.8"),
     scalacOptions := Seq("-target:jvm-1.8", "-unchecked", "-deprecation", "-feature"),
-    libraryDependencies ++= Seq(
+    libraryDependencies ++= pactTestFramework ++ Seq(
       "ndla" %% "network" % "0.36",
       "ndla" %% "mapping" % "0.10",
       "ndla" %% "validation" % "0.28",
@@ -77,6 +88,7 @@ lazy val article_api = (project in file("."))
   )
   .enablePlugins(DockerPlugin)
   .enablePlugins(JettyPlugin)
+  .enablePlugins(ScalaPactPlugin)
 
 assembly / assemblyJarName := "article-api.jar"
 assembly / mainClass := Some("no.ndla.articleapi.JettyLauncher")

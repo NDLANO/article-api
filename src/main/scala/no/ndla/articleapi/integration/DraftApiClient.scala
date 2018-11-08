@@ -8,22 +8,17 @@
 
 package no.ndla.articleapi.integration
 
-import java.util.Date
-
 import no.ndla.articleapi.ArticleApiProperties
 import no.ndla.articleapi.model.api
 import no.ndla.network.NdlaClient
-
-import scala.util.{Success, Try}
 import scalaj.http.{Http, HttpRequest}
 
 trait DraftApiClient {
   this: NdlaClient =>
   val draftApiClient: DraftApiClient
 
-  class DraftApiClient {
-    private val draftApiGetAgreementEndpoint =
-      s"http://${ArticleApiProperties.DraftHost}/draft-api/v1/agreements/:agreement_id"
+  class DraftApiClient(DraftBaseUrl: String = s"http://${ArticleApiProperties.DraftHost}") {
+    private val draftApiGetAgreementEndpoint = s"$DraftBaseUrl/draft-api/v1/agreements/:agreement_id"
 
     def agreementExists(agreementId: Long): Boolean = getAgreementCopyright(agreementId).nonEmpty
 
@@ -38,10 +33,4 @@ trait DraftApiClient {
   }
 }
 
-case class Agreement(id: Long,
-                     title: String,
-                     content: String,
-                     copyright: api.Copyright,
-                     created: Date,
-                     updated: Date,
-                     updatedBy: String)
+case class Agreement(id: Long, copyright: api.Copyright)
