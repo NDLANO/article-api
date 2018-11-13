@@ -7,18 +7,14 @@
 
 package no.ndla.articleapi.integration
 
-import no.ndla.articleapi.UnitSuite
+import no.ndla.articleapi.{TestEnvironment, UnitSuite}
 import no.ndla.articleapi.model.api
-import no.ndla.network.NdlaClient
 import org.json4s.DefaultFormats
 import org.json4s.native.Serialization.write
 
-class DraftApiClientTest extends UnitSuite with DraftApiClient with NdlaClient {
-
-  override val ndlaClient = new NdlaClient
-  override val draftApiClient = new DraftApiClient
-
+class DraftApiClientTest extends UnitSuite with TestEnvironment {
   implicit val formats: DefaultFormats = DefaultFormats
+  override val ndlaClient = new NdlaClient
 
   // Pact CDC imports
   import com.itv.scalapact.ScalaPactForger._
@@ -46,7 +42,7 @@ class DraftApiClientTest extends UnitSuite with DraftApiClient with NdlaClient {
       .addInteraction(
         interaction
           .description("Fetching agreement with id 1")
-          .given("Agreement with id 1, CC-BY-SA-4.0 license")
+          //.given("Agreement with id 1, CC-BY-SA-4.0 license")
           .uponReceiving("/draft-api/v1/agreements/1")
           .willRespondWith(
             status = 200,

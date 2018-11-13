@@ -21,11 +21,7 @@ import scala.io.Source
 
 object JettyLauncher extends LazyLogging {
 
-  def buildMostUsedTagsCache(): Unit = {
-    ComponentRegistry.readService.getTagUsageMap()
-  }
-
-  def main(args: Array[String]) {
+  def startServer(port: Int): Server = {
     logger.info(Source.fromInputStream(getClass.getResourceAsStream("/log-license.txt")).mkString)
     logger.info("Starting the db migration...")
     val startDBMillis = System.currentTimeMillis()
@@ -42,7 +38,6 @@ object JettyLauncher extends LazyLogging {
     context.addEventListener(new ScalatraListener)
     context.addServlet(classOf[DefaultServlet], "/")
     context.setInitParameter("org.eclipse.jetty.servlet.Default.dirAllowed", "false")
-
     context.addServlet(classOf[ReportServlet], "/monitoring")
     context.addEventListener(new SessionListener)
     val monitoringFilter = new FilterHolder(new MonitoringFilter())
@@ -55,13 +50,22 @@ object JettyLauncher extends LazyLogging {
     }
     context.addFilter(monitoringFilter, "/*", util.EnumSet.of(DispatcherType.REQUEST, DispatcherType.ASYNC))
 
-    val server = new Server(ArticleApiProperties.ApplicationPort)
+    val server = new Server(port)
     server.setHandler(context)
     server.start()
 
     val startTime = System.currentTimeMillis() - startMillis
     logger.info(s"Started at port ${ArticleApiProperties.ApplicationPort} in $startTime ms.")
 
+    server
+  }
+
+  def buildMostUsedTagsCache(): Unit = {
+    ComponentRegistry.readService.getTagUsageMap()
+  }
+
+  def main(args: Array[String]) {
+    val server = startServer(ArticleApiProperties.ApplicationPort)
     server.join()
   }
 }
