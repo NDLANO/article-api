@@ -42,7 +42,6 @@ class DraftApiClientTest extends UnitSuite with TestEnvironment {
       .addInteraction(
         interaction
           .description("Fetching agreement with id 1")
-          //.given("Agreement with id 1, CC-BY-SA-4.0 license")
           .uponReceiving("/draft-api/v1/agreements/1")
           .willRespondWith(
             status = 200,

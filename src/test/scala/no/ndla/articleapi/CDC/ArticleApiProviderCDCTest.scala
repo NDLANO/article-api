@@ -5,19 +5,18 @@
  * See LICENSE
  */
 
-package no.ndla.articleapi
+package no.ndla.articleapi.CDC
 
-/*
 import java.io.IOException
 import java.net.ServerSocket
 
 import com.itv.scalapact.ScalaPactVerify._
 import com.itv.scalapact.shared.ProviderStateResult
-import no.ndla.articleapi.{IntegrationSuite, JettyLauncher, TestData, TestEnvironment}
+import no.ndla.articleapi._
 import org.eclipse.jetty.server.Server
-import org.mockito.Mockito._
+import scalikejdbc._
 
-class VerifyConsumerContractsTest extends IntegrationSuite with TestEnvironment {
+class ArticleApiProviderCDCTest extends IntegrationSuite with TestEnvironment {
 
   import com.itv.scalapact.circe09._
   import com.itv.scalapact.http4s18._
@@ -50,12 +49,26 @@ class VerifyConsumerContractsTest extends IntegrationSuite with TestEnvironment 
   val serverPort: Int = findFreePort
 
   override def beforeAll(): Unit = {
+    def deleteSchema(): Unit = {
+      println("Deleting test schema to prepare for CDC testing...")
+      val datasource = testDataSource
+      DBMigrator.migrate(datasource)
+      ConnectionPool.singleton(new DataSourceConnectionPool(datasource))
+      DB autoCommit (implicit session => {
+        sql"drop schema if exists articleapitest cascade;"
+          .execute()
+          .apply()
+      })
+    }
+    deleteSchema()
+
     println(s"Running CDC tests with component on localhost:$serverPort")
     server = Some(JettyLauncher.startServer(serverPort))
 
-    // Mocking some state for the tests to use
-    when(articleRepository.withId(1)).thenReturn(TestData.sampleDomainArticle)
-    when(conceptRepository.withId(1)).thenReturn(TestData.sampleConcept)
+    // Setting up some state for the tests to use
+    val id = ComponentRegistry.articleRepository.allocateArticleId()
+    ComponentRegistry.articleRepository
+      .updateArticleFromDraftApi(TestData.sampleDomainArticle.copy(id = Some(id)), List("1234"))
   }
 
   override def afterAll(): Unit = server.foreach(_.stop())
@@ -69,4 +82,4 @@ class VerifyConsumerContractsTest extends IntegrationSuite with TestEnvironment 
       .runStrictVerificationAgainst("localhost", serverPort)
   }
 
-}*/
+}

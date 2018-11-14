@@ -43,11 +43,11 @@ class ArticleRepositoryTest extends IntegrationSuite with TestEnvironment {
     }
   }
 
-  override def afterEach(): Unit = {
-    if (databaseIsAvailable) {
-      repository.getAllIds().foreach(articleId => repository.delete(articleId.articleId))
-    }
-  }
+  override def beforeEach(): Unit =
+    if (databaseIsAvailable) repository.getAllIds().foreach(articleId => repository.delete(articleId.articleId))
+
+  override def afterEach(): Unit =
+    if (databaseIsAvailable) repository.getAllIds().foreach(articleId => repository.delete(articleId.articleId))
 
   test("getAllIds returns a list with all ids in the database") {
     assume(databaseIsAvailable, "Database is unavailable")

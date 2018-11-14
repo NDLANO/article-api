@@ -8,7 +8,9 @@
 
 package no.ndla.articleapi
 
+import com.zaxxer.hikari.HikariDataSource
 import no.ndla.network.secrets.PropertyKeys
+import no.ndla.articleapi.integration.DataSource.getHikariDataSource
 
 abstract class IntegrationSuite extends UnitSuite {
 
@@ -18,4 +20,6 @@ abstract class IntegrationSuite extends UnitSuite {
   setEnv(PropertyKeys.MetaServerKey, "127.0.0.1")
   setEnv(PropertyKeys.MetaPortKey, "5432")
   setEnv(PropertyKeys.MetaSchemaKey, "articleapitest")
+
+  val testDataSource: HikariDataSource = getHikariDataSource
 }
