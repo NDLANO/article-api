@@ -103,26 +103,26 @@ class ArticleApiProviderCDCTest extends IntegrationSuite with TestEnvironment {
 
   test("That pacts from broker are working.") {
     val isTravis = envOrElse("TRAVIS", "false").toBoolean
-    if (isTravis) {
+    val publishResults = if (isTravis) {
+      getGitVersion.map(version => BrokerPublishData(version, None)).toOption
+    } else { None }
 
-      val broker = for {
-        url <- envOrNone("PACT_BROKER_URL")
-        publishResults <- getGitVersion.map(version => BrokerPublishData(version, None)).toOption
-        broker <- pactBroker(url, "article-api", List("draft-api"), publishResults)
-      } yield broker
+    val broker = for {
+      url <- envOrNone("PACT_BROKER_URL")
+      broker <- pactBroker(url, "article-api", List("draft-api"), publishResults)
+    } yield broker
 
-      broker match {
-        case Some(b) =>
-          verifyPact
-            .withPactSource(b)
-            .setupProviderState("given") {
-              case "articles" => deleteSchema(); ProviderStateResult(setupArticles().getOrElse(false))
-              case "concepts" => deleteSchema(); ProviderStateResult(setupConcepts().getOrElse(false))
-              case "empty"    => deleteSchema(); ProviderStateResult(true)
-            }
-            .runStrictVerificationAgainst("localhost", serverPort)
-        case None => throw new RuntimeException("Could not get broker settings...")
-      }
-    } else { println("SKIPPING PACT TESTS SINCE WE ARE NOT ON BUILD SERVER...") }
+    broker match {
+      case Some(b) =>
+        verifyPact
+          .withPactSource(b)
+          .setupProviderState("given") {
+            case "articles" => deleteSchema(); ProviderStateResult(setupArticles().getOrElse(false))
+            case "concepts" => deleteSchema(); ProviderStateResult(setupConcepts().getOrElse(false))
+            case "empty"    => deleteSchema(); ProviderStateResult(true)
+          }
+          .runStrictVerificationAgainst("localhost", serverPort)
+      case None => throw new RuntimeException("Could not get broker settings...")
+    }
   }
 }
