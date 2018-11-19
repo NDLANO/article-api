@@ -51,38 +51,43 @@ class ArticleApiProviderCDCTest extends IntegrationSuite with TestEnvironment {
   var server: Option[Server] = None
   val serverPort: Int = findFreePort
 
+  def deleteSchema(): Unit = {
+    println("Deleting test schema to prepare for CDC testing...")
+    val datasource = testDataSource
+    DBMigrator.migrate(datasource)
+    ConnectionPool.singleton(new DataSourceConnectionPool(datasource))
+    DB autoCommit (implicit session => {
+      sql"drop schema if exists articleapitest cascade;"
+        .execute()
+        .apply()
+    })
+    DBMigrator.migrate(datasource)
+    ConnectionPool.singleton(new DataSourceConnectionPool(datasource))
+  }
+
   override def beforeAll(): Unit = {
-    def deleteSchema(): Unit = {
-      println("Deleting test schema to prepare for CDC testing...")
-      val datasource = testDataSource
-      DBMigrator.migrate(datasource)
-      ConnectionPool.singleton(new DataSourceConnectionPool(datasource))
-      DB autoCommit (implicit session => {
-        sql"drop schema if exists articleapitest cascade;"
-          .execute()
-          .apply()
-      })
-    }
     deleteSchema()
 
     println(s"Running CDC tests with component on localhost:$serverPort")
     server = Some(JettyLauncher.startServer(serverPort))
+  }
 
-    // Setting up some state for the tests to use
+  override def afterAll(): Unit = server.foreach(_.stop())
+
+  private def setupArticles() =
     (1 to 10)
       .map(_ => ComponentRegistry.articleRepository.allocateArticleId())
       .map(id => {
-        ComponentRegistry.articleRepository.updateArticleFromDraftApi(TestData.sampleDomainArticle.copy(id = Some(id)),
-                                                                      List(s"1$id"))
+        ComponentRegistry.articleRepository
+          .updateArticleFromDraftApi(TestData.sampleDomainArticle.copy(id = Some(id)), List(s"1$id"))
       })
+
+  private def setupConcepts() =
     (1 to 10)
       .map(_ => ComponentRegistry.conceptRepository.allocateConceptId())
       .map(id => {
         ComponentRegistry.conceptRepository.updateConceptFromDraftApi(TestData.sampleConcept.copy(id = Some(id)))
       })
-  }
-
-  override def afterAll(): Unit = server.foreach(_.stop())
 
   test("That pacts from broker are working.") {
     // Get git version to publish validity for
@@ -97,8 +102,15 @@ class ArticleApiProviderCDCTest extends IntegrationSuite with TestEnvironment {
 
     verifyPact
       .withPactSource(pactBroker("http://pact-broker.ndla-local", "article-api", List("draft-api"), publishResults))
-      .setupProviderState("given") { _ =>
-        ProviderStateResult(true)
+      .setupProviderState("given") {
+        case "articles" =>
+          deleteSchema()
+          setupArticles()
+          ProviderStateResult(true)
+        case "concepts" =>
+          deleteSchema()
+          setupConcepts()
+          ProviderStateResult(true)
       }
       .runStrictVerificationAgainst("localhost", serverPort)
   }
