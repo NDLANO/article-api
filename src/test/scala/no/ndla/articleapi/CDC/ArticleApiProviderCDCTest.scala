@@ -16,8 +16,9 @@ import no.ndla.articleapi._
 import org.eclipse.jetty.server.Server
 import scalikejdbc._
 
-import scala.util.{Success, Try}
-import sys.process._
+import scala.sys.process._
+import scala.util.Properties.{envOrElse, envOrNone}
+import scala.util.{Failure, Success, Try}
 
 class ArticleApiProviderCDCTest extends IntegrationSuite with TestEnvironment {
 
@@ -66,8 +67,6 @@ class ArticleApiProviderCDCTest extends IntegrationSuite with TestEnvironment {
   }
 
   override def beforeAll(): Unit = {
-    deleteSchema()
-
     println(s"Running CDC tests with component on localhost:$serverPort")
     server = Some(JettyLauncher.startServer(serverPort))
   }
@@ -81,6 +80,8 @@ class ArticleApiProviderCDCTest extends IntegrationSuite with TestEnvironment {
         ComponentRegistry.articleRepository
           .updateArticleFromDraftApi(TestData.sampleDomainArticle.copy(id = Some(id)), List(s"1$id"))
       })
+      .collectFirst { case Failure(ex) => Failure(ex) }
+      .getOrElse(Success(true))
 
   private def setupConcepts() =
     (1 to 10)
@@ -88,33 +89,40 @@ class ArticleApiProviderCDCTest extends IntegrationSuite with TestEnvironment {
       .map(id => {
         ComponentRegistry.conceptRepository.updateConceptFromDraftApi(TestData.sampleConcept.copy(id = Some(id)))
       })
+      .collectFirst { case Failure(ex) => Failure(ex) }
+      .getOrElse(Success(true))
 
-  test("That pacts from broker are working.") {
-    // Get git version to publish validity for
-    val versionString = for {
+  private def getGitVersion =
+    for {
       shortCommit <- Try("git rev-parse --short HEAD".!!.trim)
       dirtyness <- Try("git status --porcelain".!!.trim != "").map {
         case true  => "-dirty"
         case false => ""
       }
     } yield s"$shortCommit$dirtyness"
-    val publishResults = versionString.map(version => BrokerPublishData(version, None)).toOption
 
-    verifyPact
-      .withPactSource(pactBroker("http://pact-broker.ndla-local", "article-api", List("draft-api"), publishResults))
-      .setupProviderState("given") {
-        case "articles" =>
-          deleteSchema()
-          setupArticles()
-          ProviderStateResult(true)
-        case "concepts" =>
-          deleteSchema()
-          setupConcepts()
-          ProviderStateResult(true)
-        case "empty" =>
-          deleteSchema()
-          ProviderStateResult(true)
+  test("That pacts from broker are working.") {
+    val isTravis = envOrElse("TRAVIS", "false").toBoolean
+    if (isTravis) {
+
+      val broker = for {
+        url <- envOrNone("PACT_BROKER_URL")
+        publishResults <- getGitVersion.map(version => BrokerPublishData(version, None)).toOption
+        broker <- pactBroker(url, "article-api", List("draft-api"), publishResults)
+      } yield broker
+
+      broker match {
+        case Some(b) =>
+          verifyPact
+            .withPactSource(b)
+            .setupProviderState("given") {
+              case "articles" => deleteSchema(); ProviderStateResult(setupArticles().getOrElse(false))
+              case "concepts" => deleteSchema(); ProviderStateResult(setupConcepts().getOrElse(false))
+              case "empty"    => deleteSchema(); ProviderStateResult(true)
+            }
+            .runStrictVerificationAgainst("localhost", serverPort)
+        case None => throw new RuntimeException("Could not get broker settings...")
       }
-      .runStrictVerificationAgainst("localhost", serverPort)
+    } else { println("SKIPPING PACT TESTS SINCE WE ARE NOT ON BUILD SERVER...") }
   }
 }
