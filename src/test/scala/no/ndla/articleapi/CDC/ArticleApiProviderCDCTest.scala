@@ -69,9 +69,17 @@ class ArticleApiProviderCDCTest extends IntegrationSuite with TestEnvironment {
     server = Some(JettyLauncher.startServer(serverPort))
 
     // Setting up some state for the tests to use
-    val id = ComponentRegistry.articleRepository.allocateArticleId()
-    ComponentRegistry.articleRepository
-      .updateArticleFromDraftApi(TestData.sampleDomainArticle.copy(id = Some(id)), List("1234"))
+    (1 to 10)
+      .map(_ => ComponentRegistry.articleRepository.allocateArticleId())
+      .map(id => {
+        ComponentRegistry.articleRepository.updateArticleFromDraftApi(TestData.sampleDomainArticle.copy(id = Some(id)),
+                                                                      List(s"1$id"))
+      })
+    (1 to 10)
+      .map(_ => ComponentRegistry.conceptRepository.allocateConceptId())
+      .map(id => {
+        ComponentRegistry.conceptRepository.updateConceptFromDraftApi(TestData.sampleConcept.copy(id = Some(id)))
+      })
   }
 
   override def afterAll(): Unit = server.foreach(_.stop())
