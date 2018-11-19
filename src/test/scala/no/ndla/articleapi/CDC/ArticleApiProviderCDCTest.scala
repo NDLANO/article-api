@@ -111,6 +111,9 @@ class ArticleApiProviderCDCTest extends IntegrationSuite with TestEnvironment {
           deleteSchema()
           setupConcepts()
           ProviderStateResult(true)
+        case "empty" =>
+          deleteSchema()
+          ProviderStateResult(true)
       }
       .runStrictVerificationAgainst("localhost", serverPort)
   }
