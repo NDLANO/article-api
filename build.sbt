@@ -120,12 +120,11 @@ fmt := {
   (Compile / scalafmtSbt).value
 }
 
-// Don't run Integration tests in default run on Travis as there is no elasticsearch localhost:9200 there yet.
-// NB this line will unfortunalty override runs on your local commandline so that
-// sbt "test-only -- -n no.ndla.tag.IntegrationTest"
-// will not run unless this line gets commented out or you remove the tag over the test class
-// This should be solved better!
-Test / testOptions += Tests.Argument("-l", "no.ndla.tag.IntegrationTest")
+// Don't run PactProvider tests by default.
+// This is because if no test is found the test will fail.
+// Failing tests prevents consumer tests from getting published.
+// These can be ran with sbt "testOnly -- -n no.ndla.tag.PactProviderTest"
+Test / testOptions += Tests.Argument("-l", "no.ndla.tag.PactProviderTest")
 
 // Make the docker task depend on the assembly task, which generates a fat JAR file
 docker := (docker dependsOn assembly).value

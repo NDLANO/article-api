@@ -13,6 +13,7 @@ import java.net.ServerSocket
 import com.itv.scalapact.ScalaPactVerify._
 import com.itv.scalapact.shared.{BrokerPublishData, ProviderStateResult}
 import no.ndla.articleapi._
+import no.ndla.tag.PactProviderTest
 import org.eclipse.jetty.server.Server
 import scalikejdbc._
 
@@ -20,6 +21,7 @@ import scala.sys.process._
 import scala.util.Properties.{envOrElse, envOrNone}
 import scala.util.{Failure, Success, Try}
 
+@PactProviderTest
 class ArticleApiProviderCDCTest extends IntegrationSuite with TestEnvironment {
 
   import com.itv.scalapact.circe09._

@@ -10,5 +10,5 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 @org.scalatest.TagAnnotation
 @Retention(RUNTIME)
 @Target({METHOD, TYPE})
-public @interface IntegrationTest {
+public @interface PactProviderTest {
 }
