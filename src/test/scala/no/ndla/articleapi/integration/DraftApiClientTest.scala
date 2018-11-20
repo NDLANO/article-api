@@ -42,6 +42,7 @@ class DraftApiClientTest extends UnitSuite with TestEnvironment {
       .addInteraction(
         interaction
           .description("Fetching agreement with id 1")
+          .given("agreements")
           .uponReceiving("/draft-api/v1/agreements/1")
           .willRespondWith(
             status = 200,
