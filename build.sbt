@@ -31,17 +31,24 @@ lazy val commonSettings = Seq(
   scalaVersion := Scalaversion
 )
 
-import com.itv.scalapact.plugin._
-val pactVersion = "2.3.3"
+val pactVersion = "2.3.3-NDLA"
 
 val pactTestFramework = Seq(
   "com.itv" %% "scalapact-circe-0-9" % pactVersion % "test",
   "com.itv" %% "scalapact-http4s-0-18" % pactVersion % "test",
-  "com.itv" %% "scalapact-scalatest" % pactVersion % "test",
-  "com.github.tomakehurst" % "wiremock" % "2.19.0" % "test"
+  "com.itv" %% "scalapact-scalatest" % pactVersion % "test"
 )
 
+lazy val PactTest = config("pact") extend (Test)
 lazy val article_api = (project in file("."))
+  .configs(PactTest)
+  .settings(
+    inConfig(PactTest)(Defaults.testTasks),
+    // Since pactTest gets its options from Test configuration, the 'Test' (default) config won't run PactProviderTests
+    // To run all tests use pact config ('sbt pact:test')
+    Test / testOptions := Seq(Tests.Argument("-l", "PactProviderTest")),
+    PactTest / testOptions := Seq.empty
+  )
   .settings(commonSettings: _*)
   .settings(
     name := "article-api",
@@ -84,7 +91,7 @@ lazy val article_api = (project in file("."))
       "org.mockito" % "mockito-core" % MockitoVersion % "test",
       "org.flywaydb" % "flyway-core" % FlywayVersion,
       "io.lemonlabs" %% "scala-uri" % "1.3.1"
-    )
+    ) ++ pactTestFramework
   )
   .enablePlugins(DockerPlugin)
   .enablePlugins(JettyPlugin)
@@ -119,12 +126,6 @@ fmt := {
   (Test / scalafmt).value
   (Compile / scalafmtSbt).value
 }
-
-// Don't run PactProvider tests by default.
-// This is because if no test is found the test will fail.
-// Failing tests prevents consumer tests from getting published.
-// These can be ran with sbt "testOnly -- -n no.ndla.tag.PactProviderTest"
-Test / testOptions += Tests.Argument("-l", "no.ndla.tag.PactProviderTest")
 
 // Make the docker task depend on the assembly task, which generates a fat JAR file
 docker := (docker dependsOn assembly).value

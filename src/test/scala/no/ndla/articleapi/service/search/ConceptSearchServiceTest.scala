@@ -15,7 +15,6 @@ import no.ndla.articleapi.ArticleApiProperties.DefaultPageSize
 import no.ndla.articleapi._
 import no.ndla.articleapi.integration.{Elastic4sClientFactory, NdlaE4sClient}
 import no.ndla.articleapi.model.domain._
-import no.ndla.tag.PactProviderTest
 import org.joda.time.DateTime
 
 import scala.util.Success

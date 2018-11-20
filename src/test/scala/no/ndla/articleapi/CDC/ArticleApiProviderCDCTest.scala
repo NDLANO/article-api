@@ -11,17 +11,18 @@ import java.io.IOException
 import java.net.ServerSocket
 
 import com.itv.scalapact.ScalaPactVerify._
-import com.itv.scalapact.shared.{BrokerPublishData, ProviderStateResult}
+import com.itv.scalapact.shared.{BrokerPublishData, ProviderStateResult, TaggedConsumer}
 import no.ndla.articleapi._
-import no.ndla.tag.PactProviderTest
 import org.eclipse.jetty.server.Server
+import org.scalatest.Tag
 import scalikejdbc._
 
 import scala.sys.process._
 import scala.util.Properties.{envOrElse, envOrNone}
 import scala.util.{Failure, Success, Try}
 
-@PactProviderTest
+object PactProviderTest extends Tag("PactProviderTest")
+
 class ArticleApiProviderCDCTest extends IntegrationSuite with TestEnvironment {
 
   import com.itv.scalapact.circe09._
@@ -103,15 +104,19 @@ class ArticleApiProviderCDCTest extends IntegrationSuite with TestEnvironment {
       }
     } yield s"$shortCommit$dirtyness"
 
-  test("That pacts from broker are working.") {
+  test("That pacts from broker are working.", PactProviderTest) {
     val isTravis = envOrElse("TRAVIS", "false").toBoolean
     val publishResults = if (isTravis) {
       getGitVersion.map(version => BrokerPublishData(version, None)).toOption
     } else { None }
 
+    val consumersToVerify = List(
+      TaggedConsumer("draft-api", List("cdc"))
+    )
+
     val broker = for {
       url <- envOrNone("PACT_BROKER_URL")
-      broker <- pactBroker(url, "article-api", List("draft-api"), publishResults)
+      broker <- pactBrokerWithTags(url, "article-api", publishResults, consumersToVerify)
     } yield broker
 
     broker match {
