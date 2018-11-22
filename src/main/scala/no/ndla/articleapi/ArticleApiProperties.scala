@@ -24,8 +24,6 @@ object ArticleApiProperties extends LazyLogging {
   val RoleWithWriteAccess = "articles:write"
   val DraftRoleWithWriteAccess = "drafts:write"
 
-  val SecretsFile = "article-api.secrets"
-
   val ApplicationPort: Int = propOrElse("APPLICATION_PORT", "80").toInt
   val ContactEmail = "christergundersen@ndla.no"
 
@@ -127,9 +125,13 @@ object ArticleApiProperties extends LazyLogging {
     s"//players.brightcove.net/$NDLABrightcoveAccountId/${NDLABrightcovePlayerId}_default/index.min.js"
   val NRKVideoScriptUrl = Seq("//www.nrk.no/serum/latest/js/video_embed.js", "//nrk.no/serum/latest/js/video_embed.js")
 
-  lazy val secrets: Map[String, Option[String]] = readSecrets(SecretsFile) match {
-    case Success(values)    => values
-    case Failure(exception) => throw new RuntimeException(s"Unable to load remote secrets from $SecretsFile", exception)
+  lazy val secrets = {
+    val SecretsFile = "article-api.secrets"
+    readSecrets(SecretsFile) match {
+      case Success(values) => values
+      case Failure(exception) =>
+        throw new RuntimeException(s"Unable to load remote secrets from $SecretsFile", exception)
+    }
   }
 
   def booleanProp(key: String): Boolean = prop(key).toBoolean
