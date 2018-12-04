@@ -111,7 +111,7 @@ class ArticleApiProviderCDCTest extends IntegrationSuite with TestEnvironment {
     } else { None }
 
     val consumersToVerify = List(
-      TaggedConsumer("draft-api", List("cdc"))
+      TaggedConsumer("draft-api", List("master"))
     )
 
     val broker = for {
