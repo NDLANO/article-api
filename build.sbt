@@ -54,7 +54,7 @@ lazy val article_api = (project in file("."))
     name := "article-api",
     javacOptions ++= Seq("-source", "1.8", "-target", "1.8"),
     scalacOptions := Seq("-target:jvm-1.8", "-unchecked", "-deprecation", "-feature"),
-    libraryDependencies ++= pactTestFramework ++ Seq(
+    libraryDependencies ++= Seq(
       "ndla" %% "network" % "0.36",
       "ndla" %% "mapping" % "0.10",
       "ndla" %% "validation" % "0.28",

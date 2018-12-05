@@ -106,7 +106,8 @@ class ArticleApiProviderCDCTest extends IntegrationSuite with TestEnvironment {
 
   test("That pacts from broker are working.", PactProviderTest) {
     val isTravis = envOrElse("TRAVIS", "false").toBoolean
-    val publishResults = if (isTravis) {
+    val isPullRequest = envOrElse("TRAVIS_PULL_REQUEST", "false").toBoolean
+    val publishResults = if (isTravis && !isPullRequest) {
       getGitVersion.map(version => BrokerPublishData(version, None)).toOption
     } else { None }
 

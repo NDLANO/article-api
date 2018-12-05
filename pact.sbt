@@ -9,5 +9,9 @@ pactContractTags := Seq(
   sys.env.getOrElse(
     "TRAVIS_BRANCH",
     git.gitCurrentBranch.value
-  ))
+  ) + sys.env
+    .get("TRAVIS_PULL_REQUEST_BRANCH")
+    .map(prBranch => s"-from-$prBranch")
+    .getOrElse("")
+)
 pactContractVersion := ("git rev-parse --short HEAD" !!).trim
