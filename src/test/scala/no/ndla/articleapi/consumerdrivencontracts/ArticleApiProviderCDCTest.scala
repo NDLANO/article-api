@@ -5,7 +5,7 @@
  * See LICENSE
  */
 
-package no.ndla.articleapi.CDC
+package no.ndla.articleapi.consumerdrivencontracts
 
 import java.io.IOException
 import java.net.ServerSocket
