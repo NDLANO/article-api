@@ -79,14 +79,6 @@ trait InternController {
       }
     }
 
-    post("/id/article/allocate/?") {
-      authRole.assertHasDraftWritePermission()
-
-      val externalIds = paramAsListOfString("external-id")
-      val externalSubjectId = paramAsListOfString("external-subject-id")
-      ArticleIdV2(writeService.allocateArticleId(externalIds, externalSubjectId.toSet))
-    }
-
     post("/id/concept/allocate/?") {
       authRole.assertHasDraftWritePermission()
       val externalIds = paramAsListOfString("external-id")
