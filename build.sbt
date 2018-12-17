@@ -31,10 +31,10 @@ lazy val commonSettings = Seq(
   scalaVersion := Scalaversion
 )
 
-// TODO: Change this to official version when scala-pact supports basic auth and tagging
-// https://github.com/ITV/scala-pact/issues/110
-// https://github.com/ITV/scala-pact/pull/111
-val pactVersion = "2.3.3-NDLA-2"
+// TODO: Change this to official version when scala-pact supports basic auth and tag encoding
+// https://github.com/ITV/scala-pact/pull/114
+// https://github.com/ITV/scala-pact/pull/115
+val pactVersion = "2.3.4-NDLA-1"
 
 val pactTestFramework = Seq(
   "com.itv" %% "scalapact-circe-0-9" % pactVersion % "test",
