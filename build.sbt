@@ -1,4 +1,5 @@
 import java.util.Properties
+import com.itv.scalapact.plugin._
 
 val Scalaversion = "2.12.7"
 val Scalatraversion = "2.6.3"
@@ -30,7 +31,27 @@ lazy val commonSettings = Seq(
   scalaVersion := Scalaversion
 )
 
+// TODO: Change this to official version when scala-pact supports basic auth and tagging
+// https://github.com/ITV/scala-pact/issues/110
+// https://github.com/ITV/scala-pact/pull/111
+val pactVersion = "2.3.3-NDLA-2"
+
+val pactTestFramework = Seq(
+  "com.itv" %% "scalapact-circe-0-9" % pactVersion % "test",
+  "com.itv" %% "scalapact-http4s-0-18" % pactVersion % "test",
+  "com.itv" %% "scalapact-scalatest" % pactVersion % "test"
+)
+
+lazy val PactTest = config("pact") extend (Test)
 lazy val article_api = (project in file("."))
+  .configs(PactTest)
+  .settings(
+    inConfig(PactTest)(Defaults.testTasks),
+    // Since pactTest gets its options from Test configuration, the 'Test' (default) config won't run PactProviderTests
+    // To run all tests use pact config ('sbt pact:test')
+    Test / testOptions := Seq(Tests.Argument("-l", "PactProviderTest")),
+    PactTest / testOptions := Seq.empty
+  )
   .settings(commonSettings: _*)
   .settings(
     name := "article-api",
@@ -73,10 +94,11 @@ lazy val article_api = (project in file("."))
       "org.mockito" % "mockito-core" % MockitoVersion % "test",
       "org.flywaydb" % "flyway-core" % FlywayVersion,
       "io.lemonlabs" %% "scala-uri" % "1.3.1"
-    )
+    ) ++ pactTestFramework
   )
   .enablePlugins(DockerPlugin)
   .enablePlugins(JettyPlugin)
+  .enablePlugins(ScalaPactPlugin)
 
 assembly / assemblyJarName := "article-api.jar"
 assembly / mainClass := Some("no.ndla.articleapi.JettyLauncher")
@@ -107,13 +129,6 @@ fmt := {
   (Test / scalafmt).value
   (Compile / scalafmtSbt).value
 }
-
-// Don't run Integration tests in default run on Travis as there is no elasticsearch localhost:9200 there yet.
-// NB this line will unfortunalty override runs on your local commandline so that
-// sbt "test-only -- -n no.ndla.tag.IntegrationTest"
-// will not run unless this line gets commented out or you remove the tag over the test class
-// This should be solved better!
-Test / testOptions += Tests.Argument("-l", "no.ndla.tag.IntegrationTest")
 
 // Make the docker task depend on the assembly task, which generates a fat JAR file
 docker := (docker dependsOn assembly).value

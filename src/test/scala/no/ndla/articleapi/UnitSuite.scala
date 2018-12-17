@@ -28,8 +28,9 @@ abstract class UnitSuite
   setEnv("SEARCH_REGION", "some-region")
   setEnv("RUN_WITH_SIGNED_SEARCH_REQUESTS", "false")
 
-  setEnv("AUDIO_API_URL", "localhost:30014")
-  setEnv("IMAGE_API_URL", "localhost:30001")
+  setEnv("AUDIO_API_HOST", "localhost:30014")
+  setEnv("IMAGE_API_HOST", "localhost:30001")
+  setEnv("DRAFT_API_HOST", "localhost:30022")
 
   setEnvIfAbsent("MIGRATION_HOST", "some-host")
   setEnvIfAbsent("MIGRATION_USER", "some-user")
