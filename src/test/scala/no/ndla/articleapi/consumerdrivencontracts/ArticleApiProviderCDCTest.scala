@@ -78,7 +78,6 @@ class ArticleApiProviderCDCTest extends IntegrationSuite with TestEnvironment {
 
   private def setupArticles() =
     (1 to 10)
-      .map(_ => ComponentRegistry.articleRepository.allocateArticleId())
       .map(id => {
         ComponentRegistry.articleRepository
           .updateArticleFromDraftApi(TestData.sampleDomainArticle.copy(id = Some(id)), List(s"1$id"))
