@@ -42,48 +42,53 @@ trait ConceptController {
     val response404 = ResponseMessage(404, "Not found", Some("Error"))
     val response500 = ResponseMessage(500, "Unknown error", Some("Error"))
 
-    private val correlationId = Param("X-Correlation-ID", "User supplied correlation-id. May be omitted.")
-    private val query = Param("query", "Return only concepts with content matching the specified query.")
-    private val language = Param("language", "The ISO 639-1 language code describing language.")
-    private val sort = Param(
+    private val correlationId =
+      Param[Option[String]]("X-Correlation-ID", "User supplied correlation-id. May be omitted.")
+    private val query =
+      Param[Option[String]]("query", "Return only concepts with content matching the specified query.")
+    private val language = Param[Option[String]]("language", "The ISO 639-1 language code describing language.")
+    private val sort = Param[Option[String]](
       "sort",
-      """The sorting used on results.
-             The following are supported: relevance, -relevance, title, -title, lastUpdated, -lastUpdated, id, -id.
+      s"""The sorting used on results.
+             The following are supported: ${Sort.values.mkString(", ")}.
              Default is by -relevance (desc) when query is set, and id (asc) when query is empty.""".stripMargin
     )
-    private val pageNo = Param("page", "The page number of the search hits to display.")
-    private val pageSize = Param("page-size", "The number of search hits to display for each page.")
-    private val conceptId = Param("concept_id", "Id of the concept that is to be fecthed")
-    private val conceptIds = Param(
+    private val pageNo = Param[Option[Int]]("page", "The page number of the search hits to display.")
+    private val pageSize = Param[Option[Int]]("page-size", "The number of search hits to display for each page.")
+    private val conceptId = Param[Option[Long]]("concept_id", "Id of the concept that is to be fecthed")
+    private val conceptIds = Param[Option[Seq[Long]]](
       "ids",
       "Return only concepts that have one of the provided ids. To provide multiple ids, separate by comma (,).")
-    private val fallback = Param("fallback", "Fallback to existing language if language is specified.")
+    private val fallback = Param[Option[Boolean]]("fallback", "Fallback to existing language if language is specified.")
 
-    private def asQueryParam[T: Manifest: NotNothing](param: Param) =
+    private def asQueryParam[T: Manifest: NotNothing](param: Param[T]) =
       queryParam[T](param.paramName).description(param.description)
-    private def asHeaderParam[T: Manifest: NotNothing](param: Param) =
+
+    private def asHeaderParam[T: Manifest: NotNothing](param: Param[T]) =
       headerParam[T](param.paramName).description(param.description)
-    private def asPathParam[T: Manifest: NotNothing](param: Param) =
+
+    private def asPathParam[T: Manifest: NotNothing](param: Param[T]) =
       pathParam[T](param.paramName).description(param.description)
 
-    val getAllConcepts =
-      (apiOperation[ConceptSearchResult]("getAllConcepts")
-        summary "Find concepts"
-        description "Shows all concepts. You can search it too."
-        parameters (
-          asHeaderParam[Option[String]](correlationId),
-          asQueryParam[Option[String]](query),
-          asQueryParam[Option[String]](conceptIds),
-          asQueryParam[Option[String]](language),
-          asQueryParam[Option[Int]](pageNo),
-          asQueryParam[Option[Int]](pageSize),
-          asQueryParam[Option[String]](sort),
-          asQueryParam[Option[Boolean]](fallback)
-      )
-        authorizations "oauth2"
-        responseMessages (response500))
-
-    get("/", operation(getAllConcepts)) {
+    get(
+      "/",
+      operation(
+        apiOperation[ConceptSearchResult]("getAllConcepts")
+          summary "Find concepts"
+          description "Shows all concepts. You can search it too."
+          parameters (
+            asHeaderParam(correlationId),
+            asQueryParam(query),
+            asQueryParam(conceptIds),
+            asQueryParam(language),
+            asQueryParam(pageNo),
+            asQueryParam(pageSize),
+            asQueryParam(sort),
+            asQueryParam(fallback)
+        )
+          authorizations "oauth2"
+          responseMessages response500)
+    ) {
       val query = paramOrNone(this.query.paramName)
       val sort = Sort.valueOf(paramOrDefault(this.sort.paramName, ""))
       val language = paramOrDefault(this.language.paramName, Language.NoLanguage)
@@ -95,18 +100,19 @@ trait ConceptController {
       search(query, sort, language, page, pageSize, idList, fallback)
     }
 
-    val getAllConceptsPost =
-      (apiOperation[ConceptSearchResult]("searchConcepts")
-        summary "Find concepts"
-        description "Shows all concepts. You can search it too."
-        parameters (
-          asHeaderParam[Option[String]](correlationId),
-          bodyParam[ConceptSearchParams]
-      )
-        authorizations "oauth2"
-        responseMessages (response400, response500))
-
-    post("/search/", operation(getAllConceptsPost)) {
+    post(
+      "/search/",
+      operation(
+        apiOperation[ConceptSearchResult]("searchConcepts")
+          summary "Find concepts"
+          description "Shows all concepts. You can search it too."
+          parameters (
+            asHeaderParam(correlationId),
+            bodyParam[ConceptSearchParams]
+        )
+          authorizations "oauth2"
+          responseMessages (response400, response500))
+    ) {
       val searchParams = extract[ConceptSearchParams](request.body)
 
       val query = searchParams.query
@@ -157,19 +163,20 @@ trait ConceptController {
 
     }
 
-    val getConceptById =
-      (apiOperation[String]("getConceptById")
-        summary "Fetch specified concept"
-        description "Shows the concept for the specified id."
-        parameters (
-          asHeaderParam[Option[String]](correlationId),
-          asPathParam[Long](conceptId),
-          asQueryParam[Option[Boolean]](fallback)
-      )
-        authorizations "oauth2"
-        responseMessages (response404, response500))
-
-    get("/:concept_id", operation(getConceptById)) {
+    get(
+      "/:concept_id",
+      operation(
+        apiOperation[String]("getConceptById")
+          summary "Fetch specified concept"
+          description "Shows the concept for the specified id."
+          parameters (
+            asHeaderParam(correlationId),
+            asPathParam(conceptId),
+            asQueryParam(fallback)
+        )
+          authorizations "oauth2"
+          responseMessages (response404, response500))
+    ) {
       val conceptId = long(this.conceptId.paramName)
       val language = paramOrDefault(this.language.paramName, Language.NoLanguage)
       val fallback = booleanOrDefault(this.fallback.paramName, default = false)
