@@ -10,21 +10,14 @@ package no.ndla.articleapi.controller
 
 import no.ndla.articleapi.ArticleApiProperties
 import no.ndla.articleapi.auth.Role
-import no.ndla.articleapi.model.api.{
-  Concept,
-  ConceptSearchParams,
-  ConceptSearchResult,
-  Error,
-  NewConcept,
-  UpdatedConcept
-}
+import no.ndla.articleapi.model.api.{ConceptSearchParams, ConceptSearchResult, Error}
 import no.ndla.articleapi.model.domain.{Language, Sort}
-import no.ndla.articleapi.service.{ReadService, WriteService}
 import no.ndla.articleapi.service.search.ConceptSearchService
+import no.ndla.articleapi.service.{ReadService, WriteService}
 import org.json4s.{DefaultFormats, Formats}
-import org.scalatra.NotFound
 import org.scalatra.swagger.{ResponseMessage, Swagger, SwaggerSupport}
 import org.scalatra.util.NotNothing
+
 import scala.util.{Failure, Success}
 
 trait ConceptController {
@@ -55,7 +48,7 @@ trait ConceptController {
     )
     private val pageNo = Param[Option[Int]]("page", "The page number of the search hits to display.")
     private val pageSize = Param[Option[Int]]("page-size", "The number of search hits to display for each page.")
-    private val conceptId = Param[Option[Long]]("concept_id", "Id of the concept that is to be fecthed")
+    private val conceptId = Param[Long]("concept_id", "Id of the concept that is to be fetched.")
     private val conceptIds = Param[Option[Seq[Long]]](
       "ids",
       "Return only concepts that have one of the provided ids. To provide multiple ids, separate by comma (,).")

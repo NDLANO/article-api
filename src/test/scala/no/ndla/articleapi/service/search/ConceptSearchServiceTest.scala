@@ -382,6 +382,10 @@ class ConceptSearchServiceTest extends UnitSuite with TestEnvironment {
     search.results(2).title.language should equal("en")
   }
 
+  test("That scrolling works as expected") {
+    ???
+  }
+
   def blockUntil(predicate: () => Boolean) = {
     var backoff = 0
     var done = false

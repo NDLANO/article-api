@@ -713,6 +713,10 @@ class ArticleSearchServiceTest extends UnitSuite with TestEnvironment {
       ))
   }
 
+  test("That scrolling works as expected") {
+    ???
+  }
+
   def blockUntil(predicate: () => Boolean): Unit = {
     var backoff = 0
     var done = false

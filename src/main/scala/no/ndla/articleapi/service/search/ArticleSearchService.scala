@@ -13,7 +13,11 @@ import java.util.concurrent.Executors
 import com.sksamuel.elastic4s.http.ElasticDsl._
 import com.sksamuel.elastic4s.searches.queries.BoolQuery
 import com.typesafe.scalalogging.LazyLogging
-import no.ndla.articleapi.ArticleApiProperties
+import no.ndla.articleapi.ArticleApiProperties.{
+  ElasticSearchScrollKeepAlive,
+  ElasticSearchIndexMaxResultWindow,
+  ArticleSearchIndex
+}
 import no.ndla.articleapi.integration.Elastic4sClient
 import no.ndla.articleapi.model.api
 import no.ndla.articleapi.model.api.{ResultWindowTooLargeException, SearchResultV2}
@@ -31,7 +35,7 @@ trait ArticleSearchService {
   class ArticleSearchService extends LazyLogging with SearchService[api.ArticleSummaryV2] {
     private val noCopyright = boolQuery().not(termQuery("license", License.Copyrighted.toString))
 
-    override val searchIndex: String = ArticleApiProperties.ArticleSearchIndex
+    override val searchIndex: String = ArticleSearchIndex
 
     override def hitToApiModel(hit: String, language: String): api.ArticleSummaryV2 = {
       converterService.hitAsArticleSummaryV2(hit, language)
@@ -113,20 +117,24 @@ trait ArticleSearchService {
 
       val (startAt, numResults) = getStartAtAndNumResults(page, pageSize)
       val requestedResultWindow = pageSize * page
-      if (requestedResultWindow > ArticleApiProperties.ElasticSearchIndexMaxResultWindow) {
+      if (requestedResultWindow > ElasticSearchIndexMaxResultWindow) {
         logger.info(
-          s"Max supported results are ${ArticleApiProperties.ElasticSearchIndexMaxResultWindow}, user requested $requestedResultWindow")
+          s"Max supported results are $ElasticSearchIndexMaxResultWindow, user requested $requestedResultWindow")
         Failure(ResultWindowTooLargeException())
       } else {
 
-        val searchToExec = search(searchIndex)
+        val searchToExecute = search(searchIndex)
           .size(numResults)
           .from(startAt)
           .query(filteredSearch)
           .highlighting(highlight("*"))
           .sortBy(getSortDefinition(sort, searchLanguage))
 
-        e4sClient.execute(searchToExec) match {
+        // Only add scroll param if it is first page
+        val searchWithScroll =
+          if (startAt != 0) { searchToExecute } else { searchToExecute.scroll(ElasticSearchScrollKeepAlive) }
+
+        e4sClient.execute(searchWithScroll) match {
           case Success(response) =>
             Success(
               SearchResultV2(

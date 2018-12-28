@@ -11,14 +11,13 @@ package no.ndla.articleapi.controller
 import no.ndla.articleapi.ArticleApiProperties
 import no.ndla.articleapi.auth.{Role, User}
 import no.ndla.articleapi.model.api._
-import no.ndla.articleapi.model.domain.{ArticleType, Language, Sort, ArticleIds}
+import no.ndla.articleapi.model.domain.{ArticleIds, ArticleType, Language, Sort}
 import no.ndla.articleapi.service.search.ArticleSearchService
 import no.ndla.articleapi.service.{ConverterService, ReadService, WriteService}
 import no.ndla.articleapi.validation.ContentValidator
 import org.json4s.{DefaultFormats, Formats}
-import org.scalatra.swagger.{ResponseMessage, Swagger, SwaggerSupport}
 import org.scalatra.NotFound
-import org.scalatra.swagger._
+import org.scalatra.swagger.{ResponseMessage, Swagger, SwaggerSupport}
 import org.scalatra.util.NotNothing
 
 import scala.util.{Failure, Success}
@@ -61,7 +60,7 @@ trait ArticleControllerV2 {
     )
     private val pageNo = Param[Option[Int]]("page", "The page number of the search hits to display.")
     private val pageSize = Param[Option[Int]]("page-size", "The number of search hits to display for each page.")
-    private val articleId = Param[Option[Long]]("article_id", "Id of the article that is to be fecthed")
+    private val articleId = Param[Long]("article_id", "Id of the article that is to be fecthed")
     private val size = Param[Option[Int]]("size", "Limit the number of results to this many elements")
     private val articleTypes = Param[Option[String]](
       "articleTypes",
@@ -69,7 +68,7 @@ trait ArticleControllerV2 {
     private val articleIds = Param[Option[Seq[Long]]](
       "ids",
       "Return only articles that have one of the provided ids. To provide multiple ids, separate by comma (,).")
-    private val deprecatedNodeId = Param[Option[String]]("deprecated_node_id", "Id of deprecated NDLA node")
+    private val deprecatedNodeId = Param[String]("deprecated_node_id", "Id of deprecated NDLA node")
     private val fallback = Param[Option[Boolean]]("fallback", "Fallback to existing language if language is specified.")
 
     private def asQueryParam[T: Manifest: NotNothing](param: Param[T]) =
