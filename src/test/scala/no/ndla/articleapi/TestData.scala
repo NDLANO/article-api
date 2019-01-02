@@ -112,8 +112,8 @@ object TestData {
     Seq(ArticleIntroduction("This is an introduction", "en")),
     Seq(ArticleMetaDescription("meta", "en")),
     Seq.empty,
-    DateTime.now().minusDays(4).toDate,
-    DateTime.now().minusDays(2).toDate,
+    DateTime.now().minusDays(4).withMillisOfSecond(0).toDate,
+    DateTime.now().minusDays(2).withMillisOfSecond(0).toDate,
     "ndalId54321",
     ArticleType.Standard.toString
   )

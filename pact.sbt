@@ -11,6 +11,7 @@ pactContractTags := Seq(
     git.gitCurrentBranch.value
   ) + sys.env
     .get("TRAVIS_PULL_REQUEST_BRANCH")
+    .filter(_.nonEmpty)
     .map(prBranch => s"-from-$prBranch")
     .getOrElse("")
 )

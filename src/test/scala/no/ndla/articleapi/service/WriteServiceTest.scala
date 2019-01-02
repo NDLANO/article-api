@@ -46,29 +46,6 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       .thenAnswer((invocation: InvocationOnMock) => Success(invocation.getArgument[Article](0)))
   }
 
-  test("allocateArticleId should reuse existing id if external id already exists") {
-    val id = 1122: Long
-    when(articleRepository.getIdFromExternalId(any[String])(any[DBSession])).thenReturn(Some(id))
-    service.allocateArticleId(List("123123123"), Set.empty) should equal(id)
-  }
-
-  test("allocateArticleId should allocate new id if no external id is supplied or first time use of external id") {
-    val id = 1122: Long
-    val external = "12312313"
-    when(articleRepository.getIdFromExternalId(any[String])(any[DBSession])).thenReturn(None)
-    when(articleRepository.allocateArticleIdWithExternalIds(any[List[String]], any[Set[String]])(any[DBSession]))
-      .thenReturn(id)
-    service.allocateArticleId(List(external), Set.empty) should equal(id)
-    verify(articleRepository, times(0)).allocateArticleId()
-    verify(articleRepository, times(1)).allocateArticleIdWithExternalIds(List(external), Set.empty)
-
-    reset(articleRepository)
-    when(articleRepository.allocateArticleId()(any[DBSession])).thenReturn(id)
-    service.allocateArticleId(List.empty, Set.empty) should equal(id)
-    verify(articleRepository, times(1)).allocateArticleId()
-    verify(articleRepository, times(0)).allocateArticleIdWithExternalIds(List(external), Set.empty)
-  }
-
   test("allocateConceptId should reuse existing id if external id already exists") {
     val id = 1122: Long
     when(conceptRepository.getIdFromExternalId(any[String])(any[DBSession])).thenReturn(Some(id))

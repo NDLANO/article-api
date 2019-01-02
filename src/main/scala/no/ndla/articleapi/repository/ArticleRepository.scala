@@ -9,10 +9,10 @@
 package no.ndla.articleapi.repository
 
 import com.typesafe.scalalogging.LazyLogging
-import no.ndla.articleapi.ArticleApiProperties
 import no.ndla.articleapi.integration.DataSource
 import no.ndla.articleapi.model.api.NotFoundException
 import no.ndla.articleapi.model.domain.{Article, ArticleIds, ArticleTag}
+import org.json4s.Formats
 import org.json4s.native.JsonMethods._
 import org.json4s.native.Serialization.write
 import org.postgresql.util.PGobject
@@ -25,7 +25,7 @@ trait ArticleRepository {
   val articleRepository: ArticleRepository
 
   class ArticleRepository extends LazyLogging with Repository[Article] {
-    implicit val formats = org.json4s.DefaultFormats + Article.JSonSerializer
+    implicit val formats: Formats = org.json4s.DefaultFormats + Article.JSonSerializer
 
     def updateArticleFromDraftApi(article: Article, externalIds: List[String])(
         implicit session: DBSession = AutoSession): Try[Article] = {
@@ -34,49 +34,27 @@ trait ArticleRepository {
       dataObject.setValue(write(article))
 
       Try {
-        sql"update ${Article.table} set document=${dataObject}, external_id=ARRAY[${externalIds}]::text[], revision=${article.revision} where id=${article.id}".update.apply
+        sql"""update ${Article.table}
+              set document=${dataObject},
+                  external_id=ARRAY[${externalIds}]::text[],
+                  revision=${article.revision}
+              where id=${article.id}
+          """.update.apply
       } match {
         case Success(count) if count == 1 =>
           logger.info(s"Updated article ${article.id}")
           Success(article)
         case Success(_) =>
-          logger.error(s"No article with id ${article.id} exists, recreating...")
+          logger.info(s"No article with id ${article.id} exists, creating...")
           Try {
             sql"""
                   insert into ${Article.table} (id, document, external_id, revision)
                   values (${article.id}, $dataObject, ARRAY[$externalIds]::text[], ${article.revision})
               """.updateAndReturnGeneratedKey().apply
-          } match {
-            case Success(_)  => Success(article)
-            case Failure(ex) => Failure(ex)
-          }
+          }.map(_ => article)
+
         case Failure(ex) => Failure(ex)
       }
-    }
-
-    def allocateArticleId()(implicit session: DBSession = AutoSession): Long = {
-      val startRevision = 0
-
-      val articleId: Long =
-        sql"insert into ${Article.table} (revision) values ($startRevision)".updateAndReturnGeneratedKey().apply
-      logger.info(s"Allocated id for article $articleId")
-      articleId
-    }
-
-    def allocateArticleIdWithExternalIds(externalIds: List[String], externalSubjectId: Set[String])(
-        implicit session: DBSession = AutoSession): Long = {
-      val startRevision = 0
-
-      val articleId: Long =
-        sql"""
-             insert into ${Article.table} (external_id, external_subject_id, revision)
-             values (ARRAY[${externalIds}]::text[], ARRAY[${externalSubjectId}]::text[], $startRevision)
-          """
-          .updateAndReturnGeneratedKey()
-          .apply
-
-      logger.info(s"Allocated id for article $articleId (external ids ${externalIds.mkString(",")})")
-      articleId
     }
 
     def unpublish(articleId: Long)(implicit session: DBSession = AutoSession): Try[Long] = {
