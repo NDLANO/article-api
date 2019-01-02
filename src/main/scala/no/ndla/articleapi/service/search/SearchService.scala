@@ -31,8 +31,6 @@ trait SearchService {
   trait SearchService[T] {
     val searchIndex: String
 
-    // TODO: Does this need to be a part of the children?
-    // TODO: Test highlighting :)
     def scroll(scrollId: String, language: String, fallback: Boolean): Try[SearchResult[T]] =
       e4sClient
         .execute {

@@ -98,7 +98,7 @@ trait SearchConverterService {
     def asApiSearchResultV2(searchResult: SearchResult[ArticleSummaryV2]): SearchResultV2 =
       SearchResultV2(
         searchResult.totalCount,
-        searchResult.page.getOrElse(-1),
+        searchResult.page,
         searchResult.pageSize,
         searchResult.language,
         searchResult.results
@@ -107,7 +107,7 @@ trait SearchConverterService {
     def asApiConceptSearchResult(searchResult: SearchResult[ConceptSummary]): ConceptSearchResult =
       ConceptSearchResult(
         searchResult.totalCount,
-        searchResult.page.getOrElse(-1),
+        searchResult.page,
         searchResult.pageSize,
         searchResult.language,
         searchResult.results

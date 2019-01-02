@@ -166,7 +166,7 @@ class ArticleSearchServiceTest extends UnitSuite with TestEnvironment {
     id = Option(10),
     title = List(ArticleTitle("This article is in english", "en")),
     introduction = List(ArticleIntroduction("Engulsk", "en")),
-    content = List(ArticleContent("<p>Something something <em>english</em> What", "en")),
+    content = List(ArticleContent("<p>Something something <em>english</em> What about", "en")),
     tags = List(ArticleTag(List("englando"), "en")),
     created = today.minusDays(10).toDate,
     updated = today.minusDays(5).toDate,
@@ -732,7 +732,20 @@ class ArticleSearchServiceTest extends UnitSuite with TestEnvironment {
     scroll3.results.map(_.id) should be(expectedIds(3))
     scroll4.results.map(_.id) should be(expectedIds(4))
     scroll5.results.map(_.id) should be(List.empty)
+  }
 
+  test("That highlighting works when scrolling") {
+    val Success(initialSearch) =
+      articleSearchService.matchingQuery("about", List.empty, "all", None, 1, 1, Sort.ByIdAsc, Seq.empty, true)
+    val Success(scroll) = articleSearchService.scroll(initialSearch.scrollId.get, "all", true)
+
+    initialSearch.results.size should be(1)
+    initialSearch.results.head.id should be(10)
+
+    scroll.results.size should be(1)
+    scroll.results.head.id should be(11)
+    scroll.results.head.title.language should be("en")
+    scroll.results.head.title.title should be("Cats")
   }
 
   def blockUntil(predicate: () => Boolean): Unit = {
