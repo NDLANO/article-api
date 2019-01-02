@@ -229,14 +229,14 @@ class ConceptSearchServiceTest extends UnitSuite with TestEnvironment {
 
     val hits1 = page1.results
     page1.totalCount should be(10)
-    page1.page should be(1)
+    page1.page.get should be(1)
     hits1.size should be(2)
     hits1.head.id should be(8)
     hits1.last.id should be(9)
 
     val hits2 = page2.results
     page2.totalCount should be(10)
-    page2.page should be(2)
+    page2.page.get should be(2)
     hits2.size should be(2)
     hits2.head.id should be(1)
     hits2.last.id should be(3)
@@ -382,7 +382,31 @@ class ConceptSearchServiceTest extends UnitSuite with TestEnvironment {
     search.results(2).title.language should equal("en")
   }
 
-  def blockUntil(predicate: () => Boolean) = {
+  test("That scrolling works as expected") {
+    val pageSize = 2
+    val expectedIds = List(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11).sliding(pageSize, pageSize).toList
+
+    val Success(initialSearch) =
+      conceptSearchService.all(List.empty, "all", 1, pageSize, Sort.ByIdAsc, true)
+
+    val Success(scroll1) = conceptSearchService.scroll(initialSearch.scrollId.get, "all", true)
+    val Success(scroll2) = conceptSearchService.scroll(scroll1.scrollId.get, "all", true)
+    val Success(scroll3) = conceptSearchService.scroll(scroll2.scrollId.get, "all", true)
+    val Success(scroll4) = conceptSearchService.scroll(scroll3.scrollId.get, "all", true)
+    val Success(scroll5) = conceptSearchService.scroll(scroll4.scrollId.get, "all", true)
+    val Success(scroll6) = conceptSearchService.scroll(scroll5.scrollId.get, "all", true)
+
+    initialSearch.results.map(_.id) should be(expectedIds.head)
+    scroll1.results.map(_.id) should be(expectedIds(1))
+    scroll2.results.map(_.id) should be(expectedIds(2))
+    scroll3.results.map(_.id) should be(expectedIds(3))
+    scroll4.results.map(_.id) should be(expectedIds(4))
+    scroll5.results.map(_.id) should be(expectedIds(5))
+    scroll6.results.map(_.id) should be(List.empty)
+
+  }
+
+  def blockUntil(predicate: () => Boolean): Unit = {
     var backoff = 0
     var done = false
 

@@ -9,7 +9,6 @@
 package no.ndla.articleapi.controller
 
 import javax.servlet.http.HttpServletRequest
-
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.articleapi.ArticleApiProperties.{CorrelationIdHeader, CorrelationIdKey}
 import no.ndla.articleapi.ComponentRegistry
@@ -22,7 +21,7 @@ import no.ndla.articleapi.model.api.{
   ResultWindowTooLargeException,
   ValidationError
 }
-import no.ndla.articleapi.model.domain.emptySomeToNone
+import no.ndla.articleapi.model.domain.{NdlaSearchException, emptySomeToNone}
 import no.ndla.network.{ApplicationUrl, AuthUser, CorrelationID}
 import no.ndla.validation.{ValidationException, ValidationMessage}
 import org.apache.logging.log4j.ThreadContext
@@ -68,6 +67,10 @@ abstract class NdlaController extends ScalatraServlet with NativeJsonSupport wit
     case _: PSQLException =>
       ComponentRegistry.connectToDatabase()
       InternalServerError(Error(Error.DATABASE_UNAVAILABLE, Error.DATABASE_UNAVAILABLE_DESCRIPTION))
+    case nse: NdlaSearchException
+        if nse.rf.error.rootCause.exists(x =>
+          x.`type` == "search_context_missing_exception" || x.reason == "Cannot parse scroll id") =>
+      BadRequest(body = Error.InvalidSearchContext)
     case t: Throwable =>
       logger.error(Error.GenericError.toString, t)
       InternalServerError(body = Error.GenericError)
@@ -134,6 +137,6 @@ abstract class NdlaController extends ScalatraServlet with NativeJsonSupport wit
     }
   }
 
-  case class Param(paramName: String, description: String)
+  case class Param[T](paramName: String, description: String)(implicit mf: Manifest[T])
 
 }

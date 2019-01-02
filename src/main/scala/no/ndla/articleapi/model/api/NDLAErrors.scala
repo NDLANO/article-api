@@ -33,6 +33,7 @@ object Error {
   val DATABASE_UNAVAILABLE = "DATABASE_UNAVAILABLE"
 
   val VALIDATION_DESCRIPTION = "Validation Error"
+  val INVALID_SEARCH_CONTEXT = "INVALID_SEARCH_CONTEXT"
 
   val GENERIC_DESCRIPTION =
     s"Ooops. Something we didn't anticipate occured. We have logged the error, and will look into it. But feel free to contact ${ArticleApiProperties.ContactEmail} if the error persists."
@@ -42,11 +43,16 @@ object Error {
   val RESOURCE_OUTDATED_DESCRIPTION = "The resource is outdated. Please try fetching before submitting again."
 
   val WINDOW_TOO_LARGE_DESCRIPTION =
-    s"The result window is too large. Fetching pages above ${ArticleApiProperties.ElasticSearchIndexMaxResultWindow} results are unsupported."
+    s"The result window is too large. Fetching pages above ${ArticleApiProperties.ElasticSearchIndexMaxResultWindow} results requires scrolling, see query-parameter 'search-context'."
+
   val DATABASE_UNAVAILABLE_DESCRIPTION = s"Database seems to be unavailable, retrying connection."
+
+  val INVALID_SEARCH_CONTEXT_DESCRIPTION =
+    "The search-context specified was not expected. Please create one by searching from page 1."
 
   val GenericError = Error(GENERIC, GENERIC_DESCRIPTION)
   val IndexMissingError = Error(INDEX_MISSING, INDEX_MISSING_DESCRIPTION)
+  val InvalidSearchContext = Error(INVALID_SEARCH_CONTEXT, INVALID_SEARCH_CONTEXT_DESCRIPTION)
 }
 
 case class NotFoundException(message: String, supportedLanguages: Seq[String] = Seq.empty)

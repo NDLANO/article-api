@@ -10,10 +10,10 @@ package no.ndla.articleapi.controller
 
 import no.ndla.articleapi.model.api._
 import no.ndla.articleapi.model.domain.Sort
+import no.ndla.articleapi.model.search.SearchResult
 import no.ndla.articleapi.{ArticleSwagger, TestData, TestEnvironment, UnitSuite}
-import org.json4s.native.Serialization.write
+import org.mockito.ArgumentMatchers.{eq => eqTo, _}
 import org.mockito.Mockito._
-import org.mockito.Matchers._
 import org.scalatra.test.scalatest.ScalatraFunSuite
 
 import scala.util.{Failure, Success}
@@ -50,6 +50,98 @@ class ConceptControllerTest extends UnitSuite with TestEnvironment with Scalatra
     get(s"/test/one") {
       status should equal(400)
     }
+  }
+
+  test("That scrollId is in header, and not in body") {
+    val scrollId =
+      "DnF1ZXJ5VGhlbkZldGNoCgAAAAAAAAC1Fi1jZU9hYW9EVDlpY1JvNEVhVlJMSFEAAAAAAAAAthYtY2VPYWFvRFQ5aWNSbzRFYVZSTEhRAAAAAAAAALcWLWNlT2Fhb0RUOWljUm80RWFWUkxIUQAAAAAAAAC4Fi1jZU9hYW9EVDlpY1JvNEVhVlJMSFEAAAAAAAAAuRYtY2VPYWFvRFQ5aWNSbzRFYVZSTEhRAAAAAAAAALsWLWNlT2Fhb0RUOWljUm80RWFWUkxIUQAAAAAAAAC9Fi1jZU9hYW9EVDlpY1JvNEVhVlJMSFEAAAAAAAAAuhYtY2VPYWFvRFQ5aWNSbzRFYVZSTEhRAAAAAAAAAL4WLWNlT2Fhb0RUOWljUm80RWFWUkxIUQAAAAAAAAC8Fi1jZU9hYW9EVDlpY1JvNEVhVlJMSFE="
+    val searchResponse = SearchResult[ConceptSummary](
+      0,
+      Some(1),
+      10,
+      "nb",
+      Seq.empty[ConceptSummary],
+      Some(scrollId)
+    )
+    when(
+      conceptSearchService
+        .all(any[List[Long]], any[String], any[Int], any[Int], any[Sort.Value], any[Boolean]))
+      .thenReturn(Success(searchResponse))
+    get(s"/test/") {
+      status should be(200)
+      body.contains(scrollId) should be(false)
+      header("search-context") should be(scrollId)
+    }
+  }
+
+  test("That scrolling uses scroll and not searches normally") {
+    reset(conceptSearchService)
+    val scrollId =
+      "DnF1ZXJ5VGhlbkZldGNoCgAAAAAAAAC1Fi1jZU9hYW9EVDlpY1JvNEVhVlJMSFEAAAAAAAAAthYtY2VPYWFvRFQ5aWNSbzRFYVZSTEhRAAAAAAAAALcWLWNlT2Fhb0RUOWljUm80RWFWUkxIUQAAAAAAAAC4Fi1jZU9hYW9EVDlpY1JvNEVhVlJMSFEAAAAAAAAAuRYtY2VPYWFvRFQ5aWNSbzRFYVZSTEhRAAAAAAAAALsWLWNlT2Fhb0RUOWljUm80RWFWUkxIUQAAAAAAAAC9Fi1jZU9hYW9EVDlpY1JvNEVhVlJMSFEAAAAAAAAAuhYtY2VPYWFvRFQ5aWNSbzRFYVZSTEhRAAAAAAAAAL4WLWNlT2Fhb0RUOWljUm80RWFWUkxIUQAAAAAAAAC8Fi1jZU9hYW9EVDlpY1JvNEVhVlJMSFE="
+    val searchResponse = SearchResult[ConceptSummary](
+      0,
+      Some(1),
+      10,
+      "nb",
+      Seq.empty[ConceptSummary],
+      Some(scrollId)
+    )
+
+    when(conceptSearchService.scroll(anyString, anyString, anyBoolean)).thenReturn(Success(searchResponse))
+
+    get(s"/test?search-context=$scrollId") {
+      status should be(200)
+    }
+
+    verify(conceptSearchService, times(0)).all(any[List[Long]],
+                                               any[String],
+                                               any[Int],
+                                               any[Int],
+                                               any[Sort.Value],
+                                               any[Boolean])
+    verify(conceptSearchService, times(0)).matchingQuery(any[String],
+                                                         any[List[Long]],
+                                                         any[String],
+                                                         any[Int],
+                                                         any[Int],
+                                                         any[Sort.Value],
+                                                         any[Boolean])
+    verify(conceptSearchService, times(1)).scroll(eqTo(scrollId), any[String], any[Boolean])
+  }
+
+  test("That scrolling with POST uses scroll and not searches normally") {
+    reset(conceptSearchService)
+    val scrollId =
+      "DnF1ZXJ5VGhlbkZldGNoCgAAAAAAAAC1Fi1jZU9hYW9EVDlpY1JvNEVhVlJMSFEAAAAAAAAAthYtY2VPYWFvRFQ5aWNSbzRFYVZSTEhRAAAAAAAAALcWLWNlT2Fhb0RUOWljUm80RWFWUkxIUQAAAAAAAAC4Fi1jZU9hYW9EVDlpY1JvNEVhVlJMSFEAAAAAAAAAuRYtY2VPYWFvRFQ5aWNSbzRFYVZSTEhRAAAAAAAAALsWLWNlT2Fhb0RUOWljUm80RWFWUkxIUQAAAAAAAAC9Fi1jZU9hYW9EVDlpY1JvNEVhVlJMSFEAAAAAAAAAuhYtY2VPYWFvRFQ5aWNSbzRFYVZSTEhRAAAAAAAAAL4WLWNlT2Fhb0RUOWljUm80RWFWUkxIUQAAAAAAAAC8Fi1jZU9hYW9EVDlpY1JvNEVhVlJMSFE="
+    val searchResponse = SearchResult[ConceptSummary](
+      0,
+      Some(1),
+      10,
+      "nb",
+      Seq.empty[ConceptSummary],
+      Some(scrollId)
+    )
+
+    when(conceptSearchService.scroll(anyString, anyString, anyBoolean)).thenReturn(Success(searchResponse))
+
+    post(s"/test/search/?search-context=$scrollId") {
+      status should be(200)
+    }
+
+    verify(conceptSearchService, times(0)).all(any[List[Long]],
+                                               any[String],
+                                               any[Int],
+                                               any[Int],
+                                               any[Sort.Value],
+                                               any[Boolean])
+    verify(conceptSearchService, times(0)).matchingQuery(any[String],
+                                                         any[List[Long]],
+                                                         any[String],
+                                                         any[Int],
+                                                         any[Int],
+                                                         any[Sort.Value],
+                                                         any[Boolean])
+    verify(conceptSearchService, times(1)).scroll(eqTo(scrollId), any[String], any[Boolean])
   }
 
 }
