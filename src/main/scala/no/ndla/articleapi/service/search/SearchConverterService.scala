@@ -9,7 +9,13 @@
 package no.ndla.articleapi.service.search
 
 import com.typesafe.scalalogging.LazyLogging
-import no.ndla.articleapi.model.api.{ArticleV2 => ApiArticleV2}
+import no.ndla.articleapi.model.api.{
+  ArticleSummaryV2,
+  ConceptSearchResult,
+  ConceptSummary,
+  SearchResultV2,
+  ArticleV2 => ApiArticleV2
+}
 import no.ndla.articleapi.model.domain._
 import no.ndla.articleapi.model.search._
 import no.ndla.articleapi.service.ConverterService
@@ -89,5 +95,22 @@ trait SearchConverterService {
       )
     }
 
+    def asApiSearchResultV2(searchResult: SearchResult[ArticleSummaryV2]): SearchResultV2 =
+      SearchResultV2(
+        searchResult.totalCount,
+        searchResult.page.getOrElse(-1),
+        searchResult.pageSize,
+        searchResult.language,
+        searchResult.results
+      )
+
+    def asApiConceptSearchResult(searchResult: SearchResult[ConceptSummary]): ConceptSearchResult =
+      ConceptSearchResult(
+        searchResult.totalCount,
+        searchResult.page.getOrElse(-1),
+        searchResult.pageSize,
+        searchResult.language,
+        searchResult.results
+      )
   }
 }

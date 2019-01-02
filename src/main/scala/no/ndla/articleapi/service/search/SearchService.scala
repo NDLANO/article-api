@@ -14,15 +14,16 @@ import com.sksamuel.elastic4s.http.ElasticDsl._
 import com.sksamuel.elastic4s.http.search.SearchResponse
 import com.sksamuel.elastic4s.searches.sort.{FieldSort, SortOrder}
 import com.typesafe.scalalogging.LazyLogging
-import no.ndla.articleapi.ArticleApiProperties.MaxPageSize
+import no.ndla.articleapi.ArticleApiProperties.{MaxPageSize, ElasticSearchScrollKeepAlive}
 import no.ndla.articleapi.integration.Elastic4sClient
 import no.ndla.articleapi.model.domain
 import no.ndla.articleapi.model.domain._
+import no.ndla.articleapi.model.search.SearchResult
 import no.ndla.articleapi.service.ConverterService
 import org.elasticsearch.ElasticsearchException
 import org.elasticsearch.index.IndexNotFoundException
 
-import scala.util.{Failure, Success}
+import scala.util.{Failure, Success, Try}
 
 trait SearchService {
   this: Elastic4sClient with ConverterService with LazyLogging =>
@@ -30,8 +31,28 @@ trait SearchService {
   trait SearchService[T] {
     val searchIndex: String
 
+    // TODO: Does this need to be a part of the children?
+    // TODO: Test highlighting :)
+    def scroll(scrollId: String, language: String, fallback: Boolean): Try[SearchResult[T]] =
+      e4sClient
+        .execute {
+          searchScroll(scrollId, ElasticSearchScrollKeepAlive)
+        }
+        .map(response => {
+          val hits = getHits(response.result, language, fallback)
+          SearchResult[T](
+            totalCount = response.result.totalHits,
+            page = None,
+            pageSize = response.result.hits.hits.length,
+            language = if (language == "*") Language.AllLanguages else language,
+            results = hits,
+            scrollId = response.result.scrollId
+          )
+        })
+
     /**
       * Returns hit as summary
+      *
       * @param hit as json string
       * @param language language as ISO639 code
       * @return api-model summary of hit
@@ -63,22 +84,22 @@ trait SearchService {
       }
 
       sort match {
-        case (Sort.ByTitleAsc) =>
+        case Sort.ByTitleAsc =>
           language match {
             case "*" | Language.AllLanguages => fieldSort("defaultTitle").order(SortOrder.ASC).missing("_last")
             case _                           => fieldSort(s"title.$sortLanguage.raw").order(SortOrder.ASC).missing("_last")
           }
-        case (Sort.ByTitleDesc) =>
+        case Sort.ByTitleDesc =>
           language match {
             case "*" | Language.AllLanguages => fieldSort("defaultTitle").order(SortOrder.DESC).missing("_last")
             case _                           => fieldSort(s"title.$sortLanguage.raw").order(SortOrder.DESC).missing("_last")
           }
-        case (Sort.ByRelevanceAsc)    => fieldSort("_score").order(SortOrder.ASC)
-        case (Sort.ByRelevanceDesc)   => fieldSort("_score").order(SortOrder.DESC)
-        case (Sort.ByLastUpdatedAsc)  => fieldSort("lastUpdated").order(SortOrder.ASC).missing("_last")
-        case (Sort.ByLastUpdatedDesc) => fieldSort("lastUpdated").order(SortOrder.DESC).missing("_last")
-        case (Sort.ByIdAsc)           => fieldSort("id").order(SortOrder.ASC).missing("_last")
-        case (Sort.ByIdDesc)          => fieldSort("id").order(SortOrder.DESC).missing("_last")
+        case Sort.ByRelevanceAsc    => fieldSort("_score").order(SortOrder.ASC)
+        case Sort.ByRelevanceDesc   => fieldSort("_score").order(SortOrder.DESC)
+        case Sort.ByLastUpdatedAsc  => fieldSort("lastUpdated").order(SortOrder.ASC).missing("_last")
+        case Sort.ByLastUpdatedDesc => fieldSort("lastUpdated").order(SortOrder.DESC).missing("_last")
+        case Sort.ByIdAsc           => fieldSort("id").order(SortOrder.ASC).missing("_last")
+        case Sort.ByIdDesc          => fieldSort("id").order(SortOrder.DESC).missing("_last")
       }
     }
 

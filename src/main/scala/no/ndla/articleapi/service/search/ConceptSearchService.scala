@@ -20,13 +20,12 @@ import no.ndla.articleapi.ArticleApiProperties.{
 }
 import no.ndla.articleapi.integration.Elastic4sClient
 import no.ndla.articleapi.model.api
-import no.ndla.articleapi.model.api.ResultWindowTooLargeException
+import no.ndla.articleapi.model.api.{ConceptSummary, ResultWindowTooLargeException}
 import no.ndla.articleapi.model.domain.Language.getSupportedLanguages
 import no.ndla.articleapi.model.domain._
-import no.ndla.articleapi.model.search.{SearchableConcept, SearchableLanguageFormats}
+import no.ndla.articleapi.model.search.{SearchResult, SearchableConcept, SearchableLanguageFormats}
 import no.ndla.articleapi.service.ConverterService
 import org.json4s._
-import org.json4s.native.JsonMethods._
 import org.json4s.native.Serialization.read
 
 import scala.concurrent.{ExecutionContext, Future}
@@ -41,7 +40,6 @@ trait ConceptSearchService {
     override val searchIndex: String = ConceptSearchIndex
 
     override def hitToApiModel(hitString: String, language: String): api.ConceptSummary = {
-      val parsed = parse(hitString)
       val searchableConcept = read[SearchableConcept](hitString)
 
       val titles = searchableConcept.title.languageValues.map(lv => ConceptTitle(lv.value, lv.language))
@@ -71,7 +69,7 @@ trait ConceptSearchService {
             page: Int,
             pageSize: Int,
             sort: Sort.Value,
-            fallback: Boolean): Try[api.ConceptSearchResult] = {
+            fallback: Boolean): Try[SearchResult[ConceptSummary]] = {
       executeSearch(withIdIn, language, sort, page, pageSize, boolQuery(), fallback)
     }
 
@@ -81,7 +79,7 @@ trait ConceptSearchService {
                       page: Int,
                       pageSize: Int,
                       sort: Sort.Value,
-                      fallback: Boolean): Try[api.ConceptSearchResult] = {
+                      fallback: Boolean): Try[SearchResult[ConceptSummary]] = {
       val language = if (searchLanguage == Language.AllLanguages) "*" else searchLanguage
       val titleSearch = simpleStringQuery(query).field(s"title.$language", 2)
       val contentSearch = simpleStringQuery(query).field(s"content.$language", 1)
@@ -104,7 +102,7 @@ trait ConceptSearchService {
                       page: Int,
                       pageSize: Int,
                       queryBuilder: BoolQuery,
-                      fallback: Boolean): Try[api.ConceptSearchResult] = {
+                      fallback: Boolean): Try[SearchResult[ConceptSummary]] = {
 
       val idFilter = if (withIdIn.isEmpty) None else Some(idsQuery(withIdIn))
 
@@ -112,10 +110,10 @@ trait ConceptSearchService {
         case Language.AllLanguages | "*" =>
           (None, "*")
         case lang =>
-          fallback match {
-            case true  => (None, "*")
-            case false => (Some(existsQuery(s"title.$lang")), lang)
-          }
+          if (fallback)
+            (None, "*")
+          else
+            (Some(existsQuery(s"title.$lang")), lang)
       }
 
       val filters = List(idFilter, languageFilter)
@@ -143,12 +141,13 @@ trait ConceptSearchService {
         e4sClient.execute(searchWithScroll) match {
           case Success(response) =>
             Success(
-              api.ConceptSearchResult(
+              SearchResult(
                 response.result.totalHits,
-                page,
+                Some(page),
                 numResults,
                 if (language == "*") Language.AllLanguages else language,
-                getHits(response.result, language, fallback)
+                getHits(response.result, language, fallback),
+                response.result.scrollId
               ))
           case Failure(ex) => errorHandler(ex)
         }

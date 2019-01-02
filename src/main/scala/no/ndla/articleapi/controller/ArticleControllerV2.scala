@@ -9,14 +9,15 @@
 package no.ndla.articleapi.controller
 
 import no.ndla.articleapi.ArticleApiProperties
+import no.ndla.articleapi.ArticleApiProperties.{ElasticSearchIndexMaxResultWindow, ElasticSearchScrollKeepAlive}
 import no.ndla.articleapi.auth.{Role, User}
 import no.ndla.articleapi.model.api._
 import no.ndla.articleapi.model.domain.{ArticleIds, ArticleType, Language, Sort}
-import no.ndla.articleapi.service.search.ArticleSearchService
+import no.ndla.articleapi.service.search.{ArticleSearchService, SearchConverterService}
 import no.ndla.articleapi.service.{ConverterService, ReadService, WriteService}
 import no.ndla.articleapi.validation.ContentValidator
 import org.json4s.{DefaultFormats, Formats}
-import org.scalatra.NotFound
+import org.scalatra.{NotFound, Ok}
 import org.scalatra.swagger.{ResponseMessage, Swagger, SwaggerSupport}
 import org.scalatra.util.NotNothing
 
@@ -26,6 +27,7 @@ trait ArticleControllerV2 {
   this: ReadService
     with WriteService
     with ArticleSearchService
+    with SearchConverterService
     with ConverterService
     with Role
     with User
@@ -70,6 +72,15 @@ trait ArticleControllerV2 {
       "Return only articles that have one of the provided ids. To provide multiple ids, separate by comma (,).")
     private val deprecatedNodeId = Param[String]("deprecated_node_id", "Id of deprecated NDLA node")
     private val fallback = Param[Option[Boolean]]("fallback", "Fallback to existing language if language is specified.")
+    private val scrollId = Param[Option[String]](
+      "search-context",
+      s"""A search context retrieved from the response header of a previous search.
+         |If search-context is specified, all other query parameters, except '${this.language.paramName}' and '${this.fallback.paramName}' are ignored
+         |For the rest of the parameters the original search of the search-context is used.
+         |The search context may change between scrolls. Always use the most recent one (The context if unused dies after $ElasticSearchScrollKeepAlive).
+         |Used to enable scrolling past $ElasticSearchIndexMaxResultWindow results.
+      """.stripMargin
+    )
 
     private def asQueryParam[T: Manifest: NotNothing](param: Param[T]) =
       queryParam[T](param.paramName).description(param.description)
@@ -79,6 +90,29 @@ trait ArticleControllerV2 {
 
     private def asPathParam[T: Manifest: NotNothing](param: Param[T]) =
       pathParam[T](param.paramName).description(param.description)
+
+    /**
+      * Does a scroll with [[ArticleSearchService]]
+      * If no scrollId is specified execute the function @orFunction in the second parameter list.
+      *
+      * @param orFunction Function to execute if no scrollId in parameters (Usually searching)
+      * @return A Try with scroll result, or the return of the orFunction (Usually a try with a search result).
+      */
+    private def scrollOr(orFunction: => Any): Any = {
+      val language = paramOrDefault(this.language.paramName, Language.AllLanguages)
+      val fallback = booleanOrDefault(this.fallback.paramName, default = false)
+
+      paramOrNone(this.scrollId.paramName) match {
+        case Some(scroll) =>
+          articleSearchService.scroll(scroll, language, fallback) match {
+            case Success(scrollResult) =>
+              val responseHeader = scrollResult.scrollId.map(i => this.scrollId.paramName -> i).toMap
+              Ok(searchConverterService.asApiSearchResultV2(scrollResult), headers = responseHeader)
+            case Failure(ex) => errorHandler(ex)
+          }
+        case None => orFunction
+      }
+    }
 
     get(
       "/tags/",
@@ -145,8 +179,10 @@ trait ArticleControllerV2 {
       }
 
       result match {
-        case Success(searchResult) => searchResult
-        case Failure(ex)           => errorHandler(ex)
+        case Success(searchResult) =>
+          val responseHeader = searchResult.scrollId.map(i => this.scrollId.paramName -> i).toMap
+          Ok(searchConverterService.asApiSearchResultV2(searchResult), headers = responseHeader)
+        case Failure(ex) => errorHandler(ex)
       }
     }
 
@@ -165,22 +201,25 @@ trait ArticleControllerV2 {
             asQueryParam(license),
             asQueryParam(pageNo),
             asQueryParam(pageSize),
-            asQueryParam(sort)
+            asQueryParam(sort),
+            asQueryParam(scrollId)
         )
           authorizations "oauth2"
           responseMessages response500)
     ) {
-      val query = paramOrNone(this.query.paramName)
-      val sort = Sort.valueOf(paramOrDefault(this.sort.paramName, ""))
-      val language = paramOrDefault(this.language.paramName, Language.AllLanguages)
-      val license = paramOrNone(this.license.paramName)
-      val pageSize = intOrDefault(this.pageSize.paramName, ArticleApiProperties.DefaultPageSize)
-      val page = intOrDefault(this.pageNo.paramName, 1)
-      val idList = paramAsListOfLong(this.articleIds.paramName)
-      val articleTypesFilter = paramAsListOfString(this.articleTypes.paramName)
-      val fallback = booleanOrDefault(this.fallback.paramName, default = false)
+      scrollOr {
+        val query = paramOrNone(this.query.paramName)
+        val sort = Sort.valueOf(paramOrDefault(this.sort.paramName, ""))
+        val language = paramOrDefault(this.language.paramName, Language.AllLanguages)
+        val license = paramOrNone(this.license.paramName)
+        val pageSize = intOrDefault(this.pageSize.paramName, ArticleApiProperties.DefaultPageSize)
+        val page = intOrDefault(this.pageNo.paramName, 1)
+        val idList = paramAsListOfLong(this.articleIds.paramName)
+        val articleTypesFilter = paramAsListOfString(this.articleTypes.paramName)
+        val fallback = booleanOrDefault(this.fallback.paramName, default = false)
 
-      search(query, sort, language, license, page, pageSize, idList, articleTypesFilter, fallback)
+        search(query, sort, language, license, page, pageSize, idList, articleTypesFilter, fallback)
+      }
     }
 
     post(
@@ -191,24 +230,27 @@ trait ArticleControllerV2 {
           description "Shows all articles. You can search it too."
           parameters (
             asHeaderParam(correlationId),
+            asQueryParam(scrollId),
             bodyParam[ArticleSearchParams]
         )
           authorizations "oauth2"
           responseMessages (response400, response500))
     ) {
-      val searchParams = extract[ArticleSearchParams](request.body)
+      scrollOr {
+        val searchParams = extract[ArticleSearchParams](request.body)
 
-      val query = searchParams.query
-      val sort = Sort.valueOf(searchParams.sort.getOrElse(""))
-      val language = searchParams.language.getOrElse(Language.AllLanguages)
-      val license = searchParams.license
-      val pageSize = searchParams.pageSize.getOrElse(ArticleApiProperties.DefaultPageSize)
-      val page = searchParams.page.getOrElse(1)
-      val idList = searchParams.idList
-      val articleTypesFilter = searchParams.articleTypes
-      val fallback = searchParams.fallback.getOrElse(false)
+        val query = searchParams.query
+        val sort = Sort.valueOf(searchParams.sort.getOrElse(""))
+        val language = searchParams.language.getOrElse(Language.AllLanguages)
+        val license = searchParams.license
+        val pageSize = searchParams.pageSize.getOrElse(ArticleApiProperties.DefaultPageSize)
+        val page = searchParams.page.getOrElse(1)
+        val idList = searchParams.idList
+        val articleTypesFilter = searchParams.articleTypes
+        val fallback = searchParams.fallback.getOrElse(false)
 
-      search(query, sort, language, license, page, pageSize, idList, articleTypesFilter, fallback)
+        search(query, sort, language, license, page, pageSize, idList, articleTypesFilter, fallback)
+      }
     }
 
     get(

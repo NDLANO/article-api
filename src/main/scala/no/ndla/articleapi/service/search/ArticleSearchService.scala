@@ -14,14 +14,15 @@ import com.sksamuel.elastic4s.http.ElasticDsl._
 import com.sksamuel.elastic4s.searches.queries.BoolQuery
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.articleapi.ArticleApiProperties.{
-  ElasticSearchScrollKeepAlive,
+  ArticleSearchIndex,
   ElasticSearchIndexMaxResultWindow,
-  ArticleSearchIndex
+  ElasticSearchScrollKeepAlive
 }
 import no.ndla.articleapi.integration.Elastic4sClient
 import no.ndla.articleapi.model.api
-import no.ndla.articleapi.model.api.{ResultWindowTooLargeException, SearchResultV2}
+import no.ndla.articleapi.model.api.{ArticleSummaryV2, ResultWindowTooLargeException, SearchResultV2}
 import no.ndla.articleapi.model.domain._
+import no.ndla.articleapi.model.search.SearchResult
 import no.ndla.articleapi.service.ConverterService
 import no.ndla.mapping.License
 
@@ -48,7 +49,7 @@ trait ArticleSearchService {
             pageSize: Int,
             sort: Sort.Value,
             articleTypes: Seq[String],
-            fallback: Boolean): Try[SearchResultV2] = {
+            fallback: Boolean): Try[SearchResult[ArticleSummaryV2]] = {
       executeSearch(withIdIn, language, license, sort, page, pageSize, boolQuery(), articleTypes, fallback)
     }
 
@@ -60,7 +61,7 @@ trait ArticleSearchService {
                       pageSize: Int,
                       sort: Sort.Value,
                       articleTypes: Seq[String],
-                      fallback: Boolean): Try[SearchResultV2] = {
+                      fallback: Boolean): Try[SearchResult[ArticleSummaryV2]] = {
       val language = if (searchLanguage == Language.AllLanguages || fallback) "*" else searchLanguage
       val titleSearch = simpleStringQuery(query).field(s"title.$language", 2)
       val introSearch = simpleStringQuery(query).field(s"introduction.$language", 2)
@@ -91,7 +92,7 @@ trait ArticleSearchService {
                       pageSize: Int,
                       queryBuilder: BoolQuery,
                       articleTypes: Seq[String],
-                      fallback: Boolean): Try[SearchResultV2] = {
+                      fallback: Boolean): Try[SearchResult[ArticleSummaryV2]] = {
 
       val articleTypesFilter =
         if (articleTypes.nonEmpty) Some(constantScoreQuery(termsQuery("articleType", articleTypes))) else None
@@ -106,10 +107,9 @@ trait ArticleSearchService {
         case "" | Language.AllLanguages =>
           (None, "*")
         case lang =>
-          fallback match {
-            case true  => (None, "*")
-            case false => (Some(existsQuery(s"title.$lang")), lang)
-          }
+          if (fallback)
+            (None, "*")
+          else (Some(existsQuery(s"title.$lang")), lang)
       }
 
       val filters = List(licenseFilter, idFilter, languageFilter, articleTypesFilter)
@@ -137,12 +137,13 @@ trait ArticleSearchService {
         e4sClient.execute(searchWithScroll) match {
           case Success(response) =>
             Success(
-              SearchResultV2(
+              SearchResult[ArticleSummaryV2](
                 response.result.totalHits,
-                page,
+                Some(page),
                 numResults,
                 if (language == "*") Language.AllLanguages else language,
-                getHits(response.result, language, fallback)
+                getHits(response.result, language, fallback),
+                response.result.scrollId
               ))
           case Failure(ex) => errorHandler(ex)
         }
