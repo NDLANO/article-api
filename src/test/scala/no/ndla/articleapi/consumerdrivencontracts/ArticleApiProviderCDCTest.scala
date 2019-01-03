@@ -17,6 +17,8 @@ import org.eclipse.jetty.server.Server
 import org.scalatest.Tag
 import scalikejdbc._
 
+import scala.concurrent.duration._
+
 import scala.sys.process._
 import scala.util.Properties.{envOrElse, envOrNone}
 import scala.util.{Failure, Success, Try}
@@ -134,7 +136,7 @@ class ArticleApiProviderCDCTest extends IntegrationSuite with TestEnvironment {
             case "concepts" => deleteSchema(); ProviderStateResult(setupConcepts().getOrElse(false))
             case "empty"    => deleteSchema(); ProviderStateResult(true)
           }
-          .runStrictVerificationAgainst("localhost", serverPort)
+          .runStrictVerificationAgainst("localhost", serverPort, 10.seconds)
       case None => throw new RuntimeException("Could not get broker settings...")
     }
   }
