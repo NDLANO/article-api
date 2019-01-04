@@ -98,7 +98,7 @@ trait ArticleControllerV2 {
       * @param orFunction Function to execute if no scrollId in parameters (Usually searching)
       * @return A Try with scroll result, or the return of the orFunction (Usually a try with a search result).
       */
-    private def scrollOr(orFunction: => Any): Any = {
+    private def scrollSearchOr(orFunction: => Any): Any = {
       val language = paramOrDefault(this.language.paramName, Language.AllLanguages)
       val fallback = booleanOrDefault(this.fallback.paramName, default = false)
 
@@ -207,7 +207,7 @@ trait ArticleControllerV2 {
           authorizations "oauth2"
           responseMessages response500)
     ) {
-      scrollOr {
+      scrollSearchOr {
         val query = paramOrNone(this.query.paramName)
         val sort = Sort.valueOf(paramOrDefault(this.sort.paramName, ""))
         val language = paramOrDefault(this.language.paramName, Language.AllLanguages)
@@ -236,7 +236,7 @@ trait ArticleControllerV2 {
           authorizations "oauth2"
           responseMessages (response400, response500))
     ) {
-      scrollOr {
+      scrollSearchOr {
         val searchParams = extract[ArticleSearchParams](request.body)
 
         val query = searchParams.query
