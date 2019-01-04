@@ -9,7 +9,12 @@
 package no.ndla.articleapi.controller
 
 import no.ndla.articleapi.ArticleApiProperties
-import no.ndla.articleapi.ArticleApiProperties.{ElasticSearchIndexMaxResultWindow, ElasticSearchScrollKeepAlive}
+import no.ndla.articleapi.ArticleApiProperties.{
+  DefaultPageSize,
+  MaxPageSize,
+  ElasticSearchIndexMaxResultWindow,
+  ElasticSearchScrollKeepAlive
+}
 import no.ndla.articleapi.auth.{Role, User}
 import no.ndla.articleapi.model.api._
 import no.ndla.articleapi.model.domain.{ArticleIds, ArticleType, Language, Sort}
@@ -36,7 +41,7 @@ trait ArticleControllerV2 {
 
   class ArticleControllerV2(implicit val swagger: Swagger) extends NdlaController with SwaggerSupport {
     protected implicit override val jsonFormats: Formats = DefaultFormats
-    protected val applicationDescription = "Services for accessing articles"
+    protected val applicationDescription = "Services for accessing articles from NDLA."
 
     // Additional models used in error responses
     registerModel[ValidationError]()
@@ -62,8 +67,11 @@ trait ArticleControllerV2 {
     )
     private val pageNo = Param[Option[Int]]("page", "The page number of the search hits to display.")
     private val pageSize = Param[Option[Int]]("page-size", "The number of search hits to display for each page.")
-    private val articleId = Param[Long]("article_id", "Id of the article that is to be fecthed")
-    private val size = Param[Option[Int]]("size", "Limit the number of results to this many elements")
+    private val articleId = Param[Long]("article_id", "Id of the article that is to be fecthed.")
+    private val size =
+      Param[Option[Int]](
+        "size",
+        s"Limit the number of results to this many elements. Default is $DefaultPageSize and max is $MaxPageSize.")
     private val articleTypes = Param[Option[String]](
       "articleTypes",
       "Return only articles of specific type(s). To provide multiple types, separate by comma (,).")
@@ -71,7 +79,7 @@ trait ArticleControllerV2 {
       "ids",
       "Return only articles that have one of the provided ids. To provide multiple ids, separate by comma (,).")
     private val deprecatedNodeId = Param[String]("deprecated_node_id", "Id of deprecated NDLA node")
-    private val fallback = Param[Option[Boolean]]("fallback", "Fallback to existing language if language is specified.")
+    private val fallback = Param[Option[Boolean]]("fallback", "Fallback to default language if language is specified.")
     private val scrollId = Param[Option[String]](
       "search-context",
       s"""A search context retrieved from the response header of a previous search.
@@ -118,15 +126,14 @@ trait ArticleControllerV2 {
       "/tags/",
       operation(
         apiOperation[ArticleTag]("getTags")
-          summary "Fetch tags used in articles"
-          description "Retrieves a list of all previously used tags in articles"
+          summary "Fetch tags used in articles."
+          description "Retrieves a list of all previously used tags in articles."
           parameters (
             asHeaderParam(correlationId),
             asQueryParam(size),
             asQueryParam(language)
         )
-          responseMessages response500
-          authorizations "oauth2")
+          responseMessages response500)
     ) {
       val defaultSize = 20
       val language = paramOrDefault(this.language.paramName, Language.AllLanguages)
@@ -190,8 +197,8 @@ trait ArticleControllerV2 {
       "/",
       operation(
         apiOperation[List[SearchResultV2]]("getAllArticles")
-          summary "Find articles"
-          description "Shows all articles. You can search it too."
+          summary "Find pubished articles."
+          description "Returns all articles. You can search it too."
           parameters (
             asHeaderParam(correlationId),
             asQueryParam(articleTypes),
@@ -204,7 +211,6 @@ trait ArticleControllerV2 {
             asQueryParam(sort),
             asQueryParam(scrollId)
         )
-          authorizations "oauth2"
           responseMessages response500)
     ) {
       scrollOr {
@@ -226,14 +232,13 @@ trait ArticleControllerV2 {
       "/search/",
       operation(
         apiOperation[List[SearchResultV2]]("getAllArticlesPost")
-          summary "Find articles"
-          description "Shows all articles. You can search it too."
+          summary "Find published articles."
+          description "Search all articles."
           parameters (
             asHeaderParam(correlationId),
             asQueryParam(scrollId),
             bodyParam[ArticleSearchParams]
         )
-          authorizations "oauth2"
           responseMessages (response400, response500))
     ) {
       scrollOr {
@@ -257,15 +262,14 @@ trait ArticleControllerV2 {
       "/:article_id",
       operation(
         apiOperation[List[ArticleV2]]("getArticleById")
-          summary "Fetch specified article"
-          description "Shows the article for the specified id."
+          summary "Fetch specified article."
+          description "Returns the article for the specified id."
           parameters (
             asHeaderParam(correlationId),
             asPathParam(articleId),
             asQueryParam(language),
             asQueryParam(fallback)
         )
-          authorizations "oauth2"
           responseMessages (response404, response500))
     ) {
       val articleId = long(this.articleId.paramName)
@@ -282,13 +286,12 @@ trait ArticleControllerV2 {
       "/external_id/:deprecated_node_id",
       operation(
         apiOperation[ArticleIdV2]("getInternalIdByExternalId")
-          summary "Get id of article corresponding to specified deprecated node id"
-          description "Get internal id of article for a specified ndla_node_id"
+          summary "Get id of article corresponding to specified deprecated node id."
+          description "Get internal id of article for a specified ndla_node_id. Node_id is used as topic and resource id in ndla.no."
           parameters (
             asHeaderParam(correlationId),
             asPathParam(deprecatedNodeId)
         )
-          authorizations "oauth2"
           responseMessages (response404, response500))
     ) {
       val externalId = long(this.deprecatedNodeId.paramName)
@@ -302,13 +305,12 @@ trait ArticleControllerV2 {
       "/external_ids/:deprecated_node_id",
       operation(
         apiOperation[ArticleIds]("getExternalIdsByExternalId")
-          summary "Get all ids related to article corresponding to specified deprecated node id"
-          description "Get internal id as well as all deprecated ndla_node_ids of article for a specified ndla_node_id"
+          summary "Get all ids related to article corresponding to specified deprecated node id."
+          description "Get internal id as well as all deprecated ndla_node_ids of article for a specified ndla_node_id. Node_id is used as topic and resource id in ndla.no"
           parameters (
             asHeaderParam(correlationId),
             asPathParam(deprecatedNodeId)
         )
-          authorizations "oauth2"
           responseMessages (response404, response500))
     ) {
       val externalId = params(this.deprecatedNodeId.paramName)
