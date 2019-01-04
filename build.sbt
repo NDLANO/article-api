@@ -39,7 +39,7 @@ val pactTestFramework = Seq(
   "com.itv" %% "scalapact-scalatest" % pactVersion % "test"
 )
 
-lazy val PactTest = config("pact") extend (Test)
+lazy val PactTest = config("pact") extend Test
 lazy val article_api = (project in file("."))
   .configs(PactTest)
   .settings(
@@ -57,7 +57,7 @@ lazy val article_api = (project in file("."))
     libraryDependencies ++= Seq(
       "ndla" %% "network" % "0.36",
       "ndla" %% "mapping" % "0.10",
-      "ndla" %% "validation" % "0.29",
+      "ndla" %% "validation" % "0.30",
       "joda-time" % "joda-time" % "2.10",
       "org.scalatra" %% "scalatra" % Scalatraversion,
       "org.eclipse.jetty" % "jetty-webapp" % Jettyversion % "container;compile",
