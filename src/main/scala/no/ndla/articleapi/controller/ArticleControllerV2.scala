@@ -79,7 +79,7 @@ trait ArticleControllerV2 {
       "ids",
       "Return only articles that have one of the provided ids. To provide multiple ids, separate by comma (,).")
     private val deprecatedNodeId = Param[String]("deprecated_node_id", "Id of deprecated NDLA node")
-    private val fallback = Param[Option[Boolean]]("fallback", "Fallback to default language if language is specified.")
+    private val fallback = Param[Option[Boolean]]("fallback", "Fallback to existing language if language is specified.")
     private val scrollId = Param[Option[String]](
       "search-context",
       s"""A search context retrieved from the response header of a previous search.
@@ -287,7 +287,7 @@ trait ArticleControllerV2 {
       operation(
         apiOperation[ArticleIdV2]("getInternalIdByExternalId")
           summary "Get id of article corresponding to specified deprecated node id."
-          description "Get internal id of article for a specified ndla_node_id. Node_id is used as topic and resource id in ndla.no."
+          description "Get internal id of article for a specified ndla_node_id."
           parameters (
             asHeaderParam(correlationId),
             asPathParam(deprecatedNodeId)
