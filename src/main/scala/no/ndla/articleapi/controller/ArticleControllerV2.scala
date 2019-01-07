@@ -197,7 +197,7 @@ trait ArticleControllerV2 {
       "/",
       operation(
         apiOperation[List[SearchResultV2]]("getAllArticles")
-          summary "Find pubished articles."
+          summary "Find published articles."
           description "Returns all articles. You can search it too."
           parameters (
             asHeaderParam(correlationId),
