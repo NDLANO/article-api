@@ -9,7 +9,12 @@
 package no.ndla.articleapi.controller
 
 import no.ndla.articleapi.ArticleApiProperties
-import no.ndla.articleapi.ArticleApiProperties.{ElasticSearchIndexMaxResultWindow, ElasticSearchScrollKeepAlive}
+import no.ndla.articleapi.ArticleApiProperties.{
+  DefaultPageSize,
+  MaxPageSize,
+  ElasticSearchIndexMaxResultWindow,
+  ElasticSearchScrollKeepAlive
+}
 import no.ndla.articleapi.auth.Role
 import no.ndla.articleapi.model.api.{ConceptSearchParams, ConceptSearchResult, Error}
 import no.ndla.articleapi.model.domain.{Language, Sort}
@@ -49,7 +54,9 @@ trait ConceptController {
              Default is by -relevance (desc) when query is set, and id (asc) when query is empty.""".stripMargin
     )
     private val pageNo = Param[Option[Int]]("page", "The page number of the search hits to display.")
-    private val pageSize = Param[Option[Int]]("page-size", "The number of search hits to display for each page.")
+    private val pageSize = Param[Option[Int]](
+      "page-size",
+      s"The number of search hits to display for each page. Defaults to $DefaultPageSize and max is $MaxPageSize.")
     private val conceptId = Param[Long]("concept_id", "Id of the concept that is to be fetched.")
     private val conceptIds = Param[Option[Seq[Long]]](
       "ids",
@@ -114,7 +121,6 @@ trait ConceptController {
             asQueryParam(fallback),
             asQueryParam(scrollId)
         )
-          authorizations "oauth2"
           responseMessages response500)
     ) {
       scrollSearchOr {
@@ -134,14 +140,13 @@ trait ConceptController {
       "/search/",
       operation(
         apiOperation[ConceptSearchResult]("searchConcepts")
-          summary "Find concepts"
-          description "Shows all concepts. You can search it too."
+          summary "Find concepts."
+          description "Searches all concepts."
           parameters (
             asHeaderParam(correlationId),
             asQueryParam(scrollId),
             bodyParam[ConceptSearchParams]
         )
-          authorizations "oauth2"
           responseMessages (response400, response500))
     ) {
       scrollSearchOr {
@@ -208,7 +213,6 @@ trait ConceptController {
             asPathParam(conceptId),
             asQueryParam(fallback)
         )
-          authorizations "oauth2"
           responseMessages (response404, response500))
     ) {
       val conceptId = long(this.conceptId.paramName)

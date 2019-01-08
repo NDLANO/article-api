@@ -21,7 +21,7 @@ object ArticleApiInfo {
 
   val apiInfo = ApiInfo(
     "Article API",
-    "Services for accessing articles and concepts",
+    "Services for accessing articles from NDLA.",
     "http://ndla.no",
     ArticleApiProperties.ContactEmail,
     "GPL v3.0",
