@@ -306,7 +306,7 @@ trait ArticleControllerV2 {
       operation(
         apiOperation[ArticleIds]("getExternalIdsByExternalId")
           summary "Get all ids related to article corresponding to specified deprecated node id."
-          description "Get internal id as well as all deprecated ndla_node_ids of article for a specified ndla_node_id. Node_id is used as topic and resource id in ndla.no"
+          description "Get internal id as well as all deprecated ndla_node_ids of article for a specified ndla_node_id."
           parameters (
             asHeaderParam(correlationId),
             asPathParam(deprecatedNodeId)
