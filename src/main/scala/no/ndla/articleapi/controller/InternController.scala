@@ -10,6 +10,7 @@ package no.ndla.articleapi.controller
 
 import java.util.concurrent.{Executors, TimeUnit}
 
+import no.ndla.articleapi.ArticleApiProperties
 import no.ndla.articleapi.auth.{Role, User}
 import no.ndla.articleapi.model.api.{ArticleIdV2, UpdatedConcept}
 import no.ndla.articleapi.model.domain.{Concept, Language}
@@ -25,7 +26,7 @@ import org.scalatra.{BadRequest, InternalServerError, NotFound, Ok}
 
 import scala.concurrent._
 import scala.concurrent.duration.Duration
-import scala.util.{Failure, Success}
+import scala.util.{Failure, Success, Try}
 
 trait InternController {
   this: ReadService
@@ -65,6 +66,43 @@ trait InternController {
           logger.warn(conceptFail.getMessage, conceptFail)
           InternalServerError(conceptFail.getMessage)
       }
+    }
+
+    delete("/index") {
+      implicit val ec = ExecutionContext.fromExecutorService(Executors.newSingleThreadExecutor)
+      def pluralIndex(n: Int) = if (n == 1) "1 index" else s"$n indexes"
+
+      val indexes = for {
+        articleIndex <- Future { articleIndexService.findAllIndexes(ArticleApiProperties.ArticleSearchIndex) }
+        conceptIndex <- Future { conceptIndexService.findAllIndexes(ArticleApiProperties.ConceptSearchIndex) }
+      } yield (articleIndex, conceptIndex)
+
+      val deleteResults: Seq[Try[_]] = Await.result(indexes, Duration(10, TimeUnit.MINUTES)) match {
+        case (Failure(articleFail), _) => halt(status = 500, body = articleFail.getMessage)
+        case (_, Failure(conceptFail)) => halt(status = 500, body = conceptFail.getMessage)
+        case (Success(articleIndexes), Success(conceptIndexes)) => {
+          val articleDeleteResults = articleIndexes.map(index => {
+            logger.info(s"Deleting article index $index")
+            articleIndexService.deleteIndexWithName(Option(index))
+          })
+          val conceptDeleteResults = conceptIndexes.map(index => {
+            logger.info(s"Deleting concept index $index")
+            conceptIndexService.deleteIndexWithName(Option(index))
+          })
+          articleDeleteResults ++ conceptDeleteResults
+        }
+      }
+
+      val (errors, successes) = deleteResults.partition(_.isFailure)
+      if (errors.nonEmpty) {
+        val message = s"Failed to delete ${pluralIndex(errors.length)}: " +
+          s"${errors.map(_.failed.get.getMessage).mkString(", ")}. " +
+          s"${pluralIndex(successes.length)} were deleted successfully."
+        halt(status = 500, body = message)
+      } else {
+        Ok(body = s"Deleted ${pluralIndex(successes.length)}")
+      }
+
     }
 
     get("/ids") {
