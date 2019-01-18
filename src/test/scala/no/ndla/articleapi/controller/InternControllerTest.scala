@@ -70,7 +70,6 @@ class InternControllerTest extends UnitSuite with TestEnvironment with ScalatraF
     verify(conceptIndexService).findAllIndexes(ArticleApiProperties.ConceptSearchIndex)
     verify(conceptIndexService).deleteIndexWithName(Some("index3"))
     verify(conceptIndexService).deleteIndexWithName(Some("index4"))
-    verifyNoMoreInteractions(articleIndexService)
     verifyNoMoreInteractions(conceptIndexService)
   }
 
