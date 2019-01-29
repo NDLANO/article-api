@@ -142,13 +142,7 @@ object ArticleApiProperties extends LazyLogging {
   }
 
   def propOrElse(key: String, default: => String): String = {
-    secrets.get(key).flatten match {
-      case Some(secret) => secret
-      case None =>
-        envOrNone(key) match {
-          case Some(env) => env
-          case None      => default
-        }
-    }
+    val prop = envOrNone(key) orElse secrets.get(key).flatten
+    prop.getOrElse(default)
   }
 }
