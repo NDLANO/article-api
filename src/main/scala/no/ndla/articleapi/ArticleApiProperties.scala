@@ -18,6 +18,8 @@ import scala.util.Properties._
 import scala.util.{Failure, Success}
 
 object ArticleApiProperties extends LazyLogging {
+  val IsKubernetes: Boolean = envOrNone("NDLA_IS_KUBERNETES").isDefined
+
   val Environment: String = propOrElse("NDLA_ENVIRONMENT", "local")
   val ApplicationName = "article-api"
   val Auth0LoginEndpoint = s"https://${AuthUser.getAuth0HostForEnv(Environment)}/authorize"
@@ -142,7 +144,10 @@ object ArticleApiProperties extends LazyLogging {
   }
 
   def propOrElse(key: String, default: => String): String = {
-    val prop = envOrNone(key) orElse secrets.get(key).flatten
-    prop.getOrElse(default)
+    envOrNone(key) match {
+      case Some(prop)            => prop
+      case None if !IsKubernetes => secrets.get(key).flatten.getOrElse(default)
+      case _                     => default
+    }
   }
 }
