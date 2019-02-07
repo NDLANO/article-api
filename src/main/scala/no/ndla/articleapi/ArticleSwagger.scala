@@ -21,7 +21,7 @@ object ArticleApiInfo {
 
   val apiInfo = ApiInfo(
     "Article API",
-    "Searching and fetching all articles published on the NDLA platform.\n" +
+    "Searching and fetching all articles published on the NDLA platform.\n\n" +
       "The Article API provides an endpoint for searching and fetching articles. Different meta-data is attached to the " +
       "returned articles, and typical examples of this are language and license.\n" +
       "Includes endpoints to filter Articles on different levels, and retrieve single articles.",
