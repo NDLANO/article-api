@@ -33,7 +33,7 @@ class R__SetArticleLanguageFromTaxonomy extends BaseJavaMigration {
   case class Keyword(names: List[KeywordName])
   case class KeywordName(data: List[Map[String, String]])
 
-  override def getChecksum: Integer = 0 // Change this to something else if you want to repeat migration
+  override def getChecksum: Integer = 1 // Change this to something else if you want to repeat migration
 
   def fetchResourceFromTaxonomy(endpoint: String): Seq[(Long, Option[Long])] = {
     val url = TaxonomyApiEndpoint + endpoint
@@ -112,7 +112,7 @@ class R__SetArticleLanguageFromTaxonomy extends BaseJavaMigration {
       article <- convertedArticle
     } yield updateArticle(article)
 
-    val resourceIdsList: Seq[(Long, Option[Long])] = fetchResourceFromTaxonomy("subjects/urn:subject:15/resources")
+    val resourceIdsList: Seq[(Long, Option[Long])] = fetchResourceFromTaxonomy("/subjects/urn:subject:15/resources")
     val convertedResourceArticles = resourceIdsList.map(topicIds => convertArticle(topicIds._1, topicIds._2))
 
     for {
