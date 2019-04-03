@@ -7,8 +7,8 @@ import no.ndla.articleapi.{TestEnvironment, UnitSuite}
   *
   * See LICENSE
   */
-class V18__RemoveDummyMetaDescriptionTest extends UnitSuite with TestEnvironment {
-  val migration = new V18__RemoveDummyMetaDescription
+class R__RemoveDummyMetaDescriptionTest extends UnitSuite with TestEnvironment {
+  val migration = new R__RemoveDummyMetaDescription
 
   test("migration should remove Beskrivelse mangler from metadescription") {
     val before =
