@@ -35,10 +35,7 @@ object ArticleApiProperties extends LazyLogging {
   lazy val MetaServer: String = prop(PropertyKeys.MetaServerKey)
   lazy val MetaPort: Int = prop(PropertyKeys.MetaPortKey).toInt
   lazy val MetaSchema: String = prop(PropertyKeys.MetaSchemaKey)
-  val MetaInitialConnections = 3
-  val MetaMaxConnections = 20
-
-  val AttachmentStorageName = s"$Environment.article-attachments.ndla"
+  val MetaMaxConnections = 10
 
   val SearchServer: String = propOrElse("SEARCH_SERVER", "http://search-article-api.ndla-local")
   val SearchRegion: String = propOrElse("SEARCH_REGION", "eu-central-1")
