@@ -16,7 +16,7 @@ import no.ndla.articleapi.ArticleApiProperties
 import no.ndla.articleapi.model.domain.Article
 import no.ndla.articleapi.model.search.{SearchableArticle, SearchableLanguageFormats}
 import no.ndla.articleapi.repository.{ArticleRepository, Repository}
-import org.json4s.DefaultFormats
+import org.json4s.Formats
 import org.json4s.native.Serialization.write
 
 trait ArticleIndexService {
@@ -24,7 +24,7 @@ trait ArticleIndexService {
   val articleIndexService: ArticleIndexService
 
   class ArticleIndexService extends LazyLogging with IndexService[Article, SearchableArticle] {
-    implicit val formats = SearchableLanguageFormats.JSonFormats
+    implicit val formats: Formats = SearchableLanguageFormats.JSonFormats
     override val documentType: String = ArticleApiProperties.ArticleSearchDocument
     override val searchIndex: String = ArticleApiProperties.ArticleSearchIndex
     override val repository: Repository[Article] = articleRepository

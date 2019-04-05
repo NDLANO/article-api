@@ -35,8 +35,8 @@ trait ArticleRepository {
 
       Try {
         sql"""update ${Article.table}
-              set document=${dataObject},
-                  external_id=ARRAY[${externalIds}]::text[],
+              set document=$dataObject,
+                  external_id=ARRAY[$externalIds]::text[],
                   revision=${article.revision}
               where id=${article.id}
           """.update.apply
@@ -81,7 +81,7 @@ trait ArticleRepository {
     def withExternalId(externalId: String): Option[Article] = articleWhere(sqls"$externalId = any (ar.external_id)")
 
     def getIdFromExternalId(externalId: String)(implicit session: DBSession = AutoSession): Option[Long] = {
-      sql"select id from ${Article.table} where ${externalId} = any(external_id)"
+      sql"select id from ${Article.table} where $externalId = any(external_id)"
         .map(rs => rs.long("id"))
         .single
         .apply()

@@ -14,7 +14,7 @@ import no.ndla.articleapi.{TestData, TestEnvironment, UnitSuite}
 import no.ndla.validation.{ValidationException, ValidationMessage}
 import org.mockito.Mockito._
 
-import scala.util.{Failure, Success}
+import scala.util.Failure
 
 class ContentValidatorTest extends UnitSuite with TestEnvironment {
   override val contentValidator = new ContentValidator(allowEmptyLanguageField = false)
@@ -83,7 +83,7 @@ class ContentValidatorTest extends UnitSuite with TestEnvironment {
 
   test("validateArticle should fail if the title exceeds 256 bytes") {
     val article = TestData.sampleArticleWithByNcSa.copy(title = Seq(ArticleTitle("A" * 257, "nb")))
-    val Failure(ex: ValidationException) = contentValidator.validateArticle(article, false)
+    val Failure(ex: ValidationException) = contentValidator.validateArticle(article, allowUnknownLanguage = false)
 
     ex.errors.length should be(1)
     ex.errors.head.message should be("This field exceeds the maximum permitted length of 256 characters")
@@ -240,12 +240,12 @@ class ContentValidatorTest extends UnitSuite with TestEnvironment {
   test("validation should fail if metaImage altText contains html") {
     val article =
       TestData.sampleArticleWithByNcSa.copy(metaImage = Seq(ArticleMetaImage("1234", "<b>Ikke krutte god<b>", "nb")))
-    val Failure(res1: ValidationException) = contentValidator.validateArticle(article, true)
+    val Failure(res1: ValidationException) = contentValidator.validateArticle(article, allowUnknownLanguage = true)
     res1.errors should be(
       Seq(ValidationMessage("metaImage.alt", "The content contains illegal html-characters. No HTML is allowed")))
 
     val article2 = TestData.sampleArticleWithByNcSa.copy(metaImage = Seq(ArticleMetaImage("1234", "Krutte god", "nb")))
-    contentValidator.validateArticle(article2, true).isSuccess should be(true)
+    contentValidator.validateArticle(article2, allowUnknownLanguage = true).isSuccess should be(true)
   }
 
   test("validation should fail if not imported and tags are < 3") {

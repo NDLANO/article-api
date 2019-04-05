@@ -22,10 +22,9 @@ import no.ndla.articleapi.repository.ArticleRepository
 import no.ndla.mapping.ISO639
 import no.ndla.mapping.License.getLicense
 import no.ndla.network.ApplicationUrl
-import no.ndla.validation.{EmbedTagRules, HtmlTagRules, ResourceType, TagAttributes}
 import no.ndla.validation.HtmlTagRules.{jsoupDocumentToString, stringToJsoupDocument}
+import no.ndla.validation.{EmbedTagRules, HtmlTagRules, ResourceType, TagAttributes}
 import org.json4s._
-import org.json4s.native.JsonMethods._
 import org.json4s.native.Serialization.read
 
 import scala.collection.JavaConverters._
@@ -243,6 +242,7 @@ trait ConverterService {
         created = clock.now(),
         updated = clock.now(),
         updatedBy = authUser.userOrClientid(),
+        published = newArticle.published.getOrElse(clock.now()),
         newArticle.articleType
       )
     }
@@ -417,6 +417,7 @@ trait ConverterService {
             article.created,
             article.updated,
             article.updatedBy,
+            article.published,
             article.articleType,
             supportedLanguages
           ))

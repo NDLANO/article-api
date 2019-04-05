@@ -30,7 +30,10 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
 
   test("toDomainArticle convert a NewArticleV2 to Article") {
     service.toDomainArticle(TestData.newArticleV2) should equal(
-      TestData.sampleDomainArticle2.copy(created = clock.now, updated = clock.now, updatedBy = null)
+      TestData.sampleDomainArticle2.copy(created = clock.now(),
+                                         updated = clock.now(),
+                                         updatedBy = null,
+                                         published = clock.now())
     )
   }
 
