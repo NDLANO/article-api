@@ -1,4 +1,5 @@
 package db.migration
+import no.ndla.articleapi.model.domain.ArticleMetaDescription
 import org.flywaydb.core.api.migration.{BaseJavaMigration, Context}
 import org.json4s.Extraction.decompose
 import org.json4s.native.JsonMethods.{compact, parse, render}
@@ -60,11 +61,11 @@ class R__RemoveDummyMetaDescription extends BaseJavaMigration {
       .apply()
   }
 
-  def convertMetaDescription(metaDescription: List[V17__MetaDescription]): JValue = {
+  def convertMetaDescription(metaDescription: List[ArticleMetaDescription]): JValue = {
     val newMetaDescriptions = metaDescription.map(meta => {
       meta.content match {
-        case "Beskrivelse mangler" => V17__MetaDescription("", meta.language)
-        case _                     => V17__MetaDescription(meta.content, meta.language)
+        case "Beskrivelse mangler" => ArticleMetaDescription("", meta.language)
+        case _                     => ArticleMetaDescription(meta.content, meta.language)
       }
     })
     decompose(newMetaDescriptions)
@@ -75,7 +76,7 @@ class R__RemoveDummyMetaDescription extends BaseJavaMigration {
 
     val newArticle = oldArticle.mapField {
       case ("metaDescription", metaDescription: JArray) =>
-        "metaDescription" -> convertMetaDescription(metaDescription.extract[List[V17__MetaDescription]])
+        "metaDescription" -> convertMetaDescription(metaDescription.extract[List[ArticleMetaDescription]])
       case x => x
     }
     compact(render(newArticle))
@@ -90,6 +91,4 @@ class R__RemoveDummyMetaDescription extends BaseJavaMigration {
       .update()
       .apply
   }
-
-  case class V17__MetaDescription(content: String, language: String)
 }
