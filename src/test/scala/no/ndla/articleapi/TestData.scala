@@ -8,13 +8,12 @@
 
 package no.ndla.articleapi
 
-import no.ndla.articleapi.integration._
-import no.ndla.articleapi.model.domain._
 import no.ndla.articleapi.ArticleApiProperties._
-import no.ndla.validation.EmbedTagRules.ResourceHtmlEmbedTag
 import no.ndla.articleapi.model.api
 import no.ndla.articleapi.model.api.{NewConcept, UpdatedConcept}
+import no.ndla.articleapi.model.domain._
 import no.ndla.mapping.License
+import no.ndla.validation.EmbedTagRules.ResourceHtmlEmbedTag
 import org.joda.time.{DateTime, DateTimeZone}
 
 object TestData {
@@ -65,6 +64,7 @@ object TestData {
     created = new DateTime(2017, 1, 1, 12, 15, 32, DateTimeZone.UTC).toDate,
     updated = new DateTime(2017, 4, 1, 12, 15, 32, DateTimeZone.UTC).toDate,
     updatedBy = "me",
+    published = new DateTime(2017, 4, 1, 12, 15, 32, DateTimeZone.UTC).toDate,
     articleType = "standard",
     supportedLanguages = Seq("nb")
   )
@@ -96,6 +96,7 @@ object TestData {
     today,
     today,
     "ndalId54321",
+    today,
     "standard",
     Seq("nb")
   )
@@ -115,6 +116,7 @@ object TestData {
     DateTime.now().minusDays(4).withMillisOfSecond(0).toDate,
     DateTime.now().minusDays(2).withMillisOfSecond(0).toDate,
     "ndalId54321",
+    DateTime.now().minusDays(2).withMillisOfSecond(0).toDate,
     ArticleType.Standard.toString
   )
 
@@ -133,6 +135,7 @@ object TestData {
     today,
     today,
     "ndalId54321",
+    today,
     ArticleType.Standard.toString
   )
 
@@ -151,12 +154,14 @@ object TestData {
     today,
     today,
     "ndalId54321",
+    today,
     ArticleType.Standard.toString
   )
 
   val newArticleV2 = api.NewArticleV2(
     "test",
     "<article><div>test</div></article>",
+    None,
     Seq(),
     None,
     None,
@@ -171,6 +176,7 @@ object TestData {
   val newArticleV2Body = api.NewArticleV2(
     "title",
     "content",
+    None,
     Seq("tag"),
     Some("introductino"),
     Some("metadescription"),
@@ -193,6 +199,7 @@ object TestData {
     1,
     "nb",
     Some("updated title"),
+    None,
     None,
     Seq.empty,
     None,
@@ -230,6 +237,7 @@ object TestData {
     today,
     today,
     "ndalId54321",
+    today,
     ArticleType.Standard.toString
   )
 
@@ -256,6 +264,7 @@ object TestData {
     DateTime.now().minusDays(4).toDate,
     DateTime.now().minusDays(2).toDate,
     "ndalId54321",
+    DateTime.now().minusDays(2).toDate,
     "standard",
     Seq("en")
   )
@@ -316,6 +325,7 @@ object TestData {
       today,
       today,
       "ndalId54321",
+      today,
       ArticleType.Standard.toString
     )
   }

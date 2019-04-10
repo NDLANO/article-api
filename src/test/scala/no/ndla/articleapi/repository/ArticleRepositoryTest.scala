@@ -10,19 +10,18 @@ package no.ndla.articleapi.repository
 
 import java.net.Socket
 
-import no.ndla.articleapi.model.api.NotFoundException
-import no.ndla.articleapi.model.domain
-import no.ndla.articleapi.model.domain.ArticleIds
 import no.ndla.articleapi._
 import no.ndla.articleapi.integration.DataSource
+import no.ndla.articleapi.model.domain
+import no.ndla.articleapi.model.domain.{Article, ArticleIds}
 import scalikejdbc.{ConnectionPool, DataSourceConnectionPool}
 
-import scala.util.{Failure, Success, Try}
+import scala.util.{Success, Try}
 
 class ArticleRepositoryTest extends IntegrationSuite with TestEnvironment {
   var repository: ArticleRepository = new ArticleRepository
 
-  lazy val sampleArticle = TestData.sampleArticleWithByNcSa
+  lazy val sampleArticle: Article = TestData.sampleArticleWithByNcSa
 
   def serverIsListening: Boolean = {
     Try(new Socket(ArticleApiProperties.MetaServer, ArticleApiProperties.MetaPort)) match {

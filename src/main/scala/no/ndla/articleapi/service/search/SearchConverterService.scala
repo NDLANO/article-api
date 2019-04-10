@@ -9,13 +9,7 @@
 package no.ndla.articleapi.service.search
 
 import com.typesafe.scalalogging.LazyLogging
-import no.ndla.articleapi.model.api.{
-  ArticleSummaryV2,
-  ConceptSearchResult,
-  ConceptSummary,
-  SearchResultV2,
-  ArticleV2 => ApiArticleV2
-}
+import no.ndla.articleapi.model.api.{ArticleSummaryV2, ConceptSearchResult, ConceptSummary, SearchResultV2}
 import no.ndla.articleapi.model.domain._
 import no.ndla.articleapi.model.search._
 import no.ndla.articleapi.service.ConverterService

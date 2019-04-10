@@ -12,7 +12,7 @@ import java.util.Date
 
 import no.ndla.articleapi.ArticleApiProperties
 import no.ndla.validation.{ValidationException, ValidationMessage}
-import org.json4s.FieldSerializer
+import org.json4s.{DefaultFormats, FieldSerializer}
 import org.json4s.FieldSerializer._
 import org.json4s.native.Serialization._
 import scalikejdbc._
@@ -35,11 +35,12 @@ case class Article(id: Option[Long],
                    created: Date,
                    updated: Date,
                    updatedBy: String,
+                   published: Date,
                    articleType: String)
     extends Content
 
 object Article extends SQLSyntaxSupport[Article] {
-  implicit val formats = org.json4s.DefaultFormats
+  implicit val formats: DefaultFormats.type = org.json4s.DefaultFormats
   override val tableName = "contentdata"
   override val schemaName = Some(ArticleApiProperties.MetaSchema)
 
@@ -62,20 +63,21 @@ object Article extends SQLSyntaxSupport[Article] {
       meta.created,
       meta.updated,
       meta.updatedBy,
+      meta.published,
       meta.articleType
     )
   }
 
-  val JSonSerializer = FieldSerializer[Article](
+  val JSonSerializer: FieldSerializer[Article] = FieldSerializer[Article](
     ignore("id")
   )
 }
 
 object ArticleType extends Enumeration {
-  val Standard = Value("standard")
-  val TopicArticle = Value("topic-article")
+  val Standard: ArticleType.Value = Value("standard")
+  val TopicArticle: ArticleType.Value = Value("topic-article")
 
-  def all = ArticleType.values.map(_.toString).toSeq
+  def all: Seq[String] = ArticleType.values.map(_.toString).toSeq
   def valueOf(s: String): Option[ArticleType.Value] = ArticleType.values.find(_.toString == s)
 
   def valueOfOrError(s: String): ArticleType.Value =
@@ -92,7 +94,7 @@ case class Concept(id: Option[Long],
     extends Content
 
 object Concept extends SQLSyntaxSupport[Concept] {
-  implicit val formats = org.json4s.DefaultFormats
+  implicit val formats: DefaultFormats.type = org.json4s.DefaultFormats
   override val tableName = "conceptdata"
   override val schemaName = Some(ArticleApiProperties.MetaSchema)
 
@@ -110,7 +112,7 @@ object Concept extends SQLSyntaxSupport[Concept] {
     )
   }
 
-  val JSonSerializer = FieldSerializer[Concept](
+  val JSonSerializer: FieldSerializer[Concept] = FieldSerializer[Concept](
     ignore("id") orElse
       ignore("revision")
   )

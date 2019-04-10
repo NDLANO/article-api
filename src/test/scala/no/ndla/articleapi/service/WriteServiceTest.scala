@@ -8,6 +8,8 @@
 
 package no.ndla.articleapi.service
 
+import java.util.Date
+
 import no.ndla.articleapi.model.domain._
 import no.ndla.articleapi.{TestData, TestEnvironment, UnitSuite}
 import org.joda.time.DateTime
@@ -22,8 +24,8 @@ import scala.util.{Success, Try}
 class WriteServiceTest extends UnitSuite with TestEnvironment {
   override val converterService = new ConverterService
 
-  val today = DateTime.now().toDate
-  val yesterday = DateTime.now().minusDays(1).toDate
+  val today: Date = DateTime.now().toDate
+  val yesterday: Date = DateTime.now().minusDays(1).toDate
   val service = new WriteService()
 
   val articleId = 13
@@ -31,7 +33,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
   val article: Article =
     TestData.sampleArticleWithPublicDomain.copy(id = Some(articleId), created = yesterday, updated = yesterday)
 
-  override def beforeEach() = {
+  override def beforeEach(): Unit = {
     Mockito.reset(articleIndexService, articleRepository)
 
     when(articleRepository.withId(articleId)).thenReturn(Option(article))

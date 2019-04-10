@@ -18,7 +18,7 @@ import org.mockito.invocation.InvocationOnMock
 class ArticleSearchConverterServiceTest extends UnitSuite with TestEnvironment {
 
   override val searchConverterService = new SearchConverterService
-  val sampleArticle = TestData.sampleArticleWithPublicDomain.copy()
+  val sampleArticle: Article = TestData.sampleArticleWithPublicDomain.copy()
 
   val titles = List(
     ArticleTitle("Bokmål tittel", "nb"),
@@ -30,7 +30,7 @@ class ArticleSearchConverterServiceTest extends UnitSuite with TestEnvironment {
     ArticleTitle("Nekonata titolo", "unknown")
   )
 
-  val articles = Seq(
+  val articles: Seq[ArticleContent] = Seq(
     ArticleContent("Bokmål artikkel", "nb"),
     ArticleContent("Nynorsk artikkel", "nn"),
     ArticleContent("English article", "en"),
@@ -40,7 +40,7 @@ class ArticleSearchConverterServiceTest extends UnitSuite with TestEnvironment {
     ArticleContent("Nekonata artikolo", "unknown")
   )
 
-  val articleTags = Seq(
+  val articleTags: Seq[ArticleTag] = Seq(
     ArticleTag(Seq("fugl", "fisk"), "nb"),
     ArticleTag(Seq("fugl", "fisk"), "nn"),
     ArticleTag(Seq("bird", "fish"), "en"),
@@ -50,7 +50,7 @@ class ArticleSearchConverterServiceTest extends UnitSuite with TestEnvironment {
     ArticleTag(Seq("the", "words"), "unknown")
   )
 
-  override def beforeAll() = {
+  override def beforeAll(): Unit = {
     when(converterService.withAgreementCopyright(any[Article])).thenAnswer((invocation: InvocationOnMock) =>
       invocation.getArgument[Article](0))
   }

@@ -33,5 +33,6 @@ case class ArticleV2(
     @(ApiModelProperty @field)(description = "When the article was created") created: Date,
     @(ApiModelProperty @field)(description = "When the article was last updated") updated: Date,
     @(ApiModelProperty @field)(description = "By whom the article was last updated") updatedBy: String,
+    @(ApiModelProperty @field)(description = "When the article was last published") published: Date,
     @(ApiModelProperty @field)(description = "The type of article this is. Possible values are topic-article,standard") articleType: String,
     @(ApiModelProperty @field)(description = "The languages this article supports") supportedLanguages: Seq[String])

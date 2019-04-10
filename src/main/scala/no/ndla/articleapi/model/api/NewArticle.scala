@@ -8,6 +8,8 @@
 
 package no.ndla.articleapi.model.api
 
+import java.util.Date
+
 import org.scalatra.swagger.annotations.{ApiModel, ApiModelProperty}
 
 import scala.annotation.meta.field
@@ -16,6 +18,7 @@ import scala.annotation.meta.field
 case class NewArticleV2(
     @(ApiModelProperty @field)(description = "The title of the article") title: String,
     @(ApiModelProperty @field)(description = "The content of the article") content: String,
+    @(ApiModelProperty @field)(description = "The date the article was last published") published: Option[Date],
     @(ApiModelProperty @field)(description = "Searchable tags") tags: Seq[String],
     @(ApiModelProperty @field)(description = "An introduction") introduction: Option[String],
     @(ApiModelProperty @field)(description = "A meta description") metaDescription: Option[String],
