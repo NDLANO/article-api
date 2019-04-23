@@ -27,7 +27,7 @@ object ArticleApiProperties extends LazyLogging {
   val DraftRoleWithWriteAccess = "drafts:write"
 
   val ApplicationPort: Int = propOrElse("APPLICATION_PORT", "80").toInt
-  val ContactEmail = "christergundersen@ndla.no"
+  val ContactEmail = "support+api@ndla.no"
 
   lazy val MetaUserName: String = prop(PropertyKeys.MetaUserNameKey)
   lazy val MetaPassword: String = prop(PropertyKeys.MetaPasswordKey)
