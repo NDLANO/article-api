@@ -9,6 +9,7 @@ package db.migration
 
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.articleapi.ArticleApiProperties
+import no.ndla.mapping.ISO639
 import org.flywaydb.core.api.migration.{BaseJavaMigration, Context}
 import org.json4s.DefaultFormats
 import org.json4s.Extraction.decompose
@@ -73,26 +74,16 @@ class V19__MigrateConceptsToExternalService extends BaseJavaMigration with LazyL
       .apply()
   }
 
-  def getExplanationIdFromConceptId(oldConceptId: String): Option[Int] = {
-    val idTry = for {
+  def getExplanationIdFromConceptId(oldConceptId: String): Try[List[FetchedConcept]] =
+    for {
       response <- Try(
         Http(s"http://$explanationHost$getConceptByExternalUrl")
           .param("externalId", oldConceptId)
           .timeout(5000, 5000)
           .asString)
       body <- Try(parse(response.body))
-      id <- Try(((body \ "data") \ "id").extract[Int])
-    } yield id
-
-    idTry match {
-      case Failure(ex) =>
-        logger.error(s"Some error happened when fetching new concept id from old id of '$oldConceptId'", ex)
-        None
-      case Success(id) =>
-        logger.error(s"Works for $id")
-        Some(id)
-    }
-  }
+      concepts <- Try((body \ "data").extract[List[FetchedConcept]])
+    } yield concepts
 
   private def convertContent(content: List[V17_Content]): JValue = {
     val contents = content.map(cont => {
@@ -105,8 +96,21 @@ class V19__MigrateConceptsToExternalService extends BaseJavaMigration with LazyL
 
       for (embed <- document.select("embed[data-resource='concept']").asScala) {
         Option(embed.attr("data-content-id")).foreach(oldId => {
-          getExplanationIdFromConceptId(oldId)
-            .foreach(newId => embed.attr("data-content-id", newId.toString))
+          getExplanationIdFromConceptId(oldId) match {
+            case Failure(ex) =>
+              logger.error(s"Some error happened when fetching new concept id from old id of '$oldId'", ex)
+            case Success(concepts) if concepts.size < 1 =>
+              logger.error(s"Could not find concept in new service with old concept id of '$oldId'")
+            case Success(concepts) =>
+              concepts
+                .find(_.language.abbreviation == cont.language)
+                .orElse(
+                  concepts
+                    .sortBy(concept => ISO639.languagePriority.reverse.indexOf(concept.language.abbreviation))
+                    .lastOption
+                )
+                .foreach(concept => embed.attr("data-content-id", concept.id.toString))
+          }
         })
       }
 
@@ -135,6 +139,9 @@ class V19__MigrateConceptsToExternalService extends BaseJavaMigration with LazyL
       .update()
       .apply
   }
+
+  case class FetchedConcept(id: Int, externalId: Option[String], language: LanguageInfo)
+  case class LanguageInfo(name: String, abbreviation: String)
 
   case class V17_Content(content: String, language: String)
 
