@@ -179,6 +179,22 @@ trait ConceptRepository {
         .apply()
     }
 
+    def conceptCount(implicit session: DBSession = AutoSession): Long = {
+      sql"select count(*) from ${Concept.table} where document is not NULL"
+        .map(rs => rs.long("count"))
+        .single()
+        .apply()
+        .getOrElse(0)
+    }
+
+    def getConceptsByPage(pageSize: Int, offset: Int)(implicit session: DBSession = AutoSession): Seq[Concept] = {
+      val ar = Concept.syntax("ar")
+      sql"select ${ar.result.*} from ${Concept.as(ar)} where document is not NULL offset $offset limit $pageSize"
+        .map(Concept(ar))
+        .list
+        .apply()
+    }
+
   }
 
 }
