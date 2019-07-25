@@ -196,6 +196,13 @@ trait InternController {
         case Failure(ex) => errorHandler(ex)
       }
     }
+    get("/dump/concepts") {
+      // Dumps Domain articles
+      val pageNo = intOrDefault("page", 1)
+      val pageSize = intOrDefault("page-size", 250)
+
+      readService.getConceptDomainDump(pageNo, pageSize)
+    }
 
   }
 }
