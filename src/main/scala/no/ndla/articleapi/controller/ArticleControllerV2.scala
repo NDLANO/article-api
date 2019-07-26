@@ -106,11 +106,9 @@ trait ArticleControllerV2 {
       * @param orFunction Function to execute if no scrollId in parameters (Usually searching)
       * @return A Try with scroll result, or the return of the orFunction (Usually a try with a search result).
       */
-    private def scrollSearchOr(orFunction: => Any): Any = {
-      val language = paramOrDefault(this.language.paramName, Language.AllLanguages)
-      val fallback = booleanOrDefault(this.fallback.paramName, default = false)
-
-      paramOrNone(this.scrollId.paramName) match {
+    private def scrollSearchOr(scrollId: Option[String], language: String, fallback: Boolean)(
+        orFunction: => Any): Any = {
+      scrollId match {
         case Some(scroll) =>
           articleSearchService.scroll(scroll, language, fallback) match {
             case Success(scrollResult) =>
@@ -213,16 +211,18 @@ trait ArticleControllerV2 {
         )
           responseMessages response500)
     ) {
-      scrollSearchOr {
+      val scrollId = paramOrNone(this.scrollId.paramName)
+      val language = paramOrDefault(this.language.paramName, Language.AllLanguages)
+      val fallback = booleanOrDefault(this.fallback.paramName, default = false)
+
+      scrollSearchOr(scrollId, language, fallback) {
         val query = paramOrNone(this.query.paramName)
         val sort = Sort.valueOf(paramOrDefault(this.sort.paramName, ""))
-        val language = paramOrDefault(this.language.paramName, Language.AllLanguages)
         val license = paramOrNone(this.license.paramName)
         val pageSize = intOrDefault(this.pageSize.paramName, ArticleApiProperties.DefaultPageSize)
         val page = intOrDefault(this.pageNo.paramName, 1)
         val idList = paramAsListOfLong(this.articleIds.paramName)
         val articleTypesFilter = paramAsListOfString(this.articleTypes.paramName)
-        val fallback = booleanOrDefault(this.fallback.paramName, default = false)
 
         search(query, sort, language, license, page, pageSize, idList, articleTypesFilter, fallback)
       }
@@ -241,18 +241,18 @@ trait ArticleControllerV2 {
         )
           responseMessages (response400, response500))
     ) {
-      scrollSearchOr {
-        val searchParams = extract[ArticleSearchParams](request.body)
+      val searchParams = extract[ArticleSearchParams](request.body)
+      val language = searchParams.language.getOrElse(Language.AllLanguages)
+      val fallback = searchParams.fallback.getOrElse(false)
 
+      scrollSearchOr(searchParams.scrollId, language, fallback) {
         val query = searchParams.query
         val sort = Sort.valueOf(searchParams.sort.getOrElse(""))
-        val language = searchParams.language.getOrElse(Language.AllLanguages)
         val license = searchParams.license
         val pageSize = searchParams.pageSize.getOrElse(ArticleApiProperties.DefaultPageSize)
         val page = searchParams.page.getOrElse(1)
         val idList = searchParams.idList
         val articleTypesFilter = searchParams.articleTypes
-        val fallback = searchParams.fallback.getOrElse(false)
 
         search(query, sort, language, license, page, pageSize, idList, articleTypesFilter, fallback)
       }
