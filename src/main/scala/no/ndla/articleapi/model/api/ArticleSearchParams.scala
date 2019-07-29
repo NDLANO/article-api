@@ -18,4 +18,8 @@ case class ArticleSearchParams(
     @(ApiModelProperty @field)(description = "The sorting used on results. Default is by -relevance.") sort: Option[
       String],
     @(ApiModelProperty @field)(description =
-      "Return all matched articles whether they exist on selected language or not.") fallback: Option[Boolean])
+      "Return all matched articles whether they exist on selected language or not.") fallback: Option[Boolean],
+    @(ApiModelProperty @field)(
+      description = "A search context retrieved from the response header of a previous search.") scrollId: Option[
+      String]
+)

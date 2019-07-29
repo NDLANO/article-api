@@ -181,7 +181,7 @@ class ArticleControllerV2Test extends UnitSuite with TestEnvironment with Scalat
 
     when(articleSearchService.scroll(anyString, anyString, anyBoolean)).thenReturn(Success(searchResponse))
 
-    post(s"/test/search/?search-context=$scrollId") {
+    post(s"/test/search/", body = s"""{"scrollId":"$scrollId"}""") {
       status should be(200)
     }
 
