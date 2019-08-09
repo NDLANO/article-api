@@ -12,6 +12,8 @@ import com.zaxxer.hikari.HikariDataSource
 import no.ndla.network.secrets.PropertyKeys
 import no.ndla.articleapi.integration.DataSource.getHikariDataSource
 
+import scala.util.Try
+
 abstract class IntegrationSuite extends UnitSuite {
 
   setEnv(PropertyKeys.MetaUserNameKey, "postgres")
@@ -21,5 +23,5 @@ abstract class IntegrationSuite extends UnitSuite {
   setEnv(PropertyKeys.MetaPortKey, "5432")
   setEnv(PropertyKeys.MetaSchemaKey, "articleapitest")
 
-  val testDataSource: HikariDataSource = getHikariDataSource
+  val testDataSource: Try[HikariDataSource] = Try(getHikariDataSource)
 }

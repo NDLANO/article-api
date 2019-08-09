@@ -59,7 +59,7 @@ class ArticleApiProviderCDCTest extends IntegrationSuite with TestEnvironment {
 
   def deleteSchema(): Unit = {
     println("Deleting test schema to prepare for CDC testing...")
-    val datasource = testDataSource
+    val datasource = testDataSource.get
     DBMigrator.migrate(datasource)
     ConnectionPool.singleton(new DataSourceConnectionPool(datasource))
     DB autoCommit (implicit session => {
