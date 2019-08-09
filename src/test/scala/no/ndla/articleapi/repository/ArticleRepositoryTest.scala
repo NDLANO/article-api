@@ -35,10 +35,12 @@ class ArticleRepositoryTest extends IntegrationSuite with TestEnvironment {
   def databaseIsAvailable: Boolean = Try(repository.articleCount).isSuccess
 
   override def beforeAll(): Unit = {
-    val ds = DataSource.getHikariDataSource
-    ConnectionPool.singleton(new DataSourceConnectionPool(ds))
-    if (serverIsListening) {
-      DBMigrator.migrate(ds)
+    Try {
+      val ds = testDataSource.get
+      ConnectionPool.singleton(new DataSourceConnectionPool(ds))
+      if (serverIsListening) {
+        DBMigrator.migrate(ds)
+      }
     }
   }
 
