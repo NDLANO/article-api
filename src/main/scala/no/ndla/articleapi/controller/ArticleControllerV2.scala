@@ -58,7 +58,9 @@ trait ArticleControllerV2 {
     private val query =
       Param[Option[String]]("query", "Return only articles with content matching the specified query.")
     private val language = Param[Option[String]]("language", "The ISO 639-1 language code describing language.")
-    private val license = Param[Option[String]]("license", "Return only results with provided license.")
+    private val license = Param[Option[String]](
+      "license",
+      "Return only results with provided license. Specifying 'all' gives all articles regardless of licence.")
     private val sort = Param[Option[String]](
       "sort",
       s"""The sorting used on results.

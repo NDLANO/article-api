@@ -99,8 +99,9 @@ trait ArticleSearchService {
       val idFilter = if (withIdIn.isEmpty) None else Some(idsQuery(withIdIn))
 
       val licenseFilter = license match {
-        case None      => Some(noCopyright)
-        case Some(lic) => Some(termQuery("license", lic))
+        case None        => Some(noCopyright)
+        case Some("all") => None
+        case Some(lic)   => Some(termQuery("license", lic))
       }
 
       val (languageFilter, searchLanguage) = language match {
