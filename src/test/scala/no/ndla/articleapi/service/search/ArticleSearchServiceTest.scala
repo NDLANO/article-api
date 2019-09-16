@@ -208,7 +208,7 @@ class ArticleSearchServiceTest extends UnitSuite with TestEnvironment {
   }
 
   test("That getStartAtAndNumResults returns SEARCH_MAX_PAGE_SIZE for value greater than SEARCH_MAX_PAGE_SIZE") {
-    articleSearchService.getStartAtAndNumResults(0, 1000) should equal((0, ArticleApiProperties.MaxPageSize))
+    articleSearchService.getStartAtAndNumResults(0, 10001) should equal((0, ArticleApiProperties.MaxPageSize))
   }
 
   test(
