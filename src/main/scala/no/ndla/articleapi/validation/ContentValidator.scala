@@ -115,7 +115,9 @@ trait ContentValidator {
 
     private def validateVisualElement(content: VisualElement, allowUnknownLanguage: Boolean): Seq[ValidationMessage] = {
       val field = s"visualElement.${content.language}"
-      HtmlValidator.validate(field, content.resource).toList ++
+      HtmlValidator
+        .validate(field, content.resource, requiredToOptional = Map("image" -> Seq("data-caption")))
+        .toList ++
         validateLanguage("visualElement.language", content.language, allowUnknownLanguage)
     }
 
