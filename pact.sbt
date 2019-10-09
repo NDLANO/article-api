@@ -15,4 +15,4 @@ pactContractTags := Seq(
     .map(prBranch => s"-from-$prBranch")
     .getOrElse("")
 )
-pactContractVersion := ("git rev-parse --short HEAD" !!).trim
+pactContractVersion := ("git rev-parse --short=7 HEAD" !!).trim
