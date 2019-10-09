@@ -98,7 +98,7 @@ class ArticleApiProviderCDCTest extends IntegrationSuite with TestEnvironment {
 
   private def getGitVersion =
     for {
-      shortCommit <- Try("git rev-parse --short HEAD".!!.trim)
+      shortCommit <- Try("git rev-parse --short=7 HEAD".!!.trim)
       dirtyness <- Try("git status --porcelain".!!.trim != "").map {
         case true  => "-dirty"
         case false => ""
