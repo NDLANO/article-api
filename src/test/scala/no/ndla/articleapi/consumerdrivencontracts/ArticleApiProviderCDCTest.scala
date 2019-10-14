@@ -83,7 +83,15 @@ class ArticleApiProviderCDCTest extends IntegrationSuite with TestEnvironment {
     (1 to 10)
       .map(id => {
         ComponentRegistry.articleRepository
-          .updateArticleFromDraftApi(TestData.sampleDomainArticle.copy(id = Some(id)), List(s"1$id"))
+          .updateArticleFromDraftApi(
+            TestData.sampleDomainArticle.copy(
+              id = Some(id),
+              updated = new DateTime(0).toDate,
+              created = new DateTime(0).toDate,
+              published = new DateTime(0).toDate
+            ),
+            List(s"1$id")
+          )
       })
       .collectFirst { case Failure(ex) => Failure(ex) }
       .getOrElse(Success(true))
