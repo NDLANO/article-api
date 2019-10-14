@@ -11,7 +11,8 @@ import java.io.IOException
 import java.net.ServerSocket
 
 import com.itv.scalapact.ScalaPactVerify._
-import com.itv.scalapact.shared.{BasicAuthenticationCredentials, BrokerPublishData, ProviderStateResult, TaggedConsumer}
+import com.itv.scalapact.shared.PactBrokerAuthorization.BasicAuthenticationCredentials
+import com.itv.scalapact.shared.{BrokerPublishData, ProviderStateResult, TaggedConsumer}
 import no.ndla.articleapi._
 import org.eclipse.jetty.server.Server
 import org.joda.time.DateTime
