@@ -11,14 +11,15 @@ import java.io.IOException
 import java.net.ServerSocket
 
 import com.itv.scalapact.ScalaPactVerify._
-import com.itv.scalapact.shared.{BasicAuthenticationCredentials, BrokerPublishData, ProviderStateResult, TaggedConsumer}
+import com.itv.scalapact.shared.PactBrokerAuthorization.BasicAuthenticationCredentials
+import com.itv.scalapact.shared.{BrokerPublishData, ProviderStateResult, TaggedConsumer}
 import no.ndla.articleapi._
 import org.eclipse.jetty.server.Server
+import org.joda.time.DateTime
 import org.scalatest.Tag
 import scalikejdbc._
 
 import scala.concurrent.duration._
-
 import scala.sys.process._
 import scala.util.Properties.{envOrElse, envOrNone}
 import scala.util.{Failure, Success, Try}
@@ -82,7 +83,15 @@ class ArticleApiProviderCDCTest extends IntegrationSuite with TestEnvironment {
     (1 to 10)
       .map(id => {
         ComponentRegistry.articleRepository
-          .updateArticleFromDraftApi(TestData.sampleDomainArticle.copy(id = Some(id)), List(s"1$id"))
+          .updateArticleFromDraftApi(
+            TestData.sampleDomainArticle.copy(
+              id = Some(id),
+              updated = new DateTime(0).toDate,
+              created = new DateTime(0).toDate,
+              published = new DateTime(0).toDate
+            ),
+            List(s"1$id")
+          )
       })
       .collectFirst { case Failure(ex) => Failure(ex) }
       .getOrElse(Success(true))
@@ -113,7 +122,8 @@ class ArticleApiProviderCDCTest extends IntegrationSuite with TestEnvironment {
     } else { None }
 
     val consumersToVerify = List(
-      TaggedConsumer("draft-api", List("master"))
+      TaggedConsumer("draft-api", List("master")),
+      TaggedConsumer("search-api", List("master"))
     )
 
     val broker = for {
@@ -127,17 +137,19 @@ class ArticleApiProviderCDCTest extends IntegrationSuite with TestEnvironment {
                                    Some(BasicAuthenticationCredentials(username, password)))
     } yield broker
 
-    broker match {
-      case Some(b) =>
-        verifyPact
-          .withPactSource(b)
-          .setupProviderState("given") {
-            case "articles" => deleteSchema(); ProviderStateResult(setupArticles().getOrElse(false))
-            case "concepts" => deleteSchema(); ProviderStateResult(setupConcepts().getOrElse(false))
-            case "empty"    => deleteSchema(); ProviderStateResult(true)
-          }
-          .runStrictVerificationAgainst("localhost", serverPort, 10.seconds)
-      case None => throw new RuntimeException("Could not get broker settings...")
+    withFrozenTime(new DateTime(0)) {
+      broker match {
+        case Some(b) =>
+          verifyPact
+            .withPactSource(b)
+            .setupProviderState("given") {
+              case "articles" => deleteSchema(); ProviderStateResult(setupArticles().getOrElse(false))
+              case "concepts" => deleteSchema(); ProviderStateResult(setupConcepts().getOrElse(false))
+              case "empty"    => deleteSchema(); ProviderStateResult(true)
+            }
+            .runVerificationAgainst("localhost", serverPort, 10.seconds)
+        case None => throw new RuntimeException("Could not get broker settings...")
+      }
     }
   }
 }

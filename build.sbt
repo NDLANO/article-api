@@ -31,7 +31,7 @@ lazy val commonSettings = Seq(
   scalaVersion := Scalaversion
 )
 
-val pactVersion = "2.3.4"
+val pactVersion = "2.3.9"
 
 val pactTestFramework = Seq(
   "com.itv" %% "scalapact-circe-0-9" % pactVersion % "test",
