@@ -55,7 +55,7 @@ lazy val article_api = (project in file("."))
     javacOptions ++= Seq("-source", "1.8", "-target", "1.8"),
     scalacOptions := Seq("-target:jvm-1.8", "-unchecked", "-deprecation", "-feature"),
     libraryDependencies ++= Seq(
-      "ndla" %% "network" % "0.38",
+      "ndla" %% "network" % "0.40",
       "ndla" %% "mapping" % "0.11",
       "ndla" %% "validation" % "0.34",
       "joda-time" % "joda-time" % "2.10",
