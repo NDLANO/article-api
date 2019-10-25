@@ -75,7 +75,7 @@ object ComponentRegistry
   lazy val readService = new ReadService
   lazy val writeService = new WriteService
 
-  lazy val e4sClient: NdlaE4sClient = Elastic4sClientFactory.getClient()
+  var e4sClient: NdlaE4sClient = Elastic4sClientFactory.getClient()
   lazy val draftApiClient = new DraftApiClient
 
   lazy val clock = new SystemClock

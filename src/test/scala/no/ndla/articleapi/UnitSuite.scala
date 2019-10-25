@@ -11,6 +11,7 @@ package no.ndla.articleapi
 import org.joda.time.{DateTime, DateTimeUtils}
 import org.scalatest._
 import org.scalatest.mockito.MockitoSugar
+import scala.util.Properties.{setProp, propOrElse}
 
 abstract class UnitSuite
     extends FunSuite
@@ -42,15 +43,9 @@ abstract class UnitSuite
   setEnv("SEARCH_INDEX_NAME", "article-integration-test-index")
   setEnv("CONCEPT_SEARCH_INDEX_NAME", "concept-integration-test-index")
 
-  def setEnv(key: String, value: String) = env.put(key, value)
+  def setEnv(key: String, value: String) = setProp(key, value)
 
-  def setEnvIfAbsent(key: String, value: String) = env.putIfAbsent(key, value)
-
-  private def env = {
-    val field = System.getenv().getClass.getDeclaredField("m")
-    field.setAccessible(true)
-    field.get(System.getenv()).asInstanceOf[java.util.Map[java.lang.String, java.lang.String]]
-  }
+  def setEnvIfAbsent(key: String, value: String) = setProp(key, propOrElse(key, value))
 
   def withFrozenTime(time: DateTime = new DateTime())(toExecute: => Any) = {
     DateTimeUtils.setCurrentMillisFixed(time.getMillis)

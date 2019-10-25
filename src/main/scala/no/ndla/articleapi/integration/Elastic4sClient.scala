@@ -27,7 +27,7 @@ import scala.concurrent.{Await, ExecutionContext, ExecutionContextExecutor}
 import scala.util.{Failure, Success, Try}
 
 trait Elastic4sClient {
-  val e4sClient: NdlaE4sClient
+  var e4sClient: NdlaE4sClient
 }
 
 case class NdlaE4sClient(client: ElasticClient) {

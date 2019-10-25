@@ -8,32 +8,22 @@
 
 package no.ndla.articleapi.service.search
 
-import java.nio.file.{Files, Path}
-
 import no.ndla.articleapi.ArticleApiProperties.DefaultPageSize
 import no.ndla.articleapi._
 import no.ndla.articleapi.integration.{Elastic4sClientFactory, NdlaE4sClient}
 import no.ndla.articleapi.model.domain._
 import org.joda.time.DateTime
 import org.scalatest.Outcome
-import org.testcontainers.elasticsearch.ElasticsearchContainer
 
-import scala.util.{Success, Try}
+import scala.util.Success
 
-class ConceptSearchServiceTest extends UnitSuite with TestEnvironment {
+class ConceptSearchServiceTest extends IntegrationSuite with TestEnvironment {
 
-  val container = Try {
-    val esVersion = "6.3.2"
-    val c = new ElasticsearchContainer(s"docker.elastic.co/elasticsearch/elasticsearch:$esVersion")
-    c.start()
-    c
-  }
-  val host = container.map(c => s"http://${c.getHttpHostAddress}")
-  override val e4sClient: NdlaE4sClient = Elastic4sClientFactory.getClient(host.getOrElse("http://localhost:9200"))
+  e4sClient = Elastic4sClientFactory.getClient(elasticSearchHost.getOrElse("http://localhost:9200"))
 
   // Skip tests if no docker environment available
   override def withFixture(test: NoArgTest): Outcome = {
-    assume(container.isSuccess)
+    assume(elasticSearchContainer.isSuccess)
     super.withFixture(test)
   }
 
@@ -123,7 +113,7 @@ class ConceptSearchServiceTest extends UnitSuite with TestEnvironment {
     content = List(ConceptContent("<p>Noe om en katt</p>", "nb"), ConceptContent("<p>Something about a cat</p>", "en"))
   )
 
-  override def beforeAll = if (container.isSuccess) {
+  override def beforeAll = if (elasticSearchContainer.isSuccess) {
     conceptIndexService.createIndexWithName(ArticleApiProperties.ConceptSearchIndex)
 
     conceptIndexService.indexDocument(concept1)
@@ -141,9 +131,8 @@ class ConceptSearchServiceTest extends UnitSuite with TestEnvironment {
     blockUntil(() => conceptSearchService.countDocuments == 11)
   }
 
-  override def afterAll() = if (container.isSuccess) {
+  override def afterAll() = if (elasticSearchContainer.isSuccess) {
     conceptIndexService.deleteIndexWithName(Some(ArticleApiProperties.ConceptSearchIndex))
-    container.get.stop()
   }
 
   test("That getStartAtAndNumResults returns SEARCH_MAX_PAGE_SIZE for value greater than SEARCH_MAX_PAGE_SIZE") {
