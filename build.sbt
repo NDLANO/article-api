@@ -72,6 +72,7 @@ lazy val article_api = (project in file("."))
       "org.apache.logging.log4j" % "log4j-api" % Log4JVersion,
       "org.apache.logging.log4j" % "log4j-core" % Log4JVersion,
       "org.apache.logging.log4j" % "log4j-slf4j-impl" % Log4JVersion,
+      "org.apache.httpcomponents" % "httpclient" % "4.5.10", // Overridden because vulnerability in request interceptor
       "org.scalikejdbc" %% "scalikejdbc" % "3.3.1",
       "org.postgresql" % "postgresql" % PostgresVersion,
       "com.zaxxer" % "HikariCP" % HikariConnectionPoolVersion,
