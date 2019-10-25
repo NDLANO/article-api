@@ -8,25 +8,34 @@
 
 package no.ndla.articleapi.service.search
 
-import java.nio.file.{Files, Path}
-
-import com.sksamuel.elastic4s.embedded.LocalNode
-import no.ndla.articleapi.integration.{Elastic4sClientFactory, NdlaE4sClient}
-import no.ndla.articleapi.model.domain._
-import no.ndla.articleapi._
-import no.ndla.articleapi.model.api
 import no.ndla.articleapi.ArticleApiProperties.DefaultPageSize
+import no.ndla.articleapi._
+import no.ndla.articleapi.integration.{Elastic4sClientFactory, NdlaE4sClient}
+import no.ndla.articleapi.model.api
+import no.ndla.articleapi.model.domain._
 import no.ndla.mapping.License.{CC_BY_NC_SA, Copyrighted, PublicDomain}
 import org.joda.time.DateTime
+import org.scalatest.Outcome
+import org.testcontainers.elasticsearch.ElasticsearchContainer
 
-import scala.util.Success
+import scala.util.{Success, Try}
 
 class ArticleSearchServiceTest extends UnitSuite with TestEnvironment {
-  val tmpDir: Path = Files.createTempDirectory(this.getClass.getName)
-  val localNodeSettings: Map[String, String] = LocalNode.requiredSettings(this.getClass.getName, tmpDir.toString)
-  val localNode = LocalNode(localNodeSettings)
 
-  override val e4sClient = NdlaE4sClient(localNode.client(true))
+  val container = Try {
+    val esVersion = "6.3.2"
+    val c = new ElasticsearchContainer(s"docker.elastic.co/elasticsearch/elasticsearch:$esVersion")
+    c.start()
+    c
+  }
+  val host = container.map(c => s"http://${c.getHttpHostAddress}")
+  override val e4sClient: NdlaE4sClient = Elastic4sClientFactory.getClient(host.getOrElse("http://localhost:9200"))
+
+  // Skip tests if no docker environment available
+  override def withFixture(test: NoArgTest): Outcome = {
+    assume(container.isSuccess)
+    super.withFixture(test)
+  }
 
   override val articleSearchService = new ArticleSearchService
   override val articleIndexService = new ArticleIndexService
@@ -185,7 +194,7 @@ class ArticleSearchServiceTest extends UnitSuite with TestEnvironment {
     articleType = ArticleType.TopicArticle.toString
   )
 
-  override def beforeAll = {
+  override def beforeAll = if (container.isSuccess) {
     articleIndexService.createIndexWithName(ArticleApiProperties.ArticleSearchIndex)
 
     articleIndexService.indexDocument(article1)
@@ -203,8 +212,9 @@ class ArticleSearchServiceTest extends UnitSuite with TestEnvironment {
     blockUntil(() => articleSearchService.countDocuments == 11)
   }
 
-  override def afterAll() = {
+  override def afterAll() = if (container.isSuccess) {
     articleIndexService.deleteIndexWithName(Some(ArticleApiProperties.ArticleSearchIndex))
+    container.get.stop()
   }
 
   test("That getStartAtAndNumResults returns SEARCH_MAX_PAGE_SIZE for value greater than SEARCH_MAX_PAGE_SIZE") {
