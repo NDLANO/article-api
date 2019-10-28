@@ -92,7 +92,7 @@ lazy val article_api = (project in file("."))
       "org.jrobin" % "jrobin" % "1.5.9", // This is needed for javamelody graphing
       "org.mockito" % "mockito-core" % MockitoVersion % "test",
       "org.flywaydb" % "flyway-core" % FlywayVersion,
-      "io.lemonlabs" %% "scala-uri" % "1.3.1",
+      "io.lemonlabs" %% "scala-uri" % "1.5.1",
       "org.testcontainers" % "elasticsearch" % TestContainersVersion % "test",
       "org.testcontainers" % "testcontainers" % TestContainersVersion % "test",
     ) ++ pactTestFramework
