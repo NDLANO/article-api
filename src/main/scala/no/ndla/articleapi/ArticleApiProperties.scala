@@ -141,7 +141,7 @@ object ArticleApiProperties extends LazyLogging {
   }
 
   def propOrElse(key: String, default: => String): String = {
-    envOrNone(key) match {
+    propOrNone(key) match {
       case Some(prop)            => prop
       case None if !IsKubernetes => secrets.get(key).flatten.getOrElse(default)
       case _                     => default

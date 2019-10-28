@@ -8,23 +8,24 @@
 
 package no.ndla.articleapi.service.search
 
-import java.nio.file.{Files, Path}
-
-import com.sksamuel.elastic4s.embedded.LocalNode
 import no.ndla.articleapi.ArticleApiProperties.DefaultPageSize
 import no.ndla.articleapi._
 import no.ndla.articleapi.integration.{Elastic4sClientFactory, NdlaE4sClient}
 import no.ndla.articleapi.model.domain._
 import org.joda.time.DateTime
+import org.scalatest.Outcome
 
 import scala.util.Success
 
-class ConceptSearchServiceTest extends UnitSuite with TestEnvironment {
-  val tmpDir: Path = Files.createTempDirectory(this.getClass.getName)
-  val localNodeSettings: Map[String, String] = LocalNode.requiredSettings(this.getClass.getName, tmpDir.toString)
-  val localNode = LocalNode(localNodeSettings)
+class ConceptSearchServiceTest extends IntegrationSuite with TestEnvironment {
 
-  override val e4sClient = NdlaE4sClient(localNode.client(true))
+  e4sClient = Elastic4sClientFactory.getClient(elasticSearchHost.getOrElse("http://localhost:9200"))
+
+  // Skip tests if no docker environment available
+  override def withFixture(test: NoArgTest): Outcome = {
+    assume(elasticSearchContainer.isSuccess)
+    super.withFixture(test)
+  }
 
   override val conceptSearchService = new ConceptSearchService
   override val conceptIndexService = new ConceptIndexService
@@ -112,7 +113,7 @@ class ConceptSearchServiceTest extends UnitSuite with TestEnvironment {
     content = List(ConceptContent("<p>Noe om en katt</p>", "nb"), ConceptContent("<p>Something about a cat</p>", "en"))
   )
 
-  override def beforeAll = {
+  override def beforeAll = if (elasticSearchContainer.isSuccess) {
     conceptIndexService.createIndexWithName(ArticleApiProperties.ConceptSearchIndex)
 
     conceptIndexService.indexDocument(concept1)
@@ -130,7 +131,7 @@ class ConceptSearchServiceTest extends UnitSuite with TestEnvironment {
     blockUntil(() => conceptSearchService.countDocuments == 11)
   }
 
-  override def afterAll() = {
+  override def afterAll() = if (elasticSearchContainer.isSuccess) {
     conceptIndexService.deleteIndexWithName(Some(ArticleApiProperties.ConceptSearchIndex))
   }
 
