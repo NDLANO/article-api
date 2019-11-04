@@ -128,7 +128,7 @@ object ArticleApiProperties extends LazyLogging {
   }
 
   def propOrElse(key: String, default: => String): String = {
-    envOrNone(key) match {
+    propOrNone(key) match {
       case Some(prop) => prop
       case _          => default
     }
