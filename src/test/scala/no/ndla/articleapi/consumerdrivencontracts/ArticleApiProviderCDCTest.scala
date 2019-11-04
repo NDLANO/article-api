@@ -29,8 +29,6 @@ object PactProviderTest extends Tag("PactProviderTest")
 
 class ArticleApiProviderCDCTest extends IntegrationSuite with TestEnvironment {
 
-  ComponentRegistry.e4sClient = Elastic4sClientFactory.getClient(elasticSearchHost.get)
-
   import com.itv.scalapact.circe09._
   import com.itv.scalapact.http4s18._
 
@@ -123,6 +121,8 @@ class ArticleApiProviderCDCTest extends IntegrationSuite with TestEnvironment {
     val publishResults = if (isTravis && !isPullRequest) {
       getGitVersion.map(version => BrokerPublishData(version, None)).toOption
     } else { None }
+
+    ComponentRegistry.e4sClient = Elastic4sClientFactory.getClient(elasticSearchHost.get)
 
     val consumersToVerify = List(
       TaggedConsumer("draft-api", List("master")),
