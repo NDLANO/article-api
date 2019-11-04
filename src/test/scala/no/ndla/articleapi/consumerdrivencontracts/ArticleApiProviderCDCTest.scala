@@ -14,6 +14,7 @@ import com.itv.scalapact.ScalaPactVerify._
 import com.itv.scalapact.shared.PactBrokerAuthorization.BasicAuthenticationCredentials
 import com.itv.scalapact.shared.{BrokerPublishData, ProviderStateResult, TaggedConsumer}
 import no.ndla.articleapi._
+import no.ndla.articleapi.integration.Elastic4sClientFactory
 import org.eclipse.jetty.server.Server
 import org.joda.time.DateTime
 import org.scalatest.Tag
@@ -27,6 +28,8 @@ import scala.util.{Failure, Success, Try}
 object PactProviderTest extends Tag("PactProviderTest")
 
 class ArticleApiProviderCDCTest extends IntegrationSuite with TestEnvironment {
+
+  ComponentRegistry.e4sClient = Elastic4sClientFactory.getClient(elasticSearchHost.get)
 
   import com.itv.scalapact.circe09._
   import com.itv.scalapact.http4s18._
@@ -77,7 +80,7 @@ class ArticleApiProviderCDCTest extends IntegrationSuite with TestEnvironment {
     server = Some(JettyLauncher.startServer(serverPort))
   }
 
-  override def afterAll(): Unit = server.foreach(_.stop())
+  override def afterAll(): Unit = { server.foreach(_.stop()) }
 
   private def setupArticles() =
     (1 to 10)

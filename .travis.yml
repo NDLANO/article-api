@@ -22,7 +22,7 @@ matrix:
       dist: trusty
       language: scala
       scala:
-        - 2.12.7
+        - 2.12.10
       jdk:
         - openjdk8
       cache:
@@ -38,7 +38,7 @@ matrix:
       dist: trusty
       language: scala
       scala:
-        - 2.12.7
+        - 2.12.10
       jdk:
         - openjdk8
       cache:

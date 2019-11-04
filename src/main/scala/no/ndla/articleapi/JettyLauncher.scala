@@ -16,6 +16,7 @@ import net.bull.javamelody.{MonitoringFilter, Parameter, ReportServlet, SessionL
 import org.eclipse.jetty.server.Server
 import org.eclipse.jetty.servlet.{DefaultServlet, FilterHolder, ServletContextHandler}
 import org.scalatra.servlet.ScalatraListener
+import scala.collection.JavaConverters._
 
 import scala.io.Source
 
@@ -65,6 +66,9 @@ object JettyLauncher extends LazyLogging {
   }
 
   def main(args: Array[String]) {
+    val envMap = System.getenv()
+    envMap.asScala.foreach { case (k, v) => System.setProperty(k, v) }
+
     val server = startServer(ArticleApiProperties.ApplicationPort)
     server.join()
   }
