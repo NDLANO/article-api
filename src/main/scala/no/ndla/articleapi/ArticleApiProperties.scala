@@ -9,13 +9,11 @@
 package no.ndla.articleapi
 
 import com.typesafe.scalalogging.LazyLogging
-import no.ndla.validation.ResourceType
 import no.ndla.network.secrets.PropertyKeys
-import no.ndla.network.secrets.Secrets.readSecrets
 import no.ndla.network.{AuthUser, Domains}
+import no.ndla.validation.ResourceType
 
 import scala.util.Properties._
-import scala.util.{Failure, Success}
 
 object ArticleApiProperties extends LazyLogging {
   val IsKubernetes: Boolean = envOrNone("NDLA_IS_KUBERNETES").isDefined
@@ -125,26 +123,14 @@ object ArticleApiProperties extends LazyLogging {
     s"//players.brightcove.net/$NDLABrightcoveAccountId/${NDLABrightcovePlayerId}_default/index.min.js"
   val NRKVideoScriptUrl = Seq("//www.nrk.no/serum/latest/js/video_embed.js", "//nrk.no/serum/latest/js/video_embed.js")
 
-  lazy val secrets = {
-    val SecretsFile = "article-api.secrets"
-    readSecrets(SecretsFile) match {
-      case Success(values) => values
-      case Failure(exception) =>
-        throw new RuntimeException(s"Unable to load remote secrets from $SecretsFile", exception)
-    }
-  }
-
-  def booleanProp(key: String): Boolean = prop(key).toBoolean
-
   def prop(key: String): String = {
     propOrElse(key, throw new RuntimeException(s"Unable to load property $key"))
   }
 
   def propOrElse(key: String, default: => String): String = {
     propOrNone(key) match {
-      case Some(prop)            => prop
-      case None if !IsKubernetes => secrets.get(key).flatten.getOrElse(default)
-      case _                     => default
+      case Some(prop) => prop
+      case _          => default
     }
   }
 }
