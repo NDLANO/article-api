@@ -12,13 +12,13 @@ import java.util.concurrent.{Executors, TimeUnit}
 
 import no.ndla.articleapi.ArticleApiProperties
 import no.ndla.articleapi.auth.{Role, User}
-import no.ndla.articleapi.model.api.{ArticleIdV2, UpdatedConcept}
-import no.ndla.articleapi.model.domain.{Concept, Language}
+import no.ndla.articleapi.model.api.ArticleIdV2
+import no.ndla.articleapi.model.domain.Language
 import no.ndla.articleapi.model.api.ArticleIdV2
 import no.ndla.articleapi.model.domain.{Article, Language}
 import no.ndla.articleapi.repository.ArticleRepository
 import no.ndla.articleapi.service._
-import no.ndla.articleapi.service.search.{ArticleIndexService, ConceptIndexService, IndexService}
+import no.ndla.articleapi.service.search.{ArticleIndexService, IndexService}
 import no.ndla.articleapi.validation.ContentValidator
 import no.ndla.validation.ValidationException
 import org.json4s.{DefaultFormats, Formats}
@@ -35,7 +35,6 @@ trait InternController {
     with ArticleRepository
     with IndexService
     with ArticleIndexService
-    with ConceptIndexService
     with User
     with Role
     with ContentValidator =>
@@ -47,24 +46,17 @@ trait InternController {
 
     post("/index") {
       implicit val ec = ExecutionContext.fromExecutorService(Executors.newSingleThreadExecutor)
-      val indexResults = for {
-        articleIndex <- Future { articleIndexService.indexDocuments }
-        conceptIndex <- Future { conceptIndexService.indexDocuments }
-      } yield (articleIndex, conceptIndex)
+      val articleIndex = Future { articleIndexService.indexDocuments }
 
-      Await.result(indexResults, Duration(10, TimeUnit.MINUTES)) match {
-        case (Success(articleResult), Success(conceptResult)) =>
-          val indexTime = math.max(articleResult.millisUsed, conceptResult.millisUsed)
+      Await.result(articleIndex, Duration(10, TimeUnit.MINUTES)) match {
+        case (Success(articleResult)) =>
           val result =
-            s"Completed indexing of ${articleResult.totalIndexed} articles and ${conceptResult.totalIndexed} concepts in $indexTime ms."
+            s"Completed indexing of ${articleResult.totalIndexed} articles ${articleResult.millisUsed} ms."
           logger.info(result)
           Ok(result)
-        case (Failure(articleFail), _) =>
+        case (Failure(articleFail)) =>
           logger.warn(articleFail.getMessage, articleFail)
           InternalServerError(articleFail.getMessage)
-        case (_, Failure(conceptFail)) =>
-          logger.warn(conceptFail.getMessage, conceptFail)
-          InternalServerError(conceptFail.getMessage)
       }
     }
 
@@ -72,24 +64,15 @@ trait InternController {
       implicit val ec = ExecutionContext.fromExecutorService(Executors.newSingleThreadExecutor)
       def pluralIndex(n: Int) = if (n == 1) "1 index" else s"$n indexes"
 
-      val indexes = for {
-        articleIndex <- Future { articleIndexService.findAllIndexes(ArticleApiProperties.ArticleSearchIndex) }
-        conceptIndex <- Future { conceptIndexService.findAllIndexes(ArticleApiProperties.ConceptSearchIndex) }
-      } yield (articleIndex, conceptIndex)
+      val articleIndex = Future { articleIndexService.findAllIndexes(ArticleApiProperties.ArticleSearchIndex) }
 
-      val deleteResults: Seq[Try[_]] = Await.result(indexes, Duration(10, TimeUnit.MINUTES)) match {
-        case (Failure(articleFail), _) => halt(status = 500, body = articleFail.getMessage)
-        case (_, Failure(conceptFail)) => halt(status = 500, body = conceptFail.getMessage)
-        case (Success(articleIndexes), Success(conceptIndexes)) => {
-          val articleDeleteResults = articleIndexes.map(index => {
+      val deleteResults: Seq[Try[_]] = Await.result(articleIndex, Duration(10, TimeUnit.MINUTES)) match {
+        case (Failure(articleFail)) => halt(status = 500, body = articleFail.getMessage)
+        case (Success(articleIndexes)) => {
+          articleIndexes.map(index => {
             logger.info(s"Deleting article index $index")
             articleIndexService.deleteIndexWithName(Option(index))
           })
-          val conceptDeleteResults = conceptIndexes.map(index => {
-            logger.info(s"Deleting concept index $index")
-            conceptIndexService.deleteIndexWithName(Option(index))
-          })
-          articleDeleteResults ++ conceptDeleteResults
         }
       }
 
@@ -115,12 +98,6 @@ trait InternController {
         case Some(id) => id
         case None     => NotFound()
       }
-    }
-
-    post("/id/concept/allocate/?") {
-      authRole.assertHasDraftWritePermission()
-      val externalIds = paramAsListOfString("external-id")
-      ArticleIdV2(writeService.allocateConceptId(externalIds))
     }
 
     get("/articles") {
@@ -177,32 +154,5 @@ trait InternController {
         case Failure(ex) => errorHandler(ex)
       }
     }
-
-    post("/concept/:id") {
-      authRole.assertHasWritePermission()
-      val id = long("id")
-      val concept = extract[Concept](request.body)
-
-      writeService.updateConcept(id, concept) match {
-        case Success(c)  => c
-        case Failure(ex) => errorHandler(ex)
-      }
-    }
-
-    delete("/concept/:id/") {
-      authRole.assertHasWritePermission()
-      writeService.deleteConcept(long("id")) match {
-        case Success(c)  => c
-        case Failure(ex) => errorHandler(ex)
-      }
-    }
-    get("/dump/concepts") {
-      // Dumps Domain articles
-      val pageNo = intOrDefault("page", 1)
-      val pageSize = intOrDefault("page-size", 250)
-
-      readService.getConceptDomainDump(pageNo, pageSize)
-    }
-
   }
 }

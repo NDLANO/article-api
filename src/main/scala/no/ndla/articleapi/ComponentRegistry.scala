@@ -11,26 +11,21 @@ package no.ndla.articleapi
 import com.typesafe.scalalogging.LazyLogging
 import com.zaxxer.hikari.HikariDataSource
 import no.ndla.articleapi.auth.{Role, User}
-import no.ndla.articleapi.controller.{ArticleControllerV2, ConceptController, HealthController, InternController}
+import no.ndla.articleapi.controller.{ArticleControllerV2, HealthController, InternController}
 import no.ndla.articleapi.integration._
-import no.ndla.articleapi.repository.{ArticleRepository, ConceptRepository}
+import no.ndla.articleapi.repository.ArticleRepository
 import no.ndla.articleapi.service._
 import no.ndla.articleapi.service.search._
 import no.ndla.articleapi.validation.ContentValidator
 import no.ndla.network.NdlaClient
-import org.postgresql.ds.PGPoolingDataSource
 import scalikejdbc.{ConnectionPool, DataSourceConnectionPool}
 
 object ComponentRegistry
     extends DataSource
     with InternController
-    with ConceptController
-    with ConceptSearchService
-    with ConceptIndexService
     with ArticleControllerV2
     with HealthController
     with ArticleRepository
-    with ConceptRepository
     with Elastic4sClient
     with DraftApiClient
     with ArticleSearchService
@@ -56,16 +51,12 @@ object ComponentRegistry
 
   lazy val internController = new InternController
   lazy val articleControllerV2 = new ArticleControllerV2
-  lazy val conceptController = new ConceptController
   lazy val resourcesApp = new ResourcesApp
   lazy val healthController = new HealthController
 
   lazy val articleRepository = new ArticleRepository
-  lazy val conceptRepository = new ConceptRepository
   lazy val articleSearchService = new ArticleSearchService
   lazy val articleIndexService = new ArticleIndexService
-  lazy val conceptSearchService = new ConceptSearchService
-  lazy val conceptIndexService = new ConceptIndexService
 
   lazy val converterService = new ConverterService
   lazy val contentValidator = new ContentValidator(allowEmptyLanguageField = false)

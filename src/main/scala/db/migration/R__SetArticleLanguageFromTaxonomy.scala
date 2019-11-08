@@ -39,7 +39,7 @@ class R__SetArticleLanguageFromTaxonomy extends BaseJavaMigration {
     val url = TaxonomyApiEndpoint + endpoint
 
     val resourceList = for {
-      response <- Try(Http(url).asString)
+      response <- Try(Http(url).timeout(taxonomyTimeout, taxonomyTimeout).asString)
       extracted <- Try(parse(response.body).extract[Seq[TaxonomyResource]])
     } yield extracted
 

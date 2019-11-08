@@ -10,7 +10,6 @@ package no.ndla.articleapi
 
 import no.ndla.articleapi.ArticleApiProperties._
 import no.ndla.articleapi.model.api
-import no.ndla.articleapi.model.api.{NewConcept, UpdatedConcept}
 import no.ndla.articleapi.model.domain._
 import no.ndla.mapping.License
 import no.ndla.validation.EmbedTagRules.ResourceHtmlEmbedTag
@@ -275,39 +274,6 @@ object TestData {
   val visualElement = VisualElement(
     s"""<$ResourceHtmlEmbedTag  data-align="" data-alt="" data-caption="" data-resource="image" data-resource_id="1" data-size="" />""",
     "nb")
-
-  val sampleConcept = Concept(
-    Some(1),
-    Seq(ConceptTitle("Tittel for begrep", "nb")),
-    Seq(ConceptContent("Innhold for begrep", "nb")),
-    Some(Copyright("publicdomain", "", Seq(), Seq(), Seq(), None, None, None)),
-    DateTime.now().minusDays(4).toDate,
-    DateTime.now().minusDays(2).toDate
-  )
-
-  val sampleApiConcept = api.Concept(
-    1,
-    api.ConceptTitle("Tittel for begrep", "nb"),
-    api.ConceptContent("Innhold for begrep", "nb"),
-    Some(api.Copyright(api.License("publicdomain", None, None), "", Seq(), Seq(), Seq(), None, None, None)),
-    DateTime.now().minusDays(4).toDate,
-    DateTime.now().minusDays(2).toDate,
-    Seq("nb")
-  )
-
-  val sampleNewConcept = NewConcept(
-    "nb",
-    "begrep",
-    Some("begrep er begrep"),
-    None
-  )
-
-  val sampleUpdateConcept = UpdatedConcept(
-    "nb",
-    Some("begrep"),
-    Some("begrep er begrep"),
-    None
-  )
 
   def sampleDomainArticleWithLanguage(lang: String): Article = {
     Article(

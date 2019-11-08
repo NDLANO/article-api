@@ -52,17 +52,6 @@ trait ContentValidator {
       }
     }
 
-    def validateConcept(concept: Concept, allowUnknownLanguage: Boolean): Try[Concept] = {
-      val validationErrors = concept.content.flatMap(c => validateConceptContent(c, allowUnknownLanguage)) ++
-        validateTitle(concept.title, allowUnknownLanguage)
-
-      if (validationErrors.isEmpty) {
-        Success(concept)
-      } else {
-        Failure(new ValidationException(errors = validationErrors))
-      }
-    }
-
     private def validateNonEmpty(field: String, values: Seq[LanguageField[_]]): Option[ValidationMessage] = {
       if (values.isEmpty || values.forall(_.isEmpty)) {
         Some(ValidationMessage(field, "Field must contain at least one entry"))
@@ -104,13 +93,6 @@ trait ContentValidator {
               field,
               s"An article must consist of one or more <section> blocks. Illegal tag(s) are $illegalTags "))
       }
-    }
-
-    private def validateConceptContent(content: ConceptContent,
-                                       allowUnknownLanguage: Boolean): Seq[ValidationMessage] = {
-      val field = s"content.${content.language}"
-      NoHtmlValidator.validate(field, content.content).toList ++
-        validateLanguage("content.language", content.language, allowUnknownLanguage)
     }
 
     private def validateVisualElement(content: VisualElement, allowUnknownLanguage: Boolean): Seq[ValidationMessage] = {

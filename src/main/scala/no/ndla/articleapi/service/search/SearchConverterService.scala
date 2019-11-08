@@ -9,7 +9,7 @@
 package no.ndla.articleapi.service.search
 
 import com.typesafe.scalalogging.LazyLogging
-import no.ndla.articleapi.model.api.{ArticleSummaryV2, ConceptSearchResult, ConceptSummary, SearchResultV2}
+import no.ndla.articleapi.model.api.{ArticleSummaryV2, SearchResultV2}
 import no.ndla.articleapi.model.domain._
 import no.ndla.articleapi.model.search._
 import no.ndla.articleapi.service.ConverterService
@@ -72,23 +72,6 @@ trait SearchConverterService {
       s"${ApplicationUrl.get}$id"
     }
 
-    def asSearchableConcept(c: Concept): SearchableConcept = {
-
-      val defaultTitle = c.title
-        .sortBy(title => {
-          val languagePriority = Language.languageAnalyzers.map(la => la.lang).reverse
-          languagePriority.indexOf(title.language)
-        })
-        .lastOption
-
-      SearchableConcept(
-        c.id.get,
-        SearchableLanguageValues(c.title.map(title => LanguageValue(title.language, title.title))),
-        SearchableLanguageValues(c.content.map(content => LanguageValue(content.language, content.content))),
-        defaultTitle.map(t => t.title)
-      )
-    }
-
     def asApiSearchResultV2(searchResult: SearchResult[ArticleSummaryV2]): SearchResultV2 =
       SearchResultV2(
         searchResult.totalCount,
@@ -98,13 +81,5 @@ trait SearchConverterService {
         searchResult.results
       )
 
-    def asApiConceptSearchResult(searchResult: SearchResult[ConceptSummary]): ConceptSearchResult =
-      ConceptSearchResult(
-        searchResult.totalCount,
-        searchResult.page,
-        searchResult.pageSize,
-        searchResult.language,
-        searchResult.results
-      )
   }
 }
