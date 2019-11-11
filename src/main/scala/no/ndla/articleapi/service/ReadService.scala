@@ -16,7 +16,7 @@ import no.ndla.articleapi.model.api
 import no.ndla.articleapi.model.api.NotFoundException
 import no.ndla.articleapi.model.domain._
 import no.ndla.articleapi.model.domain.Language._
-import no.ndla.articleapi.repository.{ArticleRepository, ConceptRepository}
+import no.ndla.articleapi.repository.ArticleRepository
 import no.ndla.articleapi.ArticleApiProperties.Domain
 import no.ndla.validation.{ResourceType, TagAttributes}
 import org.jsoup.nodes.Element
@@ -26,7 +26,7 @@ import scala.collection.JavaConverters._
 import scala.util.{Failure, Try}
 
 trait ReadService {
-  this: ArticleRepository with ConceptRepository with ConverterService =>
+  this: ArticleRepository with ConverterService =>
   val readService: ReadService
 
   class ReadService {
@@ -74,13 +74,6 @@ trait ReadService {
       api.ArticleDomainDump(articleRepository.articleCount, pageNo, pageSize, results)
     }
 
-    def getConceptDomainDump(pageNo: Int, pageSize: Int): api.ConceptDomainDump = {
-      val (safePageNo, safePageSize) = (max(pageNo, 1), max(pageSize, 0))
-      val results = conceptRepository.getConceptsByPage(safePageSize, (safePageNo - 1) * safePageSize)
-
-      api.ConceptDomainDump(conceptRepository.conceptCount, pageNo, pageSize, results)
-    }
-
     val getTagUsageMap = MemoizeAutoRenew(() => {
       articleRepository.allTags
         .map(languageTags => languageTags.language -> new MostFrequentOccurencesList(languageTags.tags))
@@ -93,19 +86,6 @@ trait ReadService {
       val embedTags = doc.select(s"$ResourceHtmlEmbedTag").asScala.toList
       embedTags.foreach(addUrlOnEmbedTag)
       jsoupDocumentToString(doc)
-    }
-
-    private def convertFileEmbedToAnchor(embedTag: Element): Unit = {
-      val url = s"$Domain/${embedTag.attr(TagAttributes.DataPath.toString)}"
-      val title = embedTag.attr(TagAttributes.DataTitle.toString)
-      val text = embedTag.attr(TagAttributes.DataAlt.toString)
-
-      val anchor = new Element("a")
-      anchor.attr(TagAttributes.Href.toString, url)
-      anchor.attr(TagAttributes.Title.toString, title)
-      anchor.text(text)
-
-      embedTag.replaceWith(anchor)
     }
 
     private def addUrlOnEmbedTag(embedTag: Element): Unit = {
@@ -142,20 +122,11 @@ trait ReadService {
       def getNMostFrequent(n: Int): Seq[String] = mostFrequentOccorencesDec.slice(0, n)
     }
 
-    def conceptWithId(id: Long, language: String, fallback: Boolean): Try[api.Concept] =
-      conceptRepository.withId(id) match {
-        case None          => Failure(NotFoundException(s"The concept with id $id was not found"))
-        case Some(concept) => converterService.toApiConcept(concept, language, fallback)
-      }
-
     def getContentByExternalId(externalId: String): Option[Content] =
-      articleRepository.withExternalId(externalId) orElse conceptRepository.withExternalId(externalId)
+      articleRepository.withExternalId(externalId)
 
     def getArticleIdByExternalId(externalId: String): Option[Long] =
       articleRepository.getIdFromExternalId(externalId)
-
-    def getConceptIdByExternalId(externalId: String): Option[Long] =
-      conceptRepository.getIdFromExternalId(externalId)
 
     def getArticleIdsByExternalId(externalId: String): Option[api.ArticleIds] =
       articleRepository.getArticleIdsFromExternalId(externalId).map(converterService.toApiArticleIds)

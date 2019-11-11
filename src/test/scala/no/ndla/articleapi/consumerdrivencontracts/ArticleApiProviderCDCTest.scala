@@ -97,15 +97,6 @@ class ArticleApiProviderCDCTest extends IntegrationSuite with TestEnvironment {
       .collectFirst { case Failure(ex) => Failure(ex) }
       .getOrElse(Success(true))
 
-  private def setupConcepts() =
-    (1 to 10)
-      .map(_ => ComponentRegistry.conceptRepository.allocateConceptId())
-      .map(id => {
-        ComponentRegistry.conceptRepository.updateConceptFromDraftApi(TestData.sampleConcept.copy(id = Some(id)))
-      })
-      .collectFirst { case Failure(ex) => Failure(ex) }
-      .getOrElse(Success(true))
-
   private def getGitVersion =
     for {
       shortCommit <- Try("git rev-parse --short=7 HEAD".!!.trim)
@@ -147,7 +138,6 @@ class ArticleApiProviderCDCTest extends IntegrationSuite with TestEnvironment {
             .withPactSource(b)
             .setupProviderState("given") {
               case "articles" => deleteSchema(); ProviderStateResult(setupArticles().getOrElse(false))
-              case "concepts" => deleteSchema(); ProviderStateResult(setupConcepts().getOrElse(false))
               case "empty"    => deleteSchema(); ProviderStateResult(true)
             }
             .runVerificationAgainst("localhost", serverPort, 10.seconds)

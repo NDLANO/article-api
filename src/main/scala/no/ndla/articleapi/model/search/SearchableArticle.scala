@@ -26,10 +26,3 @@ case class SearchableArticle(
     articleType: String,
     defaultTitle: Option[String]
 )
-
-case class SearchableConcept(
-    id: Long,
-    title: SearchableLanguageValues,
-    content: SearchableLanguageValues,
-    defaultTitle: Option[String]
-)

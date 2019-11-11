@@ -84,36 +84,3 @@ object ArticleType extends Enumeration {
     valueOf(s).getOrElse(throw new ValidationException(errors = List(
       ValidationMessage("articleType", s"'$s' is not a valid article type. Valid options are ${all.mkString(",")}."))))
 }
-
-case class Concept(id: Option[Long],
-                   title: Seq[ConceptTitle],
-                   content: Seq[ConceptContent],
-                   copyright: Option[Copyright],
-                   created: Date,
-                   updated: Date)
-    extends Content
-
-object Concept extends SQLSyntaxSupport[Concept] {
-  implicit val formats: DefaultFormats.type = org.json4s.DefaultFormats
-  override val tableName = "conceptdata"
-  override val schemaName = Some(ArticleApiProperties.MetaSchema)
-
-  def apply(lp: SyntaxProvider[Concept])(rs: WrappedResultSet): Concept = apply(lp.resultName)(rs)
-
-  def apply(lp: ResultName[Concept])(rs: WrappedResultSet): Concept = {
-    val meta = read[Concept](rs.string(lp.c("document")))
-    Concept(
-      Some(rs.long(lp.c("id"))),
-      meta.title,
-      meta.content,
-      meta.copyright,
-      meta.created,
-      meta.updated
-    )
-  }
-
-  val JSonSerializer: FieldSerializer[Concept] = FieldSerializer[Concept](
-    ignore("id") orElse
-      ignore("revision")
-  )
-}

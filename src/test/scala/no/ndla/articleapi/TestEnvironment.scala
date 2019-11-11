@@ -13,7 +13,7 @@ import com.zaxxer.hikari.HikariDataSource
 import no.ndla.articleapi.auth.{Role, User}
 import no.ndla.articleapi.controller._
 import no.ndla.articleapi.integration._
-import no.ndla.articleapi.repository.{ArticleRepository, ConceptRepository}
+import no.ndla.articleapi.repository.ArticleRepository
 import no.ndla.articleapi.service._
 import no.ndla.articleapi.service.search._
 import no.ndla.articleapi.validation.ContentValidator
@@ -24,18 +24,14 @@ trait TestEnvironment
     extends Elastic4sClient
     with ArticleSearchService
     with ArticleIndexService
-    with ConceptSearchService
-    with ConceptIndexService
     with IndexService
     with SearchService
     with LazyLogging
     with ArticleControllerV2
     with InternController
     with HealthController
-    with ConceptController
     with DataSource
     with ArticleRepository
-    with ConceptRepository
     with MockitoSugar
     with DraftApiClient
     with ConverterService
@@ -50,18 +46,14 @@ trait TestEnvironment
 
   val articleSearchService = mock[ArticleSearchService]
   val articleIndexService = mock[ArticleIndexService]
-  val conceptSearchService = mock[ConceptSearchService]
-  val conceptIndexService = mock[ConceptIndexService]
 
   val internController = mock[InternController]
   val articleControllerV2 = mock[ArticleControllerV2]
-  val conceptController = mock[ConceptController]
 
   val healthController = mock[HealthController]
 
   val dataSource = mock[HikariDataSource]
   val articleRepository = mock[ArticleRepository]
-  val conceptRepository = mock[ConceptRepository]
 
   val converterService = mock[ConverterService]
   val readService = mock[ReadService]

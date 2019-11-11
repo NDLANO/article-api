@@ -51,73 +51,51 @@ class InternControllerTest extends UnitSuite with TestEnvironment with ScalatraF
 
   test("That DELETE /index removes all indexes") {
     reset(articleIndexService)
-    reset(conceptIndexService)
     when(articleIndexService.findAllIndexes(any[String])).thenReturn(Success(List("index1", "index2")))
-    when(conceptIndexService.findAllIndexes(any[String])).thenReturn(Success(List("index3", "index4")))
     doReturn(Success(""), Nil: _*).when(articleIndexService).deleteIndexWithName(Some("index1"))
     doReturn(Success(""), Nil: _*).when(articleIndexService).deleteIndexWithName(Some("index2"))
-    doReturn(Success(""), Nil: _*).when(conceptIndexService).deleteIndexWithName(Some("index3"))
-    doReturn(Success(""), Nil: _*).when(conceptIndexService).deleteIndexWithName(Some("index4"))
     delete("/index") {
       status should equal(200)
-      body should equal("Deleted 4 indexes")
+      body should equal("Deleted 2 indexes")
     }
     verify(articleIndexService).findAllIndexes(ArticleApiProperties.ArticleSearchIndex)
     verify(articleIndexService).deleteIndexWithName(Some("index1"))
     verify(articleIndexService).deleteIndexWithName(Some("index2"))
     verifyNoMoreInteractions(articleIndexService)
-
-    verify(conceptIndexService).findAllIndexes(ArticleApiProperties.ConceptSearchIndex)
-    verify(conceptIndexService).deleteIndexWithName(Some("index3"))
-    verify(conceptIndexService).deleteIndexWithName(Some("index4"))
-    verifyNoMoreInteractions(conceptIndexService)
   }
 
   test("That DELETE /index fails if at least one index isn't found, and no indexes are deleted") {
     reset(articleIndexService)
-    reset(conceptIndexService)
 
     doReturn(Failure(new RuntimeException("Failed to find indexes")), Nil: _*)
       .when(articleIndexService)
       .findAllIndexes(ArticleApiProperties.ArticleSearchIndex)
-    doReturn(Failure(new RuntimeException("Failed to find indexes")), Nil: _*)
-      .when(conceptIndexService)
-      .findAllIndexes(ArticleApiProperties.ConceptSearchIndex)
     doReturn(Success(""), Nil: _*).when(articleIndexService).deleteIndexWithName(Some("index1"))
     doReturn(Success(""), Nil: _*).when(articleIndexService).deleteIndexWithName(Some("index2"))
-    doReturn(Success(""), Nil: _*).when(conceptIndexService).deleteIndexWithName(Some("index3"))
-    doReturn(Success(""), Nil: _*).when(conceptIndexService).deleteIndexWithName(Some("index4"))
     delete("/index") {
       status should equal(500)
       body should equal("Failed to find indexes")
     }
     verify(articleIndexService, never()).deleteIndexWithName(any[Option[String]])
-    verify(conceptIndexService, never()).deleteIndexWithName(any[Option[String]])
   }
 
   test(
     "That DELETE /index fails if at least one index couldn't be deleted, but the other indexes are deleted regardless") {
     reset(articleIndexService)
-    reset(conceptIndexService)
 
     when(articleIndexService.findAllIndexes(any[String])).thenReturn(Success(List("index1", "index2")))
-    when(conceptIndexService.findAllIndexes(any[String])).thenReturn(Success(List("index3", "index4")))
 
     doReturn(Success(""), Nil: _*).when(articleIndexService).deleteIndexWithName(Some("index1"))
     doReturn(Failure(new RuntimeException("No index with name 'index2' exists")), Nil: _*)
       .when(articleIndexService)
       .deleteIndexWithName(Some("index2"))
-    doReturn(Success(""), Nil: _*).when(conceptIndexService).deleteIndexWithName(Some("index3"))
-    doReturn(Success(""), Nil: _*).when(conceptIndexService).deleteIndexWithName(Some("index4"))
     delete("/index") {
       status should equal(500)
       body should equal(
-        "Failed to delete 1 index: No index with name 'index2' exists. 3 indexes were deleted successfully.")
+        "Failed to delete 1 index: No index with name 'index2' exists. 1 index were deleted successfully.")
     }
     verify(articleIndexService).deleteIndexWithName(Some("index1"))
     verify(articleIndexService).deleteIndexWithName(Some("index2"))
-    verify(conceptIndexService).deleteIndexWithName(Some("index3"))
-    verify(conceptIndexService).deleteIndexWithName(Some("index4"))
   }
 
 }

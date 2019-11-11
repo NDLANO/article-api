@@ -28,25 +28,11 @@ class SearchableArticleSerializerTest extends UnitSuite with TestEnvironment {
     defaultTitle = Some("tjuppidu")
   )
 
-  val searchableConcept1 = SearchableConcept(
-    id = 5.toLong,
-    title = SearchableLanguageValues(Seq(LanguageValue("nb", "tittel"), LanguageValue("en", "title"))),
-    content = SearchableLanguageValues(Seq(LanguageValue("nb", "innhold"), LanguageValue("en", "content"))),
-    defaultTitle = Some("tjappsipappsi")
-  )
-
   test("That deserialization and serialization of SearchableArticle works as expected") {
     val json = writePretty(searchableArticle1)
     val deserialized = read[SearchableArticle](json)
 
     deserialized should be(searchableArticle1)
-  }
-
-  test("That deserialization and serialization of SearchableConcept works as expected") {
-    val json = writePretty(searchableConcept1)
-    val deserialized = read[SearchableConcept](json)
-
-    deserialized should be(searchableConcept1)
   }
 
 }

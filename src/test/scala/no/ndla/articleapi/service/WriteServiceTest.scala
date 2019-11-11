@@ -47,27 +47,4 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     when(contentValidator.validateArticle(any[Article], any[Boolean], any[Boolean]))
       .thenAnswer((invocation: InvocationOnMock) => Success(invocation.getArgument[Article](0)))
   }
-
-  test("allocateConceptId should reuse existing id if external id already exists") {
-    val id = 1122: Long
-    when(conceptRepository.getIdFromExternalId(any[String])(any[DBSession])).thenReturn(Some(id))
-    service.allocateConceptId(List("123123123")) should equal(id)
-  }
-
-  test("allocateConceptId should allocate new id if no external id is supplied or first time use of external id") {
-    val id = 1122: Long
-    val external = "12312313"
-    when(conceptRepository.getIdFromExternalId(any[String])(any[DBSession])).thenReturn(None)
-    when(conceptRepository.allocateConceptIdWithExternalIds(any[List[String]])(any[DBSession])).thenReturn(id)
-    service.allocateConceptId(List(external)) should equal(id)
-    verify(conceptRepository, times(0)).allocateConceptId()
-    verify(conceptRepository, times(1)).allocateConceptIdWithExternalIds(List(external))
-
-    reset(conceptRepository)
-    when(conceptRepository.allocateConceptId()(any[DBSession])).thenReturn(id)
-    service.allocateConceptId(List.empty) should equal(id)
-    verify(conceptRepository, times(1)).allocateConceptId()
-    verify(conceptRepository, times(0)).allocateConceptIdWithExternalIds(List(external))
-  }
-
 }
