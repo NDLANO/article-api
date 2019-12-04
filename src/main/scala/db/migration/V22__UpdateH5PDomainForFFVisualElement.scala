@@ -89,7 +89,7 @@ class V22__UpdateH5PDomainForFFVisualElement extends BaseJavaMigration {
           case content: JObject =>
             content.mapField {
               case ("resource", JString(html)) => ("resource", JString(updateH5PDomains(html)))
-              case z                                => z
+              case z                           => z
             }
           case y => y
         }
