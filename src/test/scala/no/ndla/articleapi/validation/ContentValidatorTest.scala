@@ -308,4 +308,17 @@ class ContentValidatorTest extends UnitSuite with TestEnvironment {
     res.errors.head.field should equal("tags")
     res.errors.head.message should equal("The article must have at least one set of tags")
   }
+
+  test("validation should fail if metaImageId is an empty string") {
+    val Failure(res: ValidationException) =
+      contentValidator.validateArticle(TestData.sampleArticleWithByNcSa.copy(
+                                         metaImage = Seq(ArticleMetaImage("", "alt-text", "nb"))
+                                       ),
+                                       false,
+                                       false)
+
+    res.errors.length should be(1)
+    res.errors.head.field should be("metaImageId")
+    res.errors.head.message should be("Meta image ID must be a number")
+  }
 }
