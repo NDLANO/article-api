@@ -33,6 +33,20 @@ trait ContentValidator {
     private val NoHtmlValidator = new TextValidator(allowHtml = false)
     private val HtmlValidator = new TextValidator(allowHtml = true)
 
+    def softValidateArticle(article: Article): Try[Article] = {
+      val validationErrors =
+        validateArticleType(article.articleType) ++
+          validateNonEmpty("content", article.content) ++
+          validateNonEmpty("title", article.title) ++
+          validateNonEmpty("metaDescription", article.metaDescription)
+
+      if (validationErrors.isEmpty) {
+        Success(article)
+      } else {
+        Failure(new ValidationException(errors = validationErrors))
+      }
+    }
+
     def validateArticle(article: Article, allowUnknownLanguage: Boolean, isImported: Boolean = false): Try[Article] = {
       val validationErrors = validateArticleContent(article.content, allowUnknownLanguage) ++
         article.introduction.flatMap(i => validateIntroduction(i, allowUnknownLanguage)) ++

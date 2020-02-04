@@ -8,6 +8,7 @@
 
 package no.ndla.articleapi.service
 
+import com.typesafe.scalalogging.LazyLogging
 import no.ndla.articleapi.auth.User
 import no.ndla.articleapi.model.api
 import no.ndla.articleapi.model.api.{NotFoundException, UpdatedArticleV2}
@@ -15,8 +16,9 @@ import no.ndla.articleapi.model.domain._
 import no.ndla.articleapi.repository.ArticleRepository
 import no.ndla.articleapi.service.search.ArticleIndexService
 import no.ndla.articleapi.validation.ContentValidator
+import no.ndla.validation.ValidationException
 
-import scala.util.{Failure, Try}
+import scala.util.{Failure, Success, Try}
 
 trait WriteService {
   this: ArticleRepository
@@ -29,7 +31,7 @@ trait WriteService {
     with ArticleIndexService =>
   val writeService: WriteService
 
-  class WriteService {
+  class WriteService extends LazyLogging {
 
     def validateAndConvertUpdatedArticle(articleId: Long, updatedApiArticle: UpdatedArticleV2): Try[Article] = {
       articleRepository.withId(articleId) match {
@@ -40,11 +42,39 @@ trait WriteService {
       }
     }
 
-    def updateArticle(article: Article, externalIds: List[Long], useImportValidation: Boolean): Try[Article] = {
+    def updateArticle(
+        article: Article,
+        externalIds: List[Long],
+        useImportValidation: Boolean,
+        useSoftValidation: Boolean
+    ): Try[Article] = {
+
+      val strictValidationResult = contentValidator.validateArticle(
+        article,
+        allowUnknownLanguage = true,
+        isImported = externalIds.nonEmpty || useImportValidation
+      )
+
+      val validationResult =
+        if (useSoftValidation) {
+          (strictValidationResult, contentValidator.softValidateArticle(article)) match {
+            case (Failure(strictEx: ValidationException), Success(art)) =>
+              val strictErrors = strictEx.errors
+                .map(msg => {
+                  s"\t'${msg.field}' => '${msg.message}'"
+                })
+                .mkString("\n\t")
+
+              logger.warn(
+                s"Article with id '${art.id.getOrElse(-1)}' was updated with soft validation while strict validation failed with the following errors:\n$strictErrors")
+              Success(art)
+            case (_, Success(art)) => Success(art)
+            case (_, Failure(ex))  => Failure(ex)
+          }
+        } else strictValidationResult
+
       for {
-        _ <- contentValidator.validateArticle(article,
-                                              allowUnknownLanguage = true,
-                                              isImported = externalIds.nonEmpty || useImportValidation)
+        _ <- validationResult
         domainArticle <- articleRepository.updateArticleFromDraftApi(article, externalIds.map(_.toString))
         _ <- articleIndexService.indexDocument(domainArticle)
       } yield domainArticle

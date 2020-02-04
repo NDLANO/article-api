@@ -14,7 +14,7 @@ import no.ndla.articleapi.{TestData, TestEnvironment, UnitSuite}
 import no.ndla.validation.{ValidationException, ValidationMessage}
 import org.mockito.Mockito._
 
-import scala.util.Failure
+import scala.util.{Failure, Success}
 
 class ContentValidatorTest extends UnitSuite with TestEnvironment {
   override val contentValidator = new ContentValidator(allowEmptyLanguageField = false)
@@ -320,5 +320,21 @@ class ContentValidatorTest extends UnitSuite with TestEnvironment {
     res.errors.length should be(1)
     res.errors.head.field should be("metaImageId")
     res.errors.head.message should be("Meta image ID must be a number")
+  }
+
+  test("softvalidation is more lenient than strictvalidation") {
+    val Failure(strictRes: ValidationException) = contentValidator.validateArticle(
+      TestData.sampleArticleWithByNcSa.copy(metaImage = Seq(ArticleMetaImage("", "alt-text", "nb"))),
+      false,
+      false)
+
+    val softRes = contentValidator.softValidateArticle(
+      TestData.sampleArticleWithByNcSa.copy(metaImage = Seq(ArticleMetaImage("", "alt-text", "nb"))))
+
+    strictRes.errors.length should be(1)
+    strictRes.errors.head.field should be("metaImageId")
+    strictRes.errors.head.message should be("Meta image ID must be a number")
+
+    softRes.isSuccess should be(true)
   }
 }
