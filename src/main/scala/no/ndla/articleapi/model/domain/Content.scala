@@ -36,7 +36,8 @@ case class Article(id: Option[Long],
                    updated: Date,
                    updatedBy: String,
                    published: Date,
-                   articleType: String)
+                   articleType: String,
+                   competences: Seq[String])
     extends Content
 
 object Article extends SQLSyntaxSupport[Article] {
@@ -44,10 +45,53 @@ object Article extends SQLSyntaxSupport[Article] {
   override val tableName = "contentdata"
   override val schemaName = Some(ArticleApiProperties.MetaSchema)
 
-  def apply(lp: SyntaxProvider[Article])(rs: WrappedResultSet): Article = apply(lp.resultName)(rs)
+  def apply(id: Option[Long],
+            revision: Option[Int],
+            title: Seq[ArticleTitle],
+            content: Seq[ArticleContent],
+            copyright: Copyright,
+            tags: Seq[ArticleTag],
+            requiredLibraries: Seq[RequiredLibrary],
+            visualElement: Seq[VisualElement],
+            introduction: Seq[ArticleIntroduction],
+            metaDescription: Seq[ArticleMetaDescription],
+            metaImage: Seq[ArticleMetaImage],
+            created: Date,
+            updated: Date,
+            updatedBy: String,
+            published: Date,
+            articleType: String,
+            competences: Seq[String] = Nil): Article = {
 
-  def apply(lp: ResultName[Article])(rs: WrappedResultSet): Article = {
-    val meta = read[Article](rs.string(lp.c("document")))
+    new Article(
+      id,
+      revision,
+      title,
+      content,
+      copyright,
+      tags,
+      requiredLibraries,
+      visualElement,
+      introduction,
+      metaDescription,
+      metaImage,
+      created,
+      updated,
+      updatedBy,
+      published,
+      articleType,
+      competences
+    )
+  }
+
+  def fromResultSet(lp: SyntaxProvider[Article])(rs: WrappedResultSet): Article = fromResultSet(lp.resultName)(rs)
+
+  def fromResultSet(lp: ResultName[Article])(rs: WrappedResultSet): Article = {
+    implicit val formats: DefaultFormats.type = org.json4s.DefaultFormats
+
+    val jsonStr = rs.string(lp.c("document"))
+
+    val meta = read[Article](jsonStr)
     Article(
       Some(rs.long(lp.c("id"))),
       Some(rs.int(lp.c("revision"))),
@@ -64,7 +108,8 @@ object Article extends SQLSyntaxSupport[Article] {
       meta.updated,
       meta.updatedBy,
       meta.published,
-      meta.articleType
+      meta.articleType,
+      meta.competences
     )
   }
 

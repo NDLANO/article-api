@@ -10,7 +10,6 @@ package no.ndla.articleapi.service
 
 import no.ndla.articleapi.auth.User
 import no.ndla.articleapi.model.api
-import no.ndla.articleapi.model.api.{NotFoundException, UpdatedArticleV2}
 import no.ndla.articleapi.model.domain._
 import no.ndla.articleapi.repository.ArticleRepository
 import no.ndla.articleapi.service.search.ArticleIndexService
@@ -30,15 +29,6 @@ trait WriteService {
   val writeService: WriteService
 
   class WriteService {
-
-    def validateAndConvertUpdatedArticle(articleId: Long, updatedApiArticle: UpdatedArticleV2): Try[Article] = {
-      articleRepository.withId(articleId) match {
-        case None => Failure(NotFoundException(s"Article with id $articleId does not exist"))
-        case Some(existing) =>
-          val domainArticle = converterService.toDomainArticle(existing, updatedApiArticle)
-          contentValidator.validateArticle(domainArticle, allowUnknownLanguage = true)
-      }
-    }
 
     def updateArticle(article: Article, externalIds: List[Long], useImportValidation: Boolean): Try[Article] = {
       for {

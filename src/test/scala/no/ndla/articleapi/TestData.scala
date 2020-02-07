@@ -116,7 +116,8 @@ object TestData {
     DateTime.now().minusDays(2).withMillisOfSecond(0).toDate,
     "ndalId54321",
     DateTime.now().minusDays(2).withMillisOfSecond(0).toDate,
-    ArticleType.Standard.toString
+    ArticleType.Standard.toString,
+    Seq("COMPCODE1")
   )
 
   val sampleDomainArticle = Article(
@@ -135,7 +136,8 @@ object TestData {
     today,
     "ndalId54321",
     today,
-    ArticleType.Standard.toString
+    ArticleType.Standard.toString,
+    Seq("COMPCODE1")
   )
 
   val sampleDomainArticle2 = Article(
@@ -154,60 +156,8 @@ object TestData {
     today,
     "ndalId54321",
     today,
-    ArticleType.Standard.toString
-  )
-
-  val newArticleV2 = api.NewArticleV2(
-    "test",
-    "<article><div>test</div></article>",
-    None,
-    Seq(),
-    None,
-    None,
-    None,
-    None,
-    api.Copyright(api.License("publicdomain", None, None), "", Seq(), Seq(), Seq(), None, None, None),
-    None,
-    "standard",
-    "en"
-  )
-
-  val newArticleV2Body = api.NewArticleV2(
-    "title",
-    "content",
-    None,
-    Seq("tag"),
-    Some("introductino"),
-    Some("metadescription"),
-    Some(api.NewArticleMetaImage("22", "alt")),
-    None,
-    api.Copyright(api.License("by-sa", None, None),
-                  "fromSomeWhere",
-                  Seq(api.Author("string", "du")),
-                  Seq(),
-                  Seq(),
-                  None,
-                  None,
-                  None),
-    None,
-    "standard",
-    "nb"
-  )
-
-  val updatedArticleV2 = api.UpdatedArticleV2(
-    1,
-    "nb",
-    Some("updated title"),
-    None,
-    None,
-    Seq.empty,
-    None,
-    None,
-    None,
-    None,
-    None,
-    Seq.empty,
-    None
+    ArticleType.Standard.toString,
+    Seq("COMPCODE1")
   )
 
   val sampleArticleWithByNcSa: Article = sampleArticleWithPublicDomain.copy(copyright = byNcSaCopyright)
@@ -237,7 +187,8 @@ object TestData {
     today,
     "ndalId54321",
     today,
-    ArticleType.Standard.toString
+    ArticleType.Standard.toString,
+    Seq()
   )
 
   val apiArticleWithHtmlFaultV2 = api.ArticleV2(
@@ -292,7 +243,8 @@ object TestData {
       today,
       "ndalId54321",
       today,
-      ArticleType.Standard.toString
+      ArticleType.Standard.toString,
+      Seq()
     )
   }
 
