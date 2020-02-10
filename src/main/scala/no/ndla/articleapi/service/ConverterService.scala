@@ -113,7 +113,8 @@ trait ConverterService {
         searchableArticle.license,
         searchableArticle.articleType,
         lastUpdated.toDate,
-        supportedLanguages
+        supportedLanguages,
+        searchableArticle.competences
       )
     }
 

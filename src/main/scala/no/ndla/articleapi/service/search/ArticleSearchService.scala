@@ -42,73 +42,51 @@ trait ArticleSearchService {
       converterService.hitAsArticleSummaryV2(hit, language)
     }
 
-    def all(withIdIn: List[Long],
-            language: String,
-            license: Option[String],
-            page: Int,
-            pageSize: Int,
-            sort: Sort.Value,
-            articleTypes: Seq[String],
-            fallback: Boolean): Try[SearchResult[ArticleSummaryV2]] = {
-      executeSearch(withIdIn, language, license, sort, page, pageSize, boolQuery(), articleTypes, fallback)
-    }
+    def matchingQuery(settings: SearchSettings): Try[SearchResult[ArticleSummaryV2]] = {
+      val fullQuery = settings.query match {
+        case Some(query) =>
+          val language = if (settings.language == Language.AllLanguages || settings.fallback) "*" else settings.language
+          val titleSearch = simpleStringQuery(query).field(s"title.$language", 3)
+          val introSearch = simpleStringQuery(query).field(s"introduction.$language", 2)
+          val metaSearch = simpleStringQuery(query).field(s"metaDescription.$language", 1)
+          val contentSearch = simpleStringQuery(query).field(s"content.$language", 1)
+          val tagSearch = simpleStringQuery(query).field(s"tags.$language", 1)
 
-    def matchingQuery(query: String,
-                      withIdIn: List[Long],
-                      searchLanguage: String,
-                      license: Option[String],
-                      page: Int,
-                      pageSize: Int,
-                      sort: Sort.Value,
-                      articleTypes: Seq[String],
-                      fallback: Boolean): Try[SearchResult[ArticleSummaryV2]] = {
-      val language = if (searchLanguage == Language.AllLanguages || fallback) "*" else searchLanguage
-      val titleSearch = simpleStringQuery(query).field(s"title.$language", 3)
-      val introSearch = simpleStringQuery(query).field(s"introduction.$language", 2)
-      val metaSearch = simpleStringQuery(query).field(s"metaDescription.$language", 1)
-      val contentSearch = simpleStringQuery(query).field(s"content.$language", 1)
-      val tagSearch = simpleStringQuery(query).field(s"tags.$language", 1)
-
-      val fullQuery = boolQuery()
-        .must(
           boolQuery()
-            .should(
-              titleSearch,
-              introSearch,
-              metaSearch,
-              contentSearch,
-              tagSearch
+            .must(
+              boolQuery()
+                .should(
+                  titleSearch,
+                  introSearch,
+                  metaSearch,
+                  contentSearch,
+                  tagSearch
+                )
             )
-        )
+        case None => boolQuery()
+      }
 
-      executeSearch(withIdIn, searchLanguage, license, sort, page, pageSize, fullQuery, articleTypes, fallback)
+      executeSearch(fullQuery, settings)
     }
 
-    def executeSearch(withIdIn: List[Long],
-                      language: String,
-                      license: Option[String],
-                      sort: Sort.Value,
-                      page: Int,
-                      pageSize: Int,
-                      queryBuilder: BoolQuery,
-                      articleTypes: Seq[String],
-                      fallback: Boolean): Try[SearchResult[ArticleSummaryV2]] = {
+    def executeSearch(queryBuilder: BoolQuery, settings: SearchSettings): Try[SearchResult[ArticleSummaryV2]] = {
 
       val articleTypesFilter =
-        if (articleTypes.nonEmpty) Some(constantScoreQuery(termsQuery("articleType", articleTypes))) else None
-      val idFilter = if (withIdIn.isEmpty) None else Some(idsQuery(withIdIn))
+        if (settings.articleTypes.nonEmpty) Some(constantScoreQuery(termsQuery("articleType", settings.articleTypes)))
+        else None
+      val idFilter = if (settings.withIdIn.isEmpty) None else Some(idsQuery(settings.withIdIn))
 
-      val licenseFilter = license match {
+      val licenseFilter = settings.license match {
         case None        => Some(noCopyright)
         case Some("all") => None
         case Some(lic)   => Some(termQuery("license", lic))
       }
 
-      val (languageFilter, searchLanguage) = language match {
+      val (languageFilter, searchLanguage) = settings.language match {
         case "" | Language.AllLanguages =>
           (None, "*")
         case lang =>
-          if (fallback)
+          if (settings.fallback)
             (None, "*")
           else (Some(existsQuery(s"title.$lang")), lang)
       }
@@ -116,8 +94,8 @@ trait ArticleSearchService {
       val filters = List(licenseFilter, idFilter, languageFilter, articleTypesFilter)
       val filteredSearch = queryBuilder.filter(filters.flatten)
 
-      val (startAt, numResults) = getStartAtAndNumResults(page, pageSize)
-      val requestedResultWindow = pageSize * page
+      val (startAt, numResults) = getStartAtAndNumResults(settings.page, settings.pageSize)
+      val requestedResultWindow = settings.pageSize * settings.page
       if (requestedResultWindow > ElasticSearchIndexMaxResultWindow) {
         logger.info(
           s"Max supported results are $ElasticSearchIndexMaxResultWindow, user requested $requestedResultWindow")
@@ -129,7 +107,7 @@ trait ArticleSearchService {
           .from(startAt)
           .query(filteredSearch)
           .highlighting(highlight("*"))
-          .sortBy(getSortDefinition(sort, searchLanguage))
+          .sortBy(getSortDefinition(settings.sort, searchLanguage))
 
         // Only add scroll param if it is first page
         val searchWithScroll =
@@ -140,10 +118,10 @@ trait ArticleSearchService {
             Success(
               SearchResult[ArticleSummaryV2](
                 response.result.totalHits,
-                Some(page),
+                Some(settings.page),
                 numResults,
-                if (language == "*") Language.AllLanguages else language,
-                getHits(response.result, language, fallback),
+                if (language == "*") Language.AllLanguages else settings.language,
+                getHits(response.result, settings.language, settings.fallback),
                 response.result.scrollId
               ))
           case Failure(ex) => errorHandler(ex)

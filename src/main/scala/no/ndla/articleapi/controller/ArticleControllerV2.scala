@@ -11,13 +11,13 @@ package no.ndla.articleapi.controller
 import no.ndla.articleapi.ArticleApiProperties
 import no.ndla.articleapi.ArticleApiProperties.{
   DefaultPageSize,
-  MaxPageSize,
   ElasticSearchIndexMaxResultWindow,
-  ElasticSearchScrollKeepAlive
+  ElasticSearchScrollKeepAlive,
+  MaxPageSize
 }
 import no.ndla.articleapi.auth.{Role, User}
 import no.ndla.articleapi.model.api._
-import no.ndla.articleapi.model.domain.{ArticleIds, ArticleType, Language, Sort}
+import no.ndla.articleapi.model.domain.{ArticleIds, ArticleType, Language, SearchSettings, Sort}
 import no.ndla.articleapi.service.search.{ArticleSearchService, SearchConverterService}
 import no.ndla.articleapi.service.{ConverterService, ReadService, WriteService}
 import no.ndla.articleapi.validation.ContentValidator
@@ -158,12 +158,13 @@ trait ArticleControllerV2 {
                        idList: List[Long],
                        articleTypesFilter: Seq[String],
                        fallback: Boolean) = {
-      val result = query match {
+
+      val settings = query match {
         case Some(q) =>
-          articleSearchService.matchingQuery(
-            query = q,
+          SearchSettings(
+            query = Some(q),
             withIdIn = idList,
-            searchLanguage = language,
+            language = language,
             license = license,
             page = page,
             pageSize = if (idList.isEmpty) pageSize else idList.size,
@@ -173,7 +174,8 @@ trait ArticleControllerV2 {
           )
 
         case None =>
-          articleSearchService.all(
+          SearchSettings(
+            query = None,
             withIdIn = idList,
             language = language,
             license = license,
@@ -185,7 +187,7 @@ trait ArticleControllerV2 {
           )
       }
 
-      result match {
+      articleSearchService.matchingQuery(settings) match {
         case Success(searchResult) =>
           val responseHeader = searchResult.scrollId.map(i => this.scrollId.paramName -> i).toMap
           Ok(searchConverterService.asApiSearchResultV2(searchResult), headers = responseHeader)

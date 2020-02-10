@@ -225,31 +225,30 @@ class ArticleSearchServiceTest extends IntegrationSuite with TestEnvironment {
     articleSearchService.getStartAtAndNumResults(page, DefaultPageSize) should equal((expectedStartAt, DefaultPageSize))
   }
 
-  test("all should return only articles of a given type if a type filter is specified") {
-    val Success(results) = articleSearchService.all(List(),
-                                                    Language.DefaultLanguage,
-                                                    None,
-                                                    1,
-                                                    10,
-                                                    Sort.ByIdAsc,
-                                                    Seq(ArticleType.TopicArticle.toString),
-                                                    fallback = false)
+  val testSettings = SearchSettings(
+    None,
+    List(),
+    Language.DefaultLanguage,
+    None,
+    1,
+    10,
+    Sort.ByIdAsc,
+    Seq.empty,
+    fallback = false
+  )
+
+  test("searching should return only articles of a given type if a type filter is specified") {
+    val Success(results) =
+      articleSearchService.matchingQuery(testSettings.copy(articleTypes = Seq(ArticleType.TopicArticle.toString)))
     results.totalCount should be(3)
 
-    val Success(results2) = articleSearchService.all(List(),
-                                                     Language.DefaultLanguage,
-                                                     None,
-                                                     1,
-                                                     10,
-                                                     Sort.ByIdAsc,
-                                                     ArticleType.all,
-                                                     fallback = false)
+    val Success(results2) = articleSearchService.matchingQuery(testSettings.copy(articleTypes = Seq.empty))
     results2.totalCount should be(9)
   }
 
-  test("That all returns all documents ordered by id ascending") {
+  test("That searching without query returns all documents ordered by id ascending") {
     val Success(results) =
-      articleSearchService.all(List(), Language.DefaultLanguage, None, 1, 10, Sort.ByIdAsc, Seq.empty, fallback = false)
+      articleSearchService.matchingQuery(testSettings.copy(query = None))
     val hits = results.results
     results.totalCount should be(9)
     hits.head.id should be(1)
@@ -261,30 +260,16 @@ class ArticleSearchServiceTest extends IntegrationSuite with TestEnvironment {
     hits.last.id should be(11)
   }
 
-  test("That all returns all documents ordered by id descending") {
-    val Success(results) = articleSearchService.all(List(),
-                                                    Language.DefaultLanguage,
-                                                    None,
-                                                    1,
-                                                    10,
-                                                    Sort.ByIdDesc,
-                                                    Seq.empty,
-                                                    fallback = false)
+  test("That searching returns all documents ordered by id descending") {
+    val Success(results) = articleSearchService.matchingQuery(testSettings.copy(sort = Sort.ByIdDesc))
     val hits = results.results
     results.totalCount should be(9)
     hits.head.id should be(11)
     hits.last.id should be(1)
   }
 
-  test("That all returns all documents ordered by title ascending") {
-    val Success(results) = articleSearchService.all(List(),
-                                                    Language.DefaultLanguage,
-                                                    None,
-                                                    1,
-                                                    10,
-                                                    Sort.ByTitleAsc,
-                                                    Seq.empty,
-                                                    fallback = false)
+  test("That searching returns all documents ordered by title ascending") {
+    val Success(results) = articleSearchService.matchingQuery(testSettings.copy(sort = Sort.ByTitleAsc))
     val hits = results.results
     results.totalCount should be(9)
     hits.head.id should be(8)
@@ -298,15 +283,8 @@ class ArticleSearchServiceTest extends IntegrationSuite with TestEnvironment {
     hits.last.id should be(7)
   }
 
-  test("That all returns all documents ordered by title descending") {
-    val Success(results) = articleSearchService.all(List(),
-                                                    Language.DefaultLanguage,
-                                                    None,
-                                                    1,
-                                                    10,
-                                                    Sort.ByTitleDesc,
-                                                    Seq.empty,
-                                                    fallback = false)
+  test("That searching returns all documents ordered by title descending") {
+    val Success(results) = articleSearchService.matchingQuery(testSettings.copy(sort = Sort.ByTitleDesc))
     val hits = results.results
     results.totalCount should be(9)
     hits.head.id should be(7)
@@ -320,15 +298,8 @@ class ArticleSearchServiceTest extends IntegrationSuite with TestEnvironment {
     hits.last.id should be(8)
   }
 
-  test("That all returns all documents ordered by lastUpdated descending") {
-    val results = articleSearchService.all(List(),
-                                           Language.DefaultLanguage,
-                                           None,
-                                           1,
-                                           10,
-                                           Sort.ByLastUpdatedDesc,
-                                           Seq.empty,
-                                           fallback = false)
+  test("That searching returns all documents ordered by lastUpdated descending") {
+    val results = articleSearchService.matchingQuery(testSettings.copy(sort = Sort.ByLastUpdatedDesc))
     val hits = results.get.results
     results.get.totalCount should be(9)
     hits.head.id should be(3)
@@ -336,14 +307,7 @@ class ArticleSearchServiceTest extends IntegrationSuite with TestEnvironment {
   }
 
   test("That all returns all documents ordered by lastUpdated ascending") {
-    val Success(results) = articleSearchService.all(List(),
-                                                    Language.DefaultLanguage,
-                                                    None,
-                                                    1,
-                                                    10,
-                                                    Sort.ByLastUpdatedAsc,
-                                                    Seq.empty,
-                                                    fallback = false)
+    val Success(results) = articleSearchService.matchingQuery(testSettings.copy(sort = Sort.ByLastUpdatedAsc))
     val hits = results.results
     results.totalCount should be(9)
     hits.head.id should be(5)
@@ -358,14 +322,8 @@ class ArticleSearchServiceTest extends IntegrationSuite with TestEnvironment {
   }
 
   test("That all filtering on license only returns documents with given license") {
-    val Success(results) = articleSearchService.all(List(),
-                                                    Language.DefaultLanguage,
-                                                    Some(PublicDomain.toString),
-                                                    1,
-                                                    10,
-                                                    Sort.ByTitleAsc,
-                                                    Seq.empty,
-                                                    fallback = false)
+    val Success(results) = articleSearchService.matchingQuery(
+      testSettings.copy(sort = Sort.ByTitleAsc, license = Some(PublicDomain.toString)))
     val hits = results.results
     results.totalCount should be(8)
     hits.head.id should be(8)
@@ -379,14 +337,7 @@ class ArticleSearchServiceTest extends IntegrationSuite with TestEnvironment {
   }
 
   test("That all filtered by id only returns documents with the given ids") {
-    val Success(results) = articleSearchService.all(List(1, 3),
-                                                    Language.DefaultLanguage,
-                                                    None,
-                                                    1,
-                                                    10,
-                                                    Sort.ByIdAsc,
-                                                    Seq.empty,
-                                                    fallback = false)
+    val Success(results) = articleSearchService.matchingQuery(testSettings.copy(withIdIn = List(1, 3)))
     val hits = results.results
     results.totalCount should be(2)
     hits.head.id should be(1)
@@ -394,22 +345,11 @@ class ArticleSearchServiceTest extends IntegrationSuite with TestEnvironment {
   }
 
   test("That paging returns only hits on current page and not more than page-size") {
-    val Success(page1) = articleSearchService.all(List(),
-                                                  Language.DefaultLanguage,
-                                                  None,
-                                                  1,
-                                                  2,
-                                                  Sort.ByTitleAsc,
-                                                  Seq.empty,
-                                                  fallback = false)
-    val Success(page2) = articleSearchService.all(List(),
-                                                  Language.DefaultLanguage,
-                                                  None,
-                                                  2,
-                                                  2,
-                                                  Sort.ByTitleAsc,
-                                                  Seq.empty,
-                                                  fallback = false)
+    val Success(page1) =
+      articleSearchService.matchingQuery(testSettings.copy(sort = Sort.ByTitleAsc, page = 1, pageSize = 2))
+    val Success(page2) =
+      articleSearchService.matchingQuery(testSettings.copy(sort = Sort.ByTitleAsc, page = 2, pageSize = 2))
+
     val hits1 = page1.results
     val hits2 = page2.results
     page1.totalCount should be(9)
@@ -425,39 +365,20 @@ class ArticleSearchServiceTest extends IntegrationSuite with TestEnvironment {
   }
 
   test("matchingQuery should filter results based on an article type filter") {
-    val results = articleSearchService.matchingQuery("bil",
-                                                     List(),
-                                                     "nb",
-                                                     None,
-                                                     1,
-                                                     10,
-                                                     Sort.ByRelevanceDesc,
-                                                     Seq(ArticleType.TopicArticle.toString),
-                                                     fallback = false)
+    val results = articleSearchService.matchingQuery(
+      testSettings
+        .copy(query = Some("bil"), sort = Sort.ByRelevanceDesc, articleTypes = Seq(ArticleType.TopicArticle.toString)))
     results.get.totalCount should be(0)
 
-    val results2 = articleSearchService.matchingQuery("bil",
-                                                      List(),
-                                                      "nb",
-                                                      None,
-                                                      1,
-                                                      10,
-                                                      Sort.ByRelevanceDesc,
-                                                      Seq(ArticleType.Standard.toString),
-                                                      fallback = false)
+    val results2 = articleSearchService.matchingQuery(
+      testSettings
+        .copy(query = Some("bil"), sort = Sort.ByRelevanceDesc, articleTypes = Seq(ArticleType.Standard.toString)))
     results2.get.totalCount should be(3)
   }
 
   test("That search matches title and html-content ordered by relevance descending") {
-    val Success(results) = articleSearchService.matchingQuery("bil",
-                                                              List(),
-                                                              "nb",
-                                                              None,
-                                                              1,
-                                                              10,
-                                                              Sort.ByRelevanceDesc,
-                                                              Seq.empty,
-                                                              fallback = false)
+    val Success(results) =
+      articleSearchService.matchingQuery(testSettings.copy(query = Some("bil"), sort = Sort.ByRelevanceDesc))
     val hits = results.results
     results.totalCount should be(3)
     hits.head.id should be(5)
@@ -466,15 +387,8 @@ class ArticleSearchServiceTest extends IntegrationSuite with TestEnvironment {
   }
 
   test("That search combined with filter by id only returns documents matching the query with one of the given ids") {
-    val Success(results) = articleSearchService.matchingQuery("bil",
-                                                              List(3),
-                                                              "nb",
-                                                              None,
-                                                              1,
-                                                              10,
-                                                              Sort.ByRelevanceDesc,
-                                                              Seq.empty,
-                                                              fallback = false)
+    val Success(results) = articleSearchService.matchingQuery(
+      testSettings.copy(query = Some("bil"), withIdIn = List(3), sort = Sort.ByRelevanceDesc))
     val hits = results.results
     results.totalCount should be(1)
     hits.head.id should be(3)
@@ -482,15 +396,8 @@ class ArticleSearchServiceTest extends IntegrationSuite with TestEnvironment {
   }
 
   test("That search matches title") {
-    val Success(results) = articleSearchService.matchingQuery("Pingvinen",
-                                                              List(),
-                                                              "nb",
-                                                              None,
-                                                              1,
-                                                              10,
-                                                              Sort.ByTitleAsc,
-                                                              Seq.empty,
-                                                              fallback = false)
+    val Success(results) =
+      articleSearchService.matchingQuery(testSettings.copy(query = Some("Pingvinen"), sort = Sort.ByTitleAsc))
     val hits = results.results
     results.totalCount should be(1)
     hits.head.id should be(2)
@@ -498,120 +405,64 @@ class ArticleSearchServiceTest extends IntegrationSuite with TestEnvironment {
 
   test("That search matches tags") {
     val Success(results) =
-      articleSearchService.matchingQuery("and", List(), "nb", None, 1, 10, Sort.ByTitleAsc, Seq.empty, fallback = false)
+      articleSearchService.matchingQuery(testSettings.copy(query = Some("and"), sort = Sort.ByTitleAsc))
     val hits = results.results
     results.totalCount should be(1)
     hits.head.id should be(3)
   }
 
   test("That search does not return superman since it has license copyrighted and license is not specified") {
-    val Success(results) = articleSearchService.matchingQuery("supermann",
-                                                              List(),
-                                                              "nb",
-                                                              None,
-                                                              1,
-                                                              10,
-                                                              Sort.ByTitleAsc,
-                                                              Seq.empty,
-                                                              fallback = false)
+    val Success(results) =
+      articleSearchService.matchingQuery(testSettings.copy(query = Some("supermann"), sort = Sort.ByTitleAsc))
     results.totalCount should be(0)
   }
 
   test("That search returns superman since license is specified as copyrighted") {
-    val Success(results) = articleSearchService.matchingQuery("supermann",
-                                                              List(),
-                                                              "nb",
-                                                              Some(Copyrighted.toString),
-                                                              1,
-                                                              10,
-                                                              Sort.ByTitleAsc,
-                                                              Seq.empty,
-                                                              fallback = false)
+    val Success(results) = articleSearchService.matchingQuery(
+      testSettings.copy(query = Some("supermann"), sort = Sort.ByTitleAsc, license = Some(Copyrighted.toString)))
     val hits = results.results
     results.totalCount should be(1)
     hits.head.id should be(4)
   }
 
   test("Searching with logical AND only returns results with all terms") {
-    val Success(search1) = articleSearchService.matchingQuery("bilde + bil",
-                                                              List(),
-                                                              "nb",
-                                                              None,
-                                                              1,
-                                                              10,
-                                                              Sort.ByTitleAsc,
-                                                              Seq.empty,
-                                                              fallback = false)
+    val Success(search1) =
+      articleSearchService.matchingQuery(testSettings.copy(query = Some("bilde + bil"), sort = Sort.ByTitleAsc))
     val hits1 = search1.results
     hits1.map(_.id) should equal(Seq(1, 3, 5))
 
-    val Success(search2) = articleSearchService.matchingQuery("batmen + bil",
-                                                              List(),
-                                                              "nb",
-                                                              None,
-                                                              1,
-                                                              10,
-                                                              Sort.ByTitleAsc,
-                                                              Seq.empty,
-                                                              fallback = false)
+    val Success(search2) =
+      articleSearchService.matchingQuery(testSettings.copy(query = Some("batmen + bil"), sort = Sort.ByTitleAsc))
     val hits2 = search2.results
     hits2.map(_.id) should equal(Seq(1))
 
-    val Success(search3) = articleSearchService.matchingQuery("bil + bilde + -flaggermusmann",
-                                                              List(),
-                                                              "nb",
-                                                              None,
-                                                              1,
-                                                              10,
-                                                              Sort.ByTitleAsc,
-                                                              Seq.empty,
-                                                              fallback = false)
+    val Success(search3) = articleSearchService.matchingQuery(
+      testSettings.copy(query = Some("bil + bilde + -flaggermusmann"), sort = Sort.ByTitleAsc))
     val hits3 = search3.results
     hits3.map(_.id) should equal(Seq(3, 5))
 
-    val Success(search4) = articleSearchService.matchingQuery("bil + -hulken",
-                                                              List(),
-                                                              "nb",
-                                                              None,
-                                                              1,
-                                                              10,
-                                                              Sort.ByTitleAsc,
-                                                              Seq.empty,
-                                                              fallback = false)
+    val Success(search4) =
+      articleSearchService.matchingQuery(testSettings.copy(query = Some("bil + -hulken"), sort = Sort.ByTitleAsc))
     val hits4 = search4.results
     hits4.map(_.id) should equal(Seq(1, 3))
   }
 
   test("search in content should be ranked lower than introduction and title") {
-    val Success(search) = articleSearchService.matchingQuery("mareritt+ragnarok",
-                                                             List(),
-                                                             "nb",
-                                                             None,
-                                                             1,
-                                                             10,
-                                                             Sort.ByRelevanceDesc,
-                                                             Seq.empty,
-                                                             fallback = false)
+    val Success(search) = articleSearchService.matchingQuery(
+      testSettings.copy(query = Some("mareritt+ragnarok"), sort = Sort.ByRelevanceDesc))
     val hits = search.results
     hits.map(_.id) should equal(Seq(9, 8))
   }
 
   test("Search for all languages should return all articles in different languages") {
-    val Success(search) = articleSearchService.all(List(),
-                                                   Language.AllLanguages,
-                                                   None,
-                                                   1,
-                                                   100,
-                                                   Sort.ByTitleAsc,
-                                                   Seq.empty,
-                                                   fallback = false)
-
+    val Success(search) = articleSearchService.matchingQuery(
+      testSettings.copy(language = Language.AllLanguages, pageSize = 100, sort = Sort.ByTitleAsc))
     search.totalCount should equal(10)
   }
 
   test("Search for all languages should return all articles in correct language") {
     val Success(search) =
-      articleSearchService.all(List(), Language.AllLanguages, None, 1, 100, Sort.ByIdAsc, Seq.empty, fallback = false)
+      articleSearchService.matchingQuery(testSettings.copy(language = Language.AllLanguages, pageSize = 100))
     val hits = search.results
 
     search.totalCount should equal(10)
@@ -630,14 +481,11 @@ class ArticleSearchServiceTest extends IntegrationSuite with TestEnvironment {
   }
 
   test("Search for all languages should return all languages if copyrighted") {
-    val Success(search) = articleSearchService.all(List(),
-                                                   Language.AllLanguages,
-                                                   Some(Copyrighted.toString),
-                                                   1,
-                                                   100,
-                                                   Sort.ByTitleAsc,
-                                                   Seq.empty,
-                                                   fallback = false)
+    val Success(search) = articleSearchService.matchingQuery(
+      testSettings.copy(language = Language.AllLanguages,
+                        license = Some(Copyrighted.toString),
+                        sort = Sort.ByTitleAsc,
+                        pageSize = 100))
     val hits = search.results
 
     search.totalCount should equal(1)
@@ -645,24 +493,10 @@ class ArticleSearchServiceTest extends IntegrationSuite with TestEnvironment {
   }
 
   test("Searching with query for all languages should return language that matched") {
-    val Success(searchEn) = articleSearchService.matchingQuery("Cats",
-                                                               List(),
-                                                               "all",
-                                                               None,
-                                                               1,
-                                                               10,
-                                                               Sort.ByRelevanceDesc,
-                                                               Seq.empty,
-                                                               fallback = false)
-    val Success(searchNb) = articleSearchService.matchingQuery("Katter",
-                                                               List(),
-                                                               "all",
-                                                               None,
-                                                               1,
-                                                               10,
-                                                               Sort.ByRelevanceDesc,
-                                                               Seq.empty,
-                                                               fallback = false)
+    val Success(searchEn) = articleSearchService.matchingQuery(
+      testSettings.copy(query = Some("Cats"), language = Language.AllLanguages, sort = Sort.ByRelevanceDesc))
+    val Success(searchNb) = articleSearchService.matchingQuery(
+      testSettings.copy(query = Some("Katter"), language = Language.AllLanguages, sort = Sort.ByRelevanceDesc))
 
     searchEn.totalCount should equal(1)
     searchEn.results.head.id should equal(11)
@@ -676,15 +510,8 @@ class ArticleSearchServiceTest extends IntegrationSuite with TestEnvironment {
   }
 
   test("metadescription is searchable") {
-    val Success(search) = articleSearchService.matchingQuery("hurr dirr",
-                                                             List(),
-                                                             "all",
-                                                             None,
-                                                             1,
-                                                             10,
-                                                             Sort.ByRelevanceDesc,
-                                                             Seq.empty,
-                                                             fallback = false)
+    val Success(search) = articleSearchService.matchingQuery(
+      testSettings.copy(query = Some("hurr dirr"), language = Language.AllLanguages, sort = Sort.ByRelevanceDesc))
 
     search.totalCount should equal(1)
     search.results.head.id should equal(11)
@@ -694,7 +521,8 @@ class ArticleSearchServiceTest extends IntegrationSuite with TestEnvironment {
 
   test("That searching with fallback parameter returns article in language priority even if doesnt match on language") {
     val Success(search) =
-      articleSearchService.all(List(9, 10, 11), "en", None, 1, 10, Sort.ByIdAsc, Seq.empty, fallback = true)
+      articleSearchService.matchingQuery(
+        testSettings.copy(withIdIn = List(9, 10, 11), language = "en", fallback = true))
 
     search.totalCount should equal(3)
     search.results.head.id should equal(9)
@@ -706,7 +534,7 @@ class ArticleSearchServiceTest extends IntegrationSuite with TestEnvironment {
   }
 
   test("That metaImage altText is included in the search") {
-    val Success(search) = articleSearchService.all(List(1), "nb", None, 1, 10, Sort.ByIdAsc, Seq.empty, fallback = true)
+    val Success(search) = articleSearchService.matchingQuery(testSettings.copy(withIdIn = List(1), fallback = true))
     search.totalCount should be(1)
     search.results.head.metaImage should be(
       Some(
@@ -719,7 +547,8 @@ class ArticleSearchServiceTest extends IntegrationSuite with TestEnvironment {
     val expectedIds = List(1, 2, 3, 5, 6, 7, 8, 9, 10, 11).sliding(pageSize, pageSize).toList
 
     val Success(initialSearch) =
-      articleSearchService.all(List.empty, "all", None, 1, pageSize, Sort.ByIdAsc, Seq.empty, true)
+      articleSearchService.matchingQuery(
+        testSettings.copy(language = Language.AllLanguages, pageSize = pageSize, fallback = true))
 
     val Success(scroll1) = articleSearchService.scroll(initialSearch.scrollId.get, "all", true)
     val Success(scroll2) = articleSearchService.scroll(scroll1.scrollId.get, "all", true)
@@ -737,7 +566,7 @@ class ArticleSearchServiceTest extends IntegrationSuite with TestEnvironment {
 
   test("That highlighting works when scrolling") {
     val Success(initialSearch) =
-      articleSearchService.matchingQuery("about", List.empty, "all", None, 1, 1, Sort.ByIdAsc, Seq.empty, true)
+      articleSearchService.matchingQuery(testSettings.copy(query = Some("about"), pageSize = 1, fallback = true))
     val Success(scroll) = articleSearchService.scroll(initialSearch.scrollId.get, "all", true)
 
     initialSearch.results.size should be(1)
@@ -747,6 +576,10 @@ class ArticleSearchServiceTest extends IntegrationSuite with TestEnvironment {
     scroll.results.head.id should be(11)
     scroll.results.head.title.language should be("en")
     scroll.results.head.title.title should be("Cats")
+  }
+
+  test("That filtering for competences works as expected") {
+    ???
   }
 
   def blockUntil(predicate: () => Boolean): Unit = {

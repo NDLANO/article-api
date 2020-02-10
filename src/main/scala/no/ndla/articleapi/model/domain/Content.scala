@@ -45,45 +45,6 @@ object Article extends SQLSyntaxSupport[Article] {
   override val tableName = "contentdata"
   override val schemaName = Some(ArticleApiProperties.MetaSchema)
 
-  def apply(id: Option[Long],
-            revision: Option[Int],
-            title: Seq[ArticleTitle],
-            content: Seq[ArticleContent],
-            copyright: Copyright,
-            tags: Seq[ArticleTag],
-            requiredLibraries: Seq[RequiredLibrary],
-            visualElement: Seq[VisualElement],
-            introduction: Seq[ArticleIntroduction],
-            metaDescription: Seq[ArticleMetaDescription],
-            metaImage: Seq[ArticleMetaImage],
-            created: Date,
-            updated: Date,
-            updatedBy: String,
-            published: Date,
-            articleType: String,
-            competences: Seq[String] = Nil): Article = {
-
-    new Article(
-      id,
-      revision,
-      title,
-      content,
-      copyright,
-      tags,
-      requiredLibraries,
-      visualElement,
-      introduction,
-      metaDescription,
-      metaImage,
-      created,
-      updated,
-      updatedBy,
-      published,
-      articleType,
-      competences
-    )
-  }
-
   def fromResultSet(lp: SyntaxProvider[Article])(rs: WrappedResultSet): Article = fromResultSet(lp.resultName)(rs)
 
   def fromResultSet(lp: ResultName[Article])(rs: WrappedResultSet): Article = {

@@ -47,7 +47,8 @@ trait ArticleIndexService {
             keywordField("imageId"),
             keywordField("altText"),
             keywordField("language")
-          )
+          ),
+          keywordField("competences")
         ) ++
           generateLanguageSupportedFieldList("title", keepRaw = true) ++
           generateLanguageSupportedFieldList("content") ++

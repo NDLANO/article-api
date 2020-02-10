@@ -82,16 +82,6 @@ class ArticleSearchConverterServiceTest extends UnitSuite with TestEnvironment {
     verifyTags(searchableArticle)
   }
 
-  test("That asArticleSummary converts all fields with correct language") {
-    val article = TestData.sampleArticleWithByNcSa.copy(title = titles, content = articles, tags = articleTags)
-    val searchableArticle = searchConverterService.asSearchableArticle(article)
-    val articleSummary = searchConverterService.asArticleSummary(searchableArticle)
-
-    articleSummary.id should equal(article.id.get)
-    articleSummary.license should equal(article.copyright.license)
-    articleSummary.title should equal(article.title)
-  }
-
   test("That asSearchableArticle converts titles with license from agreement") {
     val article = TestData.sampleArticleWithByNcSa.copy(title = titles)
     when(converterService.withAgreementCopyright(any[Article]))
