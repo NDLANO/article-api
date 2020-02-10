@@ -123,7 +123,7 @@ trait ArticleSearchService {
                 response.result.totalHits,
                 Some(settings.page),
                 numResults,
-                if (language == "*") Language.AllLanguages else settings.language,
+                if (settings.language == "*") Language.AllLanguages else settings.language,
                 getHits(response.result, settings.language, settings.fallback),
                 response.result.scrollId
               ))

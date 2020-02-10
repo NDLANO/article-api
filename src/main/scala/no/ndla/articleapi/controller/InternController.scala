@@ -131,10 +131,11 @@ trait InternController {
       authRole.assertHasWritePermission()
       val externalIds = paramAsListOfLong("external-id")
       val useImportValidation = booleanOrDefault("use-import-validation", default = false)
+      val useSoftValidation = booleanOrDefault("use-soft-validation", default = false)
       val article = extract[Article](request.body)
       val id = long("id")
 
-      writeService.updateArticle(article.copy(id = Some(id)), externalIds, useImportValidation) match {
+      writeService.updateArticle(article.copy(id = Some(id)), externalIds, useImportValidation, useSoftValidation) match {
         case Success(a)  => a
         case Failure(ex) => errorHandler(ex)
       }
