@@ -75,7 +75,8 @@ class ArticleSearchServiceTest extends IntegrationSuite with TestEnvironment {
     tags = List(ArticleTag(List("fugl"), "nb")),
     created = today.minusDays(4).toDate,
     updated = today.minusDays(3).toDate,
-    metaImage = List(ArticleMetaImage("5555", "Alt text is here friend", "nb"))
+    metaImage = List(ArticleMetaImage("5555", "Alt text is here friend", "nb")),
+    competences = Seq("KV123", "KV456")
   )
 
   val article2 = TestData.sampleArticleWithPublicDomain.copy(
@@ -85,7 +86,8 @@ class ArticleSearchServiceTest extends IntegrationSuite with TestEnvironment {
     content = List(ArticleContent("<p>Bilde av en</p><p> en <em>pingvin</em> som vagger borover en gate</p>", "nb")),
     tags = List(ArticleTag(List("fugl"), "nb")),
     created = today.minusDays(4).toDate,
-    updated = today.minusDays(2).toDate
+    updated = today.minusDays(2).toDate,
+    competences = Seq("KV123", "KV456")
   )
 
   val article3 = TestData.sampleArticleWithPublicDomain.copy(
@@ -95,7 +97,8 @@ class ArticleSearchServiceTest extends IntegrationSuite with TestEnvironment {
     content = List(ArticleContent("<p>Bilde av en en and</p><p> som <strong>kjører</strong> en rød bil.</p>", "nb")),
     tags = List(ArticleTag(List("and"), "nb")),
     created = today.minusDays(4).toDate,
-    updated = today.minusDays(1).toDate
+    updated = today.minusDays(1).toDate,
+    competences = Seq("KV456")
   )
 
   val article4 = TestData.sampleArticleWithCopyrighted.copy(
@@ -226,15 +229,16 @@ class ArticleSearchServiceTest extends IntegrationSuite with TestEnvironment {
   }
 
   val testSettings = SearchSettings(
-    None,
-    List(),
-    Language.DefaultLanguage,
-    None,
-    1,
-    10,
-    Sort.ByIdAsc,
-    Seq.empty,
-    fallback = false
+    query = None,
+    withIdIn = List(),
+    language = Language.DefaultLanguage,
+    license = None,
+    page = 1,
+    pageSize = 10,
+    sort = Sort.ByIdAsc,
+    articleTypes = Seq.empty,
+    fallback = false,
+    competences = Seq.empty
   )
 
   test("searching should return only articles of a given type if a type filter is specified") {
@@ -579,7 +583,18 @@ class ArticleSearchServiceTest extends IntegrationSuite with TestEnvironment {
   }
 
   test("That filtering for competences works as expected") {
-    ???
+
+    val Success(search1) = articleSearchService.matchingQuery(testSettings.copy(competences = Seq("KV123")))
+    search1.totalCount should be(2)
+    search1.results.map(_.id) should be(Seq(1, 2))
+
+    val Success(search2) = articleSearchService.matchingQuery(testSettings.copy(competences = Seq("KV123", "KV456")))
+    search2.totalCount should be(3)
+    search2.results.map(_.id) should be(Seq(1, 2, 3))
+
+    val Success(search3) = articleSearchService.matchingQuery(testSettings.copy(competences = Seq("KV456")))
+    search3.totalCount should be(3)
+    search3.results.map(_.id) should be(Seq(1, 2, 3))
   }
 
   def blockUntil(predicate: () => Boolean): Unit = {

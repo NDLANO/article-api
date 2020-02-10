@@ -17,5 +17,6 @@ case class SearchSettings(
     pageSize: Int,
     sort: Sort.Value,
     articleTypes: Seq[String],
-    fallback: Boolean
+    fallback: Boolean,
+    competences: Seq[String]
 )
