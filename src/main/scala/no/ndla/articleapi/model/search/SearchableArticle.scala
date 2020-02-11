@@ -24,5 +24,6 @@ case class SearchableArticle(
     license: String,
     authors: Seq[String],
     articleType: String,
-    defaultTitle: Option[String]
+    defaultTitle: Option[String],
+    competences: Seq[String]
 )

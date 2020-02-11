@@ -113,7 +113,8 @@ trait ConverterService {
         searchableArticle.license,
         searchableArticle.articleType,
         lastUpdated.toDate,
-        supportedLanguages
+        supportedLanguages,
+        searchableArticle.competences
       )
     }
 
@@ -142,40 +143,6 @@ trait ConverterService {
       }
     }
 
-    def toDomainArticle(toMergeInto: Article, updatedApiArticle: api.UpdatedArticleV2): Article = {
-      val lang = updatedApiArticle.language
-      toMergeInto.copy(
-        revision = Option(updatedApiArticle.revision),
-        title = mergeLanguageFields(
-          toMergeInto.title,
-          updatedApiArticle.title.toSeq.map(t => converterService.toDomainTitle(api.ArticleTitle(t, lang)))),
-        content = mergeLanguageFields(
-          toMergeInto.content,
-          updatedApiArticle.content.toSeq.map(c => converterService.toDomainContent(api.ArticleContentV2(c, lang)))),
-        copyright =
-          updatedApiArticle.copyright.map(c => converterService.toDomainCopyright(c)).getOrElse(toMergeInto.copyright),
-        tags = mergeTags(toMergeInto.tags, converterService.toDomainTagV2(updatedApiArticle.tags, lang)),
-        requiredLibraries = updatedApiArticle.requiredLibraries.map(converterService.toDomainRequiredLibraries),
-        visualElement = mergeLanguageFields(toMergeInto.visualElement,
-                                            updatedApiArticle.visualElement
-                                              .map(c => converterService.toDomainVisualElementV2(Some(c), lang))
-                                              .getOrElse(Seq())),
-        introduction = mergeLanguageFields(toMergeInto.introduction,
-                                           updatedApiArticle.introduction
-                                             .map(i => converterService.toDomainIntroductionV2(Some(i), lang))
-                                             .getOrElse(Seq())),
-        metaDescription = mergeLanguageFields(toMergeInto.metaDescription,
-                                              updatedApiArticle.metaDescription
-                                                .map(m => converterService.toDomainMetaDescriptionV2(Some(m), lang))
-                                                .getOrElse(Seq())),
-        metaImage =
-          mergeLanguageFields(toMergeInto.metaImage,
-                              updatedApiArticle.metaImage.map(m => toDomainMetaImage(m.id, m.alt, lang)).toSeq),
-        updated = clock.now(),
-        updatedBy = authUser.userOrClientid()
-      )
-    }
-
     private[service] def mergeLanguageFields[A <: LanguageField[_]](existing: Seq[A], updated: Seq[A]): Seq[A] = {
       val toKeep = existing.filterNot(item => updated.map(_.language).contains(item.language))
       (toKeep ++ updated).filterNot(_.isEmpty)
@@ -197,30 +164,6 @@ trait ConverterService {
       val rightsholders =
         authorsExcludingOrigin.map(toNewAuthorType).filter(a => rightsholderTypes.contains(a.`type`.toLowerCase))
       Copyright(oldToNewLicenseKey(license), origin, creators, processors, rightsholders, None, None, None)
-    }
-
-    def toDomainArticle(newArticle: api.NewArticleV2): Article = {
-      val domainTitle = Seq(ArticleTitle(newArticle.title, newArticle.language))
-      val domainContent = Seq(ArticleContent(removeUnknownEmbedTagAttributes(newArticle.content), newArticle.language))
-
-      Article(
-        id = None,
-        revision = None,
-        title = domainTitle,
-        content = domainContent,
-        copyright = toDomainCopyright(newArticle.copyright),
-        tags = toDomainTagV2(newArticle.tags, newArticle.language),
-        requiredLibraries = newArticle.requiredLibraries.getOrElse(Seq()).map(toDomainRequiredLibraries),
-        visualElement = toDomainVisualElementV2(newArticle.visualElement, newArticle.language),
-        introduction = toDomainIntroductionV2(newArticle.introduction, newArticle.language),
-        metaDescription = toDomainMetaDescriptionV2(newArticle.metaDescription, newArticle.language),
-        metaImage = newArticle.metaImage.map(meta => toDomainMetaImage(meta.id, meta.alt, newArticle.language)).toSeq,
-        created = clock.now(),
-        updated = clock.now(),
-        updatedBy = authUser.userOrClientid(),
-        published = newArticle.published.getOrElse(clock.now()),
-        newArticle.articleType
-      )
     }
 
     def withAgreementCopyright(article: Article): Article = {

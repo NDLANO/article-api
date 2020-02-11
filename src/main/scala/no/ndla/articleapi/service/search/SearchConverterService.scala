@@ -52,24 +52,9 @@ trait SearchConverterService {
         authors = articleWithAgreement.copyright.creators.map(_.name) ++ articleWithAgreement.copyright.processors
           .map(_.name) ++ articleWithAgreement.copyright.rightsholders.map(_.name),
         articleType = articleWithAgreement.articleType,
-        defaultTitle = defaultTitle.map(t => t.title)
+        defaultTitle = defaultTitle.map(t => t.title),
+        competences = articleWithAgreement.competences
       )
-    }
-
-    def asArticleSummary(searchableArticle: SearchableArticle): ArticleSummary = {
-      ArticleSummary(
-        id = searchableArticle.id,
-        title = searchableArticle.title.languageValues.map(lv => ArticleTitle(lv.value, lv.language)),
-        visualElement = searchableArticle.visualElement.languageValues.map(lv => VisualElement(lv.value, lv.language)),
-        introduction =
-          searchableArticle.introduction.languageValues.map(lv => ArticleIntroduction(lv.value, lv.language)),
-        url = createUrlToArticle(searchableArticle.id),
-        license = searchableArticle.license
-      )
-    }
-
-    def createUrlToArticle(id: Long): String = {
-      s"${ApplicationUrl.get}$id"
     }
 
     def asApiSearchResultV2(searchResult: SearchResult[ArticleSummaryV2]): SearchResultV2 =

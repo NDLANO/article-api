@@ -133,7 +133,7 @@ class R__SetArticleLanguageFromTaxonomy extends BaseJavaMigration {
     val withId =
       sqls"ar.id=${articleId.toInt} ORDER BY revision DESC LIMIT 1"
     sql"select ${ar.result.*} from ${Article.as(ar)} where ar.document is not NULL and $withId"
-      .map(Article(ar))
+      .map(Article.fromResultSet(ar))
       .single()
       .apply()
   }

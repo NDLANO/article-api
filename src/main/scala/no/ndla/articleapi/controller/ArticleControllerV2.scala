@@ -11,13 +11,13 @@ package no.ndla.articleapi.controller
 import no.ndla.articleapi.ArticleApiProperties
 import no.ndla.articleapi.ArticleApiProperties.{
   DefaultPageSize,
-  MaxPageSize,
   ElasticSearchIndexMaxResultWindow,
-  ElasticSearchScrollKeepAlive
+  ElasticSearchScrollKeepAlive,
+  MaxPageSize
 }
 import no.ndla.articleapi.auth.{Role, User}
 import no.ndla.articleapi.model.api._
-import no.ndla.articleapi.model.domain.{ArticleIds, ArticleType, Language, Sort}
+import no.ndla.articleapi.model.domain.{ArticleIds, ArticleType, Language, SearchSettings, Sort}
 import no.ndla.articleapi.service.search.{ArticleSearchService, SearchConverterService}
 import no.ndla.articleapi.service.{ConverterService, ReadService, WriteService}
 import no.ndla.articleapi.validation.ContentValidator
@@ -91,6 +91,9 @@ trait ArticleControllerV2 {
          |Used to enable scrolling past $ElasticSearchIndexMaxResultWindow results.
       """.stripMargin
     )
+    private val competences = Param[Option[String]](
+      "competences",
+      "Return only articles with one of the specified competence goals. Separate by comma to use specify multiple values (,).")
 
     private def asQueryParam[T: Manifest: NotNothing](param: Param[T]) =
       queryParam[T](param.paramName).description(param.description)
@@ -149,31 +152,37 @@ trait ArticleControllerV2 {
       }
     }
 
-    private def search(query: Option[String],
-                       sort: Option[Sort.Value],
-                       language: String,
-                       license: Option[String],
-                       page: Int,
-                       pageSize: Int,
-                       idList: List[Long],
-                       articleTypesFilter: Seq[String],
-                       fallback: Boolean) = {
-      val result = query match {
+    private def search(
+        query: Option[String],
+        sort: Option[Sort.Value],
+        language: String,
+        license: Option[String],
+        page: Int,
+        pageSize: Int,
+        idList: List[Long],
+        articleTypesFilter: Seq[String],
+        fallback: Boolean,
+        competences: Seq[String]
+    ) = {
+
+      val settings = query match {
         case Some(q) =>
-          articleSearchService.matchingQuery(
-            query = q,
+          SearchSettings(
+            query = Some(q),
             withIdIn = idList,
-            searchLanguage = language,
+            language = language,
             license = license,
             page = page,
             pageSize = if (idList.isEmpty) pageSize else idList.size,
             sort = sort.getOrElse(Sort.ByRelevanceDesc),
             if (articleTypesFilter.isEmpty) ArticleType.all else articleTypesFilter,
-            fallback = fallback
+            fallback = fallback,
+            competences = competences
           )
 
         case None =>
-          articleSearchService.all(
+          SearchSettings(
+            query = None,
             withIdIn = idList,
             language = language,
             license = license,
@@ -181,11 +190,12 @@ trait ArticleControllerV2 {
             pageSize = if (idList.isEmpty) pageSize else idList.size,
             sort = sort.getOrElse(Sort.ByIdAsc),
             if (articleTypesFilter.isEmpty) ArticleType.all else articleTypesFilter,
-            fallback = fallback
+            fallback = fallback,
+            competences = competences
           )
       }
 
-      result match {
+      articleSearchService.matchingQuery(settings) match {
         case Success(searchResult) =>
           val responseHeader = searchResult.scrollId.map(i => this.scrollId.paramName -> i).toMap
           Ok(searchConverterService.asApiSearchResultV2(searchResult), headers = responseHeader)
@@ -225,8 +235,9 @@ trait ArticleControllerV2 {
         val page = intOrDefault(this.pageNo.paramName, 1)
         val idList = paramAsListOfLong(this.articleIds.paramName)
         val articleTypesFilter = paramAsListOfString(this.articleTypes.paramName)
+        val competences = paramAsListOfString(this.competences.paramName)
 
-        search(query, sort, language, license, page, pageSize, idList, articleTypesFilter, fallback)
+        search(query, sort, language, license, page, pageSize, idList, articleTypesFilter, fallback, competences)
       }
     }
 
@@ -255,8 +266,9 @@ trait ArticleControllerV2 {
         val page = searchParams.page.getOrElse(1)
         val idList = searchParams.idList
         val articleTypesFilter = searchParams.articleTypes
+        val competences = searchParams.competences
 
-        search(query, sort, language, license, page, pageSize, idList, articleTypesFilter, fallback)
+        search(query, sort, language, license, page, pageSize, idList, articleTypesFilter, fallback, competences)
       }
     }
 

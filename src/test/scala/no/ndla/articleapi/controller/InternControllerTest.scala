@@ -19,7 +19,6 @@ import org.mockito.ArgumentMatchers._
 
 import scala.util.{Failure, Success, Try}
 import no.ndla.articleapi.TestData._
-import no.ndla.articleapi.model.api.NewArticleV2
 import scalikejdbc.DBSession
 
 class InternControllerTest extends UnitSuite with TestEnvironment with ScalatraFunSuite {

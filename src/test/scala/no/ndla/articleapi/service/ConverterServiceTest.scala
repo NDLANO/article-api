@@ -28,15 +28,6 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
   val nodeId = "1234"
   val sampleAlt = "Fotografi"
 
-  test("toDomainArticle convert a NewArticleV2 to Article") {
-    service.toDomainArticle(TestData.newArticleV2) should equal(
-      TestData.sampleDomainArticle2.copy(created = clock.now(),
-                                         updated = clock.now(),
-                                         updatedBy = null,
-                                         published = clock.now())
-    )
-  }
-
   test("toApiLicense defaults to unknown if the license was not found") {
     service.toApiLicense("invalid") should equal(api.License("unknown", None, None))
   }
@@ -128,20 +119,6 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     result.get.title.language should be("nb")
     result.get.title.title should be(TestData.sampleDomainArticle.title.head.title)
     result.isFailure should be(false)
-  }
-
-  test("toDomainArticleShould should remove unneeded attributes on embed-tags") {
-    val content =
-      s"""<h1>hello</h1><embed ${TagAttributes.DataResource}="${ResourceType.Image}" ${TagAttributes.DataUrl}="http://some-url" data-random="hehe" />"""
-    val expectedContent = s"""<h1>hello</h1><embed ${TagAttributes.DataResource}="${ResourceType.Image}">"""
-    val visualElement =
-      s"""<embed ${TagAttributes.DataResource}="${ResourceType.Image}" ${TagAttributes.DataUrl}="http://some-url" data-random="hehe" />"""
-    val expectedVisualElement = s"""<embed ${TagAttributes.DataResource}="${ResourceType.Image}">"""
-    val apiArticle = TestData.newArticleV2.copy(content = content, visualElement = Some(visualElement))
-
-    val result = service.toDomainArticle(apiArticle)
-    result.content.head.content should equal(expectedContent)
-    result.visualElement.head.resource should equal(expectedVisualElement)
   }
 
   test("That oldToNewLicenseKey throws on invalid license") {

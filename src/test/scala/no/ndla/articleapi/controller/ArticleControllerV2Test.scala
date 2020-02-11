@@ -74,27 +74,25 @@ class ArticleControllerV2Test extends UnitSuite with TestEnvironment with Scalat
   test("GET / should use size of id-list as page-size if defined") {
     val searchMock = mock[SearchResult[ArticleSummaryV2]]
     when(searchMock.scrollId).thenReturn(None)
-    when(
-      articleSearchService.all(any[List[Long]],
-                               any[String],
-                               any[Option[String]],
-                               any[Int],
-                               any[Int],
-                               any[Sort.Value],
-                               any[Seq[String]],
-                               any[Boolean]))
-      .thenReturn(Success(searchMock))
+    when(articleSearchService.matchingQuery(any[SearchSettings])).thenReturn(Success(searchMock))
 
     get("/test/", "ids" -> "1,2,3,4", "page-size" -> "10", "language" -> "nb") {
       status should equal(200)
-      verify(articleSearchService, times(1)).all(List(1, 2, 3, 4),
-                                                 Language.DefaultLanguage,
-                                                 None,
-                                                 1,
-                                                 4,
-                                                 Sort.ByIdAsc,
-                                                 ArticleType.all,
-                                                 fallback = false)
+
+      val expectedSettings = SearchSettings(
+        None,
+        List(1, 2, 3, 4),
+        Language.DefaultLanguage,
+        None,
+        1,
+        4,
+        Sort.ByIdAsc,
+        ArticleType.all,
+        fallback = false,
+        competences = Seq.empty
+      )
+
+      verify(articleSearchService, times(1)).matchingQuery(expectedSettings)
     }
   }
 
@@ -109,17 +107,8 @@ class ArticleControllerV2Test extends UnitSuite with TestEnvironment with Scalat
       Seq.empty[ArticleSummaryV2],
       Some(scrollId)
     )
-    when(
-      articleSearchService
-        .all(any[List[Long]],
-             any[String],
-             any[Option[String]],
-             any[Int],
-             any[Int],
-             any[Sort.Value],
-             any[Seq[String]],
-             any[Boolean]))
-      .thenReturn(Success(searchResponse))
+    when(articleSearchService.matchingQuery(any[SearchSettings])).thenReturn(Success(searchResponse))
+
     get(s"/test/") {
       status should be(200)
       body.contains(scrollId) should be(false)
@@ -146,23 +135,7 @@ class ArticleControllerV2Test extends UnitSuite with TestEnvironment with Scalat
       status should be(200)
     }
 
-    verify(articleSearchService, times(0)).all(any[List[Long]],
-                                               any[String],
-                                               any[Option[String]],
-                                               any[Int],
-                                               any[Int],
-                                               any[Sort.Value],
-                                               any[Seq[String]],
-                                               any[Boolean])
-    verify(articleSearchService, times(0)).matchingQuery(any[String],
-                                                         any[List[Long]],
-                                                         any[String],
-                                                         any[Option[String]],
-                                                         any[Int],
-                                                         any[Int],
-                                                         any[Sort.Value],
-                                                         any[Seq[String]],
-                                                         any[Boolean])
+    verify(articleSearchService, times(0)).matchingQuery(any[SearchSettings])
     verify(articleSearchService, times(1)).scroll(eqTo(scrollId), any[String], any[Boolean])
   }
 
@@ -185,23 +158,7 @@ class ArticleControllerV2Test extends UnitSuite with TestEnvironment with Scalat
       status should be(200)
     }
 
-    verify(articleSearchService, times(0)).all(any[List[Long]],
-                                               any[String],
-                                               any[Option[String]],
-                                               any[Int],
-                                               any[Int],
-                                               any[Sort.Value],
-                                               any[Seq[String]],
-                                               any[Boolean])
-    verify(articleSearchService, times(0)).matchingQuery(any[String],
-                                                         any[List[Long]],
-                                                         any[String],
-                                                         any[Option[String]],
-                                                         any[Int],
-                                                         any[Int],
-                                                         any[Sort.Value],
-                                                         any[Seq[String]],
-                                                         any[Boolean])
+    verify(articleSearchService, times(0)).matchingQuery(any[SearchSettings])
     verify(articleSearchService, times(1)).scroll(eqTo(scrollId), any[String], any[Boolean])
   }
 
