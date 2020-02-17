@@ -8,6 +8,7 @@
 
 package no.ndla.articleapi.service
 
+import io.lemonlabs.uri.{Path, Url}
 import no.ndla.articleapi.ArticleApiProperties.externalApiUrls
 import no.ndla.validation.EmbedTagRules.ResourceHtmlEmbedTag
 import no.ndla.articleapi.caching.MemoizeAutoRenew
@@ -104,7 +105,13 @@ trait ReadService {
 
       typeAndPathOption match {
         case Some((resourceType, path)) =>
-          embedTag.attr(s"${TagAttributes.DataUrl}", s"${externalApiUrls(resourceType)}/$path")
+          val baseUrl = Url.parse(externalApiUrls(resourceType))
+          val pathParts = Path.parse(path).parts
+
+          embedTag.attr(
+            s"${TagAttributes.DataUrl}",
+            baseUrl.addPathParts(pathParts).toString
+          )
         case _ =>
       }
     }
