@@ -162,4 +162,13 @@ class ArticleControllerV2Test extends UnitSuite with TestEnvironment with Scalat
     verify(articleSearchService, times(1)).scroll(eqTo(scrollId), any[String], any[Boolean])
   }
 
+  test("tags should return 200 OK if the result was not empty") {
+    when(readService.getAllTags(anyString, anyInt, anyInt, anyString))
+      .thenReturn(TestData.sampleApiTagsSearchResult)
+
+    get("/test/tag-search/") {
+      status should equal(200)
+    }
+  }
+
 }
