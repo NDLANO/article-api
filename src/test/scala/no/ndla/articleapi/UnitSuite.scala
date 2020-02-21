@@ -34,10 +34,6 @@ abstract class UnitSuite
   setEnv("IMAGE_API_HOST", "localhost:30001")
   setEnv("DRAFT_API_HOST", "localhost:30022")
 
-  setEnvIfAbsent("MIGRATION_HOST", "some-host")
-  setEnvIfAbsent("MIGRATION_USER", "some-user")
-  setEnvIfAbsent("MIGRATION_PASSWORD", "some-password")
-
   setEnv("NDLA_BRIGHTCOVE_ACCOUNT_ID", "some-account-id")
   setEnv("NDLA_BRIGHTCOVE_PLAYER_ID", "some-player-id")
   setEnv("SEARCH_INDEX_NAME", "article-integration-test-index")
