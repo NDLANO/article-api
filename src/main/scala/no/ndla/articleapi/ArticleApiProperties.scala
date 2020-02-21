@@ -46,11 +46,6 @@ object ArticleApiProperties extends LazyLogging {
   val ElasticSearchIndexMaxResultWindow = 10000
   val ElasticSearchScrollKeepAlive = "10s"
 
-  val TopicAPIUrl = "http://api.topic.ndla.no/rest/v1/keywords/?filter[node]=ndlanode_"
-  val MigrationHost: String = prop("MIGRATION_HOST")
-  val MigrationUser: String = prop("MIGRATION_USER")
-  val MigrationPassword: String = prop("MIGRATION_PASSWORD")
-
   val CorrelationIdKey = "correlationID"
   val CorrelationIdHeader = "X-Correlation-ID"
   val AudioHost: String = propOrElse("AUDIO_API_HOST", "audio-api.ndla-local")

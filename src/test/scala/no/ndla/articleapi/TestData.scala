@@ -248,4 +248,6 @@ object TestData {
     )
   }
 
+  val sampleApiTagsSearchResult = api.TagsSearchResult(10, 1, 1, "nb", Seq("a", "b"))
+
 }

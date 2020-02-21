@@ -13,7 +13,7 @@ import java.net.Socket
 import no.ndla.articleapi._
 import no.ndla.articleapi.integration.DataSource
 import no.ndla.articleapi.model.domain
-import no.ndla.articleapi.model.domain.{Article, ArticleIds}
+import no.ndla.articleapi.model.domain.{Article, ArticleIds, ArticleTag}
 import scalikejdbc.{ConnectionPool, DataSourceConnectionPool}
 
 import scala.util.{Success, Try}
@@ -156,6 +156,64 @@ class ArticleRepositoryTest extends IntegrationSuite with TestEnvironment {
     repository.withId(1) should be(Some(art1))
     repository.withId(2) should be(Some(art2))
     repository.withId(3) should be(Some(art3))
+  }
+
+  test("getTags returns non-duplicate tags and correct number of them") {
+    assume(databaseIsAvailable, "Database is unavailable")
+    val sampleArticle1 = TestData.sampleDomainArticle2
+      .copy(id = Some(1L),
+            revision = Some(0),
+            tags = Seq(ArticleTag(Seq("abc", "bcd", "ddd"), "nb"), ArticleTag(Seq("abc", "bcd"), "nn")))
+    val sampleArticle2 = TestData.sampleDomainArticle2
+      .copy(id = Some(2L),
+            revision = Some(0),
+            tags = Seq(ArticleTag(Seq("bcd", "cde"), "nb"), ArticleTag(Seq("bcd", "cde"), "nn")))
+    val sampleArticle3 =
+      TestData.sampleDomainArticle2
+        .copy(id = Some(3L),
+              revision = Some(0),
+              tags = Seq(ArticleTag(Seq("def"), "nb"), ArticleTag(Seq("d", "def", "asd"), "nn")))
+    val sampleArticle4 = TestData.sampleDomainArticle2.copy(id = Some(4L), revision = Some(0), tags = Seq.empty)
+
+    repository.updateArticleFromDraftApi(sampleArticle1, List.empty)
+    repository.updateArticleFromDraftApi(sampleArticle2, List.empty)
+    repository.updateArticleFromDraftApi(sampleArticle3, List.empty)
+    repository.updateArticleFromDraftApi(sampleArticle4, List.empty)
+
+    val (tags1, tagsCount1) = repository.getTags("", 5, 0, "nb")
+    tags1 should equal(Seq("abc", "bcd", "cde", "ddd", "def"))
+    tags1.length should be(5)
+    tagsCount1 should be(5)
+
+    val (tags2, tagsCount2) = repository.getTags("", 2, 0, "nb")
+    tags2 should equal(Seq("abc", "bcd"))
+    tags2.length should be(2)
+    tagsCount2 should be(5)
+
+    val (tags3, tagsCount3) = repository.getTags("", 2, 3, "nn")
+    tags3 should equal(Seq("cde", "d"))
+    tags3.length should be(2)
+    tagsCount3 should be(6)
+
+    val (tags4, tagsCount4) = repository.getTags("", 1, 3, "nn")
+    tags4 should equal(Seq("cde"))
+    tags4.length should be(1)
+    tagsCount4 should be(6)
+
+    val (tags5, tagsCount5) = repository.getTags("", 10, 0, "all")
+    tags5 should equal(Seq("abc", "asd", "bcd", "cde", "d", "ddd", "def"))
+    tags5.length should be(7)
+    tagsCount5 should be(7)
+
+    val (tags6, tagsCount6) = repository.getTags("d", 5, 0, "")
+    tags6 should equal(Seq("d", "ddd", "def"))
+    tags6.length should be(3)
+    tagsCount6 should be(3)
+
+    val (tags7, tagsCount7) = repository.getTags("%b", 5, 0, "")
+    tags7 should equal(Seq("bcd"))
+    tags7.length should be(1)
+    tagsCount7 should be(1)
   }
 
 }
