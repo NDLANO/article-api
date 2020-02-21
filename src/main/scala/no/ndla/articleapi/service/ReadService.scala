@@ -59,6 +59,11 @@ trait ReadService {
         .map(tags => api.ArticleTag(tags.getNMostFrequent(n), searchLanguage))
     }
 
+    def getAllTags(input: String, pageSize: Int, offset: Int, language: String): api.TagsSearchResult = {
+      val (tags, tagsCount) = articleRepository.getTags(input, pageSize, (offset - 1) * pageSize, language)
+      converterService.toApiArticleTags(tags, tagsCount, pageSize, offset, language)
+    }
+
     def getArticlesByPage(pageNo: Int, pageSize: Int, lang: String, fallback: Boolean = false): api.ArticleDump = {
       val (safePageNo, safePageSize) = (max(pageNo, 1), max(pageSize, 0))
       val results = articleRepository

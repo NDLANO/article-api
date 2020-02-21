@@ -152,6 +152,35 @@ trait ArticleControllerV2 {
       }
     }
 
+    get(
+      "/tag-search/",
+      operation(
+        apiOperation[ArticleTag]("getTags-paginated")
+          summary "Fetch tags used in articles."
+          description "Retrieves a list of all previously used tags in articles."
+          parameters (
+            asHeaderParam(correlationId),
+            asQueryParam(query),
+            asQueryParam(pageSize),
+            asQueryParam(pageNo),
+            asQueryParam(language)
+        )
+          responseMessages response500)
+    ) {
+      val query = paramOrDefault(this.query.paramName, "")
+      val pageSize = intOrDefault(this.pageSize.paramName, ArticleApiProperties.DefaultPageSize) match {
+        case tooSmall if tooSmall < 1 => ArticleApiProperties.DefaultPageSize
+        case x                        => x
+      }
+      val pageNo = intOrDefault(this.pageNo.paramName, 1) match {
+        case tooSmall if tooSmall < 1 => 1
+        case x                        => x
+      }
+      val language = paramOrDefault(this.language.paramName, Language.AllLanguages)
+
+      readService.getAllTags(query, pageSize, pageNo, language)
+    }
+
     private def search(
         query: Option[String],
         sort: Option[Sort.Value],

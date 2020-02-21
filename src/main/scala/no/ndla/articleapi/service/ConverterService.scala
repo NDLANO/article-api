@@ -412,5 +412,13 @@ trait ConverterService {
 
     def toApiArticleIds(ids: ArticleIds): api.ArticleIds = api.ArticleIds(ids.articleId, ids.externalId)
 
+    def toApiArticleTags(tags: Seq[String],
+                         tagsCount: Int,
+                         pageSize: Int,
+                         offset: Int,
+                         language: String): api.TagsSearchResult = {
+      api.TagsSearchResult(tagsCount, offset, pageSize, language, tags)
+    }
+
   }
 }
