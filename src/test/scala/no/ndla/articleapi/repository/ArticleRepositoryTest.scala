@@ -214,6 +214,16 @@ class ArticleRepositoryTest extends IntegrationSuite with TestEnvironment {
     tags7 should equal(Seq("bcd"))
     tags7.length should be(1)
     tagsCount7 should be(1)
+
+    val (tags8, tagsCount8) = repository.getTags("a", 10, 0, "")
+    tags8 should equal(Seq("abc", "asd"))
+    tags8.length should be(2)
+    tagsCount8 should be(2)
+
+    val (tags9, tagsCount9) = repository.getTags("A", 10, 0, "")
+    tags9 should equal(Seq("abc", "asd"))
+    tags9.length should be(2)
+    tagsCount9 should be(2)
   }
 
 }
