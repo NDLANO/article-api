@@ -22,7 +22,7 @@ import no.ndla.mapping.License.getLicense
 import no.ndla.validation.{TextValidator, ValidationException, ValidationMessage}
 import no.ndla.validation.HtmlTagRules.stringToJsoupDocument
 
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 import scala.util.{Failure, Success, Try}
 
 trait ContentValidator {

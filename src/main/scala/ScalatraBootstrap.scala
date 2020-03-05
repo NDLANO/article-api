@@ -16,7 +16,7 @@ class ScalatraBootstrap extends LifeCycle {
 
   implicit val swagger: ArticleSwagger = new ArticleSwagger
 
-  override def init(context: ServletContext) {
+  override def init(context: ServletContext): Unit = {
     context.mount(articleControllerV2, "/article-api/v2/articles", "articlesV2")
     context.mount(resourcesApp, "/article-api/api-docs")
     context.mount(internController, "/intern")

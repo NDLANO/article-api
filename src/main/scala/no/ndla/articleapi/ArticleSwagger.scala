@@ -19,6 +19,17 @@ class ResourcesApp(implicit val swagger: Swagger) extends ScalatraServlet with N
 
 object ArticleApiInfo {
 
+  val contactInfo = ContactInfo(
+    "NDLA",
+    "ndla.no",
+    ArticleApiProperties.ContactEmail
+  )
+
+  val licenseInfo = LicenseInfo(
+    "GPL v3.0",
+    "http://www.gnu.org/licenses/gpl-3.0.en.html"
+  )
+
   val apiInfo = ApiInfo(
     "Article API",
     "Searching and fetching all articles published on the NDLA platform.\n\n" +
@@ -26,9 +37,8 @@ object ArticleApiInfo {
       "returned articles, and typical examples of this are language and license.\n" +
       "Includes endpoints to filter Articles on different levels, and retrieve single articles.",
     "https://om.ndla.no/tos",
-    ArticleApiProperties.ContactEmail,
-    "GPL v3.0",
-    "http://www.gnu.org/licenses/gpl-3.0.en.html"
+    contactInfo,
+    licenseInfo
   )
 }
 
