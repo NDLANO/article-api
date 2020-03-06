@@ -27,7 +27,7 @@ import no.ndla.validation.{EmbedTagRules, HtmlTagRules, ResourceType, TagAttribu
 import org.json4s._
 import org.json4s.native.Serialization.read
 
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 import scala.util.{Failure, Success, Try}
 
 trait ConverterService {

@@ -29,8 +29,8 @@ object PactProviderTest extends Tag("PactProviderTest")
 
 class ArticleApiProviderCDCTest extends IntegrationSuite with TestEnvironment {
 
-  import com.itv.scalapact.circe09._
-  import com.itv.scalapact.http4s18._
+  import com.itv.scalapact.circe13._
+  import com.itv.scalapact.http4s21._
 
   def findFreePort: Int = {
     def closeQuietly(socket: ServerSocket): Unit = {

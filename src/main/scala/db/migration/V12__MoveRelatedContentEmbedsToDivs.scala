@@ -7,10 +7,7 @@
 
 package db.migration
 
-import java.sql.Connection
-
 import org.flywaydb.core.api.migration.{BaseJavaMigration, Context}
-import org.flywaydb.core.api.migration.jdbc.JdbcMigration
 import org.json4s.Extraction.decompose
 import org.json4s.JsonAST.JArray
 import org.json4s.native.JsonMethods.{compact, parse, render}
@@ -21,7 +18,7 @@ import org.jsoup.nodes.Entities.EscapeMode
 import org.postgresql.util.PGobject
 import scalikejdbc.{DB, DBSession, _}
 
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 
 class V12__MoveRelatedContentEmbedsToDivs extends BaseJavaMigration {
 

@@ -9,12 +9,15 @@
 package no.ndla.articleapi
 
 import org.joda.time.{DateTime, DateTimeUtils}
+import org.mockito.scalatest.MockitoSugar
 import org.scalatest._
-import org.scalatest.mockito.MockitoSugar
-import scala.util.Properties.{setProp, propOrElse}
+import org.scalatest.funsuite.AnyFunSuite
+import org.scalatest.matchers.should.Matchers
+
+import scala.util.Properties.{propOrElse, setProp}
 
 abstract class UnitSuite
-    extends FunSuite
+    extends AnyFunSuite
     with Matchers
     with OptionValues
     with Inside

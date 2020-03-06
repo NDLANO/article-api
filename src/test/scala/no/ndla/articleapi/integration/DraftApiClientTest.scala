@@ -19,8 +19,8 @@ class DraftApiClientTest extends UnitSuite with TestEnvironment {
 
   // Pact CDC imports
   import com.itv.scalapact.ScalaPactForger._
-  import com.itv.scalapact.circe09._
-  import com.itv.scalapact.http4s18._
+  import com.itv.scalapact.circe13._
+  import com.itv.scalapact.http4s21._
 
   test("should be able to fetch agreements' copyright") {
     val expectedCopyright = api.Copyright(

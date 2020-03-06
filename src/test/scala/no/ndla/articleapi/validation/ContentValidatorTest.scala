@@ -257,7 +257,7 @@ class ContentValidatorTest extends UnitSuite with TestEnvironment {
           tags = Seq(ArticleTag(Seq("a"), "en"), ArticleTag(Seq("a"), "nb"), ArticleTag(Seq("a", "b", "c"), "nn"))),
         allowUnknownLanguage = true
       )
-    res2.errors should be(
+    res2.errors.sortBy(_.field) should be(
       Seq(
         ValidationMessage("tags.en", s"Invalid amount of tags. Articles needs 3 or more tags to be valid."),
         ValidationMessage("tags.nb", s"Invalid amount of tags. Articles needs 3 or more tags to be valid.")
