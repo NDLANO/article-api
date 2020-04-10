@@ -116,8 +116,8 @@ class ArticleApiProviderCDCTest extends IntegrationSuite with TestEnvironment {
     ComponentRegistry.e4sClient = Elastic4sClientFactory.getClient(elasticSearchHost.get)
 
     val consumersToVerify = List(
-      TaggedConsumer("draft-api", List("master")),
-      TaggedConsumer("search-api", List("master"))
+      TaggedConsumer("draft-api", List("2039-Endre-competences-til-grepCodes")),
+      TaggedConsumer("search-api", List("2039-Endre-competences-til-grepCodes"))
     )
 
     val broker = for {
