@@ -91,9 +91,9 @@ trait ArticleControllerV2 {
          |Used to enable scrolling past $ElasticSearchIndexMaxResultWindow results.
       """.stripMargin
     )
-    private val competences = Param[Option[String]](
-      "competences",
-      "Return only articles with one of the specified competence goals. Separate by comma to use specify multiple values (,).")
+    private val grepCodes = Param[Option[Seq[String]]](
+      "grep-codes",
+      "A comma separated list of codes from GREP API the resources should be filtered by.")
 
     private def asQueryParam[T: Manifest: NotNothing](param: Param[T]) =
       queryParam[T](param.paramName).description(param.description)
@@ -191,7 +191,7 @@ trait ArticleControllerV2 {
         idList: List[Long],
         articleTypesFilter: Seq[String],
         fallback: Boolean,
-        competences: Seq[String]
+        grepCodes: Seq[String]
     ) = {
 
       val settings = query match {
@@ -206,7 +206,7 @@ trait ArticleControllerV2 {
             sort = sort.getOrElse(Sort.ByRelevanceDesc),
             if (articleTypesFilter.isEmpty) ArticleType.all else articleTypesFilter,
             fallback = fallback,
-            competences = competences
+            grepCodes = grepCodes
           )
 
         case None =>
@@ -220,7 +220,7 @@ trait ArticleControllerV2 {
             sort = sort.getOrElse(Sort.ByIdAsc),
             if (articleTypesFilter.isEmpty) ArticleType.all else articleTypesFilter,
             fallback = fallback,
-            competences = competences
+            grepCodes = grepCodes
           )
       }
 
@@ -264,9 +264,9 @@ trait ArticleControllerV2 {
         val page = intOrDefault(this.pageNo.paramName, 1)
         val idList = paramAsListOfLong(this.articleIds.paramName)
         val articleTypesFilter = paramAsListOfString(this.articleTypes.paramName)
-        val competences = paramAsListOfString(this.competences.paramName)
+        val grepCodes = paramAsListOfString(this.grepCodes.paramName)
 
-        search(query, sort, language, license, page, pageSize, idList, articleTypesFilter, fallback, competences)
+        search(query, sort, language, license, page, pageSize, idList, articleTypesFilter, fallback, grepCodes)
       }
     }
 
@@ -295,9 +295,9 @@ trait ArticleControllerV2 {
         val page = searchParams.page.getOrElse(1)
         val idList = searchParams.idList
         val articleTypesFilter = searchParams.articleTypes
-        val competences = searchParams.competences
+        val grepCodes = searchParams.grepCodes
 
-        search(query, sort, language, license, page, pageSize, idList, articleTypesFilter, fallback, competences)
+        search(query, sort, language, license, page, pageSize, idList, articleTypesFilter, fallback, grepCodes)
       }
     }
 
