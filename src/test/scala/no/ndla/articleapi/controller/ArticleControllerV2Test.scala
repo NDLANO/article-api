@@ -89,7 +89,7 @@ class ArticleControllerV2Test extends UnitSuite with TestEnvironment with Scalat
         Sort.ByIdAsc,
         ArticleType.all,
         fallback = false,
-        competences = Seq.empty
+        grepCodes = Seq.empty
       )
 
       verify(articleSearchService, times(1)).matchingQuery(expectedSettings)

@@ -37,7 +37,7 @@ case class Article(id: Option[Long],
                    updatedBy: String,
                    published: Date,
                    articleType: String,
-                   competences: Seq[String])
+                   grepCodes: Seq[String])
     extends Content
 
 object Article extends SQLSyntaxSupport[Article] {
@@ -70,7 +70,7 @@ object Article extends SQLSyntaxSupport[Article] {
       meta.updatedBy,
       meta.published,
       meta.articleType,
-      meta.competences
+      meta.grepCodes
     )
   }
 
