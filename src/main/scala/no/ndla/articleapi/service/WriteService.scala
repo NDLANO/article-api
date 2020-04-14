@@ -77,6 +77,7 @@ trait WriteService {
       articleRepository
         .unpublish(id)
         .flatMap(articleIndexService.deleteDocument)
+        .flatMap(searchApiClient.deleteArticle)
         .map(api.ArticleIdV2)
     }
 
@@ -84,6 +85,7 @@ trait WriteService {
       articleRepository
         .delete(id)
         .flatMap(articleIndexService.deleteDocument)
+        .flatMap(searchApiClient.deleteArticle)
         .map(api.ArticleIdV2)
     }
 

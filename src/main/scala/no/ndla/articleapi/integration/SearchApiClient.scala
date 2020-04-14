@@ -12,12 +12,13 @@ import java.util.concurrent.Executors
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.articleapi.ArticleApiProperties.SearchHost
 import no.ndla.articleapi.model.domain.{Article, ArticleType}
+import no.ndla.articleapi.model.api.SearchException
 import no.ndla.articleapi.service.ConverterService
 import no.ndla.network.NdlaClient
 import org.json4s.Formats
 import org.json4s.ext.EnumNameSerializer
 import org.json4s.native.Serialization.write
-import scalaj.http.Http
+import scalaj.http.{Http, HttpRequest, HttpResponse}
 
 import scala.concurrent.{ExecutionContext, ExecutionContextExecutorService, Future}
 import scala.util.{Failure, Success, Try}
@@ -69,6 +70,30 @@ trait SearchApiClient {
             .params(params.toMap)
             .header("content-type", "application/json")
         )
+      }
+    }
+
+    def deleteArticle(id: Long): Try[Long] = {
+      val req = Http(s"$InternalEndpoint/article/$id")
+        .method("DELETE")
+        .timeout(indexTimeout, indexTimeout)
+
+      doRawRequest(req)
+
+      Try(id)
+    }
+
+    private def doRawRequest(request: HttpRequest): Try[HttpResponse[String]] = {
+      ndlaClient.fetchRawWithForwardedAuth(request) match {
+        case Success(r) =>
+          if (r.is2xx)
+            Success(r)
+          else
+            Failure(
+              SearchException(
+                s"Got status code '${r.code}' when attempting to request search-api. Body was: '${r.body}'"))
+        case Failure(ex) => Failure(ex)
+
       }
     }
   }
