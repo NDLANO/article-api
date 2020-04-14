@@ -83,7 +83,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
 
     when(articleRepository.unpublish(any[Long])(any[DBSession])).thenReturn(Success(articleIdToUnpublish))
     when(articleIndexService.deleteDocument(any[Long])).thenReturn(Success(articleIdToUnpublish))
-    when(searchApiClient.deleteArticle(any[Long])).thenReturn(Success(articleIdToUnpublish))
+    when(searchApiClient.deleteArticle(any[Long])).thenReturn(articleIdToUnpublish)
 
     service.unpublishArticle(articleIdToUnpublish)
 
@@ -97,7 +97,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
 
     when(articleRepository.delete(any[Long])(any[DBSession])).thenReturn(Success(articleIdToUnpublish))
     when(articleIndexService.deleteDocument(any[Long])).thenReturn(Success(articleIdToUnpublish))
-    when(searchApiClient.deleteArticle(any[Long])).thenReturn(Success(articleIdToUnpublish))
+    when(searchApiClient.deleteArticle(any[Long])).thenReturn(articleIdToUnpublish)
 
     service.deleteArticle(articleIdToUnpublish)
 

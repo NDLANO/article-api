@@ -73,27 +73,32 @@ trait SearchApiClient {
       }
     }
 
-    def deleteArticle(id: Long): Try[Long] = {
-      val req = Http(s"$InternalEndpoint/article/$id")
-        .method("DELETE")
-        .timeout(indexTimeout, indexTimeout)
-
-      doRawRequest(req)
-
-      Try(id)
+    def deleteArticle(id: Long): Long = {
+      implicit val executionContext: ExecutionContextExecutorService =
+        ExecutionContext.fromExecutorService(Executors.newSingleThreadExecutor)
+      val future = delete[Long, Long](s"$InternalEndpoint/article/$id")
+      future.onComplete {
+        case Success(Success(_)) =>
+          logger.info(s"Successfully deleted article with id: '${id}' from search-api")
+        case Failure(e) =>
+          logger.error(s"Failed to delete article with id: '${id} from search-api", e)
+        case Success(Failure(e)) =>
+          logger.error(s"Failed to delete article with id: '${id}' from search-api", e)
+      }
+      id
     }
 
-    private def doRawRequest(request: HttpRequest): Try[HttpResponse[String]] = {
-      ndlaClient.fetchRawWithForwardedAuth(request) match {
-        case Success(r) =>
-          if (r.is2xx)
-            Success(r)
-          else
-            Failure(
-              SearchException(
-                s"Got status code '${r.code}' when attempting to request search-api. Body was: '${r.body}'"))
-        case Failure(ex) => Failure(ex)
+    private def delete[A, B](endpointUrl: String, params: (String, String)*)(
+        implicit mf: Manifest[A],
+        executionContext: ExecutionContext): Future[Try[A]] = {
 
+      Future {
+        ndlaClient.fetchWithForwardedAuth[A](
+          Http(endpointUrl)
+            .timeout(indexTimeout, indexTimeout)
+            .method("DELETE")
+            .params(params.toMap)
+        )
       }
     }
   }
