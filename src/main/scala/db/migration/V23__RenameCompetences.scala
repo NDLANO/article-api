@@ -40,11 +40,11 @@ class V23__RenameCompetences extends BaseJavaMigration {
   }
 
   def countAllArticles(implicit session: DBSession) = {
-    sql"select count(*) from articledata where document is not NULL".map(rs => rs.long("count")).single().apply()
+    sql"select count(*) from contentdata where document is not NULL".map(rs => rs.long("count")).single().apply()
   }
 
   def allArticles(offset: Long)(implicit session: DBSession): Seq[(Long, String)] = {
-    sql"select id, document from articledata where document is not null order by id limit 1000 offset ${offset}"
+    sql"select id, document from contentdata where document is not null order by id limit 1000 offset ${offset}"
       .map(rs => {
         (rs.long("id"), rs.string("document"))
       })
@@ -68,7 +68,7 @@ class V23__RenameCompetences extends BaseJavaMigration {
     dataObject.setType("jsonb")
     dataObject.setValue(document)
 
-    sql"update articledata set document = ${dataObject} where id = ${id}".update().apply
+    sql"update contentdata set document = ${dataObject} where id = ${id}".update().apply
   }
 
 }
