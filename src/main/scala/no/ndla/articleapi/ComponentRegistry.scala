@@ -17,6 +17,7 @@ import no.ndla.articleapi.repository.ArticleRepository
 import no.ndla.articleapi.service._
 import no.ndla.articleapi.service.search._
 import no.ndla.articleapi.validation.ContentValidator
+import no.ndla.articleapi.integration.SearchApiClient
 import no.ndla.network.NdlaClient
 import scalikejdbc.{ConnectionPool, DataSourceConnectionPool}
 
@@ -28,6 +29,7 @@ object ComponentRegistry
     with ArticleRepository
     with Elastic4sClient
     with DraftApiClient
+    with SearchApiClient
     with ArticleSearchService
     with IndexService
     with ArticleIndexService
@@ -68,6 +70,7 @@ object ComponentRegistry
 
   var e4sClient: NdlaE4sClient = Elastic4sClientFactory.getClient()
   lazy val draftApiClient = new DraftApiClient
+  lazy val searchApiClient = new SearchApiClient
 
   lazy val clock = new SystemClock
   lazy val authRole = new AuthRole

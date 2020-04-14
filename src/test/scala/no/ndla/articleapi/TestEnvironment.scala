@@ -17,6 +17,7 @@ import no.ndla.articleapi.repository.ArticleRepository
 import no.ndla.articleapi.service._
 import no.ndla.articleapi.service.search._
 import no.ndla.articleapi.validation.ContentValidator
+import no.ndla.articleapi.integration.SearchApiClient
 import no.ndla.network.NdlaClient
 import org.mockito.scalatest.MockitoSugar
 
@@ -34,6 +35,7 @@ trait TestEnvironment
     with ArticleRepository
     with MockitoSugar
     with DraftApiClient
+    with SearchApiClient
     with ConverterService
     with NdlaClient
     with SearchConverterService
@@ -64,6 +66,7 @@ trait TestEnvironment
   val searchConverterService = mock[SearchConverterService]
   var e4sClient = mock[NdlaE4sClient]
   val draftApiClient = mock[DraftApiClient]
+  val searchApiClient = mock[SearchApiClient]
 
   val clock = mock[SystemClock]
   val authUser = mock[AuthUser]

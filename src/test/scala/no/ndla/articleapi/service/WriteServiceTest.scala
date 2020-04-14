@@ -14,7 +14,7 @@ import no.ndla.articleapi.model.domain._
 import no.ndla.articleapi.{TestData, TestEnvironment, UnitSuite}
 import org.joda.time.DateTime
 import org.mockito.ArgumentMatchers._
-import org.mockito.Mockito
+import org.mockito.{ArgumentCaptor, Mockito}
 import org.mockito.Mockito._
 import org.mockito.invocation.InvocationOnMock
 import scalikejdbc.DBSession
@@ -46,5 +46,34 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     when(clock.now()).thenReturn(today)
     when(contentValidator.validateArticle(any[Article], any[Boolean], any[Boolean]))
       .thenAnswer((invocation: InvocationOnMock) => Success(invocation.getArgument[Article](0)))
+  }
+
+  test("That updateArticle indexes the updated article") {
+    reset(articleIndexService, searchApiClient)
+
+    val articleToUpdate = TestData.sampleDomainArticle.copy(id = Some(10), updated = yesterday)
+    val updatedAndInserted = articleToUpdate
+      .copy(revision = articleToUpdate.revision.map(_ + 1), updated = today)
+
+    when(articleRepository.withId(10)).thenReturn(Some(articleToUpdate))
+    when(articleRepository.updateArticleFromDraftApi(any[Article], anyList)(any[DBSession]))
+      .thenReturn(Success(updatedAndInserted))
+
+    when(articleIndexService.indexDocument(any[Article])).thenReturn(Success(updatedAndInserted))
+    when(searchApiClient.indexArticle(any[Article])).thenReturn(updatedAndInserted)
+
+    service.updateArticle(articleToUpdate, List.empty, useImportValidation = false, useSoftValidation = false)
+
+    val argCap1: ArgumentCaptor[Article] = ArgumentCaptor.forClass(classOf[Article])
+    val argCap2: ArgumentCaptor[Article] = ArgumentCaptor.forClass(classOf[Article])
+
+    verify(articleIndexService, times(1)).indexDocument(argCap1.capture())
+    verify(searchApiClient, times(1)).indexArticle(argCap2.capture())
+
+    val captured1 = argCap1.getValue
+    captured1.copy(updated = today) should be(updatedAndInserted)
+
+    val captured2 = argCap2.getValue
+    captured2.copy(updated = today) should be(updatedAndInserted)
   }
 }
