@@ -15,6 +15,7 @@ import no.ndla.articleapi.model.domain._
 import no.ndla.articleapi.repository.ArticleRepository
 import no.ndla.articleapi.service.search.ArticleIndexService
 import no.ndla.articleapi.validation.ContentValidator
+import no.ndla.articleapi.integration.SearchApiClient
 import no.ndla.validation.ValidationException
 
 import scala.util.{Failure, Success, Try}
@@ -27,7 +28,8 @@ trait WriteService {
     with Clock
     with User
     with ReadService
-    with ArticleIndexService =>
+    with ArticleIndexService
+    with SearchApiClient =>
   val writeService: WriteService
 
   class WriteService extends LazyLogging {
@@ -67,6 +69,7 @@ trait WriteService {
         _ <- validationResult
         domainArticle <- articleRepository.updateArticleFromDraftApi(article, externalIds.map(_.toString))
         _ <- articleIndexService.indexDocument(domainArticle)
+        _ <- Try(searchApiClient.indexArticle(domainArticle))
       } yield domainArticle
     }
 
@@ -74,6 +77,7 @@ trait WriteService {
       articleRepository
         .unpublish(id)
         .flatMap(articleIndexService.deleteDocument)
+        .map(searchApiClient.deleteArticle)
         .map(api.ArticleIdV2)
     }
 
@@ -81,6 +85,7 @@ trait WriteService {
       articleRepository
         .delete(id)
         .flatMap(articleIndexService.deleteDocument)
+        .map(searchApiClient.deleteArticle)
         .map(api.ArticleIdV2)
     }
 
