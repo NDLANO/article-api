@@ -91,10 +91,10 @@ trait ArticleSearchService {
           else (Some(existsQuery(s"title.$lang")), lang)
       }
 
-      val competenceFilter =
-        if (settings.competences.nonEmpty) Some(termsQuery("competences", settings.competences)) else None
+      val grepCodesFilter =
+        if (settings.grepCodes.nonEmpty) Some(termsQuery("grepCodes", settings.grepCodes)) else None
 
-      val filters = List(licenseFilter, idFilter, languageFilter, articleTypesFilter, competenceFilter)
+      val filters = List(licenseFilter, idFilter, languageFilter, articleTypesFilter, grepCodesFilter)
       val filteredSearch = queryBuilder.filter(filters.flatten)
 
       val (startAt, numResults) = getStartAtAndNumResults(settings.page, settings.pageSize)

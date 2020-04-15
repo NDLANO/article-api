@@ -18,5 +18,5 @@ case class SearchSettings(
     sort: Sort.Value,
     articleTypes: Seq[String],
     fallback: Boolean,
-    competences: Seq[String]
+    grepCodes: Seq[String]
 )

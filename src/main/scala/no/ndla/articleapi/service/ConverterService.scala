@@ -114,7 +114,7 @@ trait ConverterService {
         searchableArticle.articleType,
         lastUpdated.toDate,
         supportedLanguages,
-        searchableArticle.competences
+        searchableArticle.grepCodes
       )
     }
 

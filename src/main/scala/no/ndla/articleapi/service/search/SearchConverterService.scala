@@ -53,7 +53,7 @@ trait SearchConverterService {
           .map(_.name) ++ articleWithAgreement.copyright.rightsholders.map(_.name),
         articleType = articleWithAgreement.articleType,
         defaultTitle = defaultTitle.map(t => t.title),
-        competences = articleWithAgreement.competences
+        grepCodes = articleWithAgreement.grepCodes
       )
     }
 
