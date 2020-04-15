@@ -74,32 +74,13 @@ trait SearchApiClient {
     }
 
     def deleteArticle(id: Long): Long = {
-      implicit val executionContext: ExecutionContextExecutorService =
-        ExecutionContext.fromExecutorService(Executors.newSingleThreadExecutor)
-      val future = delete[Long, Long](s"$InternalEndpoint/article/$id")
-      future.onComplete {
-        case Success(Success(_)) =>
-          logger.info(s"Successfully deleted article with id: '${id}' from search-api")
-        case Failure(e) =>
-          logger.error(s"Failed to delete article with id: '${id} from search-api", e)
-        case Success(Failure(e)) =>
-          logger.error(s"Failed to delete article with id: '${id}' from search-api", e)
-      }
+      ndlaClient.fetchRawWithForwardedAuth(
+        Http(s"$InternalEndpoint/article/$id")
+          .timeout(indexTimeout, indexTimeout)
+          .method("DELETE")
+      )
+
       id
-    }
-
-    private def delete[A, B](endpointUrl: String, params: (String, String)*)(
-        implicit mf: Manifest[A],
-        executionContext: ExecutionContext): Future[Try[A]] = {
-
-      Future {
-        ndlaClient.fetchWithForwardedAuth[A](
-          Http(endpointUrl)
-            .timeout(indexTimeout, indexTimeout)
-            .method("DELETE")
-            .params(params.toMap)
-        )
-      }
     }
   }
 
