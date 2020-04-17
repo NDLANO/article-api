@@ -65,7 +65,8 @@ object TestData {
     updatedBy = "me",
     published = new DateTime(2017, 4, 1, 12, 15, 32, DateTimeZone.UTC).toDate,
     articleType = "standard",
-    supportedLanguages = Seq("nb")
+    supportedLanguages = Seq("nb"),
+    grepCodes = Seq.empty,
   )
 
   val apiArticleV2 = api.ArticleV2(
@@ -97,7 +98,8 @@ object TestData {
     "ndalId54321",
     today,
     "standard",
-    Seq("nb")
+    Seq("nb"),
+    Seq("COMPCODE1"),
   )
 
   val sampleArticleWithPublicDomain = Article(
@@ -216,7 +218,8 @@ object TestData {
     "ndalId54321",
     DateTime.now().minusDays(2).toDate,
     "standard",
-    Seq("en")
+    Seq("en"),
+    Seq.empty,
   )
 
   val (nodeId, nodeId2) = ("1234", "4321")
