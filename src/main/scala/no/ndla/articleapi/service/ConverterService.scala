@@ -338,7 +338,8 @@ trait ConverterService {
             article.updatedBy,
             article.published,
             article.articleType,
-            supportedLanguages
+            supportedLanguages,
+            article.grepCodes,
           ))
       } else {
         Failure(
