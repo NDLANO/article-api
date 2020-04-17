@@ -301,7 +301,6 @@ trait ConverterService {
         article.metaImage
       )
       val isLanguageNeutral = supportedLanguages.contains(UnknownLanguage) && supportedLanguages.length == 1
-      val grepCodes = article.grepCodes
 
       if (supportedLanguages.contains(language) || language == AllLanguages || isLanguageNeutral || fallback) {
         val meta = findByLanguageOrBestEffort(article.metaDescription, language)
@@ -340,7 +339,7 @@ trait ConverterService {
             article.published,
             article.articleType,
             supportedLanguages,
-            grepCodes,
+            article.grepCodes,
           ))
       } else {
         Failure(
