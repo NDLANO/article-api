@@ -58,7 +58,7 @@ lazy val article_api = (project in file("."))
     libraryDependencies ++= Seq(
       "ndla" %% "network" % "0.43",
       "ndla" %% "mapping" % "0.14",
-      "ndla" %% "validation" % "0.39",
+      "ndla" %% "validation" % "0.40",
       "joda-time" % "joda-time" % "2.10",
       "org.scalatra" %% "scalatra" % Scalatraversion,
       "org.eclipse.jetty" % "jetty-webapp" % Jettyversion % "container;compile",
