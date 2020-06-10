@@ -111,4 +111,14 @@ class ReadServiceTest extends UnitSuite with TestEnvironment {
     occList.getNMostFrequent(3) should equal(Seq("tag", "is", "17. Mai"))
     occList.getNMostFrequent(4) should equal(Seq("tag", "is", "17. Mai", "lol"))
   }
+
+  test("addUrlOnResource adds url attribute on h5p embeds") {
+    val h5pPath = "/resource/89734643-4006-4c65-a5de-34989ba7b2c8"
+    val content =
+      s"""<div><$ResourceHtmlEmbedTag $resourceAttr="${ResourceType.H5P}" ${TagAttributes.DataPath}="$h5pPath" ${TagAttributes.Title}="This fancy h5p"><$ResourceHtmlEmbedTag $resourceAttr="${ResourceType.H5P}" ${TagAttributes.DataPath}="$h5pPath" ${TagAttributes.Title}="This fancy h5p"></div>"""
+    val expectedResult =
+      s"""<div><$ResourceHtmlEmbedTag $resourceAttr="${ResourceType.H5P}" ${TagAttributes.DataPath}="$h5pPath" ${TagAttributes.Title}="This fancy h5p" $urlAttr="https://h5p.ndla.no/$h5pPath"><$ResourceHtmlEmbedTag $resourceAttr="${ResourceType.H5P}" ${TagAttributes.DataPath}="$h5pPath" ${TagAttributes.Title}="This fancy h5p" $urlAttr="https://h5p.ndla.no/$h5pPath"></div>"""
+    val result = readService.addUrlOnResource(content)
+    result should equal(expectedResult)
+  }
 }

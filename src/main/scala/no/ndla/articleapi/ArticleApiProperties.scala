@@ -105,7 +105,17 @@ object ArticleApiProperties extends LazyLogging {
     ResourceType.Image.toString -> s"$Domain/image-api/v2/images",
     "raw-image" -> s"$Domain/image-api/raw/id",
     ResourceType.Audio.toString -> s"$Domain/audio-api/v1/audio",
-    ResourceType.File.toString -> Domain
+    ResourceType.File.toString -> Domain,
+    ResourceType.H5P.toString -> H5PAddress
+  )
+
+  lazy val H5PAddress = propOrElse(
+    "NDLA_H5P_ADDRESS",
+    Map(
+      "test" -> "https://h5p-test.ndla.no/",
+      "staging" -> "https://h5p-staging.ndla.no/",
+      "ff" -> "https://h5p-ff.ndla.no/"
+    ).getOrElse(Environment, "https://h5p.ndla.no/")
   )
 
   val NDLABrightcoveAccountId: String = prop("NDLA_BRIGHTCOVE_ACCOUNT_ID")
