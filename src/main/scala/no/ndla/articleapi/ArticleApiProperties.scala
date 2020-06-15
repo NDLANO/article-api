@@ -112,10 +112,10 @@ object ArticleApiProperties extends LazyLogging {
   lazy val H5PAddress = propOrElse(
     "NDLA_H5P_ADDRESS",
     Map(
-      "test" -> "https://h5p-test.ndla.no/",
-      "staging" -> "https://h5p-staging.ndla.no/",
-      "ff" -> "https://h5p-ff.ndla.no/"
-    ).getOrElse(Environment, "https://h5p.ndla.no/")
+      "test" -> "https://h5p-test.ndla.no",
+      "staging" -> "https://h5p-staging.ndla.no",
+      "ff" -> "https://h5p-ff.ndla.no"
+    ).getOrElse(Environment, "https://h5p.ndla.no")
   )
 
   val NDLABrightcoveAccountId: String = prop("NDLA_BRIGHTCOVE_ACCOUNT_ID")
