@@ -97,7 +97,9 @@ trait ReadService {
     private def addUrlOnEmbedTag(embedTag: Element): Unit = {
       val typeAndPathOption = embedTag.attr(TagAttributes.DataResource.toString) match {
         case resourceType
-            if resourceType == ResourceType.File.toString && embedTag.hasAttr(TagAttributes.DataPath.toString) =>
+            if resourceType == ResourceType.File.toString
+              || resourceType == ResourceType.H5P.toString
+                && embedTag.hasAttr(TagAttributes.DataPath.toString) =>
           val path = embedTag.attr(TagAttributes.DataPath.toString)
           Some((resourceType, path))
 
