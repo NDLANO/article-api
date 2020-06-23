@@ -50,7 +50,7 @@ trait ContentValidator {
     def validateArticle(article: Article, allowUnknownLanguage: Boolean, isImported: Boolean = false): Try[Article] = {
       val validationErrors = validateArticleContent(article.content, allowUnknownLanguage) ++
         article.introduction.flatMap(i => validateIntroduction(i, allowUnknownLanguage)) ++
-        validateMetaDescription(article.metaDescription, allowUnknownLanguage) ++
+        validateMetaDescription(article.metaDescription, allowUnknownLanguage, isImported) ++
         validateTitle(article.title, allowUnknownLanguage) ++
         validateCopyright(article.copyright) ++
         validateTags(article.tags, allowUnknownLanguage, isImported) ++
@@ -125,12 +125,17 @@ trait ContentValidator {
     }
 
     private def validateMetaDescription(contents: Seq[ArticleMetaDescription],
-                                        allowUnknownLanguage: Boolean): Seq[ValidationMessage] = {
-      contents.flatMap(content => {
+                                        allowUnknownLanguage: Boolean,
+                                        allowEmpty: Boolean): Seq[ValidationMessage] = {
+      val validations = contents.flatMap(content => {
         val field = s"metaDescription.${content.language}"
         NoHtmlValidator.validate(field, content.content).toList ++
           validateLanguage("metaDescription.language", content.language, allowUnknownLanguage)
-      }) ++ validateNonEmpty("metaDescription", contents)
+      })
+      if (allowEmpty) {
+        return validations
+      }
+      validations ++ validateNonEmpty("metaDescription", contents)
     }
 
     private def validateTitle(titles: Seq[LanguageField[String]],

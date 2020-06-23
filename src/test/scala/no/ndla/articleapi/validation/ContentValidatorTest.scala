@@ -300,6 +300,15 @@ class ContentValidatorTest extends UnitSuite with TestEnvironment {
       ))
   }
 
+  test("imported articles should pass validation for missing metaDescription") {
+    val res0 = contentValidator.validateArticle(
+      TestData.sampleArticleWithByNcSa.copy(metaDescription = Seq.empty),
+      allowUnknownLanguage = true,
+      isImported = true
+    )
+    res0.isSuccess should be(true)
+  }
+
   test("validation should fail if there are no tags for any languages") {
     val Failure(res: ValidationException) =
       contentValidator.validateArticle(TestData.sampleArticleWithByNcSa.copy(tags = Seq()),
