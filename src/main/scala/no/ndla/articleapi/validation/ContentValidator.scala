@@ -33,12 +33,14 @@ trait ContentValidator {
     private val NoHtmlValidator = new TextValidator(allowHtml = false)
     private val HtmlValidator = new TextValidator(allowHtml = true)
 
-    def softValidateArticle(article: Article): Try[Article] = {
+    def softValidateArticle(article: Article, isImported: Boolean): Try[Article] = {
+      val metaValidation =
+        if (isImported) None else validateNonEmpty("metaDescription", article.metaDescription)
       val validationErrors =
         validateArticleType(article.articleType) ++
           validateNonEmpty("content", article.content) ++
           validateNonEmpty("title", article.title) ++
-          validateNonEmpty("metaDescription", article.metaDescription)
+          metaValidation
 
       if (validationErrors.isEmpty) {
         Success(article)

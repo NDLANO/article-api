@@ -338,7 +338,8 @@ class ContentValidatorTest extends UnitSuite with TestEnvironment {
       false)
 
     val softRes = contentValidator.softValidateArticle(
-      TestData.sampleArticleWithByNcSa.copy(metaImage = Seq(ArticleMetaImage("", "alt-text", "nb"))))
+      TestData.sampleArticleWithByNcSa.copy(metaImage = Seq(ArticleMetaImage("", "alt-text", "nb"))),
+      false)
 
     strictRes.errors.length should be(1)
     strictRes.errors.head.field should be("metaImageId")

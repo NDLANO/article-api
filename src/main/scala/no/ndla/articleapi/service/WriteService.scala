@@ -49,7 +49,7 @@ trait WriteService {
 
       val validationResult =
         if (useSoftValidation) {
-          (strictValidationResult, contentValidator.softValidateArticle(article)) match {
+          (strictValidationResult, contentValidator.softValidateArticle(article, isImported = useImportValidation)) match {
             case (Failure(strictEx: ValidationException), Success(art)) =>
               val strictErrors = strictEx.errors
                 .map(msg => {
