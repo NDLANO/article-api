@@ -114,14 +114,11 @@ class V24__RemoveDomainFromH5PUrl extends BaseJavaMigration {
   }
 
   def updateContent(contents: JArray, contentType: String): json4s.JValue = {
-    contents.map {
-      case content =>
-        content.mapField {
-          case (`contentType`, JString(html)) => (`contentType`, JString(updateContent(html)))
-          case z                              => z
-        }
-      case y => y
-    }
+    contents.map(content =>
+      content.mapField {
+        case (`contentType`, JString(html)) => (`contentType`, JString(updateContent(html)))
+        case z                              => z
+    })
   }
 
   private[migration] def convertArticleUpdate(document: String): String = {
