@@ -129,15 +129,13 @@ trait ContentValidator {
     private def validateMetaDescription(contents: Seq[ArticleMetaDescription],
                                         allowUnknownLanguage: Boolean,
                                         allowEmpty: Boolean): Seq[ValidationMessage] = {
+      val nonEmptyValidation = if (allowEmpty) None else validateNonEmpty("metaDescription", contents)
       val validations = contents.flatMap(content => {
         val field = s"metaDescription.${content.language}"
         NoHtmlValidator.validate(field, content.content).toList ++
           validateLanguage("metaDescription.language", content.language, allowUnknownLanguage)
       })
-      if (allowEmpty) {
-        return validations
-      }
-      validations ++ validateNonEmpty("metaDescription", contents)
+      validations ++ nonEmptyValidation
     }
 
     private def validateTitle(titles: Seq[LanguageField[String]],
