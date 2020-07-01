@@ -129,7 +129,7 @@ trait InternController {
 
     post("/article/:id") {
       authRole.assertHasWritePermission()
-      val externalIds = paramAsListOfLong("external-id")
+      val externalIds = paramAsListOfString("external-id")
       val useImportValidation = booleanOrDefault("use-import-validation", default = false)
       val useSoftValidation = booleanOrDefault("use-soft-validation", default = false)
       val article = extract[Article](request.body)
