@@ -385,7 +385,6 @@ trait ArticleControllerV2 {
       val language = paramOrDefault(this.language.paramName, Language.AllLanguages)
       val fallback = booleanOrDefault(this.fallback.paramName, default = false)
 
-
       writeService.partialUpdate(articleId, partialUpdateBody, language, fallback) match {
         case Failure(ex)         => errorHandler(ex)
         case Success(apiArticle) => Ok(apiArticle)
