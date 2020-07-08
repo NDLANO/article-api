@@ -373,7 +373,8 @@ trait ArticleControllerV2 {
             asHeaderParam(correlationId),
             asPathParam(articleId),
             asQueryParam(language),
-            asQueryParam(fallback)
+            asQueryParam(fallback),
+            bodyParam[PartialPublishArticle]
         )
           responseMessages (response404, response500))
     ) {
