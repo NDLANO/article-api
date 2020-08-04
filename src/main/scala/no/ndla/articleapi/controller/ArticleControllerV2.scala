@@ -362,5 +362,35 @@ trait ArticleControllerV2 {
         case None           => NotFound()
       }
     }
+
+    patch(
+      "/partial-publish/:article_id",
+      operation(
+        apiOperation[ArticleV2]("partialPublish")
+          summary "Publish metadata of article directly without affecting rest of article."
+          description "Publish metadata of article directly without affecting rest of article."
+          parameters (
+            asHeaderParam(correlationId),
+            asPathParam(articleId),
+            asQueryParam(language),
+            asQueryParam(fallback),
+            bodyParam[PartialPublishArticle]
+        )
+          responseMessages (response404, response500))
+    ) {
+
+      authRole.assertHasWritePermission()
+
+      val articleId = long(this.articleId.paramName)
+      val partialUpdateBody = extract[PartialPublishArticle](request.body)
+      val language = paramOrDefault(this.language.paramName, Language.AllLanguages)
+      val fallback = booleanOrDefault(this.fallback.paramName, default = false)
+
+      writeService.partialUpdate(articleId, partialUpdateBody, language, fallback) match {
+        case Failure(ex)         => errorHandler(ex)
+        case Success(apiArticle) => Ok(apiArticle)
+      }
+
+    }
   }
 }

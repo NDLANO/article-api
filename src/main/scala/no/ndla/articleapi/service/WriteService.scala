@@ -16,6 +16,7 @@ import no.ndla.articleapi.repository.ArticleRepository
 import no.ndla.articleapi.service.search.ArticleIndexService
 import no.ndla.articleapi.validation.ContentValidator
 import no.ndla.articleapi.integration.SearchApiClient
+import no.ndla.articleapi.model.api.NotFoundException
 import no.ndla.validation.ValidationException
 
 import scala.util.{Failure, Success, Try}
@@ -36,7 +37,7 @@ trait WriteService {
 
     def updateArticle(
         article: Article,
-        externalIds: List[Long],
+        externalIds: List[String],
         useImportValidation: Boolean,
         useSoftValidation: Boolean
     ): Try[Article] = {
@@ -71,6 +72,31 @@ trait WriteService {
         _ <- articleIndexService.indexDocument(domainArticle)
         _ <- Try(searchApiClient.indexArticle(domainArticle))
       } yield domainArticle
+    }
+
+    def partialUpdate(
+        articleId: Long,
+        partialArticle: api.PartialPublishArticle,
+        language: String,
+        fallback: Boolean
+    ): Try[api.ArticleV2] = {
+      articleRepository.withId(articleId) match {
+        case None => Failure(NotFoundException(s"Could not find article with id '$articleId' to partial publish"))
+        case Some(existingArticle) =>
+          val newGrepCodes = partialArticle.grepCodes.getOrElse(existingArticle.grepCodes)
+          val newArticle = existingArticle.copy(
+            grepCodes = newGrepCodes
+          )
+
+          val externalIds = articleRepository.getExternalIdsFromId(articleId)
+
+          updateArticle(
+            newArticle,
+            externalIds,
+            useImportValidation = false,
+            useSoftValidation = false
+          ).flatMap(insertedArticle => converterService.toApiArticleV2(insertedArticle, language, fallback))
+      }
     }
 
     def unpublishArticle(id: Long): Try[api.ArticleIdV2] = {
