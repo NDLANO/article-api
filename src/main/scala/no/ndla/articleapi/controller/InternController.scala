@@ -110,7 +110,7 @@ trait InternController {
       readService.getArticlesByPage(pageNo, pageSize, lang, fallback)
     }
 
-    get("/dump/article") {
+    get("/dump/article/?") {
       // Dumps Domain articles
       val pageNo = intOrDefault("page", 1)
       val pageSize = intOrDefault("page-size", 250)
