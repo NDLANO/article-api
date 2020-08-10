@@ -59,7 +59,7 @@ class V12__MoveRelatedContentEmbedsToDivs extends BaseJavaMigration {
       .map(rs => {
         (rs.long("id"), rs.string("document"))
       })
-      .list
+      .list()
       .apply()
   }
 
@@ -119,7 +119,7 @@ class V12__MoveRelatedContentEmbedsToDivs extends BaseJavaMigration {
 
     sql"update contentdata set document = ${dataObject} where id = ${id}"
       .update()
-      .apply
+      .apply()
   }
 
   case class V12_Content(content: String, language: String)
