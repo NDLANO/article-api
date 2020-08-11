@@ -44,7 +44,8 @@ val pactTestFramework = Seq(
 val vulnerabilityOverrides = Seq(
   "com.google.guava" % "guava" % "28.1-jre",
   "commons-codec" % "commons-codec" % "1.14",
-  "org.yaml" % "snakeyaml" % "1.26"
+  "org.yaml" % "snakeyaml" % "1.26",
+  "org.apache.httpcomponents" % "httpclient" % "4.5.10"
 )
 
 lazy val PactTest = config("pact") extend Test
