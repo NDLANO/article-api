@@ -60,7 +60,7 @@ class V6__AddLanguageToAll extends BaseJavaMigration {
         meta.copy(id = Some(rs.long("id")), revision = Some(rs.int("revision")))
 
       })
-      .list
+      .list()
       .apply()
   }
 
@@ -84,7 +84,7 @@ class V6__AddLanguageToAll extends BaseJavaMigration {
     dataObject.setType("jsonb")
     dataObject.setValue(write(articleMeta))
 
-    sql"update contentdata set document = $dataObject where id = ${articleMeta.id}".update().apply
+    sql"update contentdata set document = $dataObject where id = ${articleMeta.id}".update().apply()
   }
 
   //
@@ -114,7 +114,7 @@ class V6__AddLanguageToAll extends BaseJavaMigration {
         meta.copy(id = Some(rs.long("id")))
 
       })
-      .list
+      .list()
       .apply()
   }
 
@@ -130,7 +130,7 @@ class V6__AddLanguageToAll extends BaseJavaMigration {
     dataObject.setType("jsonb")
     dataObject.setValue(write(conceptMeta))
 
-    sql"update conceptdata set document = $dataObject where id = ${conceptMeta.id}".update().apply
+    sql"update conceptdata set document = $dataObject where id = ${conceptMeta.id}".update().apply()
   }
 
 }

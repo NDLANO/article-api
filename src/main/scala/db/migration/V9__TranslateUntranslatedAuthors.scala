@@ -57,7 +57,7 @@ class V9__TranslateUntranslatedAuthors extends BaseJavaMigration {
       .map(rs => {
         (rs.long("id"), rs.int("revision"), rs.string("document"))
       })
-      .list
+      .list()
       .apply()
   }
 
@@ -94,7 +94,7 @@ class V9__TranslateUntranslatedAuthors extends BaseJavaMigration {
     dataObject.setType("jsonb")
     dataObject.setValue(write(articleMeta))
 
-    sql"update contentdata set document = ${dataObject} where id = ${articleMeta.id}".update().apply
+    sql"update contentdata set document = ${dataObject} where id = ${articleMeta.id}".update().apply()
   }
 
 }

@@ -48,7 +48,7 @@ class V23__RenameCompetences extends BaseJavaMigration {
       .map(rs => {
         (rs.long("id"), rs.string("document"))
       })
-      .list
+      .list()
       .apply()
   }
 
@@ -68,7 +68,7 @@ class V23__RenameCompetences extends BaseJavaMigration {
     dataObject.setType("jsonb")
     dataObject.setValue(document)
 
-    sql"update contentdata set document = ${dataObject} where id = ${id}".update().apply
+    sql"update contentdata set document = ${dataObject} where id = ${id}".update().apply()
   }
 
 }

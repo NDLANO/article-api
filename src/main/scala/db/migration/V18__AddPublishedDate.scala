@@ -55,7 +55,7 @@ class V18__AddPublishedDate extends BaseJavaMigration {
       .map(rs => {
         (rs.long("id"), rs.string("document"))
       })
-      .list
+      .list()
       .apply()
   }
 
@@ -66,7 +66,7 @@ class V18__AddPublishedDate extends BaseJavaMigration {
 
     sql"update contentdata set document = $dataObject where id = $id"
       .update()
-      .apply
+      .apply()
   }
 
   def convertArticleUpdate(document: String): String = {

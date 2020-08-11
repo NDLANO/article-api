@@ -56,7 +56,7 @@ class V24__RemoveDomainFromH5PUrl extends BaseJavaMigration {
       .map(rs => {
         (rs.long("id"), rs.string("document"))
       })
-      .list
+      .list()
       .apply()
   }
 
@@ -67,7 +67,7 @@ class V24__RemoveDomainFromH5PUrl extends BaseJavaMigration {
 
     sql"update contentdata set document = $dataObject where id = $id"
       .update()
-      .apply
+      .apply()
   }
 
   private def stringToJsoupDocument(htmlString: String): Element = {

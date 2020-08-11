@@ -55,7 +55,7 @@ class V16__UpdateLicenses extends BaseJavaMigration {
       .map(rs => {
         (rs.long("id"), rs.string("document"))
       })
-      .list
+      .list()
       .apply()
   }
 
@@ -103,7 +103,7 @@ class V16__UpdateLicenses extends BaseJavaMigration {
 
     sql"update contentdata set document = ${dataObject} where id = ${id}"
       .update()
-      .apply
+      .apply()
   }
 
 }
