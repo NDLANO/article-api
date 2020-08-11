@@ -21,7 +21,7 @@ matrix:
       script: sbt ++$TRAVIS_SCALA_VERSION pactPublish
       dist: trusty
       language: scala
-      scala: 2.13.1
+      scala: 2.13.3
       jdk:
         - openjdk8
       cache:
@@ -36,7 +36,7 @@ matrix:
       script: sbt ++$TRAVIS_SCALA_VERSION "pact:testOnly -- -n PactProviderTest"
       dist: trusty
       language: scala
-      scala: 2.13.1
+      scala: 2.13.3
       jdk:
         - openjdk8
       cache:
