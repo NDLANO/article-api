@@ -57,7 +57,7 @@ class V8__CopyrightFormatUpdated extends BaseJavaMigration {
       .map(rs => {
         (rs.long("id"), rs.int("revision"), rs.string("document"))
       })
-      .list
+      .list()
       .apply()
   }
 
@@ -120,7 +120,7 @@ class V8__CopyrightFormatUpdated extends BaseJavaMigration {
     dataObject.setType("jsonb")
     dataObject.setValue(write(articleMeta))
 
-    sql"update contentdata set document = ${dataObject} where id = ${articleMeta.id}".update().apply
+    sql"update contentdata set document = ${dataObject} where id = ${articleMeta.id}".update().apply()
   }
 
 }

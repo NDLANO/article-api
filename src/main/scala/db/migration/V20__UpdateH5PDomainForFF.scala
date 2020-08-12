@@ -59,7 +59,7 @@ class V20__UpdateH5PDomainForFF extends BaseJavaMigration {
       .map(rs => {
         (rs.long("id"), rs.string("document"))
       })
-      .list
+      .list()
       .apply()
   }
 
@@ -70,7 +70,7 @@ class V20__UpdateH5PDomainForFF extends BaseJavaMigration {
 
     sql"update contentdata set document = $dataObject where id = $id"
       .update()
-      .apply
+      .apply()
   }
 
   def updateH5PDomains(html: String): String = {

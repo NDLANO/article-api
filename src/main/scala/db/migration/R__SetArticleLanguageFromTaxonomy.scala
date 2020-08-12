@@ -193,7 +193,7 @@ class R__SetArticleLanguageFromTaxonomy extends BaseJavaMigration {
 
     sql"update contentdata set document = $dataObject where id=${article.id}"
       .update()
-      .apply
+      .apply()
   }
 
 }

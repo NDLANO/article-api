@@ -189,7 +189,7 @@ class ArticleSearchServiceTest extends IntegrationSuite with TestEnvironment {
     articleType = ArticleType.TopicArticle.toString
   )
 
-  override def beforeAll = if (elasticSearchContainer.isSuccess) {
+  override def beforeAll() = if (elasticSearchContainer.isSuccess) {
     articleIndexService.createIndexWithName(ArticleApiProperties.ArticleSearchIndex)
 
     articleIndexService.indexDocument(article1)

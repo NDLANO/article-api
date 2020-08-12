@@ -39,7 +39,7 @@ trait ArticleRepository {
                   external_id=ARRAY[$externalIds]::text[],
                   revision=${article.revision}
               where id=${article.id}
-          """.update.apply
+          """.update().apply()
       } match {
         case Success(count) if count == 1 =>
           logger.info(s"Updated article ${article.id}")
@@ -50,7 +50,7 @@ trait ArticleRepository {
             sql"""
                   insert into ${Article.table} (id, document, external_id, revision)
                   values (${article.id}, $dataObject, ARRAY[$externalIds]::text[], ${article.revision})
-              """.updateAndReturnGeneratedKey().apply
+              """.updateAndReturnGeneratedKey().apply()
           }.map(_ => article)
 
         case Failure(ex) => Failure(ex)
@@ -58,7 +58,7 @@ trait ArticleRepository {
     }
 
     def unpublish(articleId: Long)(implicit session: DBSession = AutoSession): Try[Long] = {
-      val numRows = sql"update ${Article.table} set document=null where id=$articleId".update().apply
+      val numRows = sql"update ${Article.table} set document=null where id=$articleId".update().apply()
       if (numRows == 1) {
         Success(articleId)
       } else {
@@ -67,7 +67,7 @@ trait ArticleRepository {
     }
 
     def delete(articleId: Long)(implicit session: DBSession = AutoSession): Try[Long] = {
-      val numRows = sql"delete from ${Article.table} where id = $articleId".update().apply
+      val numRows = sql"delete from ${Article.table} where id = $articleId".update().apply()
       if (numRows == 1) {
         Success(articleId)
       } else {
@@ -83,7 +83,7 @@ trait ArticleRepository {
     def getIdFromExternalId(externalId: String)(implicit session: DBSession = AutoSession): Option[Long] = {
       sql"select id from ${Article.table} where $externalId = any(external_id)"
         .map(rs => rs.long("id"))
-        .single
+        .single()
         .apply()
     }
 
@@ -97,8 +97,8 @@ trait ArticleRepository {
     def getExternalIdsFromId(id: Long)(implicit session: DBSession = AutoSession): List[String] = {
       sql"select external_id from ${Article.table} where id=${id.toInt}"
         .map(externalIdsFromResultSet)
-        .single
-        .apply
+        .single()
+        .apply()
         .getOrElse(List.empty)
     }
 
@@ -110,8 +110,8 @@ trait ArticleRepository {
               rs.long("id"),
               externalIdsFromResultSet(rs)
           ))
-        .list
-        .apply
+        .list()
+        .apply()
     }
 
     def articleCount(implicit session: DBSession = AutoSession): Long = {
@@ -126,15 +126,15 @@ trait ArticleRepository {
       val ar = Article.syntax("ar")
       sql"select ${ar.result.*} from ${Article.as(ar)} where document is not NULL offset $offset limit $pageSize"
         .map(Article.fromResultSet(ar))
-        .list
+        .list()
         .apply()
     }
 
     def allTags(implicit session: DBSession = AutoSession): Seq[ArticleTag] = {
       val allTags = sql"""select document->>'tags' from ${Article.table} where document is not NULL"""
         .map(rs => rs.string(1))
-        .list
-        .apply
+        .list()
+        .apply()
 
       allTags
         .flatMap(tag => parse(tag).extract[List[ArticleTag]])
@@ -162,8 +162,8 @@ trait ArticleRepository {
               limit ${pageSize}
                       """
         .map(rs => rs.string("tags"))
-        .toList()
-        .apply
+        .list()
+        .apply()
 
       val tagsCount =
         sql"""
@@ -202,7 +202,7 @@ trait ArticleRepository {
       val ar = Article.syntax("ar")
       sql"select ${ar.result.*} from ${Article.as(ar)} where ar.document is not NULL and $whereClause"
         .map(Article.fromResultSet(ar))
-        .single
+        .single()
         .apply()
     }
 
@@ -211,7 +211,7 @@ trait ArticleRepository {
       val ar = Article.syntax("ar")
       sql"select ${ar.result.*} from ${Article.as(ar)} where ar.document is not NULL and $whereClause"
         .map(Article.fromResultSet(ar))
-        .list
+        .list()
         .apply()
     }
 
@@ -225,8 +225,8 @@ trait ArticleRepository {
               rs.long("id"),
               externalIdsFromResultSet(rs)
           ))
-        .single
-        .apply
+        .single()
+        .apply()
     }
 
   }

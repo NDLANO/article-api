@@ -53,7 +53,7 @@ abstract class NdlaController extends ScalatraServlet with NativeJsonSupport wit
     CorrelationID.clear()
     ThreadContext.remove(CorrelationIdKey)
     AuthUser.clear()
-    ApplicationUrl.clear
+    ApplicationUrl.clear()
   }
 
   error {

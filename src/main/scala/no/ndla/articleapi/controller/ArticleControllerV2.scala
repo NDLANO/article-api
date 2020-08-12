@@ -129,14 +129,14 @@ trait ArticleControllerV2 {
       "/tags/",
       operation(
         apiOperation[ArticleTag]("getTags")
-          summary "Fetch tags used in articles."
-          description "Retrieves a list of all previously used tags in articles."
-          parameters (
+          .summary("Fetch tags used in articles.")
+          .description("Retrieves a list of all previously used tags in articles.")
+          .parameters(
             asHeaderParam(correlationId),
             asQueryParam(size),
             asQueryParam(language)
-        )
-          responseMessages response500)
+          )
+          .responseMessages(response500))
     ) {
       val defaultSize = 20
       val language = paramOrDefault(this.language.paramName, Language.AllLanguages)
@@ -156,16 +156,16 @@ trait ArticleControllerV2 {
       "/tag-search/",
       operation(
         apiOperation[ArticleTag]("getTags-paginated")
-          summary "Fetch tags used in articles."
-          description "Retrieves a list of all previously used tags in articles."
-          parameters (
+          .summary("Fetch tags used in articles.")
+          .description("Retrieves a list of all previously used tags in articles.")
+          .parameters(
             asHeaderParam(correlationId),
             asQueryParam(query),
             asQueryParam(pageSize),
             asQueryParam(pageNo),
             asQueryParam(language)
-        )
-          responseMessages response500)
+          )
+          .responseMessages(response500))
     ) {
       val query = paramOrDefault(this.query.paramName, "")
       val pageSize = intOrDefault(this.pageSize.paramName, ArticleApiProperties.DefaultPageSize) match {
@@ -236,9 +236,9 @@ trait ArticleControllerV2 {
       "/",
       operation(
         apiOperation[List[SearchResultV2]]("getAllArticles")
-          summary "Find published articles."
-          description "Returns all articles. You can search it too."
-          parameters (
+          .summary("Find published articles.")
+          .description("Returns all articles. You can search it too.")
+          .parameters(
             asHeaderParam(correlationId),
             asQueryParam(articleTypes),
             asQueryParam(query),
@@ -249,8 +249,8 @@ trait ArticleControllerV2 {
             asQueryParam(pageSize),
             asQueryParam(sort),
             asQueryParam(scrollId)
-        )
-          responseMessages response500)
+          )
+          .responseMessages(response500))
     ) {
       val scrollId = paramOrNone(this.scrollId.paramName)
       val language = paramOrDefault(this.language.paramName, Language.AllLanguages)
@@ -274,14 +274,14 @@ trait ArticleControllerV2 {
       "/search/",
       operation(
         apiOperation[List[SearchResultV2]]("getAllArticlesPost")
-          summary "Find published articles."
-          description "Search all articles."
-          parameters (
+          .summary("Find published articles.")
+          .description("Search all articles.")
+          .parameters(
             asHeaderParam(correlationId),
             asQueryParam(scrollId),
             bodyParam[ArticleSearchParams]
-        )
-          responseMessages (response400, response500))
+          )
+          .responseMessages(response400, response500))
     ) {
       val searchParams = extract[ArticleSearchParams](request.body)
       val language = searchParams.language.getOrElse(Language.AllLanguages)
@@ -305,15 +305,15 @@ trait ArticleControllerV2 {
       "/:article_id",
       operation(
         apiOperation[List[ArticleV2]]("getArticleById")
-          summary "Fetch specified article."
-          description "Returns the article for the specified id."
-          parameters (
+          .summary("Fetch specified article.")
+          .description("Returns the article for the specified id.")
+          .parameters(
             asHeaderParam(correlationId),
             asPathParam(articleId),
             asQueryParam(language),
             asQueryParam(fallback)
-        )
-          responseMessages (response404, response500))
+          )
+          .responseMessages(response404, response500))
     ) {
       val articleId = long(this.articleId.paramName)
       val language = paramOrDefault(this.language.paramName, Language.AllLanguages)
@@ -329,13 +329,13 @@ trait ArticleControllerV2 {
       "/external_id/:deprecated_node_id",
       operation(
         apiOperation[ArticleIdV2]("getInternalIdByExternalId")
-          summary "Get id of article corresponding to specified deprecated node id."
-          description "Get internal id of article for a specified ndla_node_id."
-          parameters (
+          .summary("Get id of article corresponding to specified deprecated node id.")
+          .description("Get internal id of article for a specified ndla_node_id.")
+          .parameters(
             asHeaderParam(correlationId),
             asPathParam(deprecatedNodeId)
-        )
-          responseMessages (response404, response500))
+          )
+          .responseMessages(response404, response500))
     ) {
       val externalId = long(this.deprecatedNodeId.paramName)
       readService.getInternalIdByExternalId(externalId) match {
@@ -348,13 +348,14 @@ trait ArticleControllerV2 {
       "/external_ids/:deprecated_node_id",
       operation(
         apiOperation[ArticleIds]("getExternalIdsByExternalId")
-          summary "Get all ids related to article corresponding to specified deprecated node id."
-          description "Get internal id as well as all deprecated ndla_node_ids of article for a specified ndla_node_id."
-          parameters (
+          .summary("Get all ids related to article corresponding to specified deprecated node id.")
+          .description(
+            "Get internal id as well as all deprecated ndla_node_ids of article for a specified ndla_node_id.")
+          .parameters(
             asHeaderParam(correlationId),
             asPathParam(deprecatedNodeId)
-        )
-          responseMessages (response404, response500))
+          )
+          .responseMessages(response404, response500))
     ) {
       val externalId = params(this.deprecatedNodeId.paramName)
       readService.getArticleIdsByExternalId(externalId) match {
@@ -367,16 +368,16 @@ trait ArticleControllerV2 {
       "/partial-publish/:article_id",
       operation(
         apiOperation[ArticleV2]("partialPublish")
-          summary "Publish metadata of article directly without affecting rest of article."
-          description "Publish metadata of article directly without affecting rest of article."
-          parameters (
+          .summary("Publish metadata of article directly without affecting rest of article.")
+          .description("Publish metadata of article directly without affecting rest of article.")
+          .parameters(
             asHeaderParam(correlationId),
             asPathParam(articleId),
             asQueryParam(language),
             asQueryParam(fallback),
             bodyParam[PartialPublishArticle]
-        )
-          responseMessages (response404, response500))
+          )
+          .responseMessages(response404, response500))
     ) {
 
       authRole.assertHasWritePermission()

@@ -59,7 +59,7 @@ class V14__MoveToNewFileEmbedFormat extends BaseJavaMigration {
       .map(rs => {
         (rs.long("id"), rs.string("document"))
       })
-      .list
+      .list()
       .apply()
   }
 
@@ -110,7 +110,7 @@ class V14__MoveToNewFileEmbedFormat extends BaseJavaMigration {
 
     sql"update contentdata set document = ${dataObject} where id = ${id}"
       .update()
-      .apply
+      .apply()
   }
 
   case class V14_Content(content: String, language: String)

@@ -43,7 +43,7 @@ class V3__AddUpdatedColoums extends BaseJavaMigration {
   def allArticles(offset: Long)(implicit session: DBSession) = {
     sql"select id, document from contentdata where document is not NULL order by id limit 1000 offset ${offset}"
       .map(rs => V3_DBArticleMetaInformation(rs.long("id"), rs.string("document")))
-      .list
+      .list()
       .apply()
   }
 
@@ -61,7 +61,7 @@ class V3__AddUpdatedColoums extends BaseJavaMigration {
     dataObject.setType("jsonb")
     dataObject.setValue(articleMeta.document)
 
-    sql"update contentdata set document = $dataObject where id = ${articleMeta.id}".update().apply
+    sql"update contentdata set document = $dataObject where id = ${articleMeta.id}".update().apply()
   }
 
 }
