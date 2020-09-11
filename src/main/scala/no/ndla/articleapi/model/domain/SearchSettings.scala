@@ -18,5 +18,6 @@ case class SearchSettings(
     sort: Sort.Value,
     articleTypes: Seq[String],
     fallback: Boolean,
-    grepCodes: Seq[String]
+    grepCodes: Seq[String],
+    shouldScroll: Boolean
 )

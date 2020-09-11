@@ -13,6 +13,7 @@ import no.ndla.articleapi.ArticleApiProperties.{
   DefaultPageSize,
   ElasticSearchIndexMaxResultWindow,
   ElasticSearchScrollKeepAlive,
+  InitialScrollContextKeywords,
   MaxPageSize
 }
 import no.ndla.articleapi.auth.{Role, User}
@@ -82,14 +83,14 @@ trait ArticleControllerV2 {
       "Return only articles that have one of the provided ids. To provide multiple ids, separate by comma (,).")
     private val deprecatedNodeId = Param[String]("deprecated_node_id", "Id of deprecated NDLA node")
     private val fallback = Param[Option[Boolean]]("fallback", "Fallback to existing language if language is specified.")
-    private val scrollId = Param[Option[String]](
+    protected val scrollId = Param[Option[String]](
       "search-context",
-      s"""A search context retrieved from the response header of a previous search.
-         |If search-context is specified, all other query parameters, except '${this.language.paramName}' and '${this.fallback.paramName}' are ignored
-         |For the rest of the parameters the original search of the search-context is used.
-         |The search context may change between scrolls. Always use the most recent one (The context if unused dies after $ElasticSearchScrollKeepAlive).
-         |Used to enable scrolling past $ElasticSearchIndexMaxResultWindow results.
-      """.stripMargin
+      s"""A unique string obtained from a search you want to keep scrolling in. To obtain one from a search, provide one of the following values: ${InitialScrollContextKeywords
+           .mkString("[", ",", "]")}.
+         |When scrolling, the parameters from the initial search is used, except in the case of '${this.language.paramName}' and '${this.fallback.paramName}'.
+         |This value may change between scrolls. Always use the one in the latest scroll result (The context, if unused, dies after $ElasticSearchScrollKeepAlive).
+         |If you are not paginating past $ElasticSearchIndexMaxResultWindow hits, you can ignore this and use '${this.pageNo.paramName}' and '${this.pageSize.paramName}' instead.
+         |""".stripMargin
     )
     private val grepCodes = Param[Option[Seq[String]]](
       "grep-codes",
@@ -191,7 +192,8 @@ trait ArticleControllerV2 {
         idList: List[Long],
         articleTypesFilter: Seq[String],
         fallback: Boolean,
-        grepCodes: Seq[String]
+        grepCodes: Seq[String],
+        shouldScroll: Boolean
     ) = {
 
       val settings = query match {
@@ -206,7 +208,8 @@ trait ArticleControllerV2 {
             sort = sort.getOrElse(Sort.ByRelevanceDesc),
             if (articleTypesFilter.isEmpty) ArticleType.all else articleTypesFilter,
             fallback = fallback,
-            grepCodes = grepCodes
+            grepCodes = grepCodes,
+            shouldScroll = shouldScroll
           )
 
         case None =>
@@ -220,7 +223,8 @@ trait ArticleControllerV2 {
             sort = sort.getOrElse(Sort.ByIdAsc),
             if (articleTypesFilter.isEmpty) ArticleType.all else articleTypesFilter,
             fallback = fallback,
-            grepCodes = grepCodes
+            grepCodes = grepCodes,
+            shouldScroll = shouldScroll
           )
       }
 
@@ -265,8 +269,21 @@ trait ArticleControllerV2 {
         val idList = paramAsListOfLong(this.articleIds.paramName)
         val articleTypesFilter = paramAsListOfString(this.articleTypes.paramName)
         val grepCodes = paramAsListOfString(this.grepCodes.paramName)
+        val shouldScroll = paramOrNone(this.scrollId.paramName).exists(InitialScrollContextKeywords.contains)
 
-        search(query, sort, language, license, page, pageSize, idList, articleTypesFilter, fallback, grepCodes)
+        search(
+          query,
+          sort,
+          language,
+          license,
+          page,
+          pageSize,
+          idList,
+          articleTypesFilter,
+          fallback,
+          grepCodes,
+          shouldScroll
+        )
       }
     }
 
@@ -296,8 +313,21 @@ trait ArticleControllerV2 {
         val idList = searchParams.idList
         val articleTypesFilter = searchParams.articleTypes
         val grepCodes = searchParams.grepCodes
+        val shouldScroll = searchParams.scrollId.exists(InitialScrollContextKeywords.contains)
 
-        search(query, sort, language, license, page, pageSize, idList, articleTypesFilter, fallback, grepCodes)
+        search(
+          query,
+          sort,
+          language,
+          license,
+          page,
+          pageSize,
+          idList,
+          articleTypesFilter,
+          fallback,
+          grepCodes,
+          shouldScroll
+        )
       }
     }
 
