@@ -238,7 +238,8 @@ class ArticleSearchServiceTest extends IntegrationSuite with TestEnvironment {
     sort = Sort.ByIdAsc,
     articleTypes = Seq.empty,
     fallback = false,
-    grepCodes = Seq.empty
+    grepCodes = Seq.empty,
+    shouldScroll = false
   )
 
   test("searching should return only articles of a given type if a type filter is specified") {
@@ -552,7 +553,12 @@ class ArticleSearchServiceTest extends IntegrationSuite with TestEnvironment {
 
     val Success(initialSearch) =
       articleSearchService.matchingQuery(
-        testSettings.copy(language = Language.AllLanguages, pageSize = pageSize, fallback = true))
+        testSettings.copy(
+          language = Language.AllLanguages,
+          pageSize = pageSize,
+          fallback = true,
+          shouldScroll = true
+        ))
 
     val Success(scroll1) = articleSearchService.scroll(initialSearch.scrollId.get, "all", true)
     val Success(scroll2) = articleSearchService.scroll(scroll1.scrollId.get, "all", true)
@@ -570,7 +576,13 @@ class ArticleSearchServiceTest extends IntegrationSuite with TestEnvironment {
 
   test("That highlighting works when scrolling") {
     val Success(initialSearch) =
-      articleSearchService.matchingQuery(testSettings.copy(query = Some("about"), pageSize = 1, fallback = true))
+      articleSearchService.matchingQuery(
+        testSettings.copy(
+          query = Some("about"),
+          pageSize = 1,
+          fallback = true,
+          shouldScroll = true
+        ))
     val Success(scroll) = articleSearchService.scroll(initialSearch.scrollId.get, "all", true)
 
     initialSearch.results.size should be(1)
