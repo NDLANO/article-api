@@ -7,12 +7,8 @@
 
 package db.migration
 
-import java.sql.Connection
-import java.util.Date
-
 import no.ndla.articleapi.ArticleApiProperties._
 import org.flywaydb.core.api.migration.{BaseJavaMigration, Context}
-import org.flywaydb.core.api.migration.jdbc.JdbcMigration
 import org.json4s.FieldSerializer
 import org.json4s.FieldSerializer.ignore
 import org.json4s.native.Serialization.{read, write}

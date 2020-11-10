@@ -7,10 +7,7 @@
 
 package db.migration
 
-import java.sql.Connection
-
 import org.flywaydb.core.api.migration.{BaseJavaMigration, Context}
-import org.flywaydb.core.api.migration.jdbc.JdbcMigration
 import org.json4s.JsonAST.JString
 import org.json4s.native.JsonMethods.{compact, parse, render}
 import org.json4s.{DefaultFormats, JObject}
