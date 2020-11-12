@@ -14,12 +14,17 @@ import no.ndla.articleapi._
 import no.ndla.articleapi.integration.DataSource
 import no.ndla.articleapi.model.domain
 import no.ndla.articleapi.model.domain.{Article, ArticleIds, ArticleTag}
+import no.ndla.scalatestsuite.IntegrationSuite
 import scalikejdbc.{ConnectionPool, DataSourceConnectionPool}
 
 import scala.util.{Success, Try}
 
-class ArticleRepositoryTest extends IntegrationSuite with TestEnvironment {
-  var repository: ArticleRepository = new ArticleRepository
+class ArticleRepositoryTest
+    extends IntegrationSuite(EnablePostgresContainer = true)
+    with UnitSuite
+    with TestEnvironment {
+  override val dataSource = testDataSource.get
+  var repository: ArticleRepository = _
 
   lazy val sampleArticle: Article = TestData.sampleArticleWithByNcSa
 
@@ -35,17 +40,19 @@ class ArticleRepositoryTest extends IntegrationSuite with TestEnvironment {
   def databaseIsAvailable: Boolean = Try(repository.articleCount).isSuccess
 
   override def beforeAll(): Unit = {
+    super.beforeAll()
     Try {
-      val ds = testDataSource.get
-      ConnectionPool.singleton(new DataSourceConnectionPool(ds))
+      ConnectionPool.singleton(new DataSourceConnectionPool(dataSource))
       if (serverIsListening) {
-        DBMigrator.migrate(ds)
+        DBMigrator.migrate(dataSource)
       }
     }
   }
 
-  override def beforeEach(): Unit =
+  override def beforeEach(): Unit = {
+    repository = new ArticleRepository
     if (databaseIsAvailable) repository.getAllIds().foreach(articleId => repository.delete(articleId.articleId))
+  }
 
   override def afterEach(): Unit =
     if (databaseIsAvailable) repository.getAllIds().foreach(articleId => repository.delete(articleId.articleId))
