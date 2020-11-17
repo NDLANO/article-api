@@ -15,6 +15,7 @@ import com.itv.scalapact.shared.PactBrokerAuthorization.BasicAuthenticationCrede
 import com.itv.scalapact.shared.{BrokerPublishData, ProviderStateResult, TaggedConsumer}
 import no.ndla.articleapi._
 import no.ndla.articleapi.integration.Elastic4sClientFactory
+import no.ndla.scalatestsuite.IntegrationSuite
 import org.eclipse.jetty.server.Server
 import org.joda.time.DateTime
 import org.scalatest.Tag
@@ -27,7 +28,10 @@ import scala.util.{Failure, Success, Try}
 
 object PactProviderTest extends Tag("PactProviderTest")
 
-class ArticleApiProviderCDCTest extends IntegrationSuite with TestEnvironment {
+class ArticleApiProviderCDCTest
+    extends IntegrationSuite(EnableElasticsearchContainer = true, EnablePostgresContainer = true)
+    with TestEnvironment {
+  override val dataSource = testDataSource.get
 
   import com.itv.scalapact.circe13._
   import com.itv.scalapact.http4s21._
@@ -61,24 +65,28 @@ class ArticleApiProviderCDCTest extends IntegrationSuite with TestEnvironment {
 
   def deleteSchema(): Unit = {
     println("Deleting test schema to prepare for CDC testing...")
-    val datasource = testDataSource.get
-    DBMigrator.migrate(datasource)
-    ConnectionPool.singleton(new DataSourceConnectionPool(datasource))
+    DBMigrator.migrate(dataSource)
+    ConnectionPool.singleton(new DataSourceConnectionPool(dataSource))
     DB autoCommit (implicit session => {
-      sql"drop schema if exists articleapitest cascade;"
+      val schemaName = SQLSyntax.createUnsafely(dataSource.getSchema)
+      sql"drop schema if exists $schemaName cascade;"
         .execute()
         .apply()
     })
-    DBMigrator.migrate(datasource)
-    ConnectionPool.singleton(new DataSourceConnectionPool(datasource))
+    DBMigrator.migrate(dataSource)
+    ConnectionPool.singleton(new DataSourceConnectionPool(dataSource))
   }
 
   override def beforeAll(): Unit = {
+    super.beforeAll()
     println(s"Running CDC tests with component on localhost:$serverPort")
     server = Some(JettyLauncher.startServer(serverPort))
   }
 
-  override def afterAll(): Unit = { server.foreach(_.stop()) }
+  override def afterAll(): Unit = {
+    super.afterAll()
+    server.foreach(_.stop())
+  }
 
   private def setupArticles() =
     (1 to 10)

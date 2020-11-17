@@ -8,47 +8,23 @@
 
 package no.ndla.articleapi
 
-import org.joda.time.{DateTime, DateTimeUtils}
-import org.mockito.scalatest.MockitoSugar
-import org.scalatest._
-import org.scalatest.funsuite.AnyFunSuite
-import org.scalatest.matchers.should.Matchers
+import no.ndla.scalatestsuite.UnitTestSuite
 
-import scala.util.Properties.{propOrElse, setProp}
+import scala.util.Properties.setProp
 
-abstract class UnitSuite
-    extends AnyFunSuite
-    with Matchers
-    with OptionValues
-    with Inside
-    with Inspectors
-    with MockitoSugar
-    with BeforeAndAfterEach
-    with BeforeAndAfterAll
-    with PrivateMethodTester {
+trait UnitSuite extends UnitTestSuite {
 
-  setEnv("NDLA_ENVIRONMENT", "local")
+  setProp("NDLA_ENVIRONMENT", "local")
 
-  setEnv("SEARCH_SERVER", "some-server")
-  setEnv("SEARCH_REGION", "some-region")
-  setEnv("RUN_WITH_SIGNED_SEARCH_REQUESTS", "false")
+  setProp("SEARCH_SERVER", "some-server")
+  setProp("SEARCH_REGION", "some-region")
+  setProp("RUN_WITH_SIGNED_SEARCH_REQUESTS", "false")
 
-  setEnv("AUDIO_API_HOST", "localhost:30014")
-  setEnv("IMAGE_API_HOST", "localhost:30001")
-  setEnv("DRAFT_API_HOST", "localhost:30022")
+  setProp("AUDIO_API_HOST", "localhost:30014")
+  setProp("IMAGE_API_HOST", "localhost:30001")
+  setProp("DRAFT_API_HOST", "localhost:30022")
 
-  setEnv("NDLA_BRIGHTCOVE_ACCOUNT_ID", "some-account-id")
-  setEnv("NDLA_BRIGHTCOVE_PLAYER_ID", "some-player-id")
-  setEnv("SEARCH_INDEX_NAME", "article-integration-test-index")
-
-  def setEnv(key: String, value: String) = setProp(key, value)
-
-  def setEnvIfAbsent(key: String, value: String) = setProp(key, propOrElse(key, value))
-
-  def withFrozenTime(time: DateTime = new DateTime())(toExecute: => Any) = {
-    DateTimeUtils.setCurrentMillisFixed(time.getMillis)
-    toExecute
-    DateTimeUtils.setCurrentMillisSystem()
-  }
-
+  setProp("NDLA_BRIGHTCOVE_ACCOUNT_ID", "some-account-id")
+  setProp("NDLA_BRIGHTCOVE_PLAYER_ID", "some-player-id")
+  setProp("SEARCH_INDEX_NAME", "article-integration-test-index")
 }

@@ -14,12 +14,13 @@ import no.ndla.articleapi.integration.{Elastic4sClientFactory, NdlaE4sClient}
 import no.ndla.articleapi.model.api
 import no.ndla.articleapi.model.domain._
 import no.ndla.mapping.License.{CC_BY_NC_SA, Copyrighted, PublicDomain}
+import no.ndla.scalatestsuite.IntegrationSuite
 import org.joda.time.DateTime
 import org.scalatest.Outcome
 
 import scala.util.Success
 
-class ArticleSearchServiceTest extends IntegrationSuite with TestEnvironment {
+class ArticleSearchServiceTest extends IntegrationSuite(EnableElasticsearchContainer = true) with TestEnvironment {
 
   e4sClient = Elastic4sClientFactory.getClient(elasticSearchHost.getOrElse("http://localhost:9200"))
 
@@ -205,10 +206,6 @@ class ArticleSearchServiceTest extends IntegrationSuite with TestEnvironment {
     articleIndexService.indexDocument(article11)
 
     blockUntil(() => articleSearchService.countDocuments == 11)
-  }
-
-  override def afterAll() = if (elasticSearchContainer.isSuccess) {
-    articleIndexService.deleteIndexWithName(Some(ArticleApiProperties.ArticleSearchIndex))
   }
 
   test("That getStartAtAndNumResults returns SEARCH_MAX_PAGE_SIZE for value greater than SEARCH_MAX_PAGE_SIZE") {
