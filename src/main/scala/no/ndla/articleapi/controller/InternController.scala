@@ -151,7 +151,8 @@ trait InternController {
 
     post("/article/:id/unpublish/") {
       authRole.assertHasWritePermission()
-      writeService.unpublishArticle(long("id")) match {
+      val revision = intOrNone("revision")
+      writeService.unpublishArticle(long("id"), revision) match {
         case Success(a)  => a
         case Failure(ex) => errorHandler(ex)
       }

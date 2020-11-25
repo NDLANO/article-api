@@ -99,9 +99,13 @@ trait WriteService {
       }
     }
 
-    def unpublishArticle(id: Long): Try[api.ArticleIdV2] = {
-      articleRepository
-        .unpublish(id)
+    def unpublishArticle(id: Long, revision: Option[Int]): Try[api.ArticleIdV2] = {
+      val updated = revision match {
+        case Some(rev) => articleRepository.unpublish(id, rev)
+        case None      => articleRepository.unpublishMaxRevision(id)
+      }
+
+      updated
         .flatMap(articleIndexService.deleteDocument)
         .map(searchApiClient.deleteArticle)
         .map(api.ArticleIdV2)

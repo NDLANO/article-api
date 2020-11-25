@@ -36,19 +36,18 @@ trait ArticleRepository {
       Try {
         sql"""update ${Article.table}
               set document=$dataObject,
-                  external_id=ARRAY[$externalIds]::text[],
-                  revision=${article.revision}
-              where id=${article.id}
+                  external_id=ARRAY[$externalIds]::text[]
+              where article_id=${article.id} and revision=${article.revision}
           """.update().apply()
       } match {
         case Success(count) if count == 1 =>
           logger.info(s"Updated article ${article.id}")
           Success(article)
         case Success(_) =>
-          logger.info(s"No article with id ${article.id} exists, creating...")
+          logger.info(s"No article with id ${article.id} and revision ${article.revision} exists, creating...")
           Try {
             sql"""
-                  insert into ${Article.table} (id, document, external_id, revision)
+                  insert into ${Article.table} (article_id, document, external_id, revision)
                   values (${article.id}, $dataObject, ARRAY[$externalIds]::text[], ${article.revision})
               """.updateAndReturnGeneratedKey().apply()
           }.map(_ => article)
@@ -57,8 +56,14 @@ trait ArticleRepository {
       }
     }
 
-    def unpublish(articleId: Long)(implicit session: DBSession = AutoSession): Try[Long] = {
-      val numRows = sql"update ${Article.table} set document=null where id=$articleId".update().apply()
+    def unpublishMaxRevision(articleId: Long)(implicit session: DBSession = AutoSession): Try[Long] = {
+      val numRows =
+        sql"""
+             update ${Article.table}
+             set document=null
+             where article_id=$articleId
+             and revision=(select max(revision) from ${Article.table} where article_id=${articleId})
+           """.update().apply()
       if (numRows == 1) {
         Success(articleId)
       } else {
@@ -66,8 +71,29 @@ trait ArticleRepository {
       }
     }
 
+    def unpublish(articleId: Long, revision: Int)(implicit session: DBSession = AutoSession): Try[Long] = {
+      val numRows =
+        sql"""
+             update ${Article.table}
+             set document=null
+             where article_id=$articleId
+             and revision=$revision
+           """.update().apply()
+      if (numRows == 1) {
+        Success(articleId)
+      } else {
+        Failure(NotFoundException(s"Article with id $articleId does not exist"))
+      }
+    }
+
+    // TODO: What do we do? Delete all of them?
     def delete(articleId: Long)(implicit session: DBSession = AutoSession): Try[Long] = {
-      val numRows = sql"delete from ${Article.table} where id = $articleId".update().apply()
+      val numRows =
+        sql"""
+             delete from ${Article.table}
+             where article_id = $articleId
+             and revision=(select max(revision) from ${Article.table} where article_id=${articleId})
+           """.update().apply()
       if (numRows == 1) {
         Success(articleId)
       } else {
@@ -76,13 +102,26 @@ trait ArticleRepository {
       }
     }
 
-    def withId(articleId: Long): Option[Article] = articleWhere(sqls"ar.id=${articleId.toInt}")
+    def withId(articleId: Long): Option[Article] =
+      articleWhere(
+        sqls"""
+              ar.article_id=${articleId.toInt}
+              ORDER BY revision
+              DESC LIMIT 1
+              """
+      )
 
     def withExternalId(externalId: String): Option[Article] = articleWhere(sqls"$externalId = any (ar.external_id)")
 
     def getIdFromExternalId(externalId: String)(implicit session: DBSession = AutoSession): Option[Long] = {
-      sql"select id from ${Article.table} where $externalId = any(external_id)"
-        .map(rs => rs.long("id"))
+      sql"""
+           select article_id
+           from ${Article.table}
+           where $externalId = any(external_id)
+           order by revision desc
+           limit 1
+         """
+        .map(rs => rs.long("article_id"))
         .single()
         .apply()
     }
@@ -95,7 +134,13 @@ trait ArticleRepository {
     }
 
     def getExternalIdsFromId(id: Long)(implicit session: DBSession = AutoSession): List[String] = {
-      sql"select external_id from ${Article.table} where id=${id.toInt}"
+      sql"""
+           select external_id
+           from ${Article.table}
+           where article_id=${id.toInt}
+           order by revision desc
+           limit 1
+         """
         .map(externalIdsFromResultSet)
         .single()
         .apply()
@@ -103,11 +148,11 @@ trait ArticleRepository {
     }
 
     def getAllIds(implicit session: DBSession = AutoSession): Seq[ArticleIds] = {
-      sql"select id, external_id from ${Article.table}"
+      sql"select article_id, external_id from ${Article.table}"
         .map(
           rs =>
             ArticleIds(
-              rs.long("id"),
+              rs.long("article_id"),
               externalIdsFromResultSet(rs)
           ))
         .list()
@@ -115,7 +160,11 @@ trait ArticleRepository {
     }
 
     def articleCount(implicit session: DBSession = AutoSession): Long = {
-      sql"select count(*) from ${Article.table} where document is not NULL"
+      sql"""
+           select count(distinct article_id)
+           from ${Article.table}
+           where document is not NULL
+         """
         .map(rs => rs.long("count"))
         .single()
         .apply()
@@ -124,10 +173,22 @@ trait ArticleRepository {
 
     def getArticlesByPage(pageSize: Int, offset: Int)(implicit session: DBSession = AutoSession): Seq[Article] = {
       val ar = Article.syntax("ar")
-      sql"select ${ar.result.*} from ${Article.as(ar)} where document is not NULL offset $offset limit $pageSize"
+      sql"""
+           select *
+           from (select
+                   ${ar.result.*},
+                   ${ar.revision} as revision,
+                   max(revision) over (partition by article_id) as max_revision
+                 from ${Article.as(ar)}
+                 where document is not NULL) _
+           where revision = max_revision
+           offset $offset
+           limit $pageSize
+      """
         .map(Article.fromResultSet(ar))
         .list()
         .apply()
+        .flatten
     }
 
     def allTags(implicit session: DBSession = AutoSession): Seq[ArticleTag] = {
@@ -152,7 +213,7 @@ trait ArticleRepository {
       val sanitizedLanguage = language.replaceAll("%", "")
       val langOrAll = if (sanitizedLanguage == "all" || sanitizedLanguage == "") "%" else sanitizedLanguage
 
-      val tags = sql"""select tags from 
+      val tags = sql"""select tags from
               (select distinct JSONB_ARRAY_ELEMENTS_TEXT(tagObj->'tags') tags from
               (select JSONB_ARRAY_ELEMENTS(document#>'{tags}') tagObj from ${Article.table}) _
               where tagObj->>'language' like ${langOrAll}
@@ -167,7 +228,7 @@ trait ArticleRepository {
 
       val tagsCount =
         sql"""
-              select count(*) from 
+              select count(*) from
               (select distinct JSONB_ARRAY_ELEMENTS_TEXT(tagObj->'tags') tags from
               (select JSONB_ARRAY_ELEMENTS(document#>'{tags}') tagObj from ${Article.table}) _
               where tagObj->>'language' like  ${langOrAll}) all_tags
@@ -183,7 +244,7 @@ trait ArticleRepository {
     }
 
     override def minMaxId(implicit session: DBSession = AutoSession): (Long, Long) = {
-      sql"select coalesce(MIN(id),0) as mi, coalesce(MAX(id),0) as ma from ${Article.table}"
+      sql"select coalesce(MIN(article_id),0) as mi, coalesce(MAX(article_id),0) as ma from ${Article.table}"
         .map(rs => {
           (rs.long("mi"), rs.long("ma"))
         })
@@ -195,34 +256,45 @@ trait ArticleRepository {
     }
 
     override def documentsWithIdBetween(min: Long, max: Long): List[Article] =
-      articlesWhere(sqls"ar.id between $min and $max").toList
+      articlesWhere(sqls"ar.article_id between $min and $max").toList
 
     private def articleWhere(whereClause: SQLSyntax)(
         implicit session: DBSession = ReadOnlyAutoSession): Option[Article] = {
       val ar = Article.syntax("ar")
-      sql"select ${ar.result.*} from ${Article.as(ar)} where ar.document is not NULL and $whereClause"
+      sql"""
+           select ${ar.result.*}
+           from ${Article.as(ar)}
+           where $whereClause
+         """
         .map(Article.fromResultSet(ar))
         .single()
         .apply()
+        .flatten
     }
 
     private def articlesWhere(whereClause: SQLSyntax)(
         implicit session: DBSession = ReadOnlyAutoSession): Seq[Article] = {
       val ar = Article.syntax("ar")
-      sql"select ${ar.result.*} from ${Article.as(ar)} where ar.document is not NULL and $whereClause"
+      sql"""
+        select ${ar.result.*}
+        from ${Article.as(ar)}
+        where ar.document is not NULL
+        and $whereClause
+         """
         .map(Article.fromResultSet(ar))
         .list()
         .apply()
+        .flatten
     }
 
     def getArticleIdsFromExternalId(externalId: String)(
         implicit session: DBSession = ReadOnlyAutoSession): Option[ArticleIds] = {
       val ar = Article.syntax("ar")
-      sql"select id, external_id from ${Article.as(ar)} where $externalId=ANY(ar.external_id)"
+      sql"select article_id, external_id from ${Article.as(ar)} where $externalId=ANY(ar.external_id)"
         .map(
           rs =>
             ArticleIds(
-              rs.long("id"),
+              rs.long("article_id"),
               externalIdsFromResultSet(rs)
           ))
         .single()
