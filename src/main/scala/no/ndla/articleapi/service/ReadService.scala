@@ -35,8 +35,16 @@ trait ReadService {
     def getInternalIdByExternalId(externalId: Long): Option[api.ArticleIdV2] =
       articleRepository.getIdFromExternalId(externalId.toString).map(api.ArticleIdV2)
 
-    def withIdV2(id: Long, language: String, fallback: Boolean = false): Try[api.ArticleV2] = {
-      articleRepository.withId(id).map(addUrlsOnEmbedResources) match {
+    def withIdV2(id: Long,
+                 language: String,
+                 fallback: Boolean = false,
+                 revision: Option[Int] = None): Try[api.ArticleV2] = {
+      val article = revision match {
+        case Some(rev) => articleRepository.withIdAndRevision(id, rev)
+        case None      => articleRepository.withId(id)
+      }
+
+      article.map(addUrlsOnEmbedResources) match {
         case None          => Failure(NotFoundException(s"The article with id $id was not found"))
         case Some(article) => converterService.toApiArticleV2(article, language, fallback)
       }

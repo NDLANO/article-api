@@ -71,6 +71,7 @@ trait ArticleControllerV2 {
     private val pageNo = Param[Option[Int]]("page", "The page number of the search hits to display.")
     private val pageSize = Param[Option[Int]]("page-size", "The number of search hits to display for each page.")
     private val articleId = Param[Long]("article_id", "Id of the article that is to be fecthed.")
+    private val revision = Param[Option[Int]]("revision", "Revision of article to fetch. If not provided the current revision is returned.")
     private val size =
       Param[Option[Int]](
         "size",
@@ -341,15 +342,17 @@ trait ArticleControllerV2 {
             asHeaderParam(correlationId),
             asPathParam(articleId),
             asQueryParam(language),
-            asQueryParam(fallback)
+            asQueryParam(fallback),
+            asQueryParam(revision)
           )
           .responseMessages(response404, response500))
     ) {
       val articleId = long(this.articleId.paramName)
       val language = paramOrDefault(this.language.paramName, Language.AllLanguages)
       val fallback = booleanOrDefault(this.fallback.paramName, default = false)
+      val revision = intOrNone(this.revision.paramName)
 
-      readService.withIdV2(articleId, language, fallback) match {
+      readService.withIdV2(articleId, language, fallback, revision) match {
         case Success(article) => article
         case Failure(ex)      => errorHandler(ex)
       }

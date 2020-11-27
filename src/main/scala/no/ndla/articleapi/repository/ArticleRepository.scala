@@ -86,13 +86,27 @@ trait ArticleRepository {
       }
     }
 
-    // TODO: What do we do? Delete all of them?
-    def delete(articleId: Long)(implicit session: DBSession = AutoSession): Try[Long] = {
+    def deleteMaxRevision(articleId: Long)(implicit session: DBSession = AutoSession): Try[Long] = {
       val numRows =
         sql"""
              delete from ${Article.table}
              where article_id = $articleId
              and revision=(select max(revision) from ${Article.table} where article_id=${articleId})
+           """.update().apply()
+      if (numRows == 1) {
+        Success(articleId)
+      } else {
+        // Article with id $articleId does not exist.
+        Success(articleId)
+      }
+    }
+
+    def delete(articleId: Long, revision: Int)(implicit session: DBSession = AutoSession): Try[Long] = {
+      val numRows =
+        sql"""
+             delete from ${Article.table}
+             where article_id = $articleId
+             and revision=$revision
            """.update().apply()
       if (numRows == 1) {
         Success(articleId)
@@ -110,6 +124,15 @@ trait ArticleRepository {
               DESC LIMIT 1
               """
       )
+
+    def withIdAndRevision(articleId: Long, revision: Int): Option[Article] = {
+      articleWhere(
+        sqls"""
+              ar.article_id=${articleId.toInt}
+              and ar.revision=${revision}
+              """
+      )
+    }
 
     def withExternalId(externalId: String): Option[Article] = articleWhere(sqls"$externalId = any (ar.external_id)")
 

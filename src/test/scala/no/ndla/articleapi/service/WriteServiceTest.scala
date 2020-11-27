@@ -95,7 +95,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     reset(articleIndexService, searchApiClient)
     val articleIdToUnpublish = 11
 
-    when(articleRepository.delete(any[Long])(any[DBSession])).thenReturn(Success(articleIdToUnpublish))
+    when(articleRepository.deleteMaxRevision(any[Long])(any[DBSession])).thenReturn(Success(articleIdToUnpublish))
     when(articleIndexService.deleteDocument(any[Long])).thenReturn(Success(articleIdToUnpublish))
     when(searchApiClient.deleteArticle(any[Long])).thenReturn(articleIdToUnpublish)
 

@@ -111,9 +111,13 @@ trait WriteService {
         .map(api.ArticleIdV2)
     }
 
-    def deleteArticle(id: Long): Try[api.ArticleIdV2] = {
-      articleRepository
-        .delete(id)
+    def deleteArticle(id: Long, revision: Option[Int]): Try[api.ArticleIdV2] = {
+      val deleted = revision match {
+        case Some(rev) => articleRepository.delete(id, rev)
+        case None => articleRepository.deleteMaxRevision(id)
+      }
+
+      deleted
         .flatMap(articleIndexService.deleteDocument)
         .map(searchApiClient.deleteArticle)
         .map(api.ArticleIdV2)
