@@ -51,11 +51,13 @@ class ArticleRepositoryTest
 
   override def beforeEach(): Unit = {
     repository = new ArticleRepository
-    if (databaseIsAvailable) repository.getAllIds().foreach(articleId => repository.deleteMaxRevision(articleId.articleId))
+    if (databaseIsAvailable)
+      repository.getAllIds().foreach(articleId => repository.deleteMaxRevision(articleId.articleId))
   }
 
   override def afterEach(): Unit =
-    if (databaseIsAvailable) repository.getAllIds().foreach(articleId => repository.deleteMaxRevision(articleId.articleId))
+    if (databaseIsAvailable)
+      repository.getAllIds().foreach(articleId => repository.deleteMaxRevision(articleId.articleId))
 
   test("getAllIds returns a list with all ids in the database") {
     assume(databaseIsAvailable, "Database is unavailable")

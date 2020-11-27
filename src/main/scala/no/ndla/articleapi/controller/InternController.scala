@@ -143,7 +143,8 @@ trait InternController {
 
     delete("/article/:id/") {
       authRole.assertHasWritePermission()
-      writeService.deleteArticle(long("id")) match {
+      val revision = intOrNone("revision")
+      writeService.deleteArticle(long("id"), revision) match {
         case Success(a)  => a
         case Failure(ex) => errorHandler(ex)
       }
