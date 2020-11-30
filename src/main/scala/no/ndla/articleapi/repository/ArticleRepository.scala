@@ -149,6 +149,18 @@ trait ArticleRepository {
         .apply()
     }
 
+    def getRevisions(articleId: Long)(implicit session: DBSession = ReadOnlyAutoSession): Seq[Int] = {
+      sql"""
+            select revision
+            from ${Article.table}
+            where article_id=${articleId}
+            and document is not NULL;
+         """
+        .map(rs => rs.int("revision"))
+        .list()
+        .apply()
+    }
+
     private def externalIdsFromResultSet(wrappedResultSet: WrappedResultSet): List[String] = {
       Option(wrappedResultSet.array("external_id"))
         .map(_.getArray.asInstanceOf[Array[String]])

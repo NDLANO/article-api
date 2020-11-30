@@ -376,6 +376,25 @@ trait ArticleControllerV2 {
     }
 
     get(
+      "/:article_id/revisions",
+      operation(
+        apiOperation[List[Int]]("getRevisionsForArticle")
+          .summary("Fetch list of existing revisions for article-id")
+          .description("Fetch list of existing revisions for article-id")
+          .parameters(
+            asHeaderParam(correlationId),
+            asPathParam(articleId),
+          )
+          .responseMessages(response404, response500))
+    ) {
+      val articleId = long(this.articleId.paramName)
+      readService.getRevisions(articleId) match {
+        case Failure(ex)   => errorHandler(ex)
+        case Success(revs) => Ok(revs)
+      }
+    }
+
+    get(
       "/external_id/:deprecated_node_id",
       operation(
         apiOperation[ArticleIdV2]("getInternalIdByExternalId")
@@ -441,7 +460,6 @@ trait ArticleControllerV2 {
         case Failure(ex)         => errorHandler(ex)
         case Success(apiArticle) => Ok(apiArticle)
       }
-
     }
   }
 }
