@@ -99,7 +99,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     when(articleIndexService.deleteDocument(any[Long])).thenReturn(Success(articleIdToUnpublish))
     when(searchApiClient.deleteArticle(any[Long])).thenReturn(articleIdToUnpublish)
 
-    service.deleteArticle(articleIdToUnpublish)
+    service.deleteArticle(articleIdToUnpublish, None)
 
     verify(articleIndexService, times(1)).deleteDocument(any[Long])
     verify(searchApiClient, times(1)).deleteArticle(any[Long])

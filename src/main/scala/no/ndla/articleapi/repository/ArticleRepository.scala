@@ -183,11 +183,16 @@ trait ArticleRepository {
     }
 
     def articleCount(implicit session: DBSession = AutoSession): Long = {
+      val ar = Article.syntax("ar")
       sql"""
            select count(distinct article_id)
-           from ${Article.table}
-           where document is not NULL
-         """
+           from (select
+                   *,
+                   max(revision) over (partition by article_id) as max_revision
+                 from ${Article.table}
+                 where document is not NULL) _
+           where revision = max_revision
+      """
         .map(rs => rs.long("count"))
         .single()
         .apply()
