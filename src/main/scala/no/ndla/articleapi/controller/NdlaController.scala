@@ -76,14 +76,23 @@ abstract class NdlaController extends ScalatraServlet with NativeJsonSupport wit
       InternalServerError(body = Error.GenericError)
   }
 
+  val digitsOnlyError = (paramName: String) =>
+    Failure(
+      new ValidationException(
+        errors = Seq(ValidationMessage(paramName, s"Invalid value for $paramName. Only digits are allowed."))
+      )
+  )
+
+  def stringParamToLong(paramName: String, paramValue: String): Try[Long] = {
+    paramValue.forall(_.isDigit) match {
+      case true  => Try(paramValue.toLong).recoverWith(_ => digitsOnlyError(paramName))
+      case false => digitsOnlyError(paramName)
+    }
+  }
+
   def long(paramName: String)(implicit request: HttpServletRequest): Long = {
     val paramValue = params(paramName)
-    paramValue.forall(_.isDigit) match {
-      case true => paramValue.toLong
-      case false =>
-        throw new ValidationException(
-          errors = Seq(ValidationMessage(paramName, s"Invalid value for $paramName. Only digits are allowed.")))
-    }
+    stringParamToLong(paramName, paramValue).get
   }
 
   def paramOrNone(paramName: String)(implicit request: HttpServletRequest): Option[String] = {

@@ -8,6 +8,7 @@
 
 package no.ndla.articleapi.controller
 
+import javax.servlet.http.HttpServletRequest
 import no.ndla.articleapi.ArticleApiProperties
 import no.ndla.articleapi.ArticleApiProperties.{
   DefaultPageSize,
@@ -27,7 +28,7 @@ import org.scalatra.{NotFound, Ok}
 import org.scalatra.swagger.{ResponseMessage, Swagger, SwaggerSupport}
 import org.scalatra.util.NotNothing
 
-import scala.util.{Failure, Success}
+import scala.util.{Failure, Success, Try}
 
 trait ArticleControllerV2 {
   this: ReadService
@@ -333,6 +334,18 @@ trait ArticleControllerV2 {
       }
     }
 
+    private val Pattern = """(urn:)?(article:)?(\d*)#?(\d*)""".r
+    private[controller] def parseArticleIdAndRevision(idString: String): (Try[Long], Option[Int]) = {
+      idString match {
+        case Pattern(_, _, id, rev) =>
+          (
+            stringParamToLong(this.articleId.paramName, id),
+            Try(rev.toInt).toOption
+          )
+        case _ => (stringParamToLong(this.articleId.paramName, ""), None)
+      }
+    }
+
     get(
       "/:article_id",
       operation(
@@ -348,14 +361,17 @@ trait ArticleControllerV2 {
           )
           .responseMessages(response404, response500))
     ) {
-      val articleId = long(this.articleId.paramName)
-      val language = paramOrDefault(this.language.paramName, Language.AllLanguages)
-      val fallback = booleanOrDefault(this.fallback.paramName, default = false)
-      val revision = intOrNone(this.revision.paramName)
+      parseArticleIdAndRevision(params(this.articleId.paramName)) match {
+        case (Failure(ex), _) => errorHandler(ex)
+        case (Success(articleId), inlineRevision) =>
+          val language = paramOrDefault(this.language.paramName, Language.AllLanguages)
+          val fallback = booleanOrDefault(this.fallback.paramName, default = false)
+          val revision = inlineRevision.orElse(intOrNone(this.revision.paramName))
 
-      readService.withIdV2(articleId, language, fallback, revision) match {
-        case Success(article) => article
-        case Failure(ex)      => errorHandler(ex)
+          readService.withIdV2(articleId, language, fallback, revision) match {
+            case Success(article) => article
+            case Failure(ex)      => errorHandler(ex)
+          }
       }
     }
 
