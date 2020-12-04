@@ -136,6 +136,7 @@ class R__SetArticleLanguageFromTaxonomy extends BaseJavaMigration {
       .map(Article.fromResultSet(ar))
       .single()
       .apply()
+      .flatten
   }
 
   def convertArticleLanguage(oldArticle: Option[Article], externalTags: Seq[ArticleTag]): Option[Article] = {

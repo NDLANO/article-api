@@ -10,21 +10,20 @@ package no.ndla.articleapi.service
 
 import io.lemonlabs.uri.{Path, Url}
 import no.ndla.articleapi.ArticleApiProperties.externalApiUrls
-import no.ndla.validation.EmbedTagRules.ResourceHtmlEmbedTag
 import no.ndla.articleapi.caching.MemoizeAutoRenew
-import no.ndla.validation.HtmlTagRules.{jsoupDocumentToString, stringToJsoupDocument}
 import no.ndla.articleapi.model.api
 import no.ndla.articleapi.model.api.NotFoundException
-import no.ndla.articleapi.model.domain._
 import no.ndla.articleapi.model.domain.Language._
+import no.ndla.articleapi.model.domain._
 import no.ndla.articleapi.repository.ArticleRepository
-import no.ndla.articleapi.ArticleApiProperties.Domain
+import no.ndla.validation.EmbedTagRules.ResourceHtmlEmbedTag
+import no.ndla.validation.HtmlTagRules.{jsoupDocumentToString, stringToJsoupDocument}
 import no.ndla.validation.{ResourceType, TagAttributes}
 import org.jsoup.nodes.Element
 
-import scala.math.max
 import scala.jdk.CollectionConverters._
-import scala.util.{Failure, Try}
+import scala.math.max
+import scala.util.{Failure, Success, Try}
 
 trait ReadService {
   this: ArticleRepository with ConverterService =>
@@ -35,8 +34,16 @@ trait ReadService {
     def getInternalIdByExternalId(externalId: Long): Option[api.ArticleIdV2] =
       articleRepository.getIdFromExternalId(externalId.toString).map(api.ArticleIdV2)
 
-    def withIdV2(id: Long, language: String, fallback: Boolean = false): Try[api.ArticleV2] = {
-      articleRepository.withId(id).map(addUrlsOnEmbedResources) match {
+    def withIdV2(id: Long,
+                 language: String,
+                 fallback: Boolean = false,
+                 revision: Option[Int] = None): Try[api.ArticleV2] = {
+      val article = revision match {
+        case Some(rev) => articleRepository.withIdAndRevision(id, rev)
+        case None      => articleRepository.withId(id)
+      }
+
+      article.map(addUrlsOnEmbedResources) match {
         case None          => Failure(NotFoundException(s"The article with id $id was not found"))
         case Some(article) => converterService.toApiArticleV2(article, language, fallback)
       }
@@ -123,6 +130,13 @@ trait ReadService {
       }
     }
 
+    def getRevisions(articleId: Long): Try[Seq[Int]] = {
+      articleRepository.getRevisions(articleId) match {
+        case Nil       => Failure(NotFoundException(s"Could not find any revisions for article with id $articleId"))
+        case revisions => Success(revisions)
+      }
+    }
+
     class MostFrequentOccurencesList(list: Seq[String]) {
       // Create a map where the key is a list entry, and the value is the number of occurences of this entry in the list
       private[this] val listToNumOccurencesMap: Map[String, Int] = list.groupBy(identity).view.mapValues(_.size).toMap
@@ -144,7 +158,6 @@ trait ReadService {
 
     def getArticleIdsByExternalId(externalId: String): Option[api.ArticleIds] =
       articleRepository.getArticleIdsFromExternalId(externalId).map(converterService.toApiArticleIds)
-
   }
 
 }

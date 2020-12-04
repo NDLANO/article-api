@@ -51,11 +51,13 @@ class ArticleRepositoryTest
 
   override def beforeEach(): Unit = {
     repository = new ArticleRepository
-    if (databaseIsAvailable) repository.getAllIds().foreach(articleId => repository.delete(articleId.articleId))
+    if (databaseIsAvailable)
+      repository.getAllIds().foreach(articleId => repository.deleteMaxRevision(articleId.articleId))
   }
 
   override def afterEach(): Unit =
-    if (databaseIsAvailable) repository.getAllIds().foreach(articleId => repository.delete(articleId.articleId))
+    if (databaseIsAvailable)
+      repository.getAllIds().foreach(articleId => repository.deleteMaxRevision(articleId.articleId))
 
   test("getAllIds returns a list with all ids in the database") {
     assume(databaseIsAvailable, "Database is unavailable")
@@ -84,7 +86,7 @@ class ArticleRepositoryTest
     val inserted = repository.updateArticleFromDraftApi(sampleArticle, externalIds)
 
     repository.getArticleIdsFromExternalId("6011").get.externalId should be(externalIds)
-    repository.delete(inserted.get.id.get)
+    repository.deleteMaxRevision(inserted.get.id.get)
   }
 
   test("updateArticleFromDraftApi should update all columns with data from draft-api") {
@@ -114,8 +116,8 @@ class ArticleRepositoryTest
     val result2 = repository.getExternalIdsFromId(idWithoutExternals.get.id.get)
     result2 should be(List.empty)
 
-    repository.delete(idWithExternals.get.id.get)
-    repository.delete(idWithoutExternals.get.id.get)
+    repository.deleteMaxRevision(idWithExternals.get.id.get)
+    repository.deleteMaxRevision(idWithoutExternals.get.id.get)
   }
 
   test("updating with a valid article with a that is not in database will be recreated") {
@@ -125,14 +127,14 @@ class ArticleRepositoryTest
     val x = repository.updateArticleFromDraftApi(article, List.empty)
     x.isSuccess should be(true)
 
-    repository.delete(x.get.id.get)
+    repository.deleteMaxRevision(x.get.id.get)
   }
 
   test("deleting article should ignore missing articles") {
     assume(databaseIsAvailable, "Database is unavailable")
     val article = TestData.sampleDomainArticle.copy(id = Some(Integer.MAX_VALUE))
 
-    val deletedId = repository.delete(article.id.get)
+    val deletedId = repository.deleteMaxRevision(article.id.get)
     deletedId.get should be(Integer.MAX_VALUE)
   }
 

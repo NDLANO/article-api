@@ -45,33 +45,20 @@ object Article extends SQLSyntaxSupport[Article] {
   override val tableName = "contentdata"
   override val schemaName = Some(ArticleApiProperties.MetaSchema)
 
-  def fromResultSet(lp: SyntaxProvider[Article])(rs: WrappedResultSet): Article = fromResultSet(lp.resultName)(rs)
+  def fromResultSet(lp: SyntaxProvider[Article])(rs: WrappedResultSet): Option[Article] =
+    fromResultSet(lp.resultName)(rs)
 
-  def fromResultSet(lp: ResultName[Article])(rs: WrappedResultSet): Article = {
+  def fromResultSet(lp: ResultName[Article])(rs: WrappedResultSet): Option[Article] = {
     implicit val formats: DefaultFormats.type = org.json4s.DefaultFormats
 
-    val jsonStr = rs.string(lp.c("document"))
-
-    val meta = read[Article](jsonStr)
-    Article(
-      Some(rs.long(lp.c("id"))),
-      Some(rs.int(lp.c("revision"))),
-      meta.title,
-      meta.content,
-      meta.copyright,
-      meta.tags,
-      meta.requiredLibraries,
-      meta.visualElement,
-      meta.introduction,
-      meta.metaDescription,
-      meta.metaImage,
-      meta.created,
-      meta.updated,
-      meta.updatedBy,
-      meta.published,
-      meta.articleType,
-      meta.grepCodes
-    )
+    rs.stringOpt(lp.c("document"))
+      .map(jsonStr => {
+        val meta = read[Article](jsonStr)
+        meta.copy(
+          id = Some(rs.long(lp.c("article_id"))),
+          revision = Some(rs.int(lp.c("revision")))
+        )
+      })
   }
 
   val JSonSerializer: FieldSerializer[Article] = FieldSerializer[Article](

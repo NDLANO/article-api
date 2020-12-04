@@ -12,6 +12,8 @@ import no.ndla.articleapi.model.api._
 import no.ndla.articleapi.model.domain._
 import no.ndla.articleapi.model.search.SearchResult
 import no.ndla.articleapi.{ArticleSwagger, TestData, TestEnvironment, UnitSuite}
+import no.ndla.validation.{ValidationException, ValidationMessage}
+import org.joda.time.DateTime
 import org.mockito.ArgumentMatchers.{eq => eqTo, _}
 import org.mockito.Mockito._
 import org.scalatra.test.scalatest.ScalatraFunSuite
@@ -170,6 +172,18 @@ class ArticleControllerV2Test extends UnitSuite with TestEnvironment with Scalat
     get("/test/tag-search/") {
       status should equal(200)
     }
+  }
+
+  test("That parsing articleId with and without revision works as expected") {
+    controller.parseArticleIdAndRevision("urn:article:15") should be((Success(15), None))
+    controller.parseArticleIdAndRevision("urn:article:15#10") should be((Success(15), Some(10)))
+    controller.parseArticleIdAndRevision("15") should be((Success(15), None))
+    controller.parseArticleIdAndRevision("15#100") should be((Success(15), Some(100)))
+
+    val (failed, Some(100)) = controller.parseArticleIdAndRevision("#100")
+    failed.isFailure should be(true)
+    val (failed2, None) = controller.parseArticleIdAndRevision("")
+    failed2.isFailure should be(true)
   }
 
 }

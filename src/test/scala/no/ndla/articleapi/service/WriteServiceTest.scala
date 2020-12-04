@@ -81,11 +81,11 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     reset(articleIndexService, searchApiClient)
     val articleIdToUnpublish = 11
 
-    when(articleRepository.unpublish(any[Long])(any[DBSession])).thenReturn(Success(articleIdToUnpublish))
+    when(articleRepository.unpublishMaxRevision(any[Long])(any[DBSession])).thenReturn(Success(articleIdToUnpublish))
     when(articleIndexService.deleteDocument(any[Long])).thenReturn(Success(articleIdToUnpublish))
     when(searchApiClient.deleteArticle(any[Long])).thenReturn(articleIdToUnpublish)
 
-    service.unpublishArticle(articleIdToUnpublish)
+    service.unpublishArticle(articleIdToUnpublish, None)
 
     verify(articleIndexService, times(1)).deleteDocument(any[Long])
     verify(searchApiClient, times(1)).deleteArticle(any[Long])
@@ -95,11 +95,11 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     reset(articleIndexService, searchApiClient)
     val articleIdToUnpublish = 11
 
-    when(articleRepository.delete(any[Long])(any[DBSession])).thenReturn(Success(articleIdToUnpublish))
+    when(articleRepository.deleteMaxRevision(any[Long])(any[DBSession])).thenReturn(Success(articleIdToUnpublish))
     when(articleIndexService.deleteDocument(any[Long])).thenReturn(Success(articleIdToUnpublish))
     when(searchApiClient.deleteArticle(any[Long])).thenReturn(articleIdToUnpublish)
 
-    service.deleteArticle(articleIdToUnpublish)
+    service.deleteArticle(articleIdToUnpublish, None)
 
     verify(articleIndexService, times(1)).deleteDocument(any[Long])
     verify(searchApiClient, times(1)).deleteArticle(any[Long])
