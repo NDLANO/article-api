@@ -114,7 +114,8 @@ trait ConverterService {
         searchableArticle.articleType,
         lastUpdated.toDate,
         supportedLanguages,
-        searchableArticle.grepCodes
+        searchableArticle.grepCodes,
+        searchableArticle.conceptIds
       )
     }
 
@@ -339,7 +340,8 @@ trait ConverterService {
             article.published,
             article.articleType,
             supportedLanguages,
-            article.grepCodes
+            article.grepCodes,
+            article.conceptIds
           ))
       } else {
         Failure(
