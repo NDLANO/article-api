@@ -37,7 +37,8 @@ case class Article(id: Option[Long],
                    updatedBy: String,
                    published: Date,
                    articleType: String,
-                   grepCodes: Seq[String])
+                   grepCodes: Seq[String],
+                   conceptIds: Seq[Long])
     extends Content
 
 object Article extends SQLSyntaxSupport[Article] {

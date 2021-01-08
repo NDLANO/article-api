@@ -67,6 +67,7 @@ object TestData {
     articleType = "standard",
     supportedLanguages = Seq("nb"),
     grepCodes = Seq.empty,
+    conceptIds = Seq.empty
   )
 
   val apiArticleV2 = api.ArticleV2(
@@ -100,6 +101,7 @@ object TestData {
     "standard",
     Seq("nb"),
     Seq("COMPCODE1"),
+    Seq(1)
   )
 
   val sampleArticleWithPublicDomain = Article(
@@ -119,7 +121,8 @@ object TestData {
     "ndalId54321",
     DateTime.now().minusDays(2).withMillisOfSecond(0).toDate,
     ArticleType.Standard.toString,
-    Seq("COMPCODE1")
+    Seq("COMPCODE1"),
+    Seq(1)
   )
 
   val sampleDomainArticle = Article(
@@ -139,7 +142,8 @@ object TestData {
     "ndalId54321",
     today,
     ArticleType.Standard.toString,
-    Seq("COMPCODE1")
+    Seq("COMPCODE1"),
+    Seq(1)
   )
 
   val sampleDomainArticle2 = Article(
@@ -159,7 +163,8 @@ object TestData {
     "ndalId54321",
     today,
     ArticleType.Standard.toString,
-    Seq("COMPCODE1")
+    Seq("COMPCODE1"),
+    Seq(1)
   )
 
   val sampleArticleWithByNcSa: Article = sampleArticleWithPublicDomain.copy(copyright = byNcSaCopyright)
@@ -190,6 +195,7 @@ object TestData {
     "ndalId54321",
     today,
     ArticleType.Standard.toString,
+    Seq(),
     Seq()
   )
 
@@ -220,6 +226,7 @@ object TestData {
     "standard",
     Seq("en"),
     Seq.empty,
+    Seq.empty
   )
 
   val (nodeId, nodeId2) = ("1234", "4321")
@@ -247,6 +254,7 @@ object TestData {
       "ndalId54321",
       today,
       ArticleType.Standard.toString,
+      Seq(),
       Seq()
     )
   }
