@@ -30,6 +30,7 @@ object PactProviderTest extends Tag("PactProviderTest")
 
 class ArticleApiProviderCDCTest
     extends IntegrationSuite(EnableElasticsearchContainer = true, EnablePostgresContainer = true)
+    with UnitSuite
     with TestEnvironment {
   override val dataSource = testDataSource.get
 
