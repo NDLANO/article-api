@@ -16,8 +16,8 @@ import no.ndla.articleapi.repository.ArticleRepository
 import no.ndla.articleapi.service.search.ArticleIndexService
 import no.ndla.articleapi.validation.ContentValidator
 import no.ndla.articleapi.integration.SearchApiClient
-import no.ndla.articleapi.model.api.NotFoundException
-import no.ndla.validation.ValidationException
+import no.ndla.articleapi.model.api.{NotFoundException, PartialPublishArticle}
+import no.ndla.validation.{ValidationException, ValidationMessage}
 
 import scala.util.{Failure, Success, Try}
 
@@ -74,6 +74,41 @@ trait WriteService {
       } yield domainArticle
     }
 
+    private def partialUpdateArticle(partialArticle: PartialPublishArticle,
+                                     existingArticle: Article,
+                                     language: String,
+                                     articleId: Long,
+                                     fallback: Boolean): Try[api.ArticleV2] = {
+      val newGrepCodes = partialArticle.grepCodes.getOrElse(existingArticle.grepCodes)
+      val newLicense = partialArticle.license.getOrElse(existingArticle.copyright.license)
+
+      val newTags = converterService.mergeTags(
+        existingArticle.tags,
+        partialArticle.tags.map(t => ArticleTag(t, language)).toSeq
+      )
+
+      val newMeta = converterService.mergeLanguageFields(
+        existingArticle.metaDescription,
+        partialArticle.metaDescription.map(m => ArticleMetaDescription(m, language)).toSeq
+      )
+
+      val newArticle = existingArticle.copy(
+        grepCodes = newGrepCodes,
+        copyright = existingArticle.copyright.copy(license = newLicense),
+        metaDescription = newMeta,
+        tags = newTags
+      )
+
+      val externalIds = articleRepository.getExternalIdsFromId(articleId)
+
+      updateArticle(
+        newArticle,
+        externalIds,
+        useImportValidation = false,
+        useSoftValidation = false
+      ).flatMap(insertedArticle => converterService.toApiArticleV2(insertedArticle, language, fallback))
+    }
+
     def partialUpdate(
         articleId: Long,
         partialArticle: api.PartialPublishArticle,
@@ -83,19 +118,21 @@ trait WriteService {
       articleRepository.withId(articleId) match {
         case None => Failure(NotFoundException(s"Could not find article with id '$articleId' to partial publish"))
         case Some(existingArticle) =>
-          val newGrepCodes = partialArticle.grepCodes.getOrElse(existingArticle.grepCodes)
-          val newArticle = existingArticle.copy(
-            grepCodes = newGrepCodes
-          )
-
-          val externalIds = articleRepository.getExternalIdsFromId(articleId)
-
-          updateArticle(
-            newArticle,
-            externalIds,
-            useImportValidation = false,
-            useSoftValidation = false
-          ).flatMap(insertedArticle => converterService.toApiArticleV2(insertedArticle, language, fallback))
+          language match {
+            case "all" if partialArticle.metaDescription.isDefined || partialArticle.tags.isDefined =>
+              Failure(
+                new ValidationException("Language not defined",
+                                        Seq(ValidationMessage("language", "Language not defined"))));
+            case "all" =>
+              partialUpdateArticle(partialArticle, existingArticle, language, articleId, fallback)
+            case l if !converterService.getSupportedArticleLanguages(existingArticle).contains(l) =>
+              Failure(
+                new ValidationException(
+                  "Requested language does not exist on the article",
+                  Seq(ValidationMessage("language", "Requested language does not exist on the article"))));
+            case _ =>
+              partialUpdateArticle(partialArticle, existingArticle, language, articleId, fallback)
+          }
       }
     }
 

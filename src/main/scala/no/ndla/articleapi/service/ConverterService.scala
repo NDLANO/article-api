@@ -148,7 +148,7 @@ trait ConverterService {
       (toKeep ++ updated).filterNot(_.isEmpty)
     }
 
-    private def mergeTags(existing: Seq[ArticleTag], updated: Seq[ArticleTag]): Seq[ArticleTag] = {
+    private[service] def mergeTags(existing: Seq[ArticleTag], updated: Seq[ArticleTag]): Seq[ArticleTag] = {
       val toKeep = existing.filterNot(item => updated.map(_.language).contains(item.language))
       (toKeep ++ updated).filterNot(_.tags.isEmpty)
     }
@@ -290,8 +290,8 @@ trait ConverterService {
       jsoupDocumentToString(document)
     }
 
-    def toApiArticleV2(article: Article, language: String, fallback: Boolean = false): Try[api.ArticleV2] = {
-      val supportedLanguages = getSupportedLanguages(
+    def getSupportedArticleLanguages(article: Article): Seq[String] = {
+      getSupportedLanguages(
         article.title,
         article.visualElement,
         article.introduction,
@@ -300,6 +300,10 @@ trait ConverterService {
         article.content,
         article.metaImage
       )
+    }
+
+    def toApiArticleV2(article: Article, language: String, fallback: Boolean = false): Try[api.ArticleV2] = {
+      val supportedLanguages = getSupportedArticleLanguages(article)
       val isLanguageNeutral = supportedLanguages.contains(UnknownLanguage) && supportedLanguages.length == 1
 
       if (supportedLanguages.contains(language) || language == AllLanguages || isLanguageNeutral || fallback) {
