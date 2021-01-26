@@ -8,6 +8,7 @@
 
 package no.ndla.articleapi.model.api
 
+import no.ndla.articleapi.model.domain
 import org.scalatra.swagger.annotations.{ApiModel, ApiModelProperty}
 
 import scala.annotation.meta.field
@@ -17,6 +18,6 @@ import scala.annotation.meta.field
 case class PartialPublishArticle(
     @(ApiModelProperty @field)(description = "A list of codes from GREP API connected to the article") grepCodes: Option[Seq[String]],
     @(ApiModelProperty @field)(description = "The name of the license") license: Option[String],
-    @(ApiModelProperty @field)(description = "Meta description for the article") metaDescription: Option[String],
-    @(ApiModelProperty @field)(description = "A comma separated list of tags") tags: Option[Seq[String]],
+    @(ApiModelProperty @field)(description = "A list of meta description objects") metaDescription: Option[Seq[domain.ArticleMetaDescription]],
+    @(ApiModelProperty @field)(description = "A list of tag objects") tags: Option[Seq[domain.ArticleTag]],
 )

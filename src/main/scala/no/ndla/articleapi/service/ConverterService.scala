@@ -153,6 +153,20 @@ trait ConverterService {
       (toKeep ++ updated).filterNot(_.tags.isEmpty)
     }
 
+    def updateExistingTags(existingTags: Seq[ArticleTag], updatedTags: Seq[ArticleTag]): Seq[ArticleTag] = {
+      val tagsToKeep = updatedTags.filter(tag => existingTags.map(_.language).contains(tag.language))
+      val restTags = existingTags.filterNot(tag => tagsToKeep.map(_.language).contains(tag.language))
+      tagsToKeep ++ restTags
+    }
+
+    def updateExistingArticleMetaDescription(
+        existingMetaDesc: Seq[ArticleMetaDescription],
+        updatedMetaDesc: Seq[ArticleMetaDescription]): Seq[ArticleMetaDescription] = {
+      val metaDescToKeep = updatedMetaDesc.filter(tag => existingMetaDesc.map(_.language).contains(tag.language))
+      val restMetaDesc = existingMetaDesc.filterNot(tag => metaDescToKeep.map(_.language).contains(tag.language))
+      metaDescToKeep ++ restMetaDesc
+    }
+
     private[service] def toDomainCopyright(license: String, authors: Seq[Author]): Copyright = {
       val origin = authors.find(author => author.`type`.toLowerCase == "opphavsmann").map(_.name).getOrElse("")
 
