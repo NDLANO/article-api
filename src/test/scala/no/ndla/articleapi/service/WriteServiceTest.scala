@@ -106,93 +106,58 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     verify(searchApiClient, times(1)).deleteArticle(any[Long])
   }
 
-  test("That partialUpdate fails if fields that require language are specified but the actual language is not") {
-    val partialArticle =
-      api.PartialPublishArticle(None, None, metaDescription = Some("newDesc"), tags = Some(Seq("newTag")))
-    val existingArticle = TestData.sampleDomainArticle.copy(metaDescription =
-                                                              Seq(ArticleMetaDescription("oldDesc", "nb")),
-                                                            tags = Seq(ArticleTag(Seq("old", "Tag"), "nb")))
-
-    when(articleRepository.withId(any[Long])).thenReturn(Some(existingArticle))
-    val updatedArticle = service.partialUpdate(1L, partialArticle, "all", fallback = false)
-
-    verify(articleRepository, times(1)).withId(1L)
-    updatedArticle.isFailure should be(true)
-  }
-
-  test("That partialUpdate fails if existingArticle does not contain specified language") {
-    val partialArticle =
-      api.PartialPublishArticle(None, None, None, None)
-    val existingArticle = TestData.sampleDomainArticle.copy(metaDescription =
-                                                              Seq(ArticleMetaDescription("oldDesc", "nb")),
-                                                            tags = Seq(ArticleTag(Seq("old", "Tag"), "nb")))
-
-    when(articleRepository.withId(any[Long])).thenReturn(Some(existingArticle))
-    val updatedArticle = service.partialUpdate(1L, partialArticle, "ru", fallback = false)
-
-    verify(articleRepository, times(1)).withId(1L)
-    updatedArticle.isFailure should be(true)
-  }
-
-  test("That partialUpdate successfully updates an article") {
+  test("That partialArticleUpdate updates all fields") {
     val existingArticle = TestData.sampleDomainArticle.copy(
-      grepCodes = Seq("oldGrep1", "oldGrep2"),
-      copyright = Copyright("PD", "asd", Seq.empty, Seq.empty, Seq.empty, None, None, None),
-      metaDescription = Seq(ArticleMetaDescription("oldDesc", "nb"), ArticleMetaDescription("alsoOldDesc", "nn")),
-      tags = Seq(ArticleTag(Seq("old", "Tag"), "nb"), ArticleTag(Seq("very", "old"), "nn")),
+      grepCodes = Seq("old", "code"),
+      copyright = Copyright("CC-BY-4.0", "origin", Seq(), Seq(), Seq(), None, None, None),
+      metaDescription = Seq(ArticleMetaDescription("gammelDesc", "nb")),
+      tags = Seq(ArticleTag(Seq("gammel", "Tag"), "nb"))
     )
-    val partialArticle = api.PartialPublishArticle(
-      grepCodes = Some(Seq("newGrep11", "newGrep22")),
-      license = Some("CC-BY-4.0"),
-      metaDescription = Some("NewMetaDesc"),
-      tags = Some(Seq("new", "tags", "arrived"))
+    val partialArticle =
+      api.PartialPublishArticle(
+        grepCodes = Some(Seq("New", "grep", "codes")),
+        license = Some("newLicense"),
+        metaDescription = Some(Seq(ArticleMetaDescription("nyDesc", "nb"))),
+        tags = Some(Seq(ArticleTag(Seq("nye", "Tags"), "nb")))
+      )
+    val updatedArticle = TestData.sampleDomainArticle.copy(
+      grepCodes = Seq("New", "grep", "codes"),
+      copyright = Copyright("newLicense", "origin", Seq(), Seq(), Seq(), None, None, None),
+      metaDescription = Seq(ArticleMetaDescription("nyDesc", "nb")),
+      tags = Seq(ArticleTag(Seq("nye", "Tags"), "nb"))
     )
 
-    val updatedAndInserted = existingArticle
-      .copy(revision = existingArticle.revision.map(_ + 1), updated = today)
+    service.partialArticleUpdate(existingArticle, partialArticle) should be(updatedArticle)
 
-    when(articleRepository.withId(any[Long])).thenReturn(Some(existingArticle))
-    when(articleRepository.updateArticleFromDraftApi(any[Article], anyList)(any[DBSession]))
-      .thenReturn(Success(updatedAndInserted))
-
-    when(articleIndexService.indexDocument(any[Article])).thenReturn(Success(updatedAndInserted))
-    when(searchApiClient.indexArticle(any[Article])).thenReturn(updatedAndInserted)
-    when(articleRepository.getExternalIdsFromId(any[Long])).thenReturn(List.empty)
-
-    val updatedArticle = service.partialUpdate(1L, partialArticle, "nb", fallback = false)
-
-    verify(articleRepository, times(1)).withId(1L)
-
-    updatedArticle.isSuccess should be(true)
   }
 
-  test("That partialUpdate updates language independent fields, with no language specified") {
+  test("That partialArticleUpdate does not create new fields") {
     val existingArticle = TestData.sampleDomainArticle.copy(
-      grepCodes = Seq("oldGrep1", "oldGrep2"),
-      copyright = Copyright("PD", "asd", Seq.empty, Seq.empty, Seq.empty, None, None, None),
+      grepCodes = Seq("old", "code"),
+      copyright = Copyright("CC-BY-4.0", "origin", Seq(), Seq(), Seq(), None, None, None),
+      metaDescription = Seq(ArticleMetaDescription("oldDesc", "de")),
+      tags = Seq(ArticleTag(Seq("Gluten", "Tag"), "de"))
     )
-    val partialArticle = api.PartialPublishArticle(
-      grepCodes = Some(Seq("newGrep11", "newGrep22")),
-      license = Some("CC-BY-4.0"),
-      metaDescription = None,
-      tags = None
+    val partialArticle =
+      api.PartialPublishArticle(
+        grepCodes = Some(Seq("New", "grep", "codes")),
+        license = Some("newLicense"),
+        metaDescription = Some(
+          Seq(ArticleMetaDescription("nyDesc", "nb"),
+              ArticleMetaDescription("newDesc", "en"),
+              ArticleMetaDescription("neuDesc", "de"))),
+        tags = Some(
+          Seq(ArticleTag(Seq("nye", "Tags"), "nb"),
+              ArticleTag(Seq("new", "Tagss"), "en"),
+              ArticleTag(Seq("Guten", "Tag"), "de")))
+      )
+    val updatedArticle = TestData.sampleDomainArticle.copy(
+      grepCodes = Seq("New", "grep", "codes"),
+      copyright = Copyright("newLicense", "origin", Seq(), Seq(), Seq(), None, None, None),
+      metaDescription = Seq(ArticleMetaDescription("neuDesc", "de")),
+      tags = Seq(ArticleTag(Seq("Guten", "Tag"), "de"))
     )
 
-    val updatedAndInserted = existingArticle
-      .copy(revision = existingArticle.revision.map(_ + 1), updated = today)
-
-    when(articleRepository.withId(any[Long])).thenReturn(Some(existingArticle))
-    when(articleRepository.updateArticleFromDraftApi(any[Article], anyList)(any[DBSession]))
-      .thenReturn(Success(updatedAndInserted))
-
-    when(articleIndexService.indexDocument(any[Article])).thenReturn(Success(updatedAndInserted))
-    when(searchApiClient.indexArticle(any[Article])).thenReturn(updatedAndInserted)
-    when(articleRepository.getExternalIdsFromId(any[Long])).thenReturn(List.empty)
-
-    val updatedArticle = service.partialUpdate(1L, partialArticle, "all", fallback = false)
-
-    verify(articleRepository, times(1)).withId(1L)
-
-    updatedArticle.isSuccess should be(true)
+    service.partialArticleUpdate(existingArticle, partialArticle) should be(updatedArticle)
   }
 }

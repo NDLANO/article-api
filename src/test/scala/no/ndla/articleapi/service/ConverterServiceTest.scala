@@ -237,4 +237,30 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     copyright.processors should contain(Author("Linguistic", "F"))
   }
 
+  test("That updateExistingTags updates tags correctly") {
+    val existingTags = Seq(ArticleTag(Seq("nb-tag1", "nb-tag2"), "nb"), ArticleTag(Seq("Guten", "Tag"), "de"))
+    val updatedTags = Seq(ArticleTag(Seq("new-nb-tag1", "new-nb-tag2", "new-nb-tag3"), "nb"),
+                          ArticleTag(Seq("new-nn-tag1"), "nn"),
+                          ArticleTag(Seq("new-es-tag1", "new-es-tag2"), "es"))
+    val expectedTags =
+      Seq(ArticleTag(Seq("new-nb-tag1", "new-nb-tag2", "new-nb-tag3"), "nb"), ArticleTag(Seq("Guten", "Tag"), "de"))
+
+    service.updateExistingTags(existingTags, updatedTags) should be(expectedTags)
+    service.updateExistingTags(existingTags, Seq.empty) should be(existingTags)
+    service.updateExistingTags(Seq.empty, updatedTags) should be(Seq.empty)
+  }
+
+  test("That updateExistingArticleMetaDescription updates metaDesc correctly") {
+    val existingMetaDesc = Seq(ArticleMetaDescription("nb-content", "nb"), ArticleMetaDescription("en-content", "en"))
+    val updatedMetaDesc = Seq(ArticleMetaDescription("new-nb-content", "nb"),
+                              ArticleMetaDescription("new-nn-content", "nn"),
+                              ArticleMetaDescription("new-es-content", "es"))
+    val expectedMetaDesc =
+      Seq(ArticleMetaDescription("new-nb-content", "nb"), ArticleMetaDescription("en-content", "en"))
+
+    service.updateExistingArticleMetaDescription(existingMetaDesc, updatedMetaDesc) should be(expectedMetaDesc)
+    service.updateExistingArticleMetaDescription(existingMetaDesc, Seq.empty) should be(existingMetaDesc)
+    service.updateExistingArticleMetaDescription(Seq.empty, updatedMetaDesc) should be(Seq.empty)
+  }
+
 }
