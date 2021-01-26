@@ -12,9 +12,7 @@ import java.util.concurrent.{Executors, TimeUnit}
 
 import no.ndla.articleapi.ArticleApiProperties
 import no.ndla.articleapi.auth.{Role, User}
-import no.ndla.articleapi.model.api.ArticleIdV2
-import no.ndla.articleapi.model.domain.Language
-import no.ndla.articleapi.model.api.ArticleIdV2
+import no.ndla.articleapi.model.api.PartialPublishArticle
 import no.ndla.articleapi.model.domain.{Article, Language}
 import no.ndla.articleapi.repository.ArticleRepository
 import no.ndla.articleapi.service._
@@ -156,6 +154,19 @@ trait InternController {
       writeService.unpublishArticle(long("id"), revision) match {
         case Success(a)  => a
         case Failure(ex) => errorHandler(ex)
+      }
+    }
+
+    patch("/partial-publish/:article_id") {
+      authRole.assertHasWritePermission()
+      val articleId = long("article_id")
+      val partialUpdateBody = extract[PartialPublishArticle](request.body)
+      val language = paramOrDefault("language", Language.AllLanguages)
+      val fallback = booleanOrDefault("fallback", default = false)
+
+      writeService.partialUpdate(articleId, partialUpdateBody, language, fallback) match {
+        case Failure(ex)         => errorHandler(ex)
+        case Success(apiArticle) => Ok(apiArticle)
       }
     }
   }
