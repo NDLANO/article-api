@@ -74,27 +74,6 @@ trait WriteService {
       } yield domainArticle
     }
 
-    def partialArticleUpdate(existingArticle: Article, partialArticle: PartialPublishArticle): Article = {
-      val newGrepCodes = partialArticle.grepCodes.getOrElse(existingArticle.grepCodes)
-      val newLicense = partialArticle.license.getOrElse(existingArticle.copyright.license)
-
-      val newMeta = partialArticle.metaDescription match {
-        case Some(metaDesc) =>
-          converterService.updateExistingArticleMetaDescription(existingArticle.metaDescription, metaDesc)
-        case None => existingArticle.metaDescription
-      }
-      val newTags = partialArticle.tags match {
-        case Some(tags) => converterService.updateExistingTags(existingArticle.tags, tags)
-        case None       => existingArticle.tags
-      }
-      existingArticle.copy(
-        grepCodes = newGrepCodes,
-        copyright = existingArticle.copyright.copy(license = newLicense),
-        metaDescription = newMeta,
-        tags = newTags
-      )
-    }
-
     def partialUpdate(
         articleId: Long,
         partialArticle: PartialPublishArticle,
@@ -104,7 +83,7 @@ trait WriteService {
       articleRepository.withId(articleId) match {
         case None => Failure(NotFoundException(s"Could not find article with id '$articleId' to partial publish"))
         case Some(existingArticle) =>
-          val newArticle = partialArticleUpdate(existingArticle, partialArticle)
+          val newArticle = converterService.updateArticleFields(existingArticle, partialArticle)
           val externalIds = articleRepository.getExternalIdsFromId(articleId)
 
           updateArticle(

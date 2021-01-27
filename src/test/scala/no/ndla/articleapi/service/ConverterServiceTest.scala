@@ -245,9 +245,9 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     val expectedTags =
       Seq(ArticleTag(Seq("new-nb-tag1", "new-nb-tag2", "new-nb-tag3"), "nb"), ArticleTag(Seq("Guten", "Tag"), "de"))
 
-    service.updateExistingTags(existingTags, updatedTags) should be(expectedTags)
-    service.updateExistingTags(existingTags, Seq.empty) should be(existingTags)
-    service.updateExistingTags(Seq.empty, updatedTags) should be(Seq.empty)
+    service.updateExistingTagsField(existingTags, updatedTags) should be(expectedTags)
+    service.updateExistingTagsField(existingTags, Seq.empty) should be(existingTags)
+    service.updateExistingTagsField(Seq.empty, updatedTags) should be(Seq.empty)
   }
 
   test("That updateExistingArticleMetaDescription updates metaDesc correctly") {
@@ -258,9 +258,64 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     val expectedMetaDesc =
       Seq(ArticleMetaDescription("new-nb-content", "nb"), ArticleMetaDescription("en-content", "en"))
 
-    service.updateExistingArticleMetaDescription(existingMetaDesc, updatedMetaDesc) should be(expectedMetaDesc)
-    service.updateExistingArticleMetaDescription(existingMetaDesc, Seq.empty) should be(existingMetaDesc)
-    service.updateExistingArticleMetaDescription(Seq.empty, updatedMetaDesc) should be(Seq.empty)
+    service.updateExistingMetaDescriptionField(existingMetaDesc, updatedMetaDesc) should be(expectedMetaDesc)
+    service.updateExistingMetaDescriptionField(existingMetaDesc, Seq.empty) should be(existingMetaDesc)
+    service.updateExistingMetaDescriptionField(Seq.empty, updatedMetaDesc) should be(Seq.empty)
+  }
+
+  test("That updateArticleFields updates all fields") {
+    val existingArticle = TestData.sampleDomainArticle.copy(
+      grepCodes = Seq("old", "code"),
+      copyright = Copyright("CC-BY-4.0", "origin", Seq(), Seq(), Seq(), None, None, None),
+      metaDescription = Seq(ArticleMetaDescription("gammelDesc", "nb")),
+      tags = Seq(ArticleTag(Seq("gammel", "Tag"), "nb"))
+    )
+    val partialArticle =
+      api.PartialPublishArticle(
+        grepCodes = Some(Seq("New", "grep", "codes")),
+        license = Some("newLicense"),
+        metaDescription = Some(Seq(ArticleMetaDescription("nyDesc", "nb"))),
+        tags = Some(Seq(ArticleTag(Seq("nye", "Tags"), "nb")))
+      )
+    val updatedArticle = TestData.sampleDomainArticle.copy(
+      grepCodes = Seq("New", "grep", "codes"),
+      copyright = Copyright("newLicense", "origin", Seq(), Seq(), Seq(), None, None, None),
+      metaDescription = Seq(ArticleMetaDescription("nyDesc", "nb")),
+      tags = Seq(ArticleTag(Seq("nye", "Tags"), "nb"))
+    )
+
+    service.updateArticleFields(existingArticle, partialArticle) should be(updatedArticle)
+
+  }
+
+  test("That updateArticleFields does not create new fields") {
+    val existingArticle = TestData.sampleDomainArticle.copy(
+      grepCodes = Seq("old", "code"),
+      copyright = Copyright("CC-BY-4.0", "origin", Seq(), Seq(), Seq(), None, None, None),
+      metaDescription = Seq(ArticleMetaDescription("oldDesc", "de")),
+      tags = Seq(ArticleTag(Seq("Gluten", "Tag"), "de"))
+    )
+    val partialArticle =
+      api.PartialPublishArticle(
+        grepCodes = Some(Seq("New", "grep", "codes")),
+        license = Some("newLicense"),
+        metaDescription = Some(
+          Seq(ArticleMetaDescription("nyDesc", "nb"),
+              ArticleMetaDescription("newDesc", "en"),
+              ArticleMetaDescription("neuDesc", "de"))),
+        tags = Some(
+          Seq(ArticleTag(Seq("nye", "Tags"), "nb"),
+              ArticleTag(Seq("new", "Tagss"), "en"),
+              ArticleTag(Seq("Guten", "Tag"), "de")))
+      )
+    val updatedArticle = TestData.sampleDomainArticle.copy(
+      grepCodes = Seq("New", "grep", "codes"),
+      copyright = Copyright("newLicense", "origin", Seq(), Seq(), Seq(), None, None, None),
+      metaDescription = Seq(ArticleMetaDescription("neuDesc", "de")),
+      tags = Seq(ArticleTag(Seq("Guten", "Tag"), "de"))
+    )
+
+    service.updateArticleFields(existingArticle, partialArticle) should be(updatedArticle)
   }
 
 }

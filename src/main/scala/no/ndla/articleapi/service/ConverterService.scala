@@ -14,7 +14,7 @@ import no.ndla.articleapi.ArticleApiProperties._
 import no.ndla.articleapi.auth.User
 import no.ndla.articleapi.integration.DraftApiClient
 import no.ndla.articleapi.model.api
-import no.ndla.articleapi.model.api.{ArticleSummaryV2, ImportException, NotFoundException}
+import no.ndla.articleapi.model.api.{ArticleSummaryV2, ImportException, NotFoundException, PartialPublishArticle}
 import no.ndla.articleapi.model.domain.Language._
 import no.ndla.articleapi.model.domain._
 import no.ndla.articleapi.model.search.{SearchableArticle, SearchableLanguageFormats}
@@ -153,18 +153,39 @@ trait ConverterService {
       (toKeep ++ updated).filterNot(_.tags.isEmpty)
     }
 
-    def updateExistingTags(existingTags: Seq[ArticleTag], updatedTags: Seq[ArticleTag]): Seq[ArticleTag] = {
-      val tagsToKeep = updatedTags.filter(tag => existingTags.map(_.language).contains(tag.language))
-      val restTags = existingTags.filterNot(tag => tagsToKeep.map(_.language).contains(tag.language))
-      tagsToKeep ++ restTags
+    def updateExistingTagsField(existingTags: Seq[ArticleTag], updatedTags: Seq[ArticleTag]): Seq[ArticleTag] = {
+      val newTags = updatedTags.filter(tag => existingTags.map(_.language).contains(tag.language))
+      val tagsToKeep = existingTags.filterNot(tag => newTags.map(_.language).contains(tag.language))
+      newTags ++ tagsToKeep
     }
 
-    def updateExistingArticleMetaDescription(
+    def updateExistingMetaDescriptionField(
         existingMetaDesc: Seq[ArticleMetaDescription],
         updatedMetaDesc: Seq[ArticleMetaDescription]): Seq[ArticleMetaDescription] = {
-      val metaDescToKeep = updatedMetaDesc.filter(tag => existingMetaDesc.map(_.language).contains(tag.language))
-      val restMetaDesc = existingMetaDesc.filterNot(tag => metaDescToKeep.map(_.language).contains(tag.language))
-      metaDescToKeep ++ restMetaDesc
+      val newMetaDescriptions = updatedMetaDesc.filter(tag => existingMetaDesc.map(_.language).contains(tag.language))
+      val metaDescToKeep = existingMetaDesc.filterNot(tag => newMetaDescriptions.map(_.language).contains(tag.language))
+      newMetaDescriptions ++ metaDescToKeep
+    }
+
+    def updateArticleFields(existingArticle: Article, partialArticle: PartialPublishArticle): Article = {
+      val newGrepCodes = partialArticle.grepCodes.getOrElse(existingArticle.grepCodes)
+      val newLicense = partialArticle.license.getOrElse(existingArticle.copyright.license)
+
+      val newMeta = partialArticle.metaDescription match {
+        case Some(metaDesc) =>
+          updateExistingMetaDescriptionField(existingArticle.metaDescription, metaDesc)
+        case None => existingArticle.metaDescription
+      }
+      val newTags = partialArticle.tags match {
+        case Some(tags) => updateExistingTagsField(existingArticle.tags, tags)
+        case None       => existingArticle.tags
+      }
+      existingArticle.copy(
+        grepCodes = newGrepCodes,
+        copyright = existingArticle.copyright.copy(license = newLicense),
+        metaDescription = newMeta,
+        tags = newTags
+      )
     }
 
     private[service] def toDomainCopyright(license: String, authors: Seq[Author]): Copyright = {
