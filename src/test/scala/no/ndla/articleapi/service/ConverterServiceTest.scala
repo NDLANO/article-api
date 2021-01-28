@@ -237,4 +237,85 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     copyright.processors should contain(Author("Linguistic", "F"))
   }
 
+  test("That updateExistingTags updates tags correctly") {
+    val existingTags = Seq(ArticleTag(Seq("nb-tag1", "nb-tag2"), "nb"), ArticleTag(Seq("Guten", "Tag"), "de"))
+    val updatedTags = Seq(ArticleTag(Seq("new-nb-tag1", "new-nb-tag2", "new-nb-tag3"), "nb"),
+                          ArticleTag(Seq("new-nn-tag1"), "nn"),
+                          ArticleTag(Seq("new-es-tag1", "new-es-tag2"), "es"))
+    val expectedTags =
+      Seq(ArticleTag(Seq("new-nb-tag1", "new-nb-tag2", "new-nb-tag3"), "nb"), ArticleTag(Seq("Guten", "Tag"), "de"))
+
+    service.updateExistingTagsField(existingTags, updatedTags) should be(expectedTags)
+    service.updateExistingTagsField(existingTags, Seq.empty) should be(existingTags)
+    service.updateExistingTagsField(Seq.empty, updatedTags) should be(Seq.empty)
+  }
+
+  test("That updateExistingArticleMetaDescription updates metaDesc correctly") {
+    val existingMetaDesc = Seq(ArticleMetaDescription("nb-content", "nb"), ArticleMetaDescription("en-content", "en"))
+    val updatedMetaDesc = Seq(ArticleMetaDescription("new-nb-content", "nb"),
+                              ArticleMetaDescription("new-nn-content", "nn"),
+                              ArticleMetaDescription("new-es-content", "es"))
+    val expectedMetaDesc =
+      Seq(ArticleMetaDescription("new-nb-content", "nb"), ArticleMetaDescription("en-content", "en"))
+
+    service.updateExistingMetaDescriptionField(existingMetaDesc, updatedMetaDesc) should be(expectedMetaDesc)
+    service.updateExistingMetaDescriptionField(existingMetaDesc, Seq.empty) should be(existingMetaDesc)
+    service.updateExistingMetaDescriptionField(Seq.empty, updatedMetaDesc) should be(Seq.empty)
+  }
+
+  test("That updateArticleFields updates all fields") {
+    val existingArticle = TestData.sampleDomainArticle.copy(
+      grepCodes = Seq("old", "code"),
+      copyright = Copyright("CC-BY-4.0", "origin", Seq(), Seq(), Seq(), None, None, None),
+      metaDescription = Seq(ArticleMetaDescription("gammelDesc", "nb")),
+      tags = Seq(ArticleTag(Seq("gammel", "Tag"), "nb"))
+    )
+    val partialArticle =
+      api.PartialPublishArticle(
+        grepCodes = Some(Seq("New", "grep", "codes")),
+        license = Some("newLicense"),
+        metaDescription = Some(Seq(ArticleMetaDescription("nyDesc", "nb"))),
+        tags = Some(Seq(ArticleTag(Seq("nye", "Tags"), "nb")))
+      )
+    val updatedArticle = TestData.sampleDomainArticle.copy(
+      grepCodes = Seq("New", "grep", "codes"),
+      copyright = Copyright("newLicense", "origin", Seq(), Seq(), Seq(), None, None, None),
+      metaDescription = Seq(ArticleMetaDescription("nyDesc", "nb")),
+      tags = Seq(ArticleTag(Seq("nye", "Tags"), "nb"))
+    )
+
+    service.updateArticleFields(existingArticle, partialArticle) should be(updatedArticle)
+
+  }
+
+  test("That updateArticleFields does not create new fields") {
+    val existingArticle = TestData.sampleDomainArticle.copy(
+      grepCodes = Seq("old", "code"),
+      copyright = Copyright("CC-BY-4.0", "origin", Seq(), Seq(), Seq(), None, None, None),
+      metaDescription = Seq(ArticleMetaDescription("oldDesc", "de")),
+      tags = Seq(ArticleTag(Seq("Gluten", "Tag"), "de"))
+    )
+    val partialArticle =
+      api.PartialPublishArticle(
+        grepCodes = Some(Seq("New", "grep", "codes")),
+        license = Some("newLicense"),
+        metaDescription = Some(
+          Seq(ArticleMetaDescription("nyDesc", "nb"),
+              ArticleMetaDescription("newDesc", "en"),
+              ArticleMetaDescription("neuDesc", "de"))),
+        tags = Some(
+          Seq(ArticleTag(Seq("nye", "Tags"), "nb"),
+              ArticleTag(Seq("new", "Tagss"), "en"),
+              ArticleTag(Seq("Guten", "Tag"), "de")))
+      )
+    val updatedArticle = TestData.sampleDomainArticle.copy(
+      grepCodes = Seq("New", "grep", "codes"),
+      copyright = Copyright("newLicense", "origin", Seq(), Seq(), Seq(), None, None, None),
+      metaDescription = Seq(ArticleMetaDescription("neuDesc", "de")),
+      tags = Seq(ArticleTag(Seq("Guten", "Tag"), "de"))
+    )
+
+    service.updateArticleFields(existingArticle, partialArticle) should be(updatedArticle)
+  }
+
 }
