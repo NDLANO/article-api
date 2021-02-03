@@ -24,6 +24,8 @@ matrix:
       before_cache:
         - find $HOME/.ivy2 -name "ivydata-*.properties" -delete
         - find $HOME/.sbt -name "*.lock" -delete
+      before_script:
+        - echo $DOCKER_HUB_PASSWORD | docker login --username $DOCKER_HUB_USERNAME --password-stdin
 
     - name: "Pact provider verification tests"
       script: sbt ++$TRAVIS_SCALA_VERSION "pact:testOnly *consumerdrivencontracts*"
@@ -39,12 +41,14 @@ matrix:
       before_cache:
         - find $HOME/.ivy2 -name "ivydata-*.properties" -delete
         - find $HOME/.sbt -name "*.lock" -delete
+      before_script:
+        - echo $DOCKER_HUB_PASSWORD | docker login --username $DOCKER_HUB_USERNAME --password-stdin
 
     - name: "Release"
       language: python
       if: branch = master AND type = push
       python: 3.7
-      dist: bionic
+      dist: focal
       services:
         - docker
       cache:
@@ -81,6 +85,9 @@ matrix:
         # Tricks to avoid unnecessary cache updates
         - find $HOME/.ivy2 -name "ivydata-*.properties" -delete
         - find $HOME/.sbt -name "*.lock" -delete
+
+      before_script:
+        - echo $DOCKER_HUB_PASSWORD | docker login --username $DOCKER_HUB_USERNAME --password-stdin
 
   allow_failures:
       - name: "Release"
