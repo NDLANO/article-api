@@ -14,6 +14,7 @@ import no.ndla.articleapi.integration.{Elastic4sClientFactory, NdlaE4sClient}
 import no.ndla.articleapi.model.api
 import no.ndla.articleapi.model.domain._
 import no.ndla.mapping.License.{CC_BY_NC_SA, Copyrighted, PublicDomain}
+import no.ndla.articleapi.TestData.testSettings
 import no.ndla.scalatestsuite.IntegrationSuite
 import org.joda.time.DateTime
 import org.scalatest.Outcome
@@ -224,20 +225,6 @@ class ArticleSearchServiceTest extends IntegrationSuite(EnableElasticsearchConta
     val expectedStartAt = (page - 1) * DefaultPageSize
     articleSearchService.getStartAtAndNumResults(page, DefaultPageSize) should equal((expectedStartAt, DefaultPageSize))
   }
-
-  val testSettings = SearchSettings(
-    query = None,
-    withIdIn = List(),
-    language = Language.DefaultLanguage,
-    license = None,
-    page = 1,
-    pageSize = 10,
-    sort = Sort.ByIdAsc,
-    articleTypes = Seq.empty,
-    fallback = false,
-    grepCodes = Seq.empty,
-    shouldScroll = false
-  )
 
   test("searching should return only articles of a given type if a type filter is specified") {
     val Success(results) =
