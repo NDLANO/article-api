@@ -168,6 +168,7 @@ trait ConverterService {
     }
 
     def updateArticleFields(existingArticle: Article, partialArticle: PartialPublishArticle): Article = {
+      val newAvailability = partialArticle.availability.getOrElse(existingArticle.availability)
       val newGrepCodes = partialArticle.grepCodes.getOrElse(existingArticle.grepCodes)
       val newLicense = partialArticle.license.getOrElse(existingArticle.copyright.license)
 
@@ -181,6 +182,7 @@ trait ConverterService {
         case None       => existingArticle.tags
       }
       existingArticle.copy(
+        availability = newAvailability,
         grepCodes = newGrepCodes,
         copyright = existingArticle.copyright.copy(license = newLicense),
         metaDescription = newMeta,
@@ -379,7 +381,8 @@ trait ConverterService {
             article.articleType,
             supportedLanguages,
             article.grepCodes,
-            article.conceptIds
+            article.conceptIds,
+            availability = article.availability.toString
           ))
       } else {
         Failure(

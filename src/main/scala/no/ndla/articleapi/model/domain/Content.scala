@@ -12,8 +12,9 @@ import java.util.Date
 
 import no.ndla.articleapi.ArticleApiProperties
 import no.ndla.validation.{ValidationException, ValidationMessage}
-import org.json4s.{DefaultFormats, FieldSerializer}
+import org.json4s.{DefaultFormats, FieldSerializer, Formats}
 import org.json4s.FieldSerializer._
+import org.json4s.ext.EnumNameSerializer
 import org.json4s.native.Serialization._
 import scalikejdbc._
 
@@ -38,19 +39,21 @@ case class Article(id: Option[Long],
                    published: Date,
                    articleType: String,
                    grepCodes: Seq[String],
-                   conceptIds: Seq[Long])
+                   conceptIds: Seq[Long],
+                   availability: Availability.Value = Availability.everyone)
     extends Content
 
 object Article extends SQLSyntaxSupport[Article] {
-  implicit val formats: DefaultFormats.type = org.json4s.DefaultFormats
+
+  val jsonEncoder: Formats = DefaultFormats + new EnumNameSerializer(Availability)
   override val tableName = "contentdata"
-  override val schemaName = Some(ArticleApiProperties.MetaSchema)
+  override lazy val schemaName: Option[String] = Some(ArticleApiProperties.MetaSchema)
 
   def fromResultSet(lp: SyntaxProvider[Article])(rs: WrappedResultSet): Option[Article] =
     fromResultSet(lp.resultName)(rs)
 
   def fromResultSet(lp: ResultName[Article])(rs: WrappedResultSet): Option[Article] = {
-    implicit val formats: DefaultFormats.type = org.json4s.DefaultFormats
+    implicit val formats: Formats = repositorySerializer
 
     rs.stringOpt(lp.c("document"))
       .map(jsonStr => {
@@ -62,9 +65,10 @@ object Article extends SQLSyntaxSupport[Article] {
       })
   }
 
-  val JSonSerializer: FieldSerializer[Article] = FieldSerializer[Article](
-    ignore("id")
-  )
+  val repositorySerializer: Formats = jsonEncoder +
+    FieldSerializer[Article](
+      ignore("id")
+    )
 }
 
 object ArticleType extends Enumeration {

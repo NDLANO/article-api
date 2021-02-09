@@ -1,5 +1,5 @@
 # ARTICLE API 
-[![Build Status](https://travis-ci.org/NDLANO/article-api.svg?branch=master)](https://travis-ci.org/NDLANO/article-api)
+[![Build Status](https://travis-ci.com/NDLANO/article-api.svg?branch=master)](https://travis-ci.com/NDLANO/article-api)
 
 ## Usage
 Creates, updates and returns an `Article`. Implements Elasticsearch for search within the article database.

@@ -67,7 +67,8 @@ object TestData {
     articleType = "standard",
     supportedLanguages = Seq("nb"),
     grepCodes = Seq.empty,
-    conceptIds = Seq.empty
+    conceptIds = Seq.empty,
+    availability = Availability.everyone.toString
   )
 
   val apiArticleV2 = api.ArticleV2(
@@ -101,7 +102,8 @@ object TestData {
     "standard",
     Seq("nb"),
     Seq("COMPCODE1"),
-    Seq(1)
+    Seq(1),
+    availability = Availability.everyone.toString
   )
 
   val sampleArticleWithPublicDomain = Article(
@@ -122,7 +124,8 @@ object TestData {
     DateTime.now().minusDays(2).withMillisOfSecond(0).toDate,
     ArticleType.Standard.toString,
     Seq("COMPCODE1"),
-    Seq(1)
+    Seq(1),
+    availability = Availability.everyone
   )
 
   val sampleDomainArticle = Article(
@@ -143,7 +146,8 @@ object TestData {
     today,
     ArticleType.Standard.toString,
     Seq("COMPCODE1"),
-    Seq(1)
+    Seq(1),
+    availability = Availability.everyone
   )
 
   val sampleDomainArticle2 = Article(
@@ -164,7 +168,8 @@ object TestData {
     today,
     ArticleType.Standard.toString,
     Seq("COMPCODE1"),
-    Seq(1)
+    Seq(1),
+    availability = Availability.everyone
   )
 
   val sampleArticleWithByNcSa: Article = sampleArticleWithPublicDomain.copy(copyright = byNcSaCopyright)
@@ -196,7 +201,8 @@ object TestData {
     today,
     ArticleType.Standard.toString,
     Seq(),
-    Seq()
+    Seq(),
+    availability = Availability.everyone
   )
 
   val apiArticleWithHtmlFaultV2 = api.ArticleV2(
@@ -226,7 +232,8 @@ object TestData {
     "standard",
     Seq("en"),
     Seq.empty,
-    Seq.empty
+    Seq.empty,
+    availability = Availability.everyone.toString
   )
 
   val (nodeId, nodeId2) = ("1234", "4321")
@@ -255,7 +262,8 @@ object TestData {
       today,
       ArticleType.Standard.toString,
       Seq(),
-      Seq()
+      Seq(),
+      availability = Availability.everyone
     )
   }
 

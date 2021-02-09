@@ -9,18 +9,17 @@
 package no.ndla.articleapi.controller
 
 import java.util.concurrent.{Executors, TimeUnit}
-
 import no.ndla.articleapi.ArticleApiProperties
 import no.ndla.articleapi.auth.{Role, User}
 import no.ndla.articleapi.model.api.PartialPublishArticle
-import no.ndla.articleapi.model.domain.{Article, Language}
+import no.ndla.articleapi.model.domain.{Article, Availability, Language}
 import no.ndla.articleapi.repository.ArticleRepository
 import no.ndla.articleapi.service._
 import no.ndla.articleapi.service.search.{ArticleIndexService, IndexService}
 import no.ndla.articleapi.validation.ContentValidator
-import no.ndla.validation.ValidationException
+import org.json4s.ext.EnumNameSerializer
 import org.json4s.{DefaultFormats, Formats}
-import org.scalatra.{BadRequest, InternalServerError, NotFound, Ok}
+import org.scalatra.{InternalServerError, NotFound, Ok}
 
 import scala.concurrent._
 import scala.concurrent.duration.Duration
@@ -40,7 +39,7 @@ trait InternController {
 
   class InternController extends NdlaController {
 
-    protected implicit override val jsonFormats: Formats = DefaultFormats
+    protected implicit override val jsonFormats: Formats = DefaultFormats + new EnumNameSerializer(Availability)
 
     post("/index") {
       implicit val ec = ExecutionContext.fromExecutorService(Executors.newSingleThreadExecutor)

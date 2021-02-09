@@ -11,7 +11,6 @@ package no.ndla.articleapi.repository
 import java.net.Socket
 
 import no.ndla.articleapi._
-import no.ndla.articleapi.integration.DataSource
 import no.ndla.articleapi.model.domain
 import no.ndla.articleapi.model.domain.{Article, ArticleIds, ArticleTag}
 import no.ndla.scalatestsuite.IntegrationSuite
