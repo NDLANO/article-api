@@ -25,7 +25,7 @@ trait ArticleRepository {
   val articleRepository: ArticleRepository
 
   class ArticleRepository extends LazyLogging with Repository[Article] {
-    implicit val formats: Formats = org.json4s.DefaultFormats + Article.JSonSerializer
+    implicit val formats: Formats = Article.repositorySerializer
 
     def updateArticleFromDraftApi(article: Article, externalIds: List[String])(
         implicit session: DBSession = AutoSession): Try[Article] = {
