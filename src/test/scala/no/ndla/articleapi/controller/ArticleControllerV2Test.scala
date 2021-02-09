@@ -186,4 +186,30 @@ class ArticleControllerV2Test extends UnitSuite with TestEnvironment with Scalat
     failed2.isFailure should be(true)
   }
 
+  test("That initial search-context doesn't scroll") {
+    reset(articleSearchService)
+
+    val expectedSettings = TestData.testSettings.copy(
+      language = "all",
+      articleTypes = List("standard", "topic-article"),
+      shouldScroll = true
+    )
+
+    val result = SearchResult[ArticleSummaryV2](
+      totalCount = 0,
+      page = None,
+      pageSize = 10,
+      language = "all",
+      results = Seq.empty,
+      scrollId = Some("heiheihei")
+    )
+    when(articleSearchService.matchingQuery(any[SearchSettings])).thenReturn(Success(result))
+
+    get("/test/?search-context=initial") {
+      status should be(200)
+      verify(articleSearchService, times(1)).matchingQuery(expectedSettings)
+      verify(articleSearchService, times(0)).scroll(any[String], any[String], any[Boolean])
+    }
+  }
+
 }

@@ -118,14 +118,14 @@ trait ArticleControllerV2 {
     private def scrollSearchOr(scrollId: Option[String], language: String, fallback: Boolean)(
         orFunction: => Any): Any = {
       scrollId match {
-        case Some(scroll) =>
+        case Some(scroll) if !InitialScrollContextKeywords.contains(scroll) =>
           articleSearchService.scroll(scroll, language, fallback) match {
             case Success(scrollResult) =>
               val responseHeader = scrollResult.scrollId.map(i => this.scrollId.paramName -> i).toMap
               Ok(searchConverterService.asApiSearchResultV2(scrollResult), headers = responseHeader)
             case Failure(ex) => errorHandler(ex)
           }
-        case None => orFunction
+        case _ => orFunction
       }
     }
 
