@@ -34,7 +34,7 @@ jobs:
           path: |
             ~/.ivy2/cache
             ~/.sbt/boot/
-          key: ivy-cache-${{ hashFiles('~/.ivy2/cache/*') }}-${{ hashFiles('~/.ivy2/cache/*') }}
+          key: ivy-cache-${{ hashFiles('~/.ivy2/cache/*') }}-${{ hashFiles('~/.sbt/boot/*') }}
       - uses: olafurpg/setup-scala@v10
         with:
           java-version: adopt@1.11
@@ -73,7 +73,7 @@ jobs:
           path: |
             ~/.ivy2/cache
             ~/.sbt/boot/
-          key: ivy-cache-${{ hashFiles('~/.ivy2/cache/*') }}-${{ hashFiles('~/.ivy2/cache/*') }}
+          key: ivy-cache-${{ hashFiles('~/.ivy2/cache/*') }}-${{ hashFiles('~/.sbt/boot/*') }}
       - uses: olafurpg/setup-scala@v10
         with:
           java-version: adopt@1.11
