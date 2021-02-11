@@ -16,7 +16,6 @@ val Json4SVersion = "3.6.7"
 val FlywayVersion = "7.1.1"
 val PostgresVersion = "42.2.14"
 val HikariConnectionPoolVersion = "3.4.5"
-val TestContainersVersion = "1.12.2"
 
 val appProperties = settingKey[Properties]("The application properties")
 
@@ -70,7 +69,7 @@ lazy val article_api = (project in file("."))
       "ndla" %% "network" % "0.44",
       "ndla" %% "mapping" % "0.15",
       "ndla" %% "validation" % "0.47",
-      "ndla" %% "scalatestsuite" % "0.1" % "test",
+      "ndla" %% "scalatestsuite" % "0.3" % "test",
       "joda-time" % "joda-time" % "2.10",
       "org.scalatra" %% "scalatra" % Scalatraversion,
       "org.eclipse.jetty" % "jetty-webapp" % Jettyversion % "container;compile",
@@ -101,9 +100,7 @@ lazy val article_api = (project in file("."))
       "org.mockito" %% "mockito-scala" % MockitoVersion % "test",
       "org.mockito" %% "mockito-scala-scalatest" % MockitoVersion % "test",
       "org.flywaydb" % "flyway-core" % FlywayVersion,
-      "io.lemonlabs" %% "scala-uri" % "1.5.1",
-      "org.testcontainers" % "elasticsearch" % TestContainersVersion % "test",
-      "org.testcontainers" % "testcontainers" % TestContainersVersion % "test",
+      "io.lemonlabs" %% "scala-uri" % "1.5.1"
     ) ++ pactTestFramework ++ vulnerabilityOverrides
   )
   .enablePlugins(DockerPlugin)
