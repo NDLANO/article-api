@@ -7,8 +7,8 @@ pactBrokerCredentials := (
 )
 pactContractTags := Seq(
   (for {
-    head <- sys.env.get("GITHUB_HEAD_REF")
-    base <- sys.env.get("GITHUB_BASE_REF")
+    head <- sys.env.get("GITHUB_HEAD_REF").filter(_.nonEmpty)
+    base <- sys.env.get("GITHUB_BASE_REF").filter(_.nonEmpty)
   } yield s"$base-from-$head").getOrElse(git.gitCurrentBranch.value)
 )
 pactContractVersion := ("git rev-parse --short=7 HEAD" !!).trim
