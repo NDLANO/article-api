@@ -13,7 +13,7 @@ import com.typesafe.scalalogging.LazyLogging
 import no.ndla.articleapi.ArticleApiProperties._
 import no.ndla.articleapi.auth.User
 import no.ndla.articleapi.integration.DraftApiClient
-import no.ndla.articleapi.model.api
+import no.ndla.articleapi.model.{api, domain}
 import no.ndla.articleapi.model.api.{ArticleSummaryV2, ImportException, NotFoundException, PartialPublishArticle}
 import no.ndla.articleapi.model.domain.Language._
 import no.ndla.articleapi.model.domain._
@@ -382,7 +382,8 @@ trait ConverterService {
             supportedLanguages,
             article.grepCodes,
             article.conceptIds,
-            availability = article.availability.toString
+            availability = article.availability.toString,
+            article.relatedContent.map(toApiRelatedContent)
           ))
       } else {
         Failure(
@@ -400,6 +401,14 @@ trait ConverterService {
         content.content,
         content.language
       )
+    }
+
+    def toApiRelatedContent(relatedContent: domain.RelatedContent): api.RelatedContent = {
+      relatedContent match {
+        case Left(x)  => Left(api.RelatedContentLink(url = x.url, title = x.title))
+        case Right(x) => Right(x)
+      }
+
     }
 
     def toApiCopyright(copyright: Copyright): api.Copyright = {
