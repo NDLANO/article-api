@@ -68,7 +68,8 @@ object TestData {
     supportedLanguages = Seq("nb"),
     grepCodes = Seq.empty,
     conceptIds = Seq.empty,
-    availability = Availability.everyone.toString
+    availability = Availability.everyone.toString,
+    relatedContent = Seq.empty
   )
 
   val apiArticleV2 = api.ArticleV2(
@@ -103,7 +104,8 @@ object TestData {
     Seq("nb"),
     Seq("COMPCODE1"),
     Seq(1),
-    availability = Availability.everyone.toString
+    availability = Availability.everyone.toString,
+    relatedContent = Seq.empty
   )
 
   val sampleArticleWithPublicDomain = Article(
@@ -125,7 +127,8 @@ object TestData {
     ArticleType.Standard.toString,
     Seq("COMPCODE1"),
     Seq(1),
-    availability = Availability.everyone
+    availability = Availability.everyone,
+    relatedContent = Seq.empty
   )
 
   val sampleDomainArticle = Article(
@@ -147,7 +150,8 @@ object TestData {
     ArticleType.Standard.toString,
     Seq("COMPCODE1"),
     Seq(1),
-    availability = Availability.everyone
+    availability = Availability.everyone,
+    relatedContent = Seq.empty
   )
 
   val sampleDomainArticle2 = Article(
@@ -169,7 +173,8 @@ object TestData {
     ArticleType.Standard.toString,
     Seq("COMPCODE1"),
     Seq(1),
-    availability = Availability.everyone
+    availability = Availability.everyone,
+    relatedContent = Seq.empty
   )
 
   val sampleArticleWithByNcSa: Article = sampleArticleWithPublicDomain.copy(copyright = byNcSaCopyright)
@@ -202,7 +207,8 @@ object TestData {
     ArticleType.Standard.toString,
     Seq(),
     Seq(),
-    availability = Availability.everyone
+    availability = Availability.everyone,
+    relatedContent = Seq.empty
   )
 
   val apiArticleWithHtmlFaultV2 = api.ArticleV2(
@@ -233,7 +239,8 @@ object TestData {
     Seq("en"),
     Seq.empty,
     Seq.empty,
-    availability = Availability.everyone.toString
+    availability = Availability.everyone.toString,
+    relatedContent = Seq.empty
   )
 
   val (nodeId, nodeId2) = ("1234", "4321")
@@ -263,7 +270,8 @@ object TestData {
       ArticleType.Standard.toString,
       Seq(),
       Seq(),
-      availability = Availability.everyone
+      availability = Availability.everyone,
+      relatedContent = Seq.empty
     )
   }
 

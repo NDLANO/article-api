@@ -40,7 +40,8 @@ case class Article(id: Option[Long],
                    articleType: String,
                    grepCodes: Seq[String],
                    conceptIds: Seq[Long],
-                   availability: Availability.Value = Availability.everyone)
+                   availability: Availability.Value = Availability.everyone,
+                   relatedContent: Seq[RelatedContent])
     extends Content
 
 object Article extends SQLSyntaxSupport[Article] {
