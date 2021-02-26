@@ -46,7 +46,7 @@ case class Article(id: Option[Long],
 
 object Article extends SQLSyntaxSupport[Article] {
 
-  val jsonEncoder: Formats = DefaultFormats + new EnumNameSerializer(Availability)
+  val jsonEncoder: Formats = DefaultFormats.withLong + new EnumNameSerializer(Availability)
   override val tableName = "contentdata"
   override lazy val schemaName: Option[String] = Some(ArticleApiProperties.MetaSchema)
 

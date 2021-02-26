@@ -234,4 +234,13 @@ class ArticleRepositoryTest
     tagsCount9 should be(2)
   }
 
+  test("withId parse relatedContent correctly") {
+    repository.updateArticleFromDraftApi(sampleArticle.copy(id = Some(1), relatedContent = Seq(Right(2))),
+                                         List("6000", "10"))
+
+    val Right(relatedId) = repository.withId(1).get.relatedContent.head
+    relatedId.toLong should be(2L)
+
+  }
+
 }
