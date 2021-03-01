@@ -42,7 +42,7 @@ trait ArticleControllerV2 {
   val articleControllerV2: ArticleControllerV2
 
   class ArticleControllerV2(implicit val swagger: Swagger) extends NdlaController with SwaggerSupport {
-    protected implicit override val jsonFormats: Formats = DefaultFormats
+    protected implicit override val jsonFormats: Formats = DefaultFormats.withLong
     protected val applicationDescription = "Services for accessing articles from NDLA."
 
     // Additional models used in error responses
