@@ -39,7 +39,7 @@ trait InternController {
 
   class InternController extends NdlaController {
 
-    protected implicit override val jsonFormats: Formats = DefaultFormats.withLong + new EnumNameSerializer(
+    protected implicit override val jsonFormats: Formats = DefaultFormats + new EnumNameSerializer(
       Availability)
 
     post("/index") {
