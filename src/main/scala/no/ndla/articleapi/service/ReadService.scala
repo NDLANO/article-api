@@ -82,7 +82,8 @@ trait ReadService {
 
     def getArticleDomainDump(pageNo: Int, pageSize: Int): api.ArticleDomainDump = {
       val (safePageNo, safePageSize) = (max(pageNo, 1), max(pageSize, 0))
-      val results = articleRepository.getArticlesByPage(safePageSize, (safePageNo - 1) * safePageSize)
+      val results =
+        articleRepository.getArticlesByPage(safePageSize, (safePageNo - 1) * safePageSize).map(addUrlsOnEmbedResources)
 
       api.ArticleDomainDump(articleRepository.articleCount, pageNo, pageSize, results)
     }
