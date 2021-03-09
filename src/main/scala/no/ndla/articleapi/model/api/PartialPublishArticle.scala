@@ -20,5 +20,6 @@ case class PartialPublishArticle(
     @(ApiModelProperty @field)(description = "A list of codes from GREP API connected to the article") grepCodes: Option[Seq[String]],
     @(ApiModelProperty @field)(description = "The name of the license") license: Option[String],
     @(ApiModelProperty @field)(description = "A list of meta description objects") metaDescription: Option[Seq[domain.ArticleMetaDescription]],
+    @(ApiModelProperty @field)(description = "A list of content related to the article") relatedContent: Option[Seq[RelatedContent]],
     @(ApiModelProperty @field)(description = "A list of tag objects") tags: Option[Seq[domain.ArticleTag]],
 )

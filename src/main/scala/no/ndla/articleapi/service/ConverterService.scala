@@ -177,6 +177,8 @@ trait ConverterService {
           updateExistingMetaDescriptionField(existingArticle.metaDescription, metaDesc)
         case None => existingArticle.metaDescription
       }
+      val newRelatedContent =
+        partialArticle.relatedContent.map(toDomainRelatedContent).getOrElse(existingArticle.relatedContent)
       val newTags = partialArticle.tags match {
         case Some(tags) => updateExistingTagsField(existingArticle.tags, tags)
         case None       => existingArticle.tags
@@ -186,6 +188,7 @@ trait ConverterService {
         grepCodes = newGrepCodes,
         copyright = existingArticle.copyright.copy(license = newLicense),
         metaDescription = newMeta,
+        relatedContent = newRelatedContent,
         tags = newTags
       )
     }
@@ -285,6 +288,13 @@ trait ConverterService {
         Seq.empty[ArticleMetaDescription]
       } else {
         Seq(ArticleMetaDescription(meta.getOrElse(""), language))
+      }
+    }
+
+    def toDomainRelatedContent(relatedContent: Seq[api.RelatedContent]): Seq[RelatedContent] = {
+      relatedContent.map {
+        case Left(x)  => Left(domain.RelatedContentLink(url = x.url, title = x.title))
+        case Right(x) => Right(x)
       }
     }
 

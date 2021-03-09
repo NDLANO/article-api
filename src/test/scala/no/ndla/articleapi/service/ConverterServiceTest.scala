@@ -269,6 +269,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
       grepCodes = Seq("old", "code"),
       copyright = Copyright("CC-BY-4.0", "origin", Seq(), Seq(), Seq(), None, None, None),
       metaDescription = Seq(ArticleMetaDescription("gammelDesc", "nb")),
+      relatedContent = Seq(Left(RelatedContentLink("title1", "url1")), Right(12L)),
       tags = Seq(ArticleTag(Seq("gammel", "Tag"), "nb"))
     )
     val partialArticle =
@@ -277,6 +278,10 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
         grepCodes = Some(Seq("New", "grep", "codes")),
         license = Some("newLicense"),
         metaDescription = Some(Seq(ArticleMetaDescription("nyDesc", "nb"))),
+        relatedContent = Some(
+          Seq(Left(api.RelatedContentLink("New Title", "New Url")),
+              Left(api.RelatedContentLink("Newer Title", "Newer Url")),
+              Right(42L))),
         tags = Some(Seq(ArticleTag(Seq("nye", "Tags"), "nb")))
       )
     val updatedArticle = TestData.sampleDomainArticle.copy(
@@ -284,6 +289,9 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
       grepCodes = Seq("New", "grep", "codes"),
       copyright = Copyright("newLicense", "origin", Seq(), Seq(), Seq(), None, None, None),
       metaDescription = Seq(ArticleMetaDescription("nyDesc", "nb")),
+      relatedContent = Seq(Left(RelatedContentLink("New Title", "New Url")),
+                           Left(RelatedContentLink("Newer Title", "Newer Url")),
+                           Right(42L)),
       tags = Seq(ArticleTag(Seq("nye", "Tags"), "nb"))
     )
 
@@ -297,6 +305,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
       grepCodes = Seq("old", "code"),
       copyright = Copyright("CC-BY-4.0", "origin", Seq(), Seq(), Seq(), None, None, None),
       metaDescription = Seq(ArticleMetaDescription("oldDesc", "de")),
+      relatedContent = Seq(Left(RelatedContentLink("title1", "url1")), Left(RelatedContentLink("old title", "old url"))),
       tags = Seq(ArticleTag(Seq("Gluten", "Tag"), "de"))
     )
     val partialArticle =
@@ -308,6 +317,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
           Seq(ArticleMetaDescription("nyDesc", "nb"),
               ArticleMetaDescription("newDesc", "en"),
               ArticleMetaDescription("neuDesc", "de"))),
+        relatedContent = Some(Seq(Right(42L), Right(420L), Right(4200L))),
         tags = Some(
           Seq(ArticleTag(Seq("nye", "Tags"), "nb"),
               ArticleTag(Seq("new", "Tagss"), "en"),
@@ -318,6 +328,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
       grepCodes = Seq("New", "grep", "codes"),
       copyright = Copyright("newLicense", "origin", Seq(), Seq(), Seq(), None, None, None),
       metaDescription = Seq(ArticleMetaDescription("neuDesc", "de")),
+      relatedContent = Seq(Right(42L), Right(420L), Right(4200L)),
       tags = Seq(ArticleTag(Seq("Guten", "Tag"), "de"))
     )
 
