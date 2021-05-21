@@ -83,9 +83,11 @@ class ArticleRepositoryTest
     assume(databaseIsAvailable, "Database is unavailable")
     val externalIds = List("1", "6010", "6011", "5084", "763", "8881", "1919")
     val inserted = repository.updateArticleFromDraftApi(sampleArticle, externalIds)
+    val inserted2 = repository.updateArticleFromDraftApi(sampleArticle.copy(revision = Some(2)), externalIds)
 
     repository.getArticleIdsFromExternalId("6011").get.externalId should be(externalIds)
     repository.deleteMaxRevision(inserted.get.id.get)
+    repository.deleteMaxRevision(inserted2.get.id.get)
   }
 
   test("updateArticleFromDraftApi should update all columns with data from draft-api") {
