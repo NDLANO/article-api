@@ -109,8 +109,7 @@ class ArticleRepositoryTest
     assume(databaseIsAvailable, "Database is unavailable")
 
     val externalIds = List("1", "2", "3")
-    val idWithExternals = repository.updateArticleFromDraftApi(sampleArticle.copy(id = Some(1), revision = Some(1)), externalIds)
-    val idWithExternals2 = repository.updateArticleFromDraftApi(sampleArticle.copy(id = Some(1), revision = Some(2)), externalIds)
+    val idWithExternals = repository.updateArticleFromDraftApi(sampleArticle.copy(id = Some(1)), externalIds)
     val idWithoutExternals = repository.updateArticleFromDraftApi(sampleArticle.copy(id = Some(2)), List.empty)
 
     val result1 = repository.getExternalIdsFromId(idWithExternals.get.id.get)
