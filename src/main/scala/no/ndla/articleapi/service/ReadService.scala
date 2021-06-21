@@ -12,22 +12,29 @@ import io.lemonlabs.uri.{Path, Url}
 import no.ndla.articleapi.ArticleApiProperties.externalApiUrls
 import no.ndla.articleapi.caching.MemoizeAutoRenew
 import no.ndla.articleapi.integration.FeideApiClient
-import no.ndla.articleapi.model.api
-import no.ndla.articleapi.model.api.{AccessDeniedException, NotFoundException}
+import no.ndla.articleapi.model.{api, domain}
+import no.ndla.articleapi.model.api.{AccessDeniedException, ArticleSummaryV2, NotFoundException}
 import no.ndla.articleapi.model.domain.Language._
 import no.ndla.articleapi.model.domain._
+import no.ndla.articleapi.model.search.SearchResult
 import no.ndla.articleapi.repository.ArticleRepository
+import no.ndla.articleapi.service.search.{ArticleSearchService, SearchConverterService}
 import no.ndla.validation.EmbedTagRules.ResourceHtmlEmbedTag
 import no.ndla.validation.HtmlTagRules.{jsoupDocumentToString, stringToJsoupDocument}
 import no.ndla.validation.{ResourceType, TagAttributes}
 import org.jsoup.nodes.Element
+import org.scalatra.Ok
 
 import scala.jdk.CollectionConverters._
 import scala.math.max
 import scala.util.{Failure, Success, Try}
 
 trait ReadService {
-  this: ArticleRepository with FeideApiClient with ConverterService =>
+  this: ArticleRepository
+    with FeideApiClient
+    with ConverterService
+    with ArticleSearchService
+    with SearchConverterService =>
   val readService: ReadService
 
   class ReadService {
@@ -181,6 +188,67 @@ trait ReadService {
 
     def getArticleIdsByExternalId(externalId: String): Option[api.ArticleIds] =
       articleRepository.getArticleIdsFromExternalId(externalId).map(converterService.toApiArticleIds)
+
+    def search(
+        query: Option[String],
+        sort: Option[Sort.Value],
+        language: String,
+        license: Option[String],
+        page: Int,
+        pageSize: Int,
+        idList: List[Long],
+        articleTypesFilter: Seq[String],
+        fallback: Boolean,
+        grepCodes: Seq[String],
+        shouldScroll: Boolean,
+        feideAccessToken: Option[String]
+    ): Try[SearchResult[ArticleSummaryV2]] = {
+      val availabilityTry = feideAccessToken match {
+        case None => Success(Seq.empty)
+        case Some(token) =>
+          feideApiClient
+            .getUser(token)
+            .map(user => user.availabilities)
+      }
+
+      availabilityTry.flatMap(availability => {
+        val settings = query match {
+          case Some(q) =>
+            SearchSettings(
+              query = Some(q),
+              withIdIn = idList,
+              language = language,
+              license = license,
+              page = page,
+              pageSize = if (idList.isEmpty) pageSize else idList.size,
+              sort = sort.getOrElse(Sort.ByRelevanceDesc),
+              if (articleTypesFilter.isEmpty) ArticleType.all else articleTypesFilter,
+              fallback = fallback,
+              grepCodes = grepCodes,
+              shouldScroll = shouldScroll,
+              availability = availability
+            )
+
+          case None =>
+            SearchSettings(
+              query = None,
+              withIdIn = idList,
+              language = language,
+              license = license,
+              page = page,
+              pageSize = if (idList.isEmpty) pageSize else idList.size,
+              sort = sort.getOrElse(Sort.ByIdAsc),
+              if (articleTypesFilter.isEmpty) ArticleType.all else articleTypesFilter,
+              fallback = fallback,
+              grepCodes = grepCodes,
+              shouldScroll = shouldScroll,
+              availability = availability
+            )
+        }
+
+        articleSearchService.matchingQuery(settings)
+      })
+    }
   }
 
 }

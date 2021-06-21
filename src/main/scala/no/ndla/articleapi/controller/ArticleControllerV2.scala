@@ -205,60 +205,29 @@ trait ArticleControllerV2 {
         fallback: Boolean,
         grepCodes: Seq[String],
         shouldScroll: Boolean,
-        feideAccessToken: Option[String]
-    ) = {
-      val availabilityTry = feideAccessToken match {
-        case None => Success(Seq.empty)
-        case Some(token) =>
-          feideApiClient
-            .getUser(token)
-            .map(user => user.availabilities)
-      }
-
-      val result = availabilityTry.flatMap(availability => {
-        val settings = query match {
-          case Some(q) =>
-            SearchSettings(
-              query = Some(q),
-              withIdIn = idList,
-              language = language,
-              license = license,
-              page = page,
-              pageSize = if (idList.isEmpty) pageSize else idList.size,
-              sort = sort.getOrElse(Sort.ByRelevanceDesc),
-              if (articleTypesFilter.isEmpty) ArticleType.all else articleTypesFilter,
-              fallback = fallback,
-              grepCodes = grepCodes,
-              shouldScroll = shouldScroll,
-              availability = availability
-            )
-
-          case None =>
-            SearchSettings(
-              query = None,
-              withIdIn = idList,
-              language = language,
-              license = license,
-              page = page,
-              pageSize = if (idList.isEmpty) pageSize else idList.size,
-              sort = sort.getOrElse(Sort.ByIdAsc),
-              if (articleTypesFilter.isEmpty) ArticleType.all else articleTypesFilter,
-              fallback = fallback,
-              grepCodes = grepCodes,
-              shouldScroll = shouldScroll,
-              availability = availability
-            )
-        }
-
-        articleSearchService.matchingQuery(settings)
-      })
+    )(implicit request: HttpServletRequest) = {
+      val result = readService.search(
+        query,
+        sort,
+        language,
+        license,
+        page,
+        pageSize,
+        idList,
+        articleTypesFilter,
+        fallback,
+        grepCodes,
+        shouldScroll,
+        requestFeideToken
+      )
 
       result match {
         case Success(searchResult) =>
           val responseHeader = searchResult.scrollId.map(i => this.scrollId.paramName -> i).toMap
           Ok(searchConverterService.asApiSearchResultV2(searchResult), headers = responseHeader)
-        case Failure(ex) => errorHandler(ex)
+        case Failure(ex) => Failure(ex)
       }
+
     }
 
     get(
@@ -309,7 +278,6 @@ trait ArticleControllerV2 {
           fallback,
           grepCodes,
           shouldScroll,
-          requestFeideToken
         )
       }
     }
@@ -354,8 +322,7 @@ trait ArticleControllerV2 {
           articleTypesFilter,
           fallback,
           grepCodes,
-          shouldScroll,
-          requestFeideToken
+          shouldScroll
         )
       }
     }
