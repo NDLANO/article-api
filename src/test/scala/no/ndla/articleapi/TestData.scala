@@ -288,7 +288,8 @@ object TestData {
     articleTypes = Seq.empty,
     fallback = false,
     grepCodes = Seq.empty,
-    shouldScroll = false
+    shouldScroll = false,
+    availability = Seq.empty
   )
 
 }

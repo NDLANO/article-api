@@ -18,8 +18,9 @@ import no.ndla.articleapi.ArticleApiProperties.{
   MaxPageSize
 }
 import no.ndla.articleapi.auth.{Role, User}
+import no.ndla.articleapi.integration.FeideApiClient
 import no.ndla.articleapi.model.api._
-import no.ndla.articleapi.model.domain.{ArticleIds, ArticleType, Language, SearchSettings, Sort}
+import no.ndla.articleapi.model.domain.{ArticleIds, ArticleType, Availability, Language, SearchSettings, Sort}
 import no.ndla.articleapi.service.search.{ArticleSearchService, SearchConverterService}
 import no.ndla.articleapi.service.{ConverterService, ReadService, WriteService}
 import no.ndla.articleapi.validation.ContentValidator
@@ -38,7 +39,8 @@ trait ArticleControllerV2 {
     with ConverterService
     with Role
     with User
-    with ContentValidator =>
+    with ContentValidator
+    with FeideApiClient =>
   val articleControllerV2: ArticleControllerV2
 
   class ArticleControllerV2(implicit val swagger: Swagger) extends NdlaController with SwaggerSupport {
@@ -205,40 +207,53 @@ trait ArticleControllerV2 {
         shouldScroll: Boolean,
         feideAccessToken: Option[String]
     ) = {
-
-      val settings = query match {
-        case Some(q) =>
-          SearchSettings(
-            query = Some(q),
-            withIdIn = idList,
-            language = language,
-            license = license,
-            page = page,
-            pageSize = if (idList.isEmpty) pageSize else idList.size,
-            sort = sort.getOrElse(Sort.ByRelevanceDesc),
-            if (articleTypesFilter.isEmpty) ArticleType.all else articleTypesFilter,
-            fallback = fallback,
-            grepCodes = grepCodes,
-            shouldScroll = shouldScroll
-          )
-
-        case None =>
-          SearchSettings(
-            query = None,
-            withIdIn = idList,
-            language = language,
-            license = license,
-            page = page,
-            pageSize = if (idList.isEmpty) pageSize else idList.size,
-            sort = sort.getOrElse(Sort.ByIdAsc),
-            if (articleTypesFilter.isEmpty) ArticleType.all else articleTypesFilter,
-            fallback = fallback,
-            grepCodes = grepCodes,
-            shouldScroll = shouldScroll
-          )
+      val availabilityTry = feideAccessToken match {
+        case None => Success(Seq.empty)
+        case Some(token) =>
+          feideApiClient
+            .getUser(token)
+            .map(user => user.availabilities)
       }
 
-      articleSearchService.matchingQuery(settings) match {
+      val result = availabilityTry.flatMap(availability => {
+        val settings = query match {
+          case Some(q) =>
+            SearchSettings(
+              query = Some(q),
+              withIdIn = idList,
+              language = language,
+              license = license,
+              page = page,
+              pageSize = if (idList.isEmpty) pageSize else idList.size,
+              sort = sort.getOrElse(Sort.ByRelevanceDesc),
+              if (articleTypesFilter.isEmpty) ArticleType.all else articleTypesFilter,
+              fallback = fallback,
+              grepCodes = grepCodes,
+              shouldScroll = shouldScroll,
+              availability = availability
+            )
+
+          case None =>
+            SearchSettings(
+              query = None,
+              withIdIn = idList,
+              language = language,
+              license = license,
+              page = page,
+              pageSize = if (idList.isEmpty) pageSize else idList.size,
+              sort = sort.getOrElse(Sort.ByIdAsc),
+              if (articleTypesFilter.isEmpty) ArticleType.all else articleTypesFilter,
+              fallback = fallback,
+              grepCodes = grepCodes,
+              shouldScroll = shouldScroll,
+              availability = availability
+            )
+        }
+
+        articleSearchService.matchingQuery(settings)
+      })
+
+      result match {
         case Success(searchResult) =>
           val responseHeader = searchResult.scrollId.map(i => this.scrollId.paramName -> i).toMap
           Ok(searchConverterService.asApiSearchResultV2(searchResult), headers = responseHeader)

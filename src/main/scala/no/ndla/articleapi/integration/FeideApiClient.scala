@@ -1,6 +1,6 @@
 /*
- * Part of NDLA draft-api.
- * Copyright (C) 2019 NDLA
+ * Part of NDLA article-api.
+ * Copyright (C) 2021 NDLA
  *
  * See LICENSE
  */
@@ -8,20 +8,14 @@
 package no.ndla.articleapi.integration
 
 import com.typesafe.scalalogging.LazyLogging
-
-import no.ndla.articleapi.ArticleApiProperties.SearchHost
-import no.ndla.articleapi.model.domain.{Article, ArticleType}
+import no.ndla.articleapi.model.domain.Availability
 import no.ndla.articleapi.service.ConverterService
 import no.ndla.network.NdlaClient
 import no.ndla.network.model.HttpRequestException
-import org.json4s.{DefaultFormats, Formats}
-import org.json4s.ext.EnumNameSerializer
 import org.json4s.native.JsonMethods
-import org.json4s.native.Serialization.write
+import org.json4s.{DefaultFormats, Formats}
 import scalaj.http.{Http, HttpRequest, HttpResponse}
 
-import java.util.concurrent.Executors
-import scala.concurrent.{ExecutionContext, ExecutionContextExecutorService, Future}
 import scala.util.{Failure, Success, Try}
 
 case class FeideExtendedUserInfo(
@@ -35,6 +29,23 @@ case class FeideExtendedUserInfo(
     this.eduPersonPrimaryAffiliation.contains("staff") ||
     this.eduPersonPrimaryAffiliation.contains("faculty") ||
     this.eduPersonPrimaryAffiliation.contains("employee")
+  }
+
+  def availabilities: Seq[Availability.Value] = {
+    if (this.isTeacher) {
+      Seq(
+        Availability.everyone,
+        Availability.teacher,
+        Availability.student
+      )
+    } else if (this.isStudent) {
+      Seq(
+        Availability.everyone,
+        Availability.student
+      )
+    } else {
+      Seq.empty
+    }
   }
 }
 

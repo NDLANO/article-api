@@ -91,7 +91,8 @@ class ArticleControllerV2Test extends UnitSuite with TestEnvironment with Scalat
         ArticleType.all,
         fallback = false,
         grepCodes = Seq.empty,
-        shouldScroll = false
+        shouldScroll = false,
+        availability = Seq.empty
       )
 
       verify(articleSearchService, times(1)).matchingQuery(expectedSettings)

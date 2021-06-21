@@ -1,7 +1,7 @@
 package no.ndla.articleapi.model.search
 
 import no.ndla.articleapi._
-import no.ndla.articleapi.model.domain.ArticleMetaImage
+import no.ndla.articleapi.model.domain.{ArticleMetaImage, Availability}
 import org.joda.time.{DateTime, DateTimeZone}
 import org.json4s.Formats
 import org.json4s.native.Serialization.{read, writePretty}
@@ -26,7 +26,8 @@ class SearchableArticleSerializerTest extends UnitSuite with TestEnvironment {
     authors = Seq("Jonas Natty"),
     articleType = "standard",
     defaultTitle = Some("tjuppidu"),
-    grepCodes = Seq("testelitt", "testemye")
+    grepCodes = Seq("testelitt", "testemye"),
+    availability = Availability.everyone.toString
   )
 
   test("That deserialization and serialization of SearchableArticle works as expected") {
