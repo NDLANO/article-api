@@ -59,7 +59,7 @@ case class NotFoundException(message: String, supportedLanguages: Seq[String] = 
     extends RuntimeException(message)
 case class ImportException(message: String) extends RuntimeException(message)
 
-class AccessDeniedException(message: String) extends RuntimeException(message)
+case class AccessDeniedException(message: String) extends RuntimeException(message)
 class ImportExceptions(val message: String, val errors: Seq[Throwable]) extends RuntimeException(message)
 class ConfigurationException(message: String) extends RuntimeException(message)
 case class SearchException(message: String) extends RuntimeException(message)

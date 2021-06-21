@@ -99,6 +99,8 @@ trait ArticleControllerV2 {
       "grep-codes",
       "A comma separated list of codes from GREP API the resources should be filtered by.")
 
+    private val feideToken = Param[Option[String]]("FeideAuthorization", "Header containing FEIDE access token.")
+
     private def asQueryParam[T: Manifest: NotNothing](param: Param[T]) =
       queryParam[T](param.paramName).description(param.description)
 
@@ -127,6 +129,10 @@ trait ArticleControllerV2 {
           }
         case _ => orFunction
       }
+    }
+
+    private def requestFeideToken(implicit request: HttpServletRequest): Option[String] = {
+      request.header(this.feideToken.paramName).map(_.replaceFirst("Bearer ", ""))
     }
 
     get(
@@ -196,7 +202,8 @@ trait ArticleControllerV2 {
         articleTypesFilter: Seq[String],
         fallback: Boolean,
         grepCodes: Seq[String],
-        shouldScroll: Boolean
+        shouldScroll: Boolean,
+        feideAccessToken: Option[String]
     ) = {
 
       val settings = query match {
@@ -247,6 +254,7 @@ trait ArticleControllerV2 {
           .description("Returns all articles. You can search it too.")
           .parameters(
             asHeaderParam(correlationId),
+            asHeaderParam(feideToken),
             asQueryParam(articleTypes),
             asQueryParam(query),
             asQueryParam(articleIds),
@@ -285,7 +293,8 @@ trait ArticleControllerV2 {
           articleTypesFilter,
           fallback,
           grepCodes,
-          shouldScroll
+          shouldScroll,
+          requestFeideToken
         )
       }
     }
@@ -298,6 +307,7 @@ trait ArticleControllerV2 {
           .description("Search all articles.")
           .parameters(
             asHeaderParam(correlationId),
+            asHeaderParam(feideToken),
             asQueryParam(scrollId),
             bodyParam[ArticleSearchParams]
           )
@@ -329,7 +339,8 @@ trait ArticleControllerV2 {
           articleTypesFilter,
           fallback,
           grepCodes,
-          shouldScroll
+          shouldScroll,
+          requestFeideToken
         )
       }
     }
@@ -354,6 +365,7 @@ trait ArticleControllerV2 {
           .description("Returns the article for the specified id.")
           .parameters(
             asHeaderParam(correlationId),
+            asHeaderParam(feideToken),
             asPathParam(articleId),
             asQueryParam(language),
             asQueryParam(fallback),
@@ -368,7 +380,7 @@ trait ArticleControllerV2 {
           val fallback = booleanOrDefault(this.fallback.paramName, default = false)
           val revision = inlineRevision.orElse(intOrNone(this.revision.paramName))
 
-          readService.withIdV2(articleId, language, fallback, revision) match {
+          readService.withIdV2(articleId, language, fallback, revision, requestFeideToken) match {
             case Success(article) => article
             case Failure(ex)      => errorHandler(ex)
           }

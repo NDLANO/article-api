@@ -11,8 +11,9 @@ package no.ndla.articleapi.service
 import io.lemonlabs.uri.{Path, Url}
 import no.ndla.articleapi.ArticleApiProperties.externalApiUrls
 import no.ndla.articleapi.caching.MemoizeAutoRenew
+import no.ndla.articleapi.integration.FeideApiClient
 import no.ndla.articleapi.model.api
-import no.ndla.articleapi.model.api.NotFoundException
+import no.ndla.articleapi.model.api.{AccessDeniedException, NotFoundException}
 import no.ndla.articleapi.model.domain.Language._
 import no.ndla.articleapi.model.domain._
 import no.ndla.articleapi.repository.ArticleRepository
@@ -26,7 +27,7 @@ import scala.math.max
 import scala.util.{Failure, Success, Try}
 
 trait ReadService {
-  this: ArticleRepository with ConverterService =>
+  this: ArticleRepository with FeideApiClient with ConverterService =>
   val readService: ReadService
 
   class ReadService {
@@ -37,15 +38,36 @@ trait ReadService {
     def withIdV2(id: Long,
                  language: String,
                  fallback: Boolean = false,
-                 revision: Option[Int] = None): Try[api.ArticleV2] = {
+                 revision: Option[Int] = None,
+                 feideAccessToken: Option[String] = None): Try[api.ArticleV2] = {
       val article = revision match {
         case Some(rev) => articleRepository.withIdAndRevision(id, rev)
         case None      => articleRepository.withId(id)
       }
 
+      lazy val notFound = Failure(NotFoundException(s"The article with id $id was not found"))
+
       article.map(addUrlsOnEmbedResources) match {
-        case None          => Failure(NotFoundException(s"The article with id $id was not found"))
-        case Some(article) => converterService.toApiArticleV2(article, language, fallback)
+        case None => notFound
+        case Some(article) if article.availability == Availability.everyone =>
+          converterService.toApiArticleV2(article, language, fallback)
+        case Some(article) =>
+          feideAccessToken match {
+            case None => notFound
+            case Some(accessToken) =>
+              feideApiClient.getUser(accessToken) match {
+                case Failure(ex) => Failure(ex)
+                case Success(feideUser) =>
+                  article.availability match {
+                    case Availability.student if !(feideUser.isStudent || feideUser.isTeacher) =>
+                      Failure(AccessDeniedException("User is missing required role(s) to perform this operation"))
+                    case Availability.teacher if !feideUser.isTeacher =>
+                      Failure(AccessDeniedException("User is missing required role(s) to perform this operation"))
+                    case _ =>
+                      converterService.toApiArticleV2(article, language, fallback)
+                  }
+              }
+          }
       }
     }
 
