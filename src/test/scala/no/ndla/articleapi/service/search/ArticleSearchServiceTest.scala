@@ -9,19 +9,22 @@
 package no.ndla.articleapi.service.search
 
 import no.ndla.articleapi.ArticleApiProperties.DefaultPageSize
+import no.ndla.articleapi.TestData.testSettings
 import no.ndla.articleapi._
-import no.ndla.articleapi.integration.{Elastic4sClientFactory, NdlaE4sClient}
+import no.ndla.articleapi.integration.Elastic4sClientFactory
 import no.ndla.articleapi.model.api
 import no.ndla.articleapi.model.domain._
 import no.ndla.mapping.License.{CC_BY_NC_SA, Copyrighted, PublicDomain}
-import no.ndla.articleapi.TestData.testSettings
 import no.ndla.scalatestsuite.IntegrationSuite
 import org.joda.time.DateTime
 import org.scalatest.Outcome
 
 import scala.util.Success
 
-class ArticleSearchServiceTest extends IntegrationSuite(EnableElasticsearchContainer = true) with TestEnvironment {
+class ArticleSearchServiceTest
+    extends IntegrationSuite(EnableElasticsearchContainer = true)
+    with UnitSuite
+    with TestEnvironment {
 
   e4sClient = Elastic4sClientFactory.getClient(elasticSearchHost.getOrElse("http://localhost:9200"))
 
@@ -191,6 +194,32 @@ class ArticleSearchServiceTest extends IntegrationSuite(EnableElasticsearchConta
     articleType = ArticleType.TopicArticle.toString
   )
 
+  val article12 = TestData.sampleArticleWithPublicDomain.copy(
+    id = Option(12),
+    title = List(ArticleTitle("availability - Hemmelig lærer artikkel", "nb")),
+    introduction = List(ArticleIntroduction("Lærer", "nb")),
+    metaDescription = List(ArticleMetaDescription("lærer", "nb")),
+    content = List(ArticleContent("<p>Lærer</p>", "nb")),
+    tags = List(ArticleTag(List("lærer"), "nb")),
+    created = today.minusDays(10).toDate,
+    updated = today.minusDays(5).toDate,
+    articleType = ArticleType.Standard.toString,
+    availability = Availability.teacher
+  )
+
+  val article13 = TestData.sampleArticleWithPublicDomain.copy(
+    id = Option(13),
+    title = List(ArticleTitle("availability - Hemmelig student artikkel", "nb")),
+    introduction = List(ArticleIntroduction("Student", "nb")),
+    metaDescription = List(ArticleMetaDescription("student", "nb")),
+    content = List(ArticleContent("<p>Student</p>", "nb")),
+    tags = List(ArticleTag(List("student"), "nb")),
+    created = today.minusDays(10).toDate,
+    updated = today.minusDays(5).toDate,
+    articleType = ArticleType.Standard.toString,
+    availability = Availability.student
+  )
+
   override def beforeAll() = if (elasticSearchContainer.isSuccess) {
     articleIndexService.createIndexWithName(ArticleApiProperties.ArticleSearchIndex)
 
@@ -205,8 +234,10 @@ class ArticleSearchServiceTest extends IntegrationSuite(EnableElasticsearchConta
     articleIndexService.indexDocument(article9)
     articleIndexService.indexDocument(article10)
     articleIndexService.indexDocument(article11)
+    articleIndexService.indexDocument(article12)
+    articleIndexService.indexDocument(article13)
 
-    blockUntil(() => articleSearchService.countDocuments == 11)
+    blockUntil(() => articleSearchService.countDocuments == 13)
   }
 
   test("That getStartAtAndNumResults returns SEARCH_MAX_PAGE_SIZE for value greater than SEARCH_MAX_PAGE_SIZE") {
@@ -591,6 +622,32 @@ class ArticleSearchServiceTest extends IntegrationSuite(EnableElasticsearchConta
     val Success(search3) = articleSearchService.matchingQuery(testSettings.copy(grepCodes = Seq("KV456")))
     search3.totalCount should be(3)
     search3.results.map(_.id) should be(Seq(1, 2, 3))
+  }
+
+  test("That 'everyone' doesn't see teacher and student articles in search") {
+    val Success(search1) = articleSearchService.matchingQuery(
+      testSettings.copy(query = Some("availability"), availability = Seq(Availability.everyone)))
+
+    val Success(search2) =
+      articleSearchService.matchingQuery(testSettings.copy(query = Some("availability"), availability = Seq.empty))
+
+    search1.results should be(Seq.empty)
+    search2.results should be(Seq.empty)
+  }
+
+  test("That 'students' doesn't see teacher articles in search") {
+    val Success(search1) = articleSearchService.matchingQuery(
+      testSettings.copy(query = Some("availability"), availability = Seq(Availability.student, Availability.everyone)))
+
+    search1.results.map(_.id) should be(Seq(13))
+  }
+
+  test("That 'teachers' sees teacher articles in search") {
+    val Success(search1) = articleSearchService.matchingQuery(
+      testSettings.copy(query = Some("availability"),
+                        availability = Seq(Availability.teacher, Availability.student, Availability.everyone)))
+
+    search1.results.map(_.id) should be(Seq(12, 13))
   }
 
   def blockUntil(predicate: () => Boolean): Unit = {

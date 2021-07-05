@@ -36,6 +36,7 @@ trait TestEnvironment
     with MockitoSugar
     with DraftApiClient
     with SearchApiClient
+    with FeideApiClient
     with ConverterService
     with NdlaClient
     with SearchConverterService
@@ -67,6 +68,7 @@ trait TestEnvironment
   var e4sClient = mock[NdlaE4sClient]
   val draftApiClient = mock[DraftApiClient]
   val searchApiClient = mock[SearchApiClient]
+  val feideApiClient = mock[FeideApiClient]
 
   val clock = mock[SystemClock]
   val authUser = mock[AuthUser]

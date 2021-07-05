@@ -72,32 +72,6 @@ class ArticleControllerV2Test extends UnitSuite with TestEnvironment with Scalat
     }
   }
 
-  test("GET / should use size of id-list as page-size if defined") {
-    val searchMock = mock[SearchResult[ArticleSummaryV2]]
-    when(searchMock.scrollId).thenReturn(None)
-    when(articleSearchService.matchingQuery(any[SearchSettings])).thenReturn(Success(searchMock))
-
-    get("/test/", "ids" -> "1,2,3,4", "page-size" -> "10", "language" -> "nb") {
-      status should equal(200)
-
-      val expectedSettings = SearchSettings(
-        None,
-        List(1, 2, 3, 4),
-        Language.DefaultLanguage,
-        None,
-        1,
-        4,
-        Sort.ByIdAsc,
-        ArticleType.all,
-        fallback = false,
-        grepCodes = Seq.empty,
-        shouldScroll = false
-      )
-
-      verify(articleSearchService, times(1)).matchingQuery(expectedSettings)
-    }
-  }
-
   test("That scrollId is in header, and not in body") {
     val scrollId =
       "DnF1ZXJ5VGhlbkZldGNoCgAAAAAAAAC1Fi1jZU9hYW9EVDlpY1JvNEVhVlJMSFEAAAAAAAAAthYtY2VPYWFvRFQ5aWNSbzRFYVZSTEhRAAAAAAAAALcWLWNlT2Fhb0RUOWljUm80RWFWUkxIUQAAAAAAAAC4Fi1jZU9hYW9EVDlpY1JvNEVhVlJMSFEAAAAAAAAAuRYtY2VPYWFvRFQ5aWNSbzRFYVZSTEhRAAAAAAAAALsWLWNlT2Fhb0RUOWljUm80RWFWUkxIUQAAAAAAAAC9Fi1jZU9hYW9EVDlpY1JvNEVhVlJMSFEAAAAAAAAAuhYtY2VPYWFvRFQ5aWNSbzRFYVZSTEhRAAAAAAAAAL4WLWNlT2Fhb0RUOWljUm80RWFWUkxIUQAAAAAAAAC8Fi1jZU9hYW9EVDlpY1JvNEVhVlJMSFE="
@@ -109,7 +83,8 @@ class ArticleControllerV2Test extends UnitSuite with TestEnvironment with Scalat
       Seq.empty[ArticleSummaryV2],
       Some(scrollId)
     )
-    when(articleSearchService.matchingQuery(any[SearchSettings])).thenReturn(Success(searchResponse))
+    when(readService.search(any, any, any, any, any, any, any, any, any, any, any, any))
+      .thenReturn(Success(searchResponse))
 
     get(s"/test/") {
       status should be(200)
@@ -119,7 +94,7 @@ class ArticleControllerV2Test extends UnitSuite with TestEnvironment with Scalat
   }
 
   test("That scrolling uses scroll and not searches normally") {
-    reset(articleSearchService)
+    reset(articleSearchService, readService)
     val scrollId =
       "DnF1ZXJ5VGhlbkZldGNoCgAAAAAAAAC1Fi1jZU9hYW9EVDlpY1JvNEVhVlJMSFEAAAAAAAAAthYtY2VPYWFvRFQ5aWNSbzRFYVZSTEhRAAAAAAAAALcWLWNlT2Fhb0RUOWljUm80RWFWUkxIUQAAAAAAAAC4Fi1jZU9hYW9EVDlpY1JvNEVhVlJMSFEAAAAAAAAAuRYtY2VPYWFvRFQ5aWNSbzRFYVZSTEhRAAAAAAAAALsWLWNlT2Fhb0RUOWljUm80RWFWUkxIUQAAAAAAAAC9Fi1jZU9hYW9EVDlpY1JvNEVhVlJMSFEAAAAAAAAAuhYtY2VPYWFvRFQ5aWNSbzRFYVZSTEhRAAAAAAAAAL4WLWNlT2Fhb0RUOWljUm80RWFWUkxIUQAAAAAAAAC8Fi1jZU9hYW9EVDlpY1JvNEVhVlJMSFE="
     val searchResponse = SearchResult[ArticleSummaryV2](
@@ -138,6 +113,7 @@ class ArticleControllerV2Test extends UnitSuite with TestEnvironment with Scalat
     }
 
     verify(articleSearchService, times(0)).matchingQuery(any[SearchSettings])
+    verify(readService, times(0)).search(any, any, any, any, any, any, any, any, any, any, any, any)
     verify(articleSearchService, times(1)).scroll(eqTo(scrollId), any[String], any[Boolean])
   }
 
@@ -186,13 +162,7 @@ class ArticleControllerV2Test extends UnitSuite with TestEnvironment with Scalat
   }
 
   test("That initial search-context doesn't scroll") {
-    reset(articleSearchService)
-
-    val expectedSettings = TestData.testSettings.copy(
-      language = "all",
-      articleTypes = List("standard", "topic-article"),
-      shouldScroll = true
-    )
+    reset(articleSearchService, readService)
 
     val result = SearchResult[ArticleSummaryV2](
       totalCount = 0,
@@ -202,11 +172,24 @@ class ArticleControllerV2Test extends UnitSuite with TestEnvironment with Scalat
       results = Seq.empty,
       scrollId = Some("heiheihei")
     )
-    when(articleSearchService.matchingQuery(any[SearchSettings])).thenReturn(Success(result))
+    when(readService.search(any, any, any, any, any, any, any, any, any, any, any, any)).thenReturn(Success(result))
 
     get("/test/?search-context=initial") {
       status should be(200)
-      verify(articleSearchService, times(1)).matchingQuery(expectedSettings)
+      verify(readService, times(1)).search(
+        query = any,
+        sort = any,
+        language = eqTo("all"),
+        license = any,
+        page = any,
+        pageSize = any,
+        idList = any,
+        articleTypesFilter = any,
+        fallback = any,
+        grepCodes = any,
+        shouldScroll = eqTo(true),
+        feideAccessToken = any
+      )
       verify(articleSearchService, times(0)).scroll(any[String], any[String], any[Boolean])
     }
   }

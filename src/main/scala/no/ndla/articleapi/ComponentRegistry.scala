@@ -30,6 +30,7 @@ object ComponentRegistry
     with Elastic4sClient
     with DraftApiClient
     with SearchApiClient
+    with FeideApiClient
     with ArticleSearchService
     with IndexService
     with ArticleIndexService
@@ -71,6 +72,7 @@ object ComponentRegistry
   var e4sClient: NdlaE4sClient = Elastic4sClientFactory.getClient()
   lazy val draftApiClient = new DraftApiClient
   lazy val searchApiClient = new SearchApiClient
+  lazy val feideApiClient = new FeideApiClient
 
   lazy val clock = new SystemClock
   lazy val authRole = new AuthRole

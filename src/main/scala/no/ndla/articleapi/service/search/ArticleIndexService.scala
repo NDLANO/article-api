@@ -41,6 +41,7 @@ trait ArticleIndexService {
           keywordField("defaultTitle"),
           dateField("lastUpdated"),
           keywordField("license"),
+          keywordField("availability"),
           textField("authors").fielddata(true),
           textField("articleType").analyzer("keyword"),
           nestedField("metaImage").fields(

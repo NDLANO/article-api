@@ -20,7 +20,7 @@ import no.ndla.articleapi.ArticleApiProperties.{
 }
 import no.ndla.articleapi.integration.Elastic4sClient
 import no.ndla.articleapi.model.api
-import no.ndla.articleapi.model.api.{ArticleSummaryV2, ResultWindowTooLargeException, SearchResultV2}
+import no.ndla.articleapi.model.api.{ArticleSummaryV2, ResultWindowTooLargeException}
 import no.ndla.articleapi.model.domain._
 import no.ndla.articleapi.model.search.SearchResult
 import no.ndla.articleapi.service.ConverterService
@@ -74,6 +74,12 @@ trait ArticleSearchService {
       val articleTypesFilter =
         if (settings.articleTypes.nonEmpty) Some(constantScoreQuery(termsQuery("articleType", settings.articleTypes)))
         else None
+
+      val availabilityFilter =
+        if (settings.availability.isEmpty) Some(termQuery("availability", Availability.everyone.toString))
+        else
+          Some(boolQuery().should(settings.availability.map(a => termQuery("availability", a.toString))))
+
       val idFilter = if (settings.withIdIn.isEmpty) None else Some(idsQuery(settings.withIdIn))
 
       val licenseFilter = settings.license match {
@@ -94,7 +100,15 @@ trait ArticleSearchService {
       val grepCodesFilter =
         if (settings.grepCodes.nonEmpty) Some(termsQuery("grepCodes", settings.grepCodes)) else None
 
-      val filters = List(licenseFilter, idFilter, languageFilter, articleTypesFilter, grepCodesFilter)
+      val filters = List(
+        licenseFilter,
+        idFilter,
+        languageFilter,
+        articleTypesFilter,
+        grepCodesFilter,
+        availabilityFilter
+      )
+
       val filteredSearch = queryBuilder.filter(filters.flatten)
 
       val (startAt, numResults) = getStartAtAndNumResults(settings.page, settings.pageSize)

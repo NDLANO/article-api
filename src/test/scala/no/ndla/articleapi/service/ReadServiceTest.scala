@@ -11,12 +11,24 @@ package no.ndla.articleapi.service
 import no.ndla.articleapi.ArticleApiProperties.externalApiUrls
 import no.ndla.validation.EmbedTagRules.ResourceHtmlEmbedTag
 import no.ndla.articleapi.model.api
-import no.ndla.articleapi.model.domain.{ArticleContent, ArticleTag, VisualElement}
-import no.ndla.validation.{TagAttributes, ResourceType}
+import no.ndla.articleapi.model.api.ArticleSummaryV2
+import no.ndla.articleapi.model.domain.{
+  ArticleContent,
+  ArticleTag,
+  ArticleType,
+  Language,
+  SearchSettings,
+  Sort,
+  VisualElement
+}
+import no.ndla.articleapi.model.search.SearchResult
+import no.ndla.validation.{ResourceType, TagAttributes}
 import no.ndla.articleapi.{TestData, TestEnvironment, UnitSuite}
 import org.mockito.Mockito._
 import org.mockito.ArgumentMatchers._
 import scalikejdbc.DBSession
+
+import scala.util.Success
 
 class ReadServiceTest extends UnitSuite with TestEnvironment {
 
@@ -120,5 +132,43 @@ class ReadServiceTest extends UnitSuite with TestEnvironment {
       s"""<div><$ResourceHtmlEmbedTag $resourceAttr="${ResourceType.H5P}" ${TagAttributes.DataPath}="$h5pPath" ${TagAttributes.Title}="This fancy h5p" $urlAttr="https://h5p.ndla.no$h5pPath"><$ResourceHtmlEmbedTag $resourceAttr="${ResourceType.H5P}" ${TagAttributes.DataPath}="$h5pPath" ${TagAttributes.Title}="This fancy h5p" $urlAttr="https://h5p.ndla.no$h5pPath"></div>"""
     val result = readService.addUrlOnResource(content)
     result should equal(expectedResult)
+  }
+
+  test("search should use size of id-list as page-size if defined") {
+    val searchMock = mock[SearchResult[ArticleSummaryV2]]
+    when(articleSearchService.matchingQuery(any[SearchSettings])).thenReturn(Success(searchMock))
+
+    readService.search(
+      query = None,
+      sort = None,
+      language = "nb",
+      license = None,
+      page = 1,
+      pageSize = 10,
+      idList = List(1, 2, 3, 4),
+      articleTypesFilter = Seq.empty,
+      fallback = false,
+      grepCodes = Seq.empty,
+      shouldScroll = false,
+      feideAccessToken = None
+    )
+
+    val expectedSettings = SearchSettings(
+      None,
+      List(1, 2, 3, 4),
+      Language.DefaultLanguage,
+      None,
+      1,
+      4,
+      Sort.ByIdAsc,
+      ArticleType.all,
+      fallback = false,
+      grepCodes = Seq.empty,
+      shouldScroll = false,
+      availability = Seq.empty
+    )
+
+    verify(articleSearchService, times(1)).matchingQuery(expectedSettings)
+
   }
 }

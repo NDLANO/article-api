@@ -18,8 +18,9 @@ import no.ndla.articleapi.ArticleApiProperties.{
   MaxPageSize
 }
 import no.ndla.articleapi.auth.{Role, User}
+import no.ndla.articleapi.integration.FeideApiClient
 import no.ndla.articleapi.model.api._
-import no.ndla.articleapi.model.domain.{ArticleIds, ArticleType, Language, SearchSettings, Sort}
+import no.ndla.articleapi.model.domain.{ArticleIds, ArticleType, Availability, Language, SearchSettings, Sort}
 import no.ndla.articleapi.service.search.{ArticleSearchService, SearchConverterService}
 import no.ndla.articleapi.service.{ConverterService, ReadService, WriteService}
 import no.ndla.articleapi.validation.ContentValidator
@@ -38,7 +39,8 @@ trait ArticleControllerV2 {
     with ConverterService
     with Role
     with User
-    with ContentValidator =>
+    with ContentValidator
+    with FeideApiClient =>
   val articleControllerV2: ArticleControllerV2
 
   class ArticleControllerV2(implicit val swagger: Swagger) extends NdlaController with SwaggerSupport {
@@ -99,6 +101,8 @@ trait ArticleControllerV2 {
       "grep-codes",
       "A comma separated list of codes from GREP API the resources should be filtered by.")
 
+    private val feideToken = Param[Option[String]]("FeideAuthorization", "Header containing FEIDE access token.")
+
     private def asQueryParam[T: Manifest: NotNothing](param: Param[T]) =
       queryParam[T](param.paramName).description(param.description)
 
@@ -127,6 +131,10 @@ trait ArticleControllerV2 {
           }
         case _ => orFunction
       }
+    }
+
+    private def requestFeideToken(implicit request: HttpServletRequest): Option[String] = {
+      request.header(this.feideToken.paramName).map(_.replaceFirst("Bearer ", ""))
     }
 
     get(
@@ -196,47 +204,30 @@ trait ArticleControllerV2 {
         articleTypesFilter: Seq[String],
         fallback: Boolean,
         grepCodes: Seq[String],
-        shouldScroll: Boolean
-    ) = {
+        shouldScroll: Boolean,
+    )(implicit request: HttpServletRequest) = {
+      val result = readService.search(
+        query,
+        sort,
+        language,
+        license,
+        page,
+        pageSize,
+        idList,
+        articleTypesFilter,
+        fallback,
+        grepCodes,
+        shouldScroll,
+        requestFeideToken
+      )
 
-      val settings = query match {
-        case Some(q) =>
-          SearchSettings(
-            query = Some(q),
-            withIdIn = idList,
-            language = language,
-            license = license,
-            page = page,
-            pageSize = if (idList.isEmpty) pageSize else idList.size,
-            sort = sort.getOrElse(Sort.ByRelevanceDesc),
-            if (articleTypesFilter.isEmpty) ArticleType.all else articleTypesFilter,
-            fallback = fallback,
-            grepCodes = grepCodes,
-            shouldScroll = shouldScroll
-          )
-
-        case None =>
-          SearchSettings(
-            query = None,
-            withIdIn = idList,
-            language = language,
-            license = license,
-            page = page,
-            pageSize = if (idList.isEmpty) pageSize else idList.size,
-            sort = sort.getOrElse(Sort.ByIdAsc),
-            if (articleTypesFilter.isEmpty) ArticleType.all else articleTypesFilter,
-            fallback = fallback,
-            grepCodes = grepCodes,
-            shouldScroll = shouldScroll
-          )
-      }
-
-      articleSearchService.matchingQuery(settings) match {
+      result match {
         case Success(searchResult) =>
           val responseHeader = searchResult.scrollId.map(i => this.scrollId.paramName -> i).toMap
           Ok(searchConverterService.asApiSearchResultV2(searchResult), headers = responseHeader)
-        case Failure(ex) => errorHandler(ex)
+        case Failure(ex) => Failure(ex)
       }
+
     }
 
     get(
@@ -247,6 +238,7 @@ trait ArticleControllerV2 {
           .description("Returns all articles. You can search it too.")
           .parameters(
             asHeaderParam(correlationId),
+            asHeaderParam(feideToken),
             asQueryParam(articleTypes),
             asQueryParam(query),
             asQueryParam(articleIds),
@@ -285,7 +277,7 @@ trait ArticleControllerV2 {
           articleTypesFilter,
           fallback,
           grepCodes,
-          shouldScroll
+          shouldScroll,
         )
       }
     }
@@ -298,6 +290,7 @@ trait ArticleControllerV2 {
           .description("Search all articles.")
           .parameters(
             asHeaderParam(correlationId),
+            asHeaderParam(feideToken),
             asQueryParam(scrollId),
             bodyParam[ArticleSearchParams]
           )
@@ -354,6 +347,7 @@ trait ArticleControllerV2 {
           .description("Returns the article for the specified id.")
           .parameters(
             asHeaderParam(correlationId),
+            asHeaderParam(feideToken),
             asPathParam(articleId),
             asQueryParam(language),
             asQueryParam(fallback),
@@ -368,7 +362,7 @@ trait ArticleControllerV2 {
           val fallback = booleanOrDefault(this.fallback.paramName, default = false)
           val revision = inlineRevision.orElse(intOrNone(this.revision.paramName))
 
-          readService.withIdV2(articleId, language, fallback, revision) match {
+          readService.withIdV2(articleId, language, fallback, revision, requestFeideToken) match {
             case Success(article) => article
             case Failure(ex)      => errorHandler(ex)
           }
