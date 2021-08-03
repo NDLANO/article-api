@@ -20,8 +20,8 @@ class ResourcesApp(implicit val swagger: Swagger) extends ScalatraServlet with N
 object ArticleApiInfo {
 
   val contactInfo = ContactInfo(
-    "NDLA",
-    "ndla.no",
+    ArticleApiProperties.ContactName,
+    ArticleApiProperties.ContactUrl,
     ArticleApiProperties.ContactEmail
   )
 
@@ -36,7 +36,7 @@ object ArticleApiInfo {
       "The Article API provides an endpoint for searching and fetching articles. Different meta-data is attached to the " +
       "returned articles, and typical examples of this are language and license.\n" +
       "Includes endpoints to filter Articles on different levels, and retrieve single articles.",
-    "https://om.ndla.no/tos",
+    ArticleApiProperties.TermsUrl,
     contactInfo,
     licenseInfo
   )

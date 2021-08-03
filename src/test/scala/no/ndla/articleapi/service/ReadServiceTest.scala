@@ -8,7 +8,7 @@
 
 package no.ndla.articleapi.service
 
-import no.ndla.articleapi.ArticleApiProperties.externalApiUrls
+import no.ndla.articleapi.ArticleApiProperties.{DefaultLanguage, externalApiUrls}
 import no.ndla.validation.EmbedTagRules.ResourceHtmlEmbedTag
 import no.ndla.articleapi.model.api
 import no.ndla.articleapi.model.api.ArticleSummaryV2
@@ -156,7 +156,7 @@ class ReadServiceTest extends UnitSuite with TestEnvironment {
     val expectedSettings = SearchSettings(
       None,
       List(1, 2, 3, 4),
-      Language.DefaultLanguage,
+      DefaultLanguage,
       None,
       1,
       4,

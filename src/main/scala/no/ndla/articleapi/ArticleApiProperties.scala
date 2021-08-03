@@ -25,7 +25,11 @@ object ArticleApiProperties extends LazyLogging {
   val DraftRoleWithWriteAccess = "drafts:write"
 
   val ApplicationPort: Int = propOrElse("APPLICATION_PORT", "80").toInt
-  val ContactEmail = "support+api@ndla.no"
+  val DefaultLanguage: String = propOrElse("DEFAULT_LANGUAGE", "nb")
+  val ContactName: String = propOrElse("CONTACT_NAME", "NDLA")
+  val ContactUrl: String = propOrElse("CONTACT_URL", "ndla.no")
+  val ContactEmail: String = propOrElse("CONTACT_EMAIL", "support+api@ndla.no")
+  val TermsUrl: String = propOrElse("TERMS_URL", "https://om.ndla.no/tos")
 
   lazy val MetaUserName: String = prop(PropertyKeys.MetaUserNameKey)
   lazy val MetaPassword: String = prop(PropertyKeys.MetaPasswordKey)
@@ -36,7 +40,6 @@ object ArticleApiProperties extends LazyLogging {
   val MetaMaxConnections = 10
 
   val SearchServer: String = propOrElse("SEARCH_SERVER", "http://search-article-api.ndla-local")
-  val SearchRegion: String = propOrElse("SEARCH_REGION", "eu-central-1")
   val RunWithSignedSearchRequests: Boolean = propOrElse("RUN_WITH_SIGNED_SEARCH_REQUESTS", "true").toBoolean
   val ArticleSearchIndex: String = propOrElse("SEARCH_INDEX_NAME", "articles")
   val ArticleSearchDocument = "article"
@@ -56,13 +59,6 @@ object ArticleApiProperties extends LazyLogging {
   val ApiClientsCacheAgeInMs: Long = 1000 * 60 * 60 // 1 hour caching
 
   val MinimumAllowedTags = 3
-
-  val nodeTypeBegrep: String = "begrep"
-  val nodeTypeVideo: String = "video"
-  val nodeTypeH5P: String = "h5p_content"
-
-  val supportedContentTypes =
-    Set("fagstoff", "oppgave", "veiledning", "aktualitet", "emneartikkel", nodeTypeBegrep, nodeTypeVideo, nodeTypeH5P)
 
   val oldCreatorTypes = List("opphavsmann",
                              "fotograf",
@@ -100,7 +96,7 @@ object ArticleApiProperties extends LazyLogging {
   // everything is converted. This value defines a maximum number of times the converter runs on a node
   val maxConvertionRounds = 5
 
-  lazy val Domain: String = Domains.get(Environment)
+  lazy val Domain: String = propOrElse("BACKEND_API_DOMAIN", Domains.get(Environment))
 
   val externalApiUrls = Map(
     ResourceType.Image.toString -> s"$Domain/image-api/v2/images",
@@ -119,13 +115,11 @@ object ArticleApiProperties extends LazyLogging {
     ).getOrElse(Environment, "https://h5p.ndla.no")
   )
 
-  val NDLABrightcoveAccountId: String = prop("NDLA_BRIGHTCOVE_ACCOUNT_ID")
-  val NDLABrightcovePlayerId: String = prop("NDLA_BRIGHTCOVE_PLAYER_ID")
+  val BrightcoveAccountId: String = prop("NDLA_BRIGHTCOVE_ACCOUNT_ID")
+  val BrightcovePlayerId: String = prop("NDLA_BRIGHTCOVE_PLAYER_ID")
 
-  val H5PResizerScriptUrl = "//ndla.no/sites/all/modules/h5p/library/js/h5p-resizer.js"
-
-  val NDLABrightcoveVideoScriptUrl =
-    s"//players.brightcove.net/$NDLABrightcoveAccountId/${NDLABrightcovePlayerId}_default/index.min.js"
+  val BrightcoveVideoScriptUrl =
+    s"//players.brightcove.net/$BrightcoveAccountId/${BrightcovePlayerId}_default/index.min.js"
   val NRKVideoScriptUrl = Seq("//www.nrk.no/serum/latest/js/video_embed.js", "//nrk.no/serum/latest/js/video_embed.js")
 
   def prop(key: String): String = {

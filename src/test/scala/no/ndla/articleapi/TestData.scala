@@ -8,7 +8,7 @@
 
 package no.ndla.articleapi
 
-import no.ndla.articleapi.ArticleApiProperties._
+import no.ndla.articleapi.ArticleApiProperties.{DefaultLanguage, externalApiUrls}
 import no.ndla.articleapi.model.api
 import no.ndla.articleapi.model.domain._
 import no.ndla.mapping.License
@@ -280,7 +280,7 @@ object TestData {
   val testSettings = SearchSettings(
     query = None,
     withIdIn = List(),
-    language = Language.DefaultLanguage,
+    language = DefaultLanguage,
     license = None,
     page = 1,
     pageSize = 10,
