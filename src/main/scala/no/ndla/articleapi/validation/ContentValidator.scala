@@ -9,7 +9,12 @@
 package no.ndla.articleapi.validation
 
 import no.ndla.articleapi.ArticleApiProperties
-import no.ndla.articleapi.ArticleApiProperties.{BrightcoveVideoScriptUrl, NRKVideoScriptUrl, MinimumAllowedTags}
+import no.ndla.articleapi.ArticleApiProperties.{
+  BrightcoveVideoScriptUrl,
+  H5PResizerScriptUrl,
+  MinimumAllowedTags,
+  NRKVideoScriptUrl
+}
 import no.ndla.articleapi.integration.DraftApiClient
 import no.ndla.articleapi.model.domain._
 import no.ndla.mapping.ISO639.get6391CodeFor6392CodeMappings
@@ -212,7 +217,7 @@ trait ContentValidator {
     }
 
     private def validateRequiredLibrary(requiredLibrary: RequiredLibrary): Option[ValidationMessage] = {
-      val permittedLibraries = Seq(BrightcoveVideoScriptUrl) ++ NRKVideoScriptUrl
+      val permittedLibraries = Seq(BrightcoveVideoScriptUrl, H5PResizerScriptUrl) ++ NRKVideoScriptUrl
       permittedLibraries.contains(requiredLibrary.url) match {
         case false =>
           Some(ValidationMessage(

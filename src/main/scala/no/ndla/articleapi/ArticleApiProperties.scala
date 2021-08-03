@@ -120,6 +120,7 @@ object ArticleApiProperties extends LazyLogging {
 
   val BrightcoveVideoScriptUrl =
     s"//players.brightcove.net/$BrightcoveAccountId/${BrightcovePlayerId}_default/index.min.js"
+  val H5PResizerScriptUrl = "//h5p.org/sites/all/modules/h5p/library/js/h5p-resizer.js"
   val NRKVideoScriptUrl = Seq("//www.nrk.no/serum/latest/js/video_embed.js", "//nrk.no/serum/latest/js/video_embed.js")
 
   def prop(key: String): String = {
