@@ -10,17 +10,17 @@ package no.ndla.articleapi.model.domain
 
 import com.sksamuel.elastic4s.analyzers._
 import no.ndla.mapping.ISO639
+import no.ndla.articleapi.ArticleApiProperties.DefaultLanguage
 
 import scala.annotation.tailrec
 
 object Language {
-  val DefaultLanguage = "nb"
   val UnknownLanguage = "unknown"
   val NoLanguage = ""
   val AllLanguages = "all"
 
   val languageAnalyzers = Seq(
-    LanguageAnalyzer(DefaultLanguage, NorwegianLanguageAnalyzer),
+    LanguageAnalyzer("nb", NorwegianLanguageAnalyzer),
     LanguageAnalyzer("nn", NorwegianLanguageAnalyzer),
     LanguageAnalyzer("en", EnglishLanguageAnalyzer),
     LanguageAnalyzer("fr", FrenchLanguageAnalyzer),
