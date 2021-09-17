@@ -215,6 +215,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     result.license should equal(license)
     result.articleType should equal(articleType)
     result.supportedLanguages should equal(supportedLanguages)
+    result.availability should equal(availability)
   }
 
   test("That authors are translated correctly") {

@@ -101,6 +101,7 @@ trait ConverterService {
       val metaDescription = findByLanguageOrBestEffort(metaDescriptions, language).map(toApiArticleMetaDescription)
       val metaImage = findByLanguageOrBestEffort(metaImages, language).map(toApiArticleMetaImage)
       val lastUpdated = searchableArticle.lastUpdated
+      val availability = searchableArticle.availability
 
       ArticleSummaryV2(
         searchableArticle.id,
@@ -114,7 +115,8 @@ trait ConverterService {
         searchableArticle.articleType,
         lastUpdated.toDate,
         supportedLanguages,
-        searchableArticle.grepCodes
+        searchableArticle.grepCodes,
+        availability,
       )
     }
 
