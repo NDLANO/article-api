@@ -46,7 +46,6 @@ class V17__RemoveVisualElementFromStandard extends BaseJavaMigration {
     sql"select count(*) from contentdata where document is not NULL"
       .map(rs => rs.long("count"))
       .single()
-      .apply()
   }
 
   def allArticles(offset: Long)(implicit session: DBSession): Seq[(Long, String)] = {
@@ -55,7 +54,6 @@ class V17__RemoveVisualElementFromStandard extends BaseJavaMigration {
         (rs.long("id"), rs.string("document"))
       })
       .list()
-      .apply()
   }
 
   def convertArticleUpdate(document: String): String = {
@@ -83,7 +81,6 @@ class V17__RemoveVisualElementFromStandard extends BaseJavaMigration {
 
     sql"update contentdata set document = ${dataObject} where id = ${id}"
       .update()
-      .apply()
   }
 
   case class V17__Article(articleType: String)
