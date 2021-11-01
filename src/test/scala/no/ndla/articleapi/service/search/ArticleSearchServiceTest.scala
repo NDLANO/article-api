@@ -578,7 +578,6 @@ class ArticleSearchServiceTest
     search.totalCount should equal(0)
   }
 
-
   test("That metaImage altText is included in the search") {
     val Success(search) = articleSearchService.matchingQuery(testSettings.copy(withIdIn = List(1), fallback = true))
     search.totalCount should be(1)
