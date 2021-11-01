@@ -37,7 +37,7 @@ class InternControllerTest extends UnitSuite with TestEnvironment with ScalatraF
   }
 
   test("POST /validate should return 204 if the article is valid") {
-    when(contentValidator.validateArticle(any[Article], any[Boolean], any[Boolean]))
+    when(contentValidator.validateArticle(any[Article], any[Boolean]))
       .thenReturn(Success(TestData.sampleArticleWithByNcSa))
     post("/validate/article", body = write(TestData.sampleArticleWithByNcSa)) {
       status should equal(200)

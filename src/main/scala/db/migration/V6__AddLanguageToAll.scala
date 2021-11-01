@@ -7,21 +7,22 @@
 
 package db.migration
 
-import java.util.Date
-
 import no.ndla.articleapi.model.domain.Language
 import org.flywaydb.core.api.migration.{BaseJavaMigration, Context}
-import org.json4s.FieldSerializer
+import org.json4s.{FieldSerializer, Formats}
 import org.json4s.FieldSerializer.ignore
 import org.json4s.native.Serialization.{read, write}
 import org.postgresql.util.PGobject
 import scalikejdbc.{DB, DBSession, _}
 
+import java.util.Date
+
 class V6__AddLanguageToAll extends BaseJavaMigration {
 
-  implicit val formats = org.json4s.DefaultFormats + FieldSerializer[V6_Article](ignore("id") orElse ignore("revision"))
+  implicit val formats: Formats = org.json4s.DefaultFormats + FieldSerializer[V6_Article](
+    ignore("id") orElse ignore("revision"))
 
-  override def migrate(context: Context) = {
+  override def migrate(context: Context): Unit = {
     val db = DB(context.getConnection)
     db.autoClose(false)
 
@@ -47,12 +48,12 @@ class V6__AddLanguageToAll extends BaseJavaMigration {
     }
   }
 
-  def countAllArticles(implicit session: DBSession) = {
+  def countAllArticles(implicit session: DBSession): Option[Long] = {
     sql"select count(*) from contentdata where document is not NULL".map(rs => rs.long("count")).single().apply()
   }
 
   def allArticles(offset: Long)(implicit session: DBSession): Seq[V6_Article] = {
-    sql"select id, revision, document from contentdata where document is not NULL order by id limit 1000 offset ${offset}"
+    sql"select id, revision, document from contentdata where document is not NULL order by id limit 1000 offset $offset"
       .map(rs => {
         val meta = read[V6_Article](rs.string("document"))
         meta.copy(id = Some(rs.long("id")), revision = Some(rs.int("revision")))
@@ -64,20 +65,21 @@ class V6__AddLanguageToAll extends BaseJavaMigration {
 
   def convertArticleUpdate(articleMeta: V6_Article): V6_Article = {
     articleMeta.copy(
-      title = articleMeta.title.map(t => V6_ArticleTitle(t.title, Some(Language.languageOrUnknown(t.language)))),
+      title =
+        articleMeta.title.map(t => V6_ArticleTitle(t.title, Some(Language.languageOrUnknown(t.language).toString))),
       content = articleMeta.content.map(c =>
-        V6_ArticleContent(c.content, c.footNotes, Some(Language.languageOrUnknown(c.language)))),
-      tags = articleMeta.tags.map(t => V6_ArticleTag(t.tags, Some(Language.languageOrUnknown(t.language)))),
-      visualElement =
-        articleMeta.visualElement.map(v => V6_VisualElement(v.resource, Some(Language.languageOrUnknown(v.language)))),
+        V6_ArticleContent(c.content, c.footNotes, Some(Language.languageOrUnknown(c.language).toString))),
+      tags = articleMeta.tags.map(t => V6_ArticleTag(t.tags, Some(Language.languageOrUnknown(t.language).toString))),
+      visualElement = articleMeta.visualElement.map(v =>
+        V6_VisualElement(v.resource, Some(Language.languageOrUnknown(v.language).toString))),
       introduction = articleMeta.introduction.map(i =>
-        V6_ArticleIntroduction(i.introduction, Some(Language.languageOrUnknown(i.language)))),
+        V6_ArticleIntroduction(i.introduction, Some(Language.languageOrUnknown(i.language).toString))),
       metaDescription = articleMeta.metaDescription.map(m =>
-        V6_ArticleMetaDescription(m.content, Some(Language.languageOrUnknown(m.language))))
+        V6_ArticleMetaDescription(m.content, Some(Language.languageOrUnknown(m.language).toString)))
     )
   }
 
-  def updateArticle(articleMeta: V6_Article)(implicit session: DBSession) = {
+  def updateArticle(articleMeta: V6_Article)(implicit session: DBSession): Int = {
     val dataObject = new PGobject()
     dataObject.setType("jsonb")
     dataObject.setValue(write(articleMeta))
@@ -89,7 +91,7 @@ class V6__AddLanguageToAll extends BaseJavaMigration {
   // Concepts
   //
 
-  def migrateConcepts(implicit session: DBSession) = {
+  def migrateConcepts(implicit session: DBSession): Unit = {
     val count = countAllConcepts.get
     var numPagesLeft = (count / 1000) + 1
     var offset = 0L
@@ -101,12 +103,12 @@ class V6__AddLanguageToAll extends BaseJavaMigration {
     }
   }
 
-  def countAllConcepts(implicit session: DBSession) = {
+  def countAllConcepts(implicit session: DBSession): Option[Long] = {
     sql"select count(*) from conceptdata".map(rs => rs.long("count")).single().apply()
   }
 
   def allConcepts(offset: Long)(implicit session: DBSession): Seq[V6_Concept] = {
-    sql"select id, document from conceptdata order by id limit 1000 offset ${offset}"
+    sql"select id, document from conceptdata order by id limit 1000 offset $offset"
       .map(rs => {
         val meta = read[V6_Concept](rs.string("document"))
         meta.copy(id = Some(rs.long("id")))
@@ -118,12 +120,13 @@ class V6__AddLanguageToAll extends BaseJavaMigration {
 
   def convertConceptUpdate(concept: V6_Concept): V6_Concept = {
     concept.copy(
-      title = concept.title.map(t => V6_ConceptTitle(t.title, Some(Language.languageOrUnknown(t.language)))),
-      content = concept.content.map(c => V6_ConceptContent(c.content, Some(Language.languageOrUnknown(c.language))))
+      title = concept.title.map(t => V6_ConceptTitle(t.title, Some(Language.languageOrUnknown(t.language).toString))),
+      content =
+        concept.content.map(c => V6_ConceptContent(c.content, Some(Language.languageOrUnknown(c.language).toString)))
     )
   }
 
-  def updateConcept(conceptMeta: V6_Concept)(implicit session: DBSession) = {
+  def updateConcept(conceptMeta: V6_Concept)(implicit session: DBSession): Int = {
     val dataObject = new PGobject()
     dataObject.setType("jsonb")
     dataObject.setValue(write(conceptMeta))

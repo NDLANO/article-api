@@ -35,29 +35,29 @@ trait ArticleIndexService {
     }
 
     def getMapping: MappingDefinition = {
-      mapping(documentType).fields(
-        List(
-          intField("id"),
-          keywordField("defaultTitle"),
-          dateField("lastUpdated"),
-          keywordField("license"),
-          keywordField("availability"),
-          textField("authors").fielddata(true),
-          textField("articleType").analyzer("keyword"),
-          nestedField("metaImage").fields(
-            keywordField("imageId"),
-            keywordField("altText"),
-            keywordField("language")
-          ),
-          keywordField("grepCodes")
-        ) ++
-          generateLanguageSupportedFieldList("title", keepRaw = true) ++
-          generateLanguageSupportedFieldList("content") ++
-          generateLanguageSupportedFieldList("visualElement") ++
-          generateLanguageSupportedFieldList("introduction") ++
-          generateLanguageSupportedFieldList("metaDescription") ++
-          generateLanguageSupportedFieldList("tags")
+      val fields = List(
+        intField("id"),
+        keywordField("defaultTitle"),
+        dateField("lastUpdated"),
+        keywordField("license"),
+        keywordField("availability"),
+        textField("authors").fielddata(true),
+        textField("articleType").analyzer("keyword"),
+        nestedField("metaImage").fields(
+          keywordField("imageId"),
+          keywordField("altText"),
+          keywordField("language")
+        ),
+        keywordField("grepCodes")
       )
+      val dynamics = generateLanguageSupportedDynamicTemplates("title", keepRaw = true) ++
+        generateLanguageSupportedDynamicTemplates("content") ++
+        generateLanguageSupportedDynamicTemplates("visualElement") ++
+        generateLanguageSupportedDynamicTemplates("introduction") ++
+        generateLanguageSupportedDynamicTemplates("metaDescription") ++
+        generateLanguageSupportedDynamicTemplates("tags")
+
+      mapping(documentType).fields(fields).dynamicTemplates(dynamics)
     }
   }
 

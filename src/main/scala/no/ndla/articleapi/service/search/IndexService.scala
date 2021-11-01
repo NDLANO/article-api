@@ -8,11 +8,13 @@
 
 package no.ndla.articleapi.service.search
 
+import com.sksamuel.elastic4s.analyzers.StandardAnalyzer
+
 import java.text.SimpleDateFormat
 import java.util.Calendar
-
 import com.sksamuel.elastic4s.http.ElasticDsl._
 import com.sksamuel.elastic4s.indexes.IndexRequest
+import com.sksamuel.elastic4s.mappings.dynamictemplate.DynamicTemplateRequest
 import com.sksamuel.elastic4s.mappings.{FieldDefinition, MappingDefinition}
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.articleapi.ArticleApiProperties
@@ -21,6 +23,7 @@ import no.ndla.articleapi.model.domain.Language.languageAnalyzers
 import no.ndla.articleapi.model.domain.{Content, ReindexResult}
 import no.ndla.articleapi.repository.Repository
 
+import scala.collection.mutable.ListBuffer
 import scala.util.{Failure, Success, Try}
 
 trait IndexService {
@@ -228,14 +231,51 @@ trait IndexService {
         case true =>
           languageAnalyzers.map(
             langAnalyzer =>
-              textField(s"$fieldName.${langAnalyzer.lang}")
+              textField(s"$fieldName.${langAnalyzer.languageTag.toString}")
                 .fielddata(false)
                 .analyzer(langAnalyzer.analyzer)
                 .fields(keywordField("raw")))
         case false =>
-          languageAnalyzers.map(langAnalyzer =>
-            textField(s"$fieldName.${langAnalyzer.lang}").fielddata(false).analyzer(langAnalyzer.analyzer))
+          languageAnalyzers.map(
+            langAnalyzer =>
+              textField(s"$fieldName.${langAnalyzer.languageTag.toString}")
+                .fielddata(false)
+                .analyzer(langAnalyzer.analyzer))
       }
+    }
+
+    /**
+      * Returns Sequence of DynamicTemplateRequest for a given field.
+      *
+      * @param fieldName Name of field in mapping.
+      * @param keepRaw   Whether to add a keywordField named raw.
+      *                  Usually used for sorting, aggregations or scripts.
+      * @return Sequence of DynamicTemplateRequest for a field.
+      */
+    protected def generateLanguageSupportedDynamicTemplates(fieldName: String,
+                                                            keepRaw: Boolean = false): Seq[DynamicTemplateRequest] = {
+      val fields = new ListBuffer[FieldDefinition]()
+      if (keepRaw) {
+        fields += keywordField("raw")
+      }
+      val languageTemplates = languageAnalyzers.map(
+        languageAnalyzer => {
+          val name = s"$fieldName.${languageAnalyzer.languageTag.toString()}"
+          DynamicTemplateRequest(
+            name = name,
+            mapping = textField(name).analyzer(languageAnalyzer.analyzer).fields(fields.toList),
+            matchMappingType = Some("string"),
+            pathMatch = Some(name)
+          )
+        }
+      )
+      val catchAlltemplate = DynamicTemplateRequest(
+        name = fieldName,
+        mapping = textField(fieldName).analyzer(StandardAnalyzer).fields(fields.toList),
+        matchMappingType = Some("string"),
+        pathMatch = Some(s"$fieldName.*")
+      )
+      languageTemplates ++ Seq(catchAlltemplate)
     }
   }
 

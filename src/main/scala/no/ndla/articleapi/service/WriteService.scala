@@ -42,11 +42,8 @@ trait WriteService {
         useSoftValidation: Boolean
     ): Try[Article] = {
 
-      val strictValidationResult = contentValidator.validateArticle(
-        article,
-        allowUnknownLanguage = true,
-        isImported = externalIds.nonEmpty || useImportValidation
-      )
+      val strictValidationResult =
+        contentValidator.validateArticle(article, isImported = externalIds.nonEmpty || useImportValidation)
 
       val validationResult =
         if (useSoftValidation) {

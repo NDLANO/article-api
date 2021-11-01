@@ -28,7 +28,7 @@ trait SearchConverterService {
 
       val defaultTitle = articleWithAgreement.title
         .sortBy(title => {
-          val languagePriority = Language.languageAnalyzers.map(la => la.lang).reverse
+          val languagePriority = Language.languageAnalyzers.map(la => la.languageTag.toString).reverse
           languagePriority.indexOf(title.language)
         })
         .lastOption

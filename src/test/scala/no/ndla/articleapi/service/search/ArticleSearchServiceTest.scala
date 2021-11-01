@@ -184,8 +184,10 @@ class ArticleSearchServiceTest
 
   val article11 = TestData.sampleArticleWithPublicDomain.copy(
     id = Option(11),
-    title = List(ArticleTitle("Katter", "nb"), ArticleTitle("Cats", "en")),
-    introduction = List(ArticleIntroduction("Katter er store", "nb"), ArticleIntroduction("Cats are big", "en")),
+    title = List(ArticleTitle("Katter", "nb"), ArticleTitle("Cats", "en"), ArticleTitle("Baloi", "biz")),
+    introduction = List(ArticleIntroduction("Katter er store", "nb"),
+                        ArticleIntroduction("Cats are big", "en"),
+                        ArticleIntroduction("Cats are baloi", "biz")),
     metaDescription = List(ArticleMetaDescription("hurr durr ima sheep", "en")),
     content = List(ArticleContent("<p>Noe om en katt</p>", "nb"), ArticleContent("<p>Something about a cat</p>", "en")),
     tags = List(ArticleTag(List("ikkehund"), "nb"), ArticleTag(List("notdog"), "en")),
@@ -553,6 +555,30 @@ class ArticleSearchServiceTest
     search.results(2).title.language should equal("en")
   }
 
+  test("That searching for language not in analyzer works as expected") {
+    val Success(search) =
+      articleSearchService.matchingQuery(testSettings.copy(language = "biz"))
+
+    search.totalCount should equal(1)
+    search.results.head.id should equal(11)
+    search.results.head.title.language should equal("biz")
+  }
+
+  test("That searching for language not in index works as expected") {
+    val Success(search) =
+      articleSearchService.matchingQuery(testSettings.copy(language = "mix"))
+
+    search.totalCount should equal(0)
+  }
+
+  test("That searching for not supported language does not break") {
+    val Success(search) =
+      articleSearchService.matchingQuery(testSettings.copy(language = "asdf"))
+
+    search.totalCount should equal(0)
+  }
+
+
   test("That metaImage altText is included in the search") {
     val Success(search) = articleSearchService.matchingQuery(testSettings.copy(withIdIn = List(1), fallback = true))
     search.totalCount should be(1)
@@ -575,11 +601,11 @@ class ArticleSearchServiceTest
           shouldScroll = true
         ))
 
-    val Success(scroll1) = articleSearchService.scroll(initialSearch.scrollId.get, "all", true)
-    val Success(scroll2) = articleSearchService.scroll(scroll1.scrollId.get, "all", true)
-    val Success(scroll3) = articleSearchService.scroll(scroll2.scrollId.get, "all", true)
-    val Success(scroll4) = articleSearchService.scroll(scroll3.scrollId.get, "all", true)
-    val Success(scroll5) = articleSearchService.scroll(scroll4.scrollId.get, "all", true)
+    val Success(scroll1) = articleSearchService.scroll(initialSearch.scrollId.get, "*", true)
+    val Success(scroll2) = articleSearchService.scroll(scroll1.scrollId.get, "*", true)
+    val Success(scroll3) = articleSearchService.scroll(scroll2.scrollId.get, "*", true)
+    val Success(scroll4) = articleSearchService.scroll(scroll3.scrollId.get, "*", true)
+    val Success(scroll5) = articleSearchService.scroll(scroll4.scrollId.get, "*", true)
 
     initialSearch.results.map(_.id) should be(expectedIds.head)
     scroll1.results.map(_.id) should be(expectedIds(1))
@@ -598,7 +624,7 @@ class ArticleSearchServiceTest
           fallback = true,
           shouldScroll = true
         ))
-    val Success(scroll) = articleSearchService.scroll(initialSearch.scrollId.get, "all", true)
+    val Success(scroll) = articleSearchService.scroll(initialSearch.scrollId.get, "*", true)
 
     initialSearch.results.size should be(1)
     initialSearch.results.head.id should be(10)

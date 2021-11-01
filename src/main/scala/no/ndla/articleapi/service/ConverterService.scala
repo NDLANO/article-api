@@ -95,7 +95,7 @@ trait ConverterService {
 
       val title = findByLanguageOrBestEffort(titles, language)
         .map(toApiArticleTitle)
-        .getOrElse(api.ArticleTitle("", UnknownLanguage))
+        .getOrElse(api.ArticleTitle("", UnknownLanguage.toString))
       val visualElement = findByLanguageOrBestEffort(visualElements, language).map(toApiVisualElement)
       val introduction = findByLanguageOrBestEffort(introductions, language).map(toApiArticleIntroduction)
       val metaDescription = findByLanguageOrBestEffort(metaDescriptions, language).map(toApiArticleMetaDescription)
@@ -353,23 +353,23 @@ trait ConverterService {
 
     def toApiArticleV2(article: Article, language: String, fallback: Boolean = false): Try[api.ArticleV2] = {
       val supportedLanguages = getSupportedArticleLanguages(article)
-      val isLanguageNeutral = supportedLanguages.contains(UnknownLanguage) && supportedLanguages.length == 1
+      val isLanguageNeutral = supportedLanguages.contains(UnknownLanguage.toString) && supportedLanguages.length == 1
 
       if (supportedLanguages.contains(language) || language == AllLanguages || isLanguageNeutral || fallback) {
         val meta = findByLanguageOrBestEffort(article.metaDescription, language)
           .map(toApiArticleMetaDescription)
-          .getOrElse(api.ArticleMetaDescription("", UnknownLanguage))
+          .getOrElse(api.ArticleMetaDescription("", UnknownLanguage.toString))
         val tags = findByLanguageOrBestEffort(article.tags, language)
           .map(toApiArticleTag)
-          .getOrElse(api.ArticleTag(Seq(), UnknownLanguage))
+          .getOrElse(api.ArticleTag(Seq(), UnknownLanguage.toString))
         val title = findByLanguageOrBestEffort(article.title, language)
           .map(toApiArticleTitle)
-          .getOrElse(api.ArticleTitle("", UnknownLanguage))
+          .getOrElse(api.ArticleTitle("", UnknownLanguage.toString))
         val introduction = findByLanguageOrBestEffort(article.introduction, language).map(toApiArticleIntroduction)
         val visualElement = findByLanguageOrBestEffort(article.visualElement, language).map(toApiVisualElement)
         val articleContent = findByLanguageOrBestEffort(article.content, language)
           .map(toApiArticleContentV2)
-          .getOrElse(api.ArticleContentV2("", UnknownLanguage))
+          .getOrElse(api.ArticleContentV2("", UnknownLanguage.toString))
         val metaImage = findByLanguageOrBestEffort(article.metaImage, language).map(toApiArticleMetaImage)
 
         Success(

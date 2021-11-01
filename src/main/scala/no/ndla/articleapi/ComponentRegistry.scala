@@ -62,7 +62,7 @@ object ComponentRegistry
   lazy val articleIndexService = new ArticleIndexService
 
   lazy val converterService = new ConverterService
-  lazy val contentValidator = new ContentValidator(allowEmptyLanguageField = false)
+  lazy val contentValidator = new ContentValidator()
 
   lazy val ndlaClient = new NdlaClient
   lazy val searchConverterService = new SearchConverterService

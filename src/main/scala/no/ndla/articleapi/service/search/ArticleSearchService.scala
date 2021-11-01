@@ -45,7 +45,7 @@ trait ArticleSearchService {
     def matchingQuery(settings: SearchSettings): Try[SearchResult[ArticleSummaryV2]] = {
       val fullQuery = settings.query match {
         case Some(query) =>
-          val language = if (settings.language == Language.AllLanguages || settings.fallback) "*" else settings.language
+          val language = if (settings.fallback) "*" else settings.language
           val titleSearch = simpleStringQuery(query).field(s"title.$language", 3)
           val introSearch = simpleStringQuery(query).field(s"introduction.$language", 2)
           val metaSearch = simpleStringQuery(query).field(s"metaDescription.$language", 1)
@@ -139,7 +139,7 @@ trait ArticleSearchService {
                 response.result.totalHits,
                 Some(settings.page),
                 numResults,
-                if (settings.language == "*") Language.AllLanguages else settings.language,
+                settings.language,
                 getHits(response.result, settings.language, settings.fallback),
                 response.result.scrollId
               ))
