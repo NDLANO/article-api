@@ -51,7 +51,6 @@ class V12__MoveRelatedContentEmbedsToDivs extends BaseJavaMigration {
     sql"select count(*) from contentdata where document is not NULL"
       .map(rs => rs.long("count"))
       .single()
-      .apply()
   }
 
   def allArticles(offset: Long)(implicit session: DBSession): Seq[(Long, String)] = {
@@ -60,7 +59,6 @@ class V12__MoveRelatedContentEmbedsToDivs extends BaseJavaMigration {
         (rs.long("id"), rs.string("document"))
       })
       .list()
-      .apply()
   }
 
   private def convertContent(content: List[V12_Content]): JValue = {
@@ -119,7 +117,6 @@ class V12__MoveRelatedContentEmbedsToDivs extends BaseJavaMigration {
 
     sql"update contentdata set document = ${dataObject} where id = ${id}"
       .update()
-      .apply()
   }
 
   case class V12_Content(content: String, language: String)

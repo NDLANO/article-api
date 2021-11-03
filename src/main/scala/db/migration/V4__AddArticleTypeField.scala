@@ -36,14 +36,13 @@ class V4__AddUpdatedColoums extends BaseJavaMigration {
   }
 
   def countAllArticles(implicit session: DBSession) = {
-    sql"select count(*) from contentdata where document is not NULL".map(rs => rs.long("count")).single().apply()
+    sql"select count(*) from contentdata where document is not NULL".map(rs => rs.long("count")).single()
   }
 
   def allArticles(offset: Long)(implicit session: DBSession) = {
     sql"select id, document from contentdata where document is not NULL order by id limit 1000 offset ${offset}"
       .map(rs => V4_DBArticleMetaInformation(rs.long("id"), rs.string("document")))
       .list()
-      .apply()
   }
 
   def convertArticleUpdate(articleMeta: V4_DBArticleMetaInformation) = {
@@ -65,7 +64,7 @@ class V4__AddUpdatedColoums extends BaseJavaMigration {
     dataObject.setType("jsonb")
     dataObject.setValue(articleMeta.document)
 
-    sql"update contentdata set document = $dataObject where id = ${articleMeta.id}".update().apply()
+    sql"update contentdata set document = $dataObject where id = ${articleMeta.id}".update()
   }
 
 }

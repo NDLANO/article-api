@@ -45,7 +45,7 @@ class V9__TranslateUntranslatedAuthors extends BaseJavaMigration {
   }
 
   def countAllArticles(implicit session: DBSession) = {
-    sql"select count(*) from contentdata where document is not NULL".map(rs => rs.long("count")).single().apply()
+    sql"select count(*) from contentdata where document is not NULL".map(rs => rs.long("count")).single()
   }
 
   def allArticles(offset: Long)(implicit session: DBSession): Seq[(Long, Int, String)] = {
@@ -54,7 +54,6 @@ class V9__TranslateUntranslatedAuthors extends BaseJavaMigration {
         (rs.long("id"), rs.int("revision"), rs.string("document"))
       })
       .list()
-      .apply()
   }
 
   def toNewAuthorType(author: V8_Author): V8_Author = {
@@ -90,7 +89,7 @@ class V9__TranslateUntranslatedAuthors extends BaseJavaMigration {
     dataObject.setType("jsonb")
     dataObject.setValue(write(articleMeta))
 
-    sql"update contentdata set document = ${dataObject} where id = ${articleMeta.id}".update().apply()
+    sql"update contentdata set document = ${dataObject} where id = ${articleMeta.id}".update()
   }
 
 }

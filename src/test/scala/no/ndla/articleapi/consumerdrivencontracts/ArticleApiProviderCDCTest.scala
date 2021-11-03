@@ -72,7 +72,6 @@ class ArticleApiProviderCDCTest
       val schemaName = SQLSyntax.createUnsafely(dataSource.getSchema)
       sql"drop schema if exists $schemaName cascade;"
         .execute()
-        .apply()
     })
     DBMigrator.migrate(dataSource)
     ConnectionPool.singleton(new DataSourceConnectionPool(dataSource))
