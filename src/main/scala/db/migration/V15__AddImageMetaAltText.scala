@@ -47,7 +47,6 @@ class V15__AddImageMetaAltText extends BaseJavaMigration {
     sql"select count(*) from contentdata where document is not NULL"
       .map(rs => rs.long("count"))
       .single()
-      .apply()
   }
 
   def allArticles(offset: Long)(implicit session: DBSession): Seq[(Long, String)] = {
@@ -56,7 +55,6 @@ class V15__AddImageMetaAltText extends BaseJavaMigration {
         (rs.long("id"), rs.string("document"))
       })
       .list()
-      .apply()
   }
 
   def convertMetaImage(images: List[V6_MetaImage]): JValue = {
@@ -82,7 +80,6 @@ class V15__AddImageMetaAltText extends BaseJavaMigration {
 
     sql"update contentdata set document = ${dataObject} where id = ${id}"
       .update()
-      .apply()
   }
 
   case class V6_MetaImage(imageId: String, altText: Option[String], language: String)

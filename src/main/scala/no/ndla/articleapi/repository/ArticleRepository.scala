@@ -38,7 +38,7 @@ trait ArticleRepository {
               set document=$dataObject,
                   external_id=ARRAY[$externalIds]::text[]
               where article_id=${article.id} and revision=${article.revision}
-          """.update().apply()
+          """.update()
       } match {
         case Success(count) if count == 1 =>
           logger.info(s"Updated article ${article.id}")
@@ -49,7 +49,7 @@ trait ArticleRepository {
             sql"""
                   insert into ${Article.table} (article_id, document, external_id, revision)
                   values (${article.id}, $dataObject, ARRAY[$externalIds]::text[], ${article.revision})
-              """.updateAndReturnGeneratedKey().apply()
+              """.updateAndReturnGeneratedKey()
           }.map(_ => article)
 
         case Failure(ex) => Failure(ex)
@@ -63,7 +63,7 @@ trait ArticleRepository {
              set document=null
              where article_id=$articleId
              and revision=(select max(revision) from ${Article.table} where article_id=${articleId})
-           """.update().apply()
+           """.update()
       if (numRows == 1) {
         Success(articleId)
       } else {
@@ -78,7 +78,7 @@ trait ArticleRepository {
              set document=null
              where article_id=$articleId
              and revision=$revision
-           """.update().apply()
+           """.update()
       if (numRows == 1) {
         Success(articleId)
       } else {
@@ -92,7 +92,7 @@ trait ArticleRepository {
              delete from ${Article.table}
              where article_id = $articleId
              and revision=(select max(revision) from ${Article.table} where article_id=${articleId})
-           """.update().apply()
+           """.update()
       if (numRows == 1) {
         Success(articleId)
       } else {
@@ -107,7 +107,7 @@ trait ArticleRepository {
              delete from ${Article.table}
              where article_id = $articleId
              and revision=$revision
-           """.update().apply()
+           """.update()
       if (numRows == 1) {
         Success(articleId)
       } else {
@@ -146,7 +146,6 @@ trait ArticleRepository {
          """
         .map(rs => rs.long("article_id"))
         .single()
-        .apply()
     }
 
     def getRevisions(articleId: Long)(implicit session: DBSession = ReadOnlyAutoSession): Seq[Int] = {
@@ -158,7 +157,6 @@ trait ArticleRepository {
          """
         .map(rs => rs.int("revision"))
         .list()
-        .apply()
     }
 
     private def externalIdsFromResultSet(wrappedResultSet: WrappedResultSet): List[String] = {
@@ -178,7 +176,6 @@ trait ArticleRepository {
          """
         .map(externalIdsFromResultSet)
         .single()
-        .apply()
         .getOrElse(List.empty)
     }
 
@@ -191,7 +188,6 @@ trait ArticleRepository {
               externalIdsFromResultSet(rs)
           ))
         .list()
-        .apply()
     }
 
     def articleCount(implicit session: DBSession = AutoSession): Long = {
@@ -207,7 +203,6 @@ trait ArticleRepository {
       """
         .map(rs => rs.long("count"))
         .single()
-        .apply()
         .getOrElse(0)
     }
 
@@ -227,7 +222,6 @@ trait ArticleRepository {
       """
         .map(Article.fromResultSet(ar))
         .list()
-        .apply()
         .flatten
     }
 
@@ -235,7 +229,6 @@ trait ArticleRepository {
       val allTags = sql"""select document->>'tags' from ${Article.table} where document is not NULL"""
         .map(rs => rs.string(1))
         .list()
-        .apply()
 
       allTags
         .flatMap(tag => parse(tag).extract[List[ArticleTag]])
@@ -264,7 +257,6 @@ trait ArticleRepository {
                       """
         .map(rs => rs.string("tags"))
         .list()
-        .apply()
 
       val tagsCount =
         sql"""
@@ -276,7 +268,6 @@ trait ArticleRepository {
            """
           .map(rs => rs.int("count"))
           .single()
-          .apply()
           .getOrElse(0)
 
       (tags, tagsCount)
@@ -288,8 +279,7 @@ trait ArticleRepository {
         .map(rs => {
           (rs.long("mi"), rs.long("ma"))
         })
-        .single()
-        .apply() match {
+        .single() match {
         case Some(minmax) => minmax
         case None         => (0L, 0L)
       }
@@ -308,7 +298,6 @@ trait ArticleRepository {
          """
         .map(Article.fromResultSet(ar))
         .single()
-        .apply()
         .flatten
     }
 
@@ -323,7 +312,6 @@ trait ArticleRepository {
          """
         .map(Article.fromResultSet(ar))
         .list()
-        .apply()
         .flatten
     }
 
@@ -338,7 +326,6 @@ trait ArticleRepository {
               externalIdsFromResultSet(rs)
           ))
         .single()
-        .apply()
     }
 
   }

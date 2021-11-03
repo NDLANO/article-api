@@ -47,7 +47,6 @@ class V18__AddPublishedDate extends BaseJavaMigration {
     sql"select count(*) from contentdata where document is not NULL"
       .map(rs => rs.long("count"))
       .single()
-      .apply()
   }
 
   def allArticles(offset: Long)(implicit session: DBSession): Seq[(Long, String)] = {
@@ -56,7 +55,6 @@ class V18__AddPublishedDate extends BaseJavaMigration {
         (rs.long("id"), rs.string("document"))
       })
       .list()
-      .apply()
   }
 
   def updateArticle(document: String, id: Long)(implicit session: DBSession): Int = {
@@ -66,7 +64,6 @@ class V18__AddPublishedDate extends BaseJavaMigration {
 
     sql"update contentdata set document = $dataObject where id = $id"
       .update()
-      .apply()
   }
 
   def convertArticleUpdate(document: String): String = {

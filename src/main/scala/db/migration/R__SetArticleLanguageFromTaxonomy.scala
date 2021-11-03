@@ -135,7 +135,6 @@ class R__SetArticleLanguageFromTaxonomy extends BaseJavaMigration {
     sql"select ${ar.result.*} from ${Article.as(ar)} where ar.document is not NULL and $withId"
       .map(Article.fromResultSet(ar))
       .single()
-      .apply()
       .flatten
   }
 
@@ -194,7 +193,6 @@ class R__SetArticleLanguageFromTaxonomy extends BaseJavaMigration {
 
     sql"update contentdata set document = $dataObject where id=${article.id}"
       .update()
-      .apply()
   }
 
 }

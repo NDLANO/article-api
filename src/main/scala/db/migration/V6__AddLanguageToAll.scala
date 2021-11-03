@@ -49,7 +49,7 @@ class V6__AddLanguageToAll extends BaseJavaMigration {
   }
 
   def countAllArticles(implicit session: DBSession): Option[Long] = {
-    sql"select count(*) from contentdata where document is not NULL".map(rs => rs.long("count")).single().apply()
+    sql"select count(*) from contentdata where document is not NULL".map(rs => rs.long("count")).single()
   }
 
   def allArticles(offset: Long)(implicit session: DBSession): Seq[V6_Article] = {
@@ -60,7 +60,6 @@ class V6__AddLanguageToAll extends BaseJavaMigration {
 
       })
       .list()
-      .apply()
   }
 
   def convertArticleUpdate(articleMeta: V6_Article): V6_Article = {
@@ -84,7 +83,7 @@ class V6__AddLanguageToAll extends BaseJavaMigration {
     dataObject.setType("jsonb")
     dataObject.setValue(write(articleMeta))
 
-    sql"update contentdata set document = $dataObject where id = ${articleMeta.id}".update().apply()
+    sql"update contentdata set document = $dataObject where id = ${articleMeta.id}".update()
   }
 
   //
@@ -104,7 +103,7 @@ class V6__AddLanguageToAll extends BaseJavaMigration {
   }
 
   def countAllConcepts(implicit session: DBSession): Option[Long] = {
-    sql"select count(*) from conceptdata".map(rs => rs.long("count")).single().apply()
+    sql"select count(*) from conceptdata".map(rs => rs.long("count")).single()
   }
 
   def allConcepts(offset: Long)(implicit session: DBSession): Seq[V6_Concept] = {
@@ -115,7 +114,6 @@ class V6__AddLanguageToAll extends BaseJavaMigration {
 
       })
       .list()
-      .apply()
   }
 
   def convertConceptUpdate(concept: V6_Concept): V6_Concept = {
@@ -131,7 +129,7 @@ class V6__AddLanguageToAll extends BaseJavaMigration {
     dataObject.setType("jsonb")
     dataObject.setValue(write(conceptMeta))
 
-    sql"update conceptdata set document = $dataObject where id = ${conceptMeta.id}".update().apply()
+    sql"update conceptdata set document = $dataObject where id = ${conceptMeta.id}".update()
   }
 
 }
