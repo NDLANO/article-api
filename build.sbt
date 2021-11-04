@@ -111,6 +111,7 @@ assembly / assemblyJarName := "article-api.jar"
 assembly / mainClass := Some("no.ndla.articleapi.JettyLauncher")
 assembly / assemblyMergeStrategy := {
   case "module-info.class"                                           => MergeStrategy.discard
+  case x if x.endsWith("/module-info.class")                         => MergeStrategy.discard
   case "mime.types"                                                  => MergeStrategy.filterDistinctLines
   case PathList("org", "joda", "convert", "ToString.class")          => MergeStrategy.first
   case PathList("org", "joda", "convert", "FromString.class")        => MergeStrategy.first
