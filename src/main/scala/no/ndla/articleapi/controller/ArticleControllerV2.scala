@@ -1,5 +1,5 @@
 /*
- * Part of NDLA article_api.
+ * Part of NDLA article-api.
  * Copyright (C) 2016 NDLA
  *
  * See LICENSE
@@ -8,27 +8,21 @@
 
 package no.ndla.articleapi.controller
 
-import javax.servlet.http.HttpServletRequest
 import no.ndla.articleapi.ArticleApiProperties
-import no.ndla.articleapi.ArticleApiProperties.{
-  DefaultPageSize,
-  ElasticSearchIndexMaxResultWindow,
-  ElasticSearchScrollKeepAlive,
-  InitialScrollContextKeywords,
-  MaxPageSize
-}
+import no.ndla.articleapi.ArticleApiProperties._
 import no.ndla.articleapi.auth.{Role, User}
 import no.ndla.articleapi.integration.FeideApiClient
 import no.ndla.articleapi.model.api._
-import no.ndla.articleapi.model.domain.{ArticleIds, ArticleType, Availability, Language, SearchSettings, Sort}
+import no.ndla.articleapi.model.domain.{ArticleIds, Language, Sort}
 import no.ndla.articleapi.service.search.{ArticleSearchService, SearchConverterService}
 import no.ndla.articleapi.service.{ConverterService, ReadService, WriteService}
 import no.ndla.articleapi.validation.ContentValidator
 import org.json4s.{DefaultFormats, Formats}
-import org.scalatra.{NotFound, Ok}
 import org.scalatra.swagger.{ResponseMessage, Swagger, SwaggerSupport}
 import org.scalatra.util.NotNothing
+import org.scalatra.{NotFound, Ok}
 
+import javax.servlet.http.HttpServletRequest
 import scala.util.{Failure, Success, Try}
 
 trait ArticleControllerV2 {

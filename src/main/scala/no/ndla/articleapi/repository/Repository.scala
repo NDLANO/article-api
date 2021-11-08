@@ -1,3 +1,10 @@
+/*
+ * Part of NDLA article-api
+ * Copyright (C) 2017 NDLA
+ *
+ * See LICENSE
+ */
+
 package no.ndla.articleapi.repository
 
 import no.ndla.articleapi.model.domain.Content

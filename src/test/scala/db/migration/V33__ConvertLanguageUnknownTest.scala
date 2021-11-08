@@ -1,3 +1,10 @@
+/*
+ * Part of NDLA article-api
+ * Copyright (C) 2021 NDLA
+ *
+ * See LICENSE
+ */
+
 package db.migration
 
 import no.ndla.articleapi.{TestEnvironment, UnitSuite}

@@ -1,3 +1,10 @@
+/*
+ * Part of NDLA article-api
+ * Copyright (C) 2019 NDLA
+ *
+ * See LICENSE
+ */
+
 package db.migration
 
 import java.util.Date
@@ -11,12 +18,6 @@ import scalikejdbc.{DB, DBSession, _}
 
 import scala.util.{Success, Try}
 
-/**
-  * Part of NDLA ndla.
-  * Copyright (C) 2019 NDLA
-  *
-  * See LICENSE
-  */
 class V18__AddPublishedDate extends BaseJavaMigration {
   implicit val formats: DefaultFormats.type = org.json4s.DefaultFormats
 

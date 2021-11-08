@@ -1,5 +1,5 @@
 /*
- * Part of NDLA article_api.
+ * Part of NDLA article-api.
  * Copyright (C) 2016 NDLA
  *
  * See LICENSE
@@ -8,15 +8,12 @@
 
 package no.ndla.articleapi.controller
 
-import javax.servlet.http.HttpServletRequest
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.articleapi.ArticleApiProperties.{CorrelationIdHeader, CorrelationIdKey}
 import no.ndla.articleapi.ComponentRegistry
 import no.ndla.articleapi.model.api.{
   AccessDeniedException,
   Error,
-  ImportException,
-  ImportExceptions,
   NotFoundException,
   ResultWindowTooLargeException,
   ValidationError
@@ -30,8 +27,9 @@ import org.json4s.native.Serialization.read
 import org.json4s.{DefaultFormats, Formats}
 import org.postgresql.util.PSQLException
 import org.scalatra.json.NativeJsonSupport
-import org.scalatra.{BadRequest, InternalServerError, NotFound, ScalatraServlet, _}
+import org.scalatra._
 
+import javax.servlet.http.HttpServletRequest
 import scala.util.{Failure, Success, Try}
 
 abstract class NdlaController extends ScalatraServlet with NativeJsonSupport with LazyLogging {

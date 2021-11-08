@@ -1,12 +1,13 @@
+/*
+ * Part of NDLA article-api
+ * Copyright (C) 2019 NDLA
+ *
+ * See LICENSE
+ */
+
 package db.migration
 import no.ndla.articleapi.{TestEnvironment, UnitSuite}
 
-/**
-  * Part of NDLA ndla.
-  * Copyright (C) 2019 NDLA
-  *
-  * See LICENSE
-  */
 class R__RemoveDummyMetaDescriptionTest extends UnitSuite with TestEnvironment {
   val migration = new R__RemoveDummyMetaDescription
 
