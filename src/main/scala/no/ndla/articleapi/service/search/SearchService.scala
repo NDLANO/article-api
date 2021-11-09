@@ -1,5 +1,5 @@
 /*
- * Part of NDLA article_api.
+ * Part of NDLA article-api.
  * Copyright (C) 2016 NDLA
  *
  * See LICENSE
@@ -41,7 +41,7 @@ trait SearchService {
             totalCount = response.result.totalHits,
             page = None,
             pageSize = response.result.hits.hits.length,
-            language = if (language == "*") Language.AllLanguages else language,
+            language = language,
             results = hits,
             scrollId = response.result.scrollId
           )
@@ -63,7 +63,7 @@ trait SearchService {
 
           resultArray.map(result => {
             val matchedLanguage = language match {
-              case Language.AllLanguages | "*" =>
+              case Language.AllLanguages =>
                 converterService.getLanguageFromHit(result).getOrElse(language)
               case _ => language
             }
@@ -83,20 +83,20 @@ trait SearchService {
       sort match {
         case Sort.ByTitleAsc =>
           language match {
-            case "*" | Language.AllLanguages => fieldSort("defaultTitle").order(SortOrder.ASC).missing("_last")
-            case _                           => fieldSort(s"title.$sortLanguage.raw").order(SortOrder.ASC).missing("_last")
+            case Language.AllLanguages => fieldSort("defaultTitle").order(SortOrder.Asc).missing("_last")
+            case _                     => fieldSort(s"title.$sortLanguage.raw").order(SortOrder.Asc).missing("_last").unmappedType("long")
           }
         case Sort.ByTitleDesc =>
           language match {
-            case "*" | Language.AllLanguages => fieldSort("defaultTitle").order(SortOrder.DESC).missing("_last")
-            case _                           => fieldSort(s"title.$sortLanguage.raw").order(SortOrder.DESC).missing("_last")
+            case Language.AllLanguages => fieldSort("defaultTitle").order(SortOrder.Desc).missing("_last")
+            case _                     => fieldSort(s"title.$sortLanguage.raw").order(SortOrder.Desc).missing("_last").unmappedType("long")
           }
-        case Sort.ByRelevanceAsc    => fieldSort("_score").order(SortOrder.ASC)
-        case Sort.ByRelevanceDesc   => fieldSort("_score").order(SortOrder.DESC)
-        case Sort.ByLastUpdatedAsc  => fieldSort("lastUpdated").order(SortOrder.ASC).missing("_last")
-        case Sort.ByLastUpdatedDesc => fieldSort("lastUpdated").order(SortOrder.DESC).missing("_last")
-        case Sort.ByIdAsc           => fieldSort("id").order(SortOrder.ASC).missing("_last")
-        case Sort.ByIdDesc          => fieldSort("id").order(SortOrder.DESC).missing("_last")
+        case Sort.ByRelevanceAsc    => fieldSort("_score").order(SortOrder.Asc)
+        case Sort.ByRelevanceDesc   => fieldSort("_score").order(SortOrder.Desc)
+        case Sort.ByLastUpdatedAsc  => fieldSort("lastUpdated").order(SortOrder.Asc).missing("_last")
+        case Sort.ByLastUpdatedDesc => fieldSort("lastUpdated").order(SortOrder.Desc).missing("_last")
+        case Sort.ByIdAsc           => fieldSort("id").order(SortOrder.Asc).missing("_last")
+        case Sort.ByIdDesc          => fieldSort("id").order(SortOrder.Desc).missing("_last")
       }
     }
 

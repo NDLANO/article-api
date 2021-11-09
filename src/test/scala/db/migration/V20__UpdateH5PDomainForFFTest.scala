@@ -1,13 +1,14 @@
+/*
+ * Part of NDLA article-api
+ * Copyright (C) 2019 NDLA
+ *
+ * See LICENSE
+ */
+
 package db.migration
 
 import no.ndla.articleapi.{TestEnvironment, UnitSuite}
 
-/**
-  * Part of NDLA ndla.
-  * Copyright (C) 2019 NDLA
-  *
-  * See LICENSE
-  */
 class V20__UpdateH5PDomainForFFTest extends UnitSuite with TestEnvironment {
   val migration = new V20__UpdateH5PDomainForFF
 

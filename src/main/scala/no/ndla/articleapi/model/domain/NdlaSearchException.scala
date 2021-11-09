@@ -1,3 +1,10 @@
+/*
+ * Part of NDLA article-api
+ * Copyright (C) 2017 NDLA
+ *
+ * See LICENSE
+ */
+
 package no.ndla.articleapi.model.domain
 
 import com.sksamuel.elastic4s.http.RequestFailure

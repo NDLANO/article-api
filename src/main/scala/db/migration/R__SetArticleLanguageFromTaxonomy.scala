@@ -1,5 +1,5 @@
 /*
- * Part of NDLA draft-api.
+ * Part of NDLA article-api.
  * Copyright (C) 2019 NDLA
  *
  * See LICENSE
@@ -77,7 +77,7 @@ class R__SetArticleLanguageFromTaxonomy extends BaseJavaMigration {
           .map(t => (getISO639(t._1), t._2.trim.toLowerCase))
           .groupBy(_._1)
           .map(entry => (entry._1, entry._2.map(_._2)))
-          .map(t => ArticleTag(t._2, Language.languageOrUnknown(t._1)))
+          .map(t => ArticleTag(t._2, Language.languageOrUnknown(t._1).toString))
           .toList
     }
 

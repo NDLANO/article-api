@@ -1,5 +1,5 @@
 /*
- * Part of NDLA article_api.
+ * Part of NDLA article-api.
  * Copyright (C) 2017 NDLA
  *
  * See LICENSE
@@ -42,11 +42,8 @@ trait WriteService {
         useSoftValidation: Boolean
     ): Try[Article] = {
 
-      val strictValidationResult = contentValidator.validateArticle(
-        article,
-        allowUnknownLanguage = true,
-        isImported = externalIds.nonEmpty || useImportValidation
-      )
+      val strictValidationResult =
+        contentValidator.validateArticle(article, isImported = externalIds.nonEmpty || useImportValidation)
 
       val validationResult =
         if (useSoftValidation) {

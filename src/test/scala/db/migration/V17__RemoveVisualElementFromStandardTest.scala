@@ -1,9 +1,9 @@
-/**
-  * Part of NDLA ndla.
-  * Copyright (C) 2019 NDLA
-  *
-  * See LICENSE
-  */
+/*
+ * Part of NDLA article-api.
+ * Copyright (C) 2019 NDLA
+ *
+ * See LICENSE
+ */
 package db.migration
 
 import no.ndla.articleapi.{TestEnvironment, UnitSuite}

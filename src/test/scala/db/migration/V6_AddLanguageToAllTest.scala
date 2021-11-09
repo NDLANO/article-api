@@ -1,5 +1,5 @@
 /*
- * Part of NDLA article_api.
+ * Part of NDLA article-api.
  * Copyright (C) 2017 NDLA
  *
  * See LICENSE
@@ -35,12 +35,12 @@ class V6_AddLanguageToAllTest extends UnitSuite with TestEnvironment {
 
     val after = migration.convertArticleUpdate(before)
 
-    after.title.forall(_.language.contains("unknown")) should be(true)
-    after.content.forall(_.language.contains("unknown")) should be(true)
+    after.title.forall(_.language.contains("und")) should be(true)
+    after.content.forall(_.language.contains("und")) should be(true)
     after.tags.forall(_.language.contains("nb")) should be(true)
     after.visualElement.forall(_.language.contains("en")) should be(true)
-    after.introduction.forall(_.language.contains("unknown")) should be(true)
-    after.metaDescription.forall(_.language.contains("unknown")) should be(true)
+    after.introduction.forall(_.language.contains("und")) should be(true)
+    after.metaDescription.forall(_.language.contains("und")) should be(true)
   }
 
 }

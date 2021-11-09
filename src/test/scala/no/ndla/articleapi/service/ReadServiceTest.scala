@@ -1,5 +1,5 @@
 /*
- * Part of NDLA article_api.
+ * Part of NDLA article-api.
  * Copyright (C) 2017 NDLA
  *
  * See LICENSE
@@ -44,12 +44,12 @@ class ReadServiceTest extends UnitSuite with TestEnvironment {
 
   val content2 =
     s"""<$ResourceHtmlEmbedTag $resourceIdAttr="321" $resourceAttr="$imageType"><$ResourceHtmlEmbedTag $resourceIdAttr=4321 $resourceAttr="$imageType">"""
-  val articleContent1 = ArticleContent(content1, "unknown")
+  val articleContent1 = ArticleContent(content1, "und")
 
   val expectedArticleContent1: ArticleContent = articleContent1.copy(content =
     s"""<$ResourceHtmlEmbedTag $resourceIdAttr="123" $resourceAttr="$imageType" $urlAttr="$externalImageApiUrl/123"><$ResourceHtmlEmbedTag $resourceIdAttr="1234" $resourceAttr="$imageType" $urlAttr="$externalImageApiUrl/1234">""")
 
-  val articleContent2 = ArticleContent(content2, "unknown")
+  val articleContent2 = ArticleContent(content2, "und")
 
   val nbTags = ArticleTag(Seq("a", "b", "c", "a", "b", "a"), "nb")
   val enTags = ArticleTag(Seq("d", "e", "f", "d", "e", "d"), "en")

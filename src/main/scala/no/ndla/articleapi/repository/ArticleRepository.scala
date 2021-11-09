@@ -1,5 +1,5 @@
 /*
- * Part of NDLA article_api.
+ * Part of NDLA article-api.
  * Copyright (C) 2016 NDLA
  *
  * See LICENSE
@@ -244,7 +244,7 @@ trait ArticleRepository {
         implicit session: DBSession = AutoSession): (Seq[String], Int) = {
       val sanitizedInput = input.replaceAll("%", "")
       val sanitizedLanguage = language.replaceAll("%", "")
-      val langOrAll = if (sanitizedLanguage == "all" || sanitizedLanguage == "") "%" else sanitizedLanguage
+      val langOrAll = if (sanitizedLanguage == "*" || sanitizedLanguage == "") "%" else sanitizedLanguage
 
       val tags = sql"""select tags from
               (select distinct JSONB_ARRAY_ELEMENTS_TEXT(tagObj->'tags') tags from

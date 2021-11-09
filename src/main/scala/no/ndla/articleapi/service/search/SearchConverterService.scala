@@ -1,5 +1,5 @@
 /*
- * Part of NDLA article_api.
+ * Part of NDLA article-api.
  * Copyright (C) 2016 NDLA
  *
  * See LICENSE
@@ -28,7 +28,7 @@ trait SearchConverterService {
 
       val defaultTitle = articleWithAgreement.title
         .sortBy(title => {
-          val languagePriority = Language.languageAnalyzers.map(la => la.lang).reverse
+          val languagePriority = Language.languageAnalyzers.map(la => la.languageTag.toString).reverse
           languagePriority.indexOf(title.language)
         })
         .lastOption

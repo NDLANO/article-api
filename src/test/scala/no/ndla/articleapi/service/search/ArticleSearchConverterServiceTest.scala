@@ -1,5 +1,5 @@
 /*
- * Part of NDLA article_api.
+ * Part of NDLA article-api.
  * Copyright (C) 2016 NDLA
  *
  * See LICENSE
@@ -27,7 +27,7 @@ class ArticleSearchConverterServiceTest extends UnitSuite with TestEnvironment {
     ArticleTitle("Titre francais", "fr"),
     ArticleTitle("Deutsch titel", "de"),
     ArticleTitle("Titulo espanol", "es"),
-    ArticleTitle("Nekonata titolo", "unknown")
+    ArticleTitle("Nekonata titolo", "und")
   )
 
   val articles: Seq[ArticleContent] = Seq(
@@ -37,7 +37,7 @@ class ArticleSearchConverterServiceTest extends UnitSuite with TestEnvironment {
     ArticleContent("Francais article", "fr"),
     ArticleContent("Deutsch Artikel", "de"),
     ArticleContent("Articulo espanol", "es"),
-    ArticleContent("Nekonata artikolo", "unknown")
+    ArticleContent("Nekonata artikolo", "und")
   )
 
   val articleTags: Seq[ArticleTag] = Seq(
@@ -47,7 +47,7 @@ class ArticleSearchConverterServiceTest extends UnitSuite with TestEnvironment {
     ArticleTag(Seq("got", "tired"), "fr"),
     ArticleTag(Seq("of", "translating"), "de"),
     ArticleTag(Seq("all", "of"), "es"),
-    ArticleTag(Seq("the", "words"), "unknown")
+    ArticleTag(Seq("the", "words"), "und")
   )
 
   override def beforeAll(): Unit = {
@@ -122,23 +122,23 @@ class ArticleSearchConverterServiceTest extends UnitSuite with TestEnvironment {
     languageListWithLang(searchableArticle.tags) should equal(tagsForLang(articleTags))
   }
 
-  private def languageValueWithLang(languageValues: SearchableLanguageValues, lang: String = "unknown"): String = {
+  private def languageValueWithLang(languageValues: SearchableLanguageValues, lang: String = "und"): String = {
     languageValues.languageValues.find(_.language == lang).get.value
   }
 
-  private def languageListWithLang(languageList: SearchableLanguageList, lang: String = "unknown"): Seq[String] = {
+  private def languageListWithLang(languageList: SearchableLanguageList, lang: String = "und"): Seq[String] = {
     languageList.languageValues.find(_.language == lang).get.value
   }
 
-  private def titleForLang(titles: Seq[ArticleTitle], lang: String = "unknown"): String = {
+  private def titleForLang(titles: Seq[ArticleTitle], lang: String = "und"): String = {
     titles.find(_.language == lang).get.title
   }
 
-  private def articleForLang(articles: Seq[ArticleContent], lang: String = "unknown"): String = {
+  private def articleForLang(articles: Seq[ArticleContent], lang: String = "und"): String = {
     articles.find(_.language == lang).get.content
   }
 
-  private def tagsForLang(tags: Seq[ArticleTag], lang: String = "unknown") = {
+  private def tagsForLang(tags: Seq[ArticleTag], lang: String = "und") = {
     tags.find(_.language == lang).get.tags
   }
 }

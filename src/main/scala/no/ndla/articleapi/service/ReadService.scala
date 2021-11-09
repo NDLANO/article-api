@@ -1,5 +1,5 @@
 /*
- * Part of NDLA article_api.
+ * Part of NDLA article-api.
  * Copyright (C) 2016 NDLA
  *
  * See LICENSE
@@ -88,11 +88,11 @@ trait ReadService {
 
     def getNMostUsedTags(n: Int, language: String): Option[api.ArticleTag] = {
       val tagUsageMap = getTagUsageMap()
-      val searchLanguage = getSearchLanguage(language, supportedLanguages)
+      val searchLanguage = languageOrUnknown(Some(language))
 
       tagUsageMap
-        .get(searchLanguage)
-        .map(tags => api.ArticleTag(tags.getNMostFrequent(n), searchLanguage))
+        .get(searchLanguage.toString)
+        .map(tags => api.ArticleTag(tags.getNMostFrequent(n), searchLanguage.toString))
     }
 
     def getAllTags(input: String, pageSize: Int, offset: Int, language: String): api.TagsSearchResult = {
