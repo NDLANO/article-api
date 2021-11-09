@@ -10,12 +10,12 @@ package db.migration
 import no.ndla.articleapi.model.domain.Article
 import org.flywaydb.core.api.migration.{BaseJavaMigration, Context}
 import org.json4s.native.JsonMethods.{compact, parse, render}
-import org.json4s.{DefaultFormats, Extraction}
+import org.json4s.{DefaultFormats, Extraction, Formats}
 import org.postgresql.util.PGobject
 import scalikejdbc.{DB, DBSession, scalikejdbcSQLInterpolationImplicitDef}
 
 class V33__ConvertLanguageUnknown extends BaseJavaMigration {
-  implicit val formats: DefaultFormats.type = org.json4s.DefaultFormats
+  implicit val formats: Formats = Article.jsonEncoder
 
   override def migrate(context: Context): Unit = {
     val db = DB(context.getConnection)
