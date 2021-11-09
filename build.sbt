@@ -104,6 +104,25 @@ lazy val article_api = (project in file("."))
       "io.lemonlabs" %% "scala-uri" % "1.5.1"
     ) ++ pactTestFramework ++ vulnerabilityOverrides
   )
+  .enablePlugins(ScalaTsiPlugin)
+  .settings(
+    // The classes that you want to generate typescript interfaces for
+    typescriptGenerationImports := Seq("no.ndla.articleapi.model.api._",
+                                       "no.ndla.articleapi.model.api.TSTypes._",
+                                       "no.ndla.articleapi.model.domain.Availability"),
+    typescriptExports := Seq(
+      "ArticleV2",
+      "ArticleSearchParams",
+      "ArticleSummaryV2",
+      "PartialPublishArticle",
+      "Availability.type",
+      "SearchResultV2",
+      "TagsSearchResult",
+      "ArticleDump",
+      "ValidationError"
+    ),
+    typescriptOutputFile := baseDirectory.value / "typescript" / "index.ts",
+  )
   .enablePlugins(DockerPlugin)
   .enablePlugins(JettyPlugin)
   .enablePlugins(ScalaPactPlugin)

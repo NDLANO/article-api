@@ -11,3 +11,7 @@
 project/metals.sbt
 .vscode/
 .bsp
+
+node_modules
+*.log
+typescript/build
