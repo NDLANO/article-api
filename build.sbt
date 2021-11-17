@@ -17,6 +17,7 @@ val FlywayVersion = "7.1.1"
 val PostgresVersion = "42.2.14"
 val HikariConnectionPoolVersion = "3.4.5"
 val JonasTester = "123"
+val JonasTesterMer = "123"
 
 val appProperties = settingKey[Properties]("The application properties")
 
