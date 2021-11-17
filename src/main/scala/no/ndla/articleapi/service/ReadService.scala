@@ -60,7 +60,7 @@ trait ReadService {
           converterService.toApiArticleV2(article, language, fallback)
         case Some(article) =>
           feideAccessToken match {
-            case None => notFound
+            case None => Failure(AccessDeniedException("User is missing required role(s) to perform this operation"))
             case Some(accessToken) =>
               feideApiClient.getUser(accessToken) match {
                 case Failure(ex) => Failure(ex)
