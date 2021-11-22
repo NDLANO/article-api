@@ -10,6 +10,7 @@ package no.ndla.articleapi
 
 import no.ndla.articleapi.ArticleApiProperties.{DefaultLanguage, externalApiUrls}
 import no.ndla.articleapi.model.api
+import no.ndla.articleapi.model.api.{ArticleV2, TagsSearchResult}
 import no.ndla.articleapi.model.domain._
 import no.ndla.mapping.License
 import no.ndla.validation.EmbedTagRules.ResourceHtmlEmbedTag
@@ -40,7 +41,7 @@ object TestData {
 
   val (articleId, externalId) = (1, "751234")
 
-  val sampleArticleV2 = api.ArticleV2(
+  val sampleArticleV2: ArticleV2 = api.ArticleV2(
     id = 1,
     oldNdlaUrl = None,
     revision = 1,
@@ -72,7 +73,7 @@ object TestData {
     relatedContent = Seq.empty
   )
 
-  val apiArticleV2 = api.ArticleV2(
+  val apiArticleV2: ArticleV2 = api.ArticleV2(
     articleId,
     Some(s"//red.ndla.no/node/$externalId"),
     2,
@@ -108,7 +109,7 @@ object TestData {
     relatedContent = Seq.empty
   )
 
-  val sampleArticleWithPublicDomain = Article(
+  val sampleArticleWithPublicDomain: Article = Article(
     Option(1),
     Option(1),
     Seq(ArticleTitle("test", "en")),
@@ -131,7 +132,7 @@ object TestData {
     relatedContent = Seq.empty
   )
 
-  val sampleDomainArticle = Article(
+  val sampleDomainArticle: Article = Article(
     Option(articleId),
     Option(2),
     Seq(ArticleTitle("title", "nb")),
@@ -154,7 +155,7 @@ object TestData {
     relatedContent = Seq.empty
   )
 
-  val sampleDomainArticle2 = Article(
+  val sampleDomainArticle2: Article = Article(
     None,
     None,
     Seq(ArticleTitle("test", "en")),
@@ -180,7 +181,7 @@ object TestData {
   val sampleArticleWithByNcSa: Article = sampleArticleWithPublicDomain.copy(copyright = byNcSaCopyright)
   val sampleArticleWithCopyrighted: Article = sampleArticleWithPublicDomain.copy(copyright = copyrighted)
 
-  val sampleDomainArticleWithHtmlFault = Article(
+  val sampleDomainArticleWithHtmlFault: Article = Article(
     Option(articleId),
     Option(2),
     Seq(ArticleTitle("test", "en")),
@@ -211,7 +212,7 @@ object TestData {
     relatedContent = Seq.empty
   )
 
-  val apiArticleWithHtmlFaultV2 = api.ArticleV2(
+  val apiArticleWithHtmlFaultV2: ArticleV2 = api.ArticleV2(
     1,
     None,
     1,
@@ -244,9 +245,9 @@ object TestData {
   )
 
   val (nodeId, nodeId2) = ("1234", "4321")
-  val sampleTitle = ArticleTitle("title", "en")
+  val sampleTitle: ArticleTitle = ArticleTitle("title", "en")
 
-  val visualElement = VisualElement(
+  val visualElement: VisualElement = VisualElement(
     s"""<$ResourceHtmlEmbedTag  data-align="" data-alt="" data-caption="" data-resource="image" data-resource_id="1" data-size="" />""",
     "nb")
 
@@ -275,9 +276,9 @@ object TestData {
     )
   }
 
-  val sampleApiTagsSearchResult = api.TagsSearchResult(10, 1, 1, "nb", Seq("a", "b"))
+  val sampleApiTagsSearchResult: TagsSearchResult = api.TagsSearchResult(10, 1, 1, "nb", Seq("a", "b"))
 
-  val testSettings = SearchSettings(
+  val testSettings: SearchSettings = SearchSettings(
     query = None,
     withIdIn = List(),
     language = DefaultLanguage,
@@ -288,8 +289,7 @@ object TestData {
     articleTypes = Seq.empty,
     fallback = false,
     grepCodes = Seq.empty,
-    shouldScroll = false,
-    availability = Seq.empty
+    shouldScroll = false
   )
 
 }

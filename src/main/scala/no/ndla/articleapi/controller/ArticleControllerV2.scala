@@ -211,8 +211,7 @@ trait ArticleControllerV2 {
         articleTypesFilter,
         fallback,
         grepCodes,
-        shouldScroll,
-        requestFeideToken
+        shouldScroll
       )
 
       result match {

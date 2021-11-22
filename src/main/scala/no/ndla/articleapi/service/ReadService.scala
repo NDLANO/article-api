@@ -200,54 +200,40 @@ trait ReadService {
         articleTypesFilter: Seq[String],
         fallback: Boolean,
         grepCodes: Seq[String],
-        shouldScroll: Boolean,
-        feideAccessToken: Option[String]
+        shouldScroll: Boolean
     ): Try[SearchResult[ArticleSummaryV2]] = {
-      val availabilityTry = feideAccessToken match {
-        case None => Success(Seq.empty)
-        case Some(token) =>
-          feideApiClient
-            .getUser(token)
-            .map(user => user.availabilities)
+      val settings = query match {
+        case Some(q) =>
+          SearchSettings(
+            query = Some(q),
+            withIdIn = idList,
+            language = language,
+            license = license,
+            page = page,
+            pageSize = if (idList.isEmpty) pageSize else idList.size,
+            sort = sort.getOrElse(Sort.ByRelevanceDesc),
+            if (articleTypesFilter.isEmpty) ArticleType.all else articleTypesFilter,
+            fallback = fallback,
+            grepCodes = grepCodes,
+            shouldScroll = shouldScroll
+          )
+
+        case None =>
+          SearchSettings(
+            query = None,
+            withIdIn = idList,
+            language = language,
+            license = license,
+            page = page,
+            pageSize = if (idList.isEmpty) pageSize else idList.size,
+            sort = sort.getOrElse(Sort.ByIdAsc),
+            if (articleTypesFilter.isEmpty) ArticleType.all else articleTypesFilter,
+            fallback = fallback,
+            grepCodes = grepCodes,
+            shouldScroll = shouldScroll
+          )
       }
-
-      availabilityTry.flatMap(availability => {
-        val settings = query match {
-          case Some(q) =>
-            SearchSettings(
-              query = Some(q),
-              withIdIn = idList,
-              language = language,
-              license = license,
-              page = page,
-              pageSize = if (idList.isEmpty) pageSize else idList.size,
-              sort = sort.getOrElse(Sort.ByRelevanceDesc),
-              if (articleTypesFilter.isEmpty) ArticleType.all else articleTypesFilter,
-              fallback = fallback,
-              grepCodes = grepCodes,
-              shouldScroll = shouldScroll,
-              availability = availability
-            )
-
-          case None =>
-            SearchSettings(
-              query = None,
-              withIdIn = idList,
-              language = language,
-              license = license,
-              page = page,
-              pageSize = if (idList.isEmpty) pageSize else idList.size,
-              sort = sort.getOrElse(Sort.ByIdAsc),
-              if (articleTypesFilter.isEmpty) ArticleType.all else articleTypesFilter,
-              fallback = fallback,
-              grepCodes = grepCodes,
-              shouldScroll = shouldScroll,
-              availability = availability
-            )
-        }
-
-        articleSearchService.matchingQuery(settings)
-      })
+      articleSearchService.matchingQuery(settings)
     }
   }
 

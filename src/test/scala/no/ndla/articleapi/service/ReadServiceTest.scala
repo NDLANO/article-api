@@ -149,8 +149,7 @@ class ReadServiceTest extends UnitSuite with TestEnvironment {
       articleTypesFilter = Seq.empty,
       fallback = false,
       grepCodes = Seq.empty,
-      shouldScroll = false,
-      feideAccessToken = None
+      shouldScroll = false
     )
 
     val expectedSettings = SearchSettings(
@@ -164,8 +163,7 @@ class ReadServiceTest extends UnitSuite with TestEnvironment {
       ArticleType.all,
       fallback = false,
       grepCodes = Seq.empty,
-      shouldScroll = false,
-      availability = Seq.empty
+      shouldScroll = false
     )
 
     verify(articleSearchService, times(1)).matchingQuery(expectedSettings)

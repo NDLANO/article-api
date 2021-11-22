@@ -75,11 +75,6 @@ trait ArticleSearchService {
         if (settings.articleTypes.nonEmpty) Some(constantScoreQuery(termsQuery("articleType", settings.articleTypes)))
         else None
 
-      val availabilityFilter =
-        if (settings.availability.isEmpty) Some(termQuery("availability", Availability.everyone.toString))
-        else
-          Some(boolQuery().should(settings.availability.map(a => termQuery("availability", a.toString))))
-
       val idFilter = if (settings.withIdIn.isEmpty) None else Some(idsQuery(settings.withIdIn))
 
       val licenseFilter = settings.license match {
@@ -105,8 +100,7 @@ trait ArticleSearchService {
         idFilter,
         languageFilter,
         articleTypesFilter,
-        grepCodesFilter,
-        availabilityFilter
+        grepCodesFilter
       )
 
       val filteredSearch = queryBuilder.filter(filters.flatten)

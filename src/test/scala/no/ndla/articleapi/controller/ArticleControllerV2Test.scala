@@ -83,7 +83,7 @@ class ArticleControllerV2Test extends UnitSuite with TestEnvironment with Scalat
       Seq.empty[ArticleSummaryV2],
       Some(scrollId)
     )
-    when(readService.search(any, any, any, any, any, any, any, any, any, any, any, any))
+    when(readService.search(any, any, any, any, any, any, any, any, any, any, any))
       .thenReturn(Success(searchResponse))
 
     get(s"/test/") {
@@ -113,7 +113,7 @@ class ArticleControllerV2Test extends UnitSuite with TestEnvironment with Scalat
     }
 
     verify(articleSearchService, times(0)).matchingQuery(any[SearchSettings])
-    verify(readService, times(0)).search(any, any, any, any, any, any, any, any, any, any, any, any)
+    verify(readService, times(0)).search(any, any, any, any, any, any, any, any, any, any, any)
     verify(articleSearchService, times(1)).scroll(eqTo(scrollId), any[String], any[Boolean])
   }
 
@@ -172,7 +172,7 @@ class ArticleControllerV2Test extends UnitSuite with TestEnvironment with Scalat
       results = Seq.empty,
       scrollId = Some("heiheihei")
     )
-    when(readService.search(any, any, any, any, any, any, any, any, any, any, any, any)).thenReturn(Success(result))
+    when(readService.search(any, any, any, any, any, any, any, any, any, any, any)).thenReturn(Success(result))
 
     get("/test/?search-context=initial") {
       status should be(200)
@@ -187,8 +187,7 @@ class ArticleControllerV2Test extends UnitSuite with TestEnvironment with Scalat
         articleTypesFilter = any,
         fallback = any,
         grepCodes = any,
-        shouldScroll = eqTo(true),
-        feideAccessToken = any
+        shouldScroll = eqTo(true)
       )
       verify(articleSearchService, times(0)).scroll(any[String], any[String], any[Boolean])
     }
