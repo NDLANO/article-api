@@ -14,7 +14,7 @@ import no.ndla.articleapi.model.domain.Cachable
 class CachableTest extends UnitSuite with TestEnvironment {
   test("That map works as expected") {
     val c1: Cachable[Int] = Cachable.no(1)
-    c1.map(x => x+5) should be(Cachable(6, false))
+    c1.map(x => x + 5) should be(Cachable(6, false))
   }
 
   test("That for-comprehensions (flatMap) works as expected") {
@@ -26,7 +26,7 @@ class CachableTest extends UnitSuite with TestEnvironment {
       a <- c1
       b <- c2
       c <- c3
-    } yield (a+b+c)
+    } yield (a + b + c)
 
     x should be(Cachable(6, true))
   }
