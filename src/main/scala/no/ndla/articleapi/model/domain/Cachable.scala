@@ -51,35 +51,21 @@ case class Cachable[T](
 
 object Cachable {
 
-  def yes[T <: Try[U], U](value: T): Try[Cachable[U]] = {
-    value.map(
-      v =>
-        new Cachable(
-          value = v,
-          canBeCached = true
-      ))
-  }
+  def yes[T <: Try[U], U](value: T): Try[Cachable[U]] =
+    value.map(v => Cachable.yes(v))
 
-  def no[T <: Try[U], U](value: T): Try[Cachable[U]] = {
-    value.map(
-      v =>
-        new Cachable(
-          value = v,
-          canBeCached = false
-      ))
-  }
+  def no[T <: Try[U], U](value: T): Try[Cachable[U]] =
+    value.map(v => Cachable.no(v))
 
-  def yes[T](value: T): Cachable[T] = {
+  def yes[T](value: T): Cachable[T] =
     new Cachable(
       value = value,
       canBeCached = true
     )
-  }
 
-  def no[T](value: T): Cachable[T] = {
+  def no[T](value: T): Cachable[T] =
     new Cachable(
       value = value,
       canBeCached = false
     )
-  }
 }
