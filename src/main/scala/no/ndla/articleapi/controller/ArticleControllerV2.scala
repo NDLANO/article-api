@@ -217,8 +217,8 @@ trait ArticleControllerV2 {
 
       result match {
         case Success(searchResult) =>
-          val responseHeader = searchResult.scrollId.map(i => this.scrollId.paramName -> i).toMap
-          Ok(searchConverterService.asApiSearchResultV2(searchResult), headers = responseHeader)
+          val scrollHeader = searchResult.value.scrollId.map(i => this.scrollId.paramName -> i).toMap
+          searchResult.map(searchConverterService.asApiSearchResultV2).Ok(scrollHeader)
         case Failure(ex) => Failure(ex)
       }
 
@@ -357,8 +357,8 @@ trait ArticleControllerV2 {
           val revision = inlineRevision.orElse(intOrNone(this.revision.paramName))
 
           readService.withIdV2(articleId, language, fallback, revision, requestFeideToken) match {
-            case Success(article) => article
-            case Failure(ex)      => errorHandler(ex)
+            case Success(cachableArticle) => cachableArticle.Ok()
+            case Failure(ex)              => errorHandler(ex)
           }
       }
     }

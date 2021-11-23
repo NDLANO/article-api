@@ -11,8 +11,8 @@ package no.ndla.articleapi.service
 import io.lemonlabs.uri.{Path, Url}
 import no.ndla.articleapi.ArticleApiProperties.externalApiUrls
 import no.ndla.articleapi.caching.MemoizeAutoRenew
-import no.ndla.articleapi.integration.FeideApiClient
-import no.ndla.articleapi.model.{api, domain}
+import no.ndla.articleapi.integration.{FeideApiClient, FeideExtendedUserInfo}
+import no.ndla.articleapi.model.api
 import no.ndla.articleapi.model.api.{AccessDeniedException, ArticleSummaryV2, NotFoundException}
 import no.ndla.articleapi.model.domain.Language._
 import no.ndla.articleapi.model.domain._
@@ -23,7 +23,6 @@ import no.ndla.validation.EmbedTagRules.ResourceHtmlEmbedTag
 import no.ndla.validation.HtmlTagRules.{jsoupDocumentToString, stringToJsoupDocument}
 import no.ndla.validation.{ResourceType, TagAttributes}
 import org.jsoup.nodes.Element
-import org.scalatra.Ok
 
 import scala.jdk.CollectionConverters._
 import scala.math.max
@@ -46,7 +45,7 @@ trait ReadService {
                  language: String,
                  fallback: Boolean = false,
                  revision: Option[Int] = None,
-                 feideAccessToken: Option[String] = None): Try[api.ArticleV2] = {
+                 feideAccessToken: Option[String] = None): Try[Cachable[api.ArticleV2]] = {
       val article = revision match {
         case Some(rev) => articleRepository.withIdAndRevision(id, rev)
         case None      => articleRepository.withId(id)
@@ -57,7 +56,7 @@ trait ReadService {
       article.map(addUrlsOnEmbedResources) match {
         case None => notFound
         case Some(article) if article.availability == Availability.everyone =>
-          converterService.toApiArticleV2(article, language, fallback)
+          Cachable.yes(converterService.toApiArticleV2(article, language, fallback))
         case Some(article) =>
           feideAccessToken match {
             case None => Failure(AccessDeniedException("User is missing required role(s) to perform this operation"))
@@ -71,7 +70,7 @@ trait ReadService {
                     case Availability.teacher if !feideUser.isTeacher =>
                       Failure(AccessDeniedException("User is missing required role(s) to perform this operation"))
                     case _ =>
-                      converterService.toApiArticleV2(article, language, fallback)
+                      Cachable.no(converterService.toApiArticleV2(article, language, fallback))
                   }
               }
           }
@@ -202,7 +201,7 @@ trait ReadService {
         grepCodes: Seq[String],
         shouldScroll: Boolean,
         feideAccessToken: Option[String]
-    ): Try[SearchResult[ArticleSummaryV2]] = {
+    ): Try[Cachable[SearchResult[ArticleSummaryV2]]] = {
       val availabilityTry = feideAccessToken match {
         case None => Success(Seq.empty)
         case Some(token) =>
@@ -246,7 +245,12 @@ trait ReadService {
             )
         }
 
-        articleSearchService.matchingQuery(settings)
+        val result = articleSearchService.matchingQuery(settings)
+        val isRestricted = !settings.availability.distinct.forall(_ == Availability.everyone)
+        if (isRestricted)
+          Cachable.no(result)
+        else
+          Cachable.yes(result)
       })
     }
   }

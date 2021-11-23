@@ -51,7 +51,7 @@ class ArticleControllerV2Test extends UnitSuite with TestEnvironment with Scalat
   val articleId = 1
 
   test("/<article_id> should return 200 if the cover was found withIdV2") {
-    when(readService.withIdV2(articleId, lang)).thenReturn(Success(TestData.sampleArticleV2))
+    when(readService.withIdV2(articleId, lang)).thenReturn(Success(Cachable.yes(TestData.sampleArticleV2)))
 
     get(s"/test/$articleId?language=$lang") {
       status should equal(200)
@@ -84,7 +84,7 @@ class ArticleControllerV2Test extends UnitSuite with TestEnvironment with Scalat
       Some(scrollId)
     )
     when(readService.search(any, any, any, any, any, any, any, any, any, any, any, any))
-      .thenReturn(Success(searchResponse))
+      .thenReturn(Success(Cachable.yes(searchResponse)))
 
     get(s"/test/") {
       status should be(200)
@@ -172,7 +172,8 @@ class ArticleControllerV2Test extends UnitSuite with TestEnvironment with Scalat
       results = Seq.empty,
       scrollId = Some("heiheihei")
     )
-    when(readService.search(any, any, any, any, any, any, any, any, any, any, any, any)).thenReturn(Success(result))
+    when(readService.search(any, any, any, any, any, any, any, any, any, any, any, any))
+      .thenReturn(Success(Cachable.yes(result)))
 
     get("/test/?search-context=initial") {
       status should be(200)
