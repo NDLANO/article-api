@@ -16,6 +16,7 @@ import no.ndla.articleapi.model.domain.{
   ArticleContent,
   ArticleTag,
   ArticleType,
+  Cachable,
   Language,
   SearchSettings,
   Sort,
@@ -28,7 +29,7 @@ import org.mockito.Mockito._
 import org.mockito.ArgumentMatchers._
 import scalikejdbc.DBSession
 
-import scala.util.Success
+import scala.util.{Success, Try}
 
 class ReadServiceTest extends UnitSuite with TestEnvironment {
 
@@ -69,10 +70,10 @@ class ReadServiceTest extends UnitSuite with TestEnvironment {
     when(articleRepository.withId(1)).thenReturn(Option(article))
     when(articleRepository.getExternalIdsFromId(any[Long])(any[DBSession])).thenReturn(List("54321"))
 
-    val expectedResult = converterService.toApiArticleV2(article.copy(content = Seq(expectedArticleContent1),
-                                                                      visualElement =
-                                                                        Seq(VisualElement(visualElementAfter, "nb"))),
-                                                         "nb")
+    val expectedResult: Try[Cachable[api.ArticleV2]] = Cachable.yes(
+      converterService.toApiArticleV2(article.copy(content = Seq(expectedArticleContent1),
+                                                   visualElement = Seq(VisualElement(visualElementAfter, "nb"))),
+                                      "nb"))
     readService.withIdV2(1, "nb") should equal(expectedResult)
   }
 
