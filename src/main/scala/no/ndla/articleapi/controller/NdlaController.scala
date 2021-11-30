@@ -55,6 +55,7 @@ abstract class NdlaController extends ScalatraServlet with NativeJsonSupport wit
   }
 
   error {
+    case a: AccessDeniedException if a.unauthorized   => Unauthorized(body = Error(Error.ACCESS_DENIED, a.getMessage))
     case a: AccessDeniedException                     => Forbidden(body = Error(Error.ACCESS_DENIED, a.getMessage))
     case v: ValidationException                       => BadRequest(body = ValidationError(messages = v.errors))
     case _: IndexNotFoundException                    => InternalServerError(body = Error.IndexMissingError)

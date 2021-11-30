@@ -8,6 +8,7 @@
 
 package no.ndla.articleapi.service
 
+import com.typesafe.scalalogging.LazyLogging
 import io.lemonlabs.uri.{Path, Url}
 import no.ndla.articleapi.ArticleApiProperties.externalApiUrls
 import no.ndla.articleapi.caching.MemoizeAutoRenew
@@ -19,6 +20,7 @@ import no.ndla.articleapi.model.domain._
 import no.ndla.articleapi.model.search.SearchResult
 import no.ndla.articleapi.repository.ArticleRepository
 import no.ndla.articleapi.service.search.{ArticleSearchService, SearchConverterService}
+import no.ndla.network.model.HttpRequestException
 import no.ndla.validation.EmbedTagRules.ResourceHtmlEmbedTag
 import no.ndla.validation.HtmlTagRules.{jsoupDocumentToString, stringToJsoupDocument}
 import no.ndla.validation.{ResourceType, TagAttributes}
@@ -36,7 +38,7 @@ trait ReadService {
     with SearchConverterService =>
   val readService: ReadService
 
-  class ReadService {
+  class ReadService extends LazyLogging {
 
     def getInternalIdByExternalId(externalId: Long): Option[api.ArticleIdV2] =
       articleRepository.getIdFromExternalId(externalId.toString).map(api.ArticleIdV2)
@@ -59,9 +61,18 @@ trait ReadService {
           Cachable.yes(converterService.toApiArticleV2(article, language, fallback))
         case Some(article) =>
           feideAccessToken match {
-            case None => Failure(AccessDeniedException("User is missing required role(s) to perform this operation"))
+            case None =>
+              Failure(
+                AccessDeniedException("User is missing required role(s) to perform this operation",
+                                      unauthorized = true))
             case Some(accessToken) =>
               feideApiClient.getUser(accessToken) match {
+                case Failure(ex: HttpRequestException) =>
+                  val code = ex.httpResponse.map(_.code)
+                  if (code.contains(403) || code.contains(401)) {
+                    Failure(AccessDeniedException(
+                      "User could not be authenticated with feide and such is missing required role(s) to perform this operation"))
+                  } else Failure(ex)
                 case Failure(ex) => Failure(ex)
                 case Success(feideUser) =>
                   article.availability match {
@@ -202,56 +213,58 @@ trait ReadService {
         shouldScroll: Boolean,
         feideAccessToken: Option[String]
     ): Try[Cachable[SearchResult[ArticleSummaryV2]]] = {
-      val availabilityTry = feideAccessToken match {
-        case None => Success(Seq.empty)
+      val availabilities = feideAccessToken match {
+        case None => Seq.empty
         case Some(token) =>
           feideApiClient
-            .getUser(token)
-            .map(user => user.availabilities)
+            .getUser(token) match {
+            case Success(user) => user.availabilities
+            case Failure(ex) =>
+              logger.warn("Something went wrong when fetching feideuser, assuming non-user", ex)
+              Seq.empty
+          }
       }
 
-      availabilityTry.flatMap(availability => {
-        val settings = query match {
-          case Some(q) =>
-            SearchSettings(
-              query = Some(q),
-              withIdIn = idList,
-              language = language,
-              license = license,
-              page = page,
-              pageSize = if (idList.isEmpty) pageSize else idList.size,
-              sort = sort.getOrElse(Sort.ByRelevanceDesc),
-              if (articleTypesFilter.isEmpty) ArticleType.all else articleTypesFilter,
-              fallback = fallback,
-              grepCodes = grepCodes,
-              shouldScroll = shouldScroll,
-              availability = availability
-            )
+      val settings = query match {
+        case Some(q) =>
+          SearchSettings(
+            query = Some(q),
+            withIdIn = idList,
+            language = language,
+            license = license,
+            page = page,
+            pageSize = if (idList.isEmpty) pageSize else idList.size,
+            sort = sort.getOrElse(Sort.ByRelevanceDesc),
+            if (articleTypesFilter.isEmpty) ArticleType.all else articleTypesFilter,
+            fallback = fallback,
+            grepCodes = grepCodes,
+            shouldScroll = shouldScroll,
+            availability = availabilities
+          )
 
-          case None =>
-            SearchSettings(
-              query = None,
-              withIdIn = idList,
-              language = language,
-              license = license,
-              page = page,
-              pageSize = if (idList.isEmpty) pageSize else idList.size,
-              sort = sort.getOrElse(Sort.ByIdAsc),
-              if (articleTypesFilter.isEmpty) ArticleType.all else articleTypesFilter,
-              fallback = fallback,
-              grepCodes = grepCodes,
-              shouldScroll = shouldScroll,
-              availability = availability
-            )
-        }
+        case None =>
+          SearchSettings(
+            query = None,
+            withIdIn = idList,
+            language = language,
+            license = license,
+            page = page,
+            pageSize = if (idList.isEmpty) pageSize else idList.size,
+            sort = sort.getOrElse(Sort.ByIdAsc),
+            if (articleTypesFilter.isEmpty) ArticleType.all else articleTypesFilter,
+            fallback = fallback,
+            grepCodes = grepCodes,
+            shouldScroll = shouldScroll,
+            availability = availabilities
+          )
+      }
 
-        val result = articleSearchService.matchingQuery(settings)
-        val isRestricted = !settings.availability.distinct.forall(_ == Availability.everyone)
-        if (isRestricted)
-          Cachable.no(result)
-        else
-          Cachable.yes(result)
-      })
+      val result = articleSearchService.matchingQuery(settings)
+      val isRestricted = !settings.availability.distinct.forall(_ == Availability.everyone)
+      if (isRestricted)
+        Cachable.no(result)
+      else
+        Cachable.yes(result)
     }
   }
 
