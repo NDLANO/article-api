@@ -69,7 +69,7 @@ lazy val article_api = (project in file("."))
       "ndla" %% "language" % "1.0.0",
       "ndla" %% "mapping" % "0.15",
       "ndla" %% "network" % "0.47",
-      "ndla" %% "validation" % "0.54",
+      "ndla" %% "validation" % "0.55",
       "ndla" %% "scalatestsuite" % "0.3" % "test",
       "joda-time" % "joda-time" % "2.10",
       "org.scalatra" %% "scalatra" % Scalatraversion,
